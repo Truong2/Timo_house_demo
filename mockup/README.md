@@ -4,7 +4,8 @@ Mockup click-through dựng từ bộ PNG `Phase_1_Core_Rental_GoLive/`, SRS v1.
 
 ## Chạy
 - **Cách 1:** mở `index.html` bằng Chrome/Edge (double-click) – chạy trực tiếp từ file://.
-- **Cách 2:** kéo thả thư mục `mockup/` lên Netlify Drop, hoặc `python -m http.server 8765` rồi mở `http://localhost:8765`.
+- **Cách 2:** ở thư mục gốc repo chạy `npm run dev` rồi mở `http://localhost:8765` (cần Node ≥ 20, không cần cài dependency).
+- **Deploy Netlify:** xem mục *Deploy lên Netlify* trong `README.md` ở gốc repo (`npm run build` → thư mục `dist/`; repo đã có `netlify.toml`).
 - Tài khoản demo (mật khẩu bất kỳ): `admin` (Quản trị viên), `ketoan` (Kế toán), `vanhanh` (Vận hành). Đổi vai trò nhanh ở menu góc phải.
 - Ngày hệ thống demo cố định **28/10/2024**, kỳ **Tháng 10/2024** để khớp số liệu mockup (đổi tại *Công cụ nâng cao*).
 
