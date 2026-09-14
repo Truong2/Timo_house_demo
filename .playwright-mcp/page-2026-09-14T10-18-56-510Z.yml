@@ -1,0 +1,333 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - complementary [ref=f1e4]:
+      - generic [ref=f1e10]:
+        - generic [ref=f1e11]: TimoHouse
+        - generic [ref=f1e12]: Quản lý nhà cho thuê
+      - navigation [ref=f1e13]:
+        - link "Tổng quan" [ref=f1e15] [cursor=pointer]:
+          - /url: "#/dashboard"
+        - button "Vận hành" [ref=f1e21] [cursor=pointer]
+        - button "Tài chính" [ref=f1e31] [cursor=pointer]
+        - button "Kinh doanh" [ref=f1e42] [cursor=pointer]
+        - button "Nhân sự" [ref=f1e52] [cursor=pointer]
+        - button "Đầu tư" [ref=f1e63] [cursor=pointer]
+        - button "Cấu hình" [ref=f1e73] [cursor=pointer]
+      - generic [ref=f1e82]:
+        - generic [ref=f1e83]: Phiên bản 1.0.0 · Mockup Phase 1
+        - generic [ref=f1e84]: TimoHouse © 2026
+    - generic [ref=f1e85]:
+      - banner [ref=f1e86]:
+        - generic [ref=f1e87]:
+          - link "Tổng quan" [ref=f1e88] [cursor=pointer]:
+            - /url: "#/dashboard"
+          - generic [ref=f1e92]: /
+          - generic [ref=f1e93]: Tổng quan
+        - generic [ref=f1e94]:
+          - textbox "Tìm kiếm phòng, khách thuê, hợp đồng..." [ref=f1e98]
+          - generic [ref=f1e99]: Ctrl
+          - generic [ref=f1e100]: K
+        - button "Hướng dẫn thao tác" [ref=f1e101] [cursor=pointer]
+        - button "Thông báo" [ref=f1e106] [cursor=pointer]:
+          - generic [ref=f1e110]: "41"
+        - generic [ref=f1e111]:
+          - generic [ref=f1e112]: Kỳ báo cáo
+          - combobox [ref=f1e113]:
+            - option "Tháng 11/2024"
+            - option "Tháng 10/2024" [selected]
+            - option "Tháng 9/2024"
+            - option "Tháng 8/2024"
+            - option "Tháng 7/2024"
+            - option "Tháng 6/2024"
+            - option "Tháng 5/2024"
+            - option "Tháng 4/2024"
+            - option "Tháng 3/2024"
+        - generic [ref=f1e114] [cursor=pointer]:
+          - generic [ref=f1e115]: TH
+          - generic [ref=f1e116]:
+            - generic [ref=f1e117]: Nguyễn Thị Hương
+            - generic [ref=f1e118]: Vận hành
+      - main [ref=f1e121]:
+        - generic [ref=f1e122]:
+          - generic [ref=f1e124]:
+            - heading "Tổng quan" [level=1] [ref=f1e125]
+            - generic [ref=f1e126]: Nắm bắt tình hình hoạt động, doanh thu và hiệu suất danh mục bất động sản cho thuê của TimoHouse.
+          - button "Xuất báo cáo" [ref=f1e128] [cursor=pointer]
+        - generic [ref=f1e133]:
+          - generic [ref=f1e134]:
+            - generic [ref=f1e135]: Kỳ báo cáo
+            - combobox [ref=f1e136]:
+              - option "Tháng 10/2024" [selected]
+              - option "Tháng 9/2024"
+              - option "Tháng 8/2024"
+              - option "Tháng 7/2024"
+              - option "Tháng 6/2024"
+              - option "Tháng 5/2024"
+              - option "Tháng 4/2024"
+              - option "Tháng 3/2024"
+          - generic [ref=f1e137]:
+            - generic [ref=f1e138]: Khu vực
+            - combobox [ref=f1e139]:
+              - option "Tất cả khu vực" [selected]
+              - option "Cầu Giấy"
+              - option "Đà Nẵng"
+          - generic [ref=f1e140]:
+            - generic [ref=f1e141]: Tòa nhà
+            - combobox [ref=f1e142]:
+              - option "Tất cả tòa nhà" [selected]
+              - option "Tòa Sunrise"
+          - generic [ref=f1e143]:
+            - generic [ref=f1e144]: Quản lý
+            - combobox [ref=f1e145]:
+              - option "Tất cả quản lý" [selected]
+              - option "Nguyễn Văn Minh"
+              - option "Nguyễn Thị Hương"
+              - option "Lê Quang Huy"
+              - option "Hoàng Nam Khánh"
+              - option "Trần Minh Đức"
+              - option "Lê Hoàng"
+              - option "Phạm Thu Trang"
+              - option "Ngô Thị Linh"
+              - option "Đỗ Văn Nam"
+              - option "Dương Thị My"
+              - option "Mai Thị Loan"
+          - button "Làm mới" [ref=f1e146] [cursor=pointer]
+        - generic [ref=f1e153]:
+          - generic [ref=f1e159]:
+            - generic [ref=f1e160]: Phòng ở được ngay
+            - generic [ref=f1e161]:
+              - text: "39"
+              - generic [ref=f1e162]: ↑ 12%
+            - generic [ref=f1e163]: Trên tổng 82 phòng
+          - generic [ref=f1e169]:
+            - generic [ref=f1e170]: Có thể trống cuối tháng
+            - generic [ref=f1e171]:
+              - text: "6"
+              - generic [ref=f1e172]: ↑ 8%
+            - generic [ref=f1e173]: HĐ hết hạn trong 35 ngày (BR-04)
+          - generic [ref=f1e180]:
+            - generic [ref=f1e181]: Đang giữ chỗ
+            - generic [ref=f1e182]:
+              - text: "6"
+              - generic [ref=f1e183]: ↑ 20%
+            - generic [ref=f1e184]: Đã cọc, chờ ký hợp đồng
+          - generic [ref=f1e190]:
+            - generic [ref=f1e191]: Tiến độ thu
+            - generic [ref=f1e192]:
+              - text: 56%
+              - generic [ref=f1e193]: ↑ 5%
+            - generic [ref=f1e194]: Đã thu 143M / 253M
+        - generic [ref=f1e197]:
+          - generic [ref=f1e198]:
+            - heading "Tổng quan tài chính" [level=3] [ref=f1e200]
+            - generic [ref=f1e204]: "Đơn vị: VND"
+          - generic [ref=f1e207]:
+            - generic [ref=f1e212]:
+              - generic [ref=f1e213]: Tiền nhà phải thu
+              - generic [ref=f1e214]:
+                - text: 253,308,500
+                - generic [ref=f1e215]: ↓ 6%
+              - generic [ref=f1e216]: 31 hóa đơn
+            - generic [ref=f1e222]:
+              - generic [ref=f1e223]: Đã thu
+              - generic [ref=f1e224]:
+                - text: 142,842,500
+                - generic [ref=f1e225]: ↑ 12%
+              - generic [ref=f1e226]: 56% kế hoạch
+            - generic [ref=f1e233]:
+              - generic [ref=f1e234]: Cọc mới
+              - generic [ref=f1e235]:
+                - text: 39,000,000
+                - generic [ref=f1e236]: ↑ 33%
+              - generic [ref=f1e237]: 3 giao dịch
+            - generic [ref=f1e243]:
+              - generic [ref=f1e244]: Tiền phá hợp đồng
+              - generic [ref=f1e245]:
+                - text: 6,100,000
+                - generic [ref=f1e246]: ↓ 50%
+              - generic [ref=f1e247]: 15 trường hợp
+        - generic [ref=f1e248]:
+          - generic [ref=f1e249]:
+            - generic [ref=f1e250]:
+              - heading "Trạng thái phòng theo tòa" [level=3] [ref=f1e252]
+              - generic [ref=f1e257]:
+                - generic [ref=f1e258]: Đang ở
+                - generic [ref=f1e260]: Trống
+                - generic [ref=f1e262]: Giữ chỗ
+                - generic [ref=f1e264]: Bảo trì
+                - generic [ref=f1e266]: Khác
+            - img [ref=f1e269]:
+              - generic [ref=f1e270]: "0"
+              - generic [ref=f1e271]: "20"
+              - generic [ref=f1e272]: "40"
+              - generic [ref=f1e273]: "60"
+              - generic [ref=f1e274]: "80"
+              - generic [ref=f1e275]: "100"
+              - generic [ref=f1e277]: "33"
+              - generic [ref=f1e279]: "39"
+              - generic [ref=f1e283]: Tòa Sunrise
+              - generic [ref=f1e284]: (82 phòng)
+          - generic [ref=f1e285]:
+            - generic [ref=f1e286]:
+              - heading "Tiến độ thu theo tòa" [level=3] [ref=f1e288]
+              - generic [ref=f1e292]:
+                - generic [ref=f1e293]:
+                  - generic [ref=f1e294]: Đã thu
+                  - generic [ref=f1e296]: Còn phải thu
+                  - generic [ref=f1e298]: Tỷ lệ thu
+                - combobox [ref=f1e300]:
+                  - option "Theo giá trị" [selected]
+                  - option "Theo tỷ lệ"
+            - img [ref=f1e302]:
+              - generic [ref=f1e303]: "0"
+              - generic [ref=f1e304]: 0%
+              - generic [ref=f1e305]: 60M
+              - generic [ref=f1e306]: 20%
+              - generic [ref=f1e307]: 120M
+              - generic [ref=f1e308]: 40%
+              - generic [ref=f1e309]: 180M
+              - generic [ref=f1e310]: 60%
+              - generic [ref=f1e311]: 240M
+              - generic [ref=f1e312]: 80%
+              - generic [ref=f1e313]: 300M
+              - generic [ref=f1e314]: 100%
+              - generic [ref=f1e317]: 143M
+              - generic [ref=f1e318]: Tòa Sunrise
+              - generic [ref=f1e320]: 56%
+        - generic [ref=f1e321]:
+          - heading "Top khoản quá hạn" [level=3] [ref=f1e324]
+          - table [ref=f1e329]:
+            - rowgroup [ref=f1e330]:
+              - row [ref=f1e331]:
+                - columnheader "#" [ref=f1e332]
+                - columnheader "Khách thuê" [ref=f1e333]
+                - columnheader "Phòng" [ref=f1e334]
+                - columnheader "Tòa nhà" [ref=f1e335]
+                - columnheader "Số tiền quá hạn" [ref=f1e336]
+                - columnheader "Số ngày quá hạn" [ref=f1e337]
+                - columnheader "Hạn thanh toán" [ref=f1e338]
+                - columnheader "Trạng thái" [ref=f1e339]
+                - columnheader "Thao tác" [ref=f1e340]
+            - rowgroup [ref=f1e341]:
+              - row [ref=f1e342]:
+                - cell "1" [ref=f1e343]
+                - cell "Bùi Thị Mai" [ref=f1e344]
+                - cell [ref=f1e345]:
+                  - link "A.04.07" [ref=f1e346] [cursor=pointer]:
+                    - /url: "#/rooms/roo_24higaprhp"
+                - cell "Tòa Sunrise" [ref=f1e347]
+                - cell "9,696,000" [ref=f1e348]
+                - cell "23 ngày" [ref=f1e349]
+                - cell "05/10/2024" [ref=f1e350]
+                - cell "Quá hạn cao" [ref=f1e351]
+                - cell [ref=f1e353]:
+                  - generic [ref=f1e354]:
+                    - button "Nhắc thu" [ref=f1e355] [cursor=pointer]
+                    - button "Thao tác khác" [ref=f1e359] [cursor=pointer]
+              - row [ref=f1e364]:
+                - cell "2" [ref=f1e365]
+                - cell "Lê Văn Trung" [ref=f1e366]
+                - cell [ref=f1e367]:
+                  - link "A.15.02" [ref=f1e368] [cursor=pointer]:
+                    - /url: "#/rooms/roo_77zcxc7rhp"
+                - cell "Tòa Sunrise" [ref=f1e369]
+                - cell "5,281,000" [ref=f1e370]
+                - cell "23 ngày" [ref=f1e371]
+                - cell "05/10/2024" [ref=f1e372]
+                - cell "Quá hạn cao" [ref=f1e373]
+                - cell [ref=f1e375]:
+                  - generic [ref=f1e376]:
+                    - button "Nhắc thu" [ref=f1e377] [cursor=pointer]
+                    - button "Thao tác khác" [ref=f1e381] [cursor=pointer]
+              - row [ref=f1e386]:
+                - cell "3" [ref=f1e387]
+                - cell "Lương Bảo Hoa" [ref=f1e388]
+                - cell [ref=f1e389]:
+                  - link "A.16.01" [ref=f1e390] [cursor=pointer]:
+                    - /url: "#/rooms/roo_mic0q02rhp"
+                - cell "Tòa Sunrise" [ref=f1e391]
+                - cell "4,743,500" [ref=f1e392]
+                - cell "23 ngày" [ref=f1e393]
+                - cell "05/10/2024" [ref=f1e394]
+                - cell "Quá hạn cao" [ref=f1e395]
+                - cell [ref=f1e397]:
+                  - generic [ref=f1e398]:
+                    - button "Nhắc thu" [ref=f1e399] [cursor=pointer]
+                    - button "Thao tác khác" [ref=f1e403] [cursor=pointer]
+              - row [ref=f1e408]:
+                - cell "4" [ref=f1e409]
+                - cell "Hoàng Thanh Giang" [ref=f1e410]
+                - cell [ref=f1e411]:
+                  - link "A.02.04" [ref=f1e412] [cursor=pointer]:
+                    - /url: "#/rooms/roo_dd8fbqirho"
+                - cell "Tòa Sunrise" [ref=f1e413]
+                - cell "3,643,500" [ref=f1e414]
+                - cell "21 ngày" [ref=f1e415]
+                - cell "07/10/2024" [ref=f1e416]
+                - cell "Quá hạn cao" [ref=f1e417]
+                - cell [ref=f1e419]:
+                  - generic [ref=f1e420]:
+                    - button "Nhắc thu" [ref=f1e421] [cursor=pointer]
+                    - button "Thao tác khác" [ref=f1e425] [cursor=pointer]
+              - row [ref=f1e430]:
+                - cell "5" [ref=f1e431]
+                - cell "Trần Minh Đức" [ref=f1e432]
+                - cell [ref=f1e433]:
+                  - link "A.12.03" [ref=f1e434] [cursor=pointer]:
+                    - /url: "#/rooms/roo_az8odpgrhp"
+                - cell "Tòa Sunrise" [ref=f1e435]
+                - cell "13,394,500" [ref=f1e436]
+                - cell "18 ngày" [ref=f1e437]
+                - cell "10/10/2024" [ref=f1e438]
+                - cell "Quá hạn cao" [ref=f1e439]
+                - cell [ref=f1e441]:
+                  - generic [ref=f1e442]:
+                    - button "Nhắc thu" [ref=f1e443] [cursor=pointer]
+                    - button "Thao tác khác" [ref=f1e447] [cursor=pointer]
+          - generic [ref=f1e452]:
+            - generic [ref=f1e453]: Hiển thị 1 - 5 của 19 khoản
+            - link "Xem tất cả →" [ref=f1e454] [cursor=pointer]:
+              - /url: "#/receivables?overdue=1"
+  - complementary "Hướng dẫn thao tác" [ref=f1e455]:
+    - generic [ref=f1e456]:
+      - heading "Hướng dẫn thao tác" [level=3] [ref=f1e457]
+      - generic [ref=f1e461]:
+        - button "Xem toàn bộ luồng" [ref=f1e462] [cursor=pointer]
+        - button "Đóng" [ref=f1e464] [cursor=pointer]
+    - generic [ref=f1e467]:
+      - generic [ref=f1e468]:
+        - generic [ref=f1e469]: 3/36 mốc
+        - generic [ref=f1e472]: 8%
+      - generic [ref=f1e473]:
+        - generic [ref=f1e474]:
+          - generic [ref=f1e475]: S0 · Khởi động
+          - generic [ref=f1e476]: 2/4
+        - generic [ref=f1e477]:
+          - generic [ref=f1e478]: S0.1 Đăng nhập hệ thống
+          - generic [ref=f1e483]: S0.2 Xem Tổng quan
+          - generic [ref=f1e488]: S0.3 Kiểm tra danh mục dịch vụ & bảng giá
+          - generic [ref=f1e492]: S0.4 Xem phòng sẵn sàng cho thuê
+        - generic [ref=f1e496]:
+          - generic [ref=f1e497]:
+            - generic [ref=f1e498]: S0.3 · Kiểm tra danh mục dịch vụ & bảng giá
+            - generic [ref=f1e499]: Đang thực hiện
+          - generic [ref=f1e500]:
+            - term [ref=f1e501]: Màn hình
+            - definition [ref=f1e502]:
+              - code [ref=f1e503]: "#/settings/catalog"
+            - term [ref=f1e504]: Vai trò
+            - definition [ref=f1e505]: Quản trị viên (đang là Vận hành)
+            - term [ref=f1e506]: Thao tác
+            - definition [ref=f1e507]: Mở Cấu hình → Danh mục dùng chung. Chọn 1 dịch vụ để xem giá, phạm vi và lịch sử áp dụng.
+            - term [ref=f1e508]: Kết quả phải thấy
+            - definition [ref=f1e509]: 7 dịch vụ (Điện 3.500/kWh, Nước 20.000/m³, Internet, Thang máy, Phí quản lý, Sạc xe điện, Gửi xe) đang hoạt động.
+            - term [ref=f1e510]: Mốc tiếp theo
+            - definition [ref=f1e511]: S0.4 Xem phòng sẵn sàng cho thuê
+          - generic [ref=f1e512]:
+            - button "Đi tới màn hình" [ref=f1e513] [cursor=pointer]
+            - button "Chuyển vai trò → Quản trị viên" [ref=f1e517] [cursor=pointer]
+      - group [ref=f1e522]:
+        - generic "Nguyên tắc hướng dẫn" [ref=f1e523] [cursor=pointer]
+    - generic [ref=f1e524]:
+      - generic [ref=f1e525]: 16 điều kiện Go-live Phase 1 · 10 luồng
+      - generic [ref=f1e526] [cursor=pointer]: Reset tiến độ
