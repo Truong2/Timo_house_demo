@@ -4,7 +4,9 @@
   const SCHEMA = 4;
   const COLLECTIONS = ['users', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
     // Phase 2
-    'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines'];
+    'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines',
+    // Phase 3
+    'assets', 'inventories', 'inventoryLines', 'employees', 'buildingAssignments', 'timesheets', 'payrolls', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions', 'bankAccounts', 'bankTransactions'];
   const S = { state: null, listeners: [], _t: null };
   S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
   S.migrate = (st) => {
@@ -21,6 +23,8 @@
     });
     // Phase 2: state hiện hành chưa có dữ liệu P2 → seed bổ sung trên dữ liệu hiện có (idempotent, không đụng record P1)
     if (TH.seed && TH.seed.phase2 && !st.meta.p2Seeded && st.buildings.length) { try { TH.seed.phase2(st); } catch (e) { console.warn('seed phase2', e); } }
+    // Phase 3: tương tự, seed bổ sung trên state hiện có (idempotent qua meta.p3Seeded)
+    if (TH.seed && TH.seed.phase3 && !st.meta.p3Seeded && st.buildings.length) { try { TH.seed.phase3(st); } catch (e) { console.warn('seed phase3', e); } }
     // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
     // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
     const leadGroups = {};

@@ -34,12 +34,21 @@
     'dataJobs.view': ['admin', 'accountant', 'ops'], 'dataJobs.manage': ['admin', 'accountant'],
     'maintenance.view': ['admin', 'accountant', 'ops', 'kythuat'], 'maintenance.manage': ['admin', 'ops', 'kythuat'], 'maintenance.assign': ['admin', 'ops'], 'maintenance.schedule': ['admin', 'ops', 'kythuat'],
     'reports.hub': ['admin', 'accountant'], 'period.close': ['admin', 'accountant'], 'zalo.log': ['admin'], 'refunds.requestEdit': ['admin', 'accountant'], 'expenses.depreciation': ['admin', 'accountant'],
+    // Phase 3 (H=hr, C=codong) – chỉ có hiệu lực khi TH.phase.on(3)
+    'assets.view': ['admin', 'accountant', 'ops', 'kythuat'], 'assets.manage': ['admin', 'ops'], 'inventory.view': ['admin', 'accountant', 'ops', 'kythuat'], 'inventory.manage': ['admin', 'accountant'], 'inventory.record': ['admin', 'accountant', 'ops'],
+    'hr.view': ['admin', 'hr'], 'hr.manage': ['admin', 'hr'], 'timesheet.view': ['admin', 'hr'], 'timesheet.manage': ['admin', 'hr'], 'payroll.view': ['admin', 'hr', 'accountant'], 'payroll.manage': ['admin', 'hr'], 'payroll.approve': ['admin', 'accountant'],
+    'projects.view': ['admin', 'accountant', 'codong'], 'projects.manage': ['admin'], 'shareholders.view': ['admin', 'accountant', 'codong'], 'shareholders.manage': ['admin', 'accountant'], 'contributions.record': ['admin', 'accountant'], 'distributions.manage': ['admin', 'accountant'], 'distributions.approve': ['admin'], 'roi.view': ['admin', 'accountant', 'codong'],
+    'bank.view': ['admin', 'accountant'], 'bank.manage': ['admin', 'accountant'],
   };
   // Vai trò P2 được đọc một số màn P1 (read-only)
-  const P2_READ = { sale: ['dashboard.view', 'rooms.view', 'tenants.view', 'contracts.view', 'buildings.view'], kythuat: ['dashboard.view', 'rooms.view', 'buildings.view', 'expenses.view'] };
+  const P2_READ = { sale: ['dashboard.view', 'rooms.view', 'tenants.view', 'contracts.view', 'buildings.view'], kythuat: ['dashboard.view', 'rooms.view', 'buildings.view', 'expenses.view'], hr: ['dashboard.view', 'buildings.view'], codong: ['dashboard.view'] };
   Object.entries(P2_READ).forEach(([role, perms]) => perms.forEach(k => { if (PERMS[k] && !PERMS[k].includes(role)) PERMS[k].push(role); }));
   const P1_ROLES = ['admin', 'accountant', 'ops'];
-  const roleAllowed = (role) => P1_ROLES.includes(role) || (['sale', 'kythuat'].includes(role) && TH.phase && TH.phase.on(2));
+  const PHASE_ROLES = { 2: ['sale', 'kythuat'], 3: ['hr', 'codong'] };
+  const phaseOfRole = (role) => Number(Object.keys(PHASE_ROLES).find(n => PHASE_ROLES[n].includes(role))) || 1;
+  const roleAllowed = (role) => P1_ROLES.includes(role) || (phaseOfRole(role) > 1 && TH.phase && TH.phase.on(phaseOfRole(role)));
+  const SCOPED_ROLES = ['ops', 'codong']; // vai trò bị giới hạn theo tòa (ops: tòa được giao; cổ đông: tòa của dự án đã góp – FR-SHR-03)
+  const isScoped = (role) => SCOPED_ROLES.includes(role);
   const COLLECTION_TYPE = {
     buildings: 'building', rooms: 'room', landlords: 'landlord', landlordContracts: 'landlordContract', landlordPayments: 'landlordPayment',
     tenants: 'tenant', contracts: 'contract', contractMembers: 'contractMember', contractServices: 'contractService', holds: 'hold', roomAssets: 'roomAsset',
@@ -48,23 +57,25 @@
     importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage',
     // Phase 2: record có buildingId/roomId → ops vẫn bị giới hạn theo tòa
     leads: 'lead', viewings: 'viewing', deals: 'deal', incidents: 'incident', incidentUpdates: 'incidentUpdate', maintenanceSchedules: 'maintenanceSchedule', openingBalances: 'openingBalance',
+    // Phase 3: tài sản/kiểm kê theo tòa; dự án/vốn góp/phân phối theo tòa của dự án
+    assets: 'asset', inventories: 'inventory', inventoryLines: 'inventoryLine', projects: 'project', capitalCommitments: 'capitalCommitment', contributions: 'contribution', distributions: 'distribution',
   };
   const SCOPED = new Set(Object.keys(COLLECTION_TYPE));
   const rawAll = c => TH.store.rawAll ? TH.store.rawAll(c) : (TH.store.state[c] || []);
   const rawGet = (c, id) => TH.store.rawGet ? TH.store.rawGet(c, id) : rawAll(c).find(x => x && x.id === id) || null;
   const uniq = rows => [...new Set(rows.filter(Boolean))];
 
-  A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật' };
-  A.P1_ROLES = P1_ROLES; A.roleAllowed = roleAllowed;
+  A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
+  A.P1_ROLES = P1_ROLES; A.roleAllowed = roleAllowed; A.PHASE_ROLES = PHASE_ROLES; A.phaseOfRole = phaseOfRole;
   A.PERMISSIONS = PERMS;
   A.session = () => TH.store.state.session;
   A.user = () => { const s = A.session(); return s ? rawGet('users', s.userId) : null; };
   A.role = () => { const s = A.session(); return s ? s.role : null; };
   A.allowedBuildingIds = () => {
-    if (A.role() !== 'ops') return null;
+    if (!isScoped(A.role())) return null;
     const u = A.user(); return new Set((u && Array.isArray(u.buildingIds) ? u.buildingIds : []).filter(Boolean));
   };
-  A.shouldScopeCollection = c => A.role() === 'ops' && SCOPED.has(c);
+  A.shouldScopeCollection = c => isScoped(A.role()) && SCOPED.has(c);
 
   function buildingIds(type, record, seen = new Set()) {
     if (!record) return [];
@@ -104,6 +115,8 @@
     if (type === 'lead') return record.buildingIds && record.buildingIds.length ? record.buildingIds : [];
     if (type === 'incidentUpdate') return buildingIds('incident', rawGet('incidents', record.incidentId), seen);
     if (type === 'openingBalance') return buildingIds('contract', rawGet('contracts', record.contractId), seen);
+    if (type === 'inventoryLine') return buildingIds('asset', rawGet('assets', record.assetId), seen);
+    if (type === 'capitalCommitment' || type === 'contribution' || type === 'distribution') return record.projectId ? buildingIds('project', rawGet('projects', record.projectId), seen) : uniq(rawAll('projects').map(p => p && p.buildingId));
     if (type === 'auditLog') {
       const cols = { building: 'buildings', room: 'rooms', tenant: 'tenants', contract: 'contracts', invoice: 'invoices', payment: 'payments', refund: 'refunds', expense: 'expenses', landlord: 'landlords', landlordContract: 'landlordContracts' };
       return buildingIds(record.entityType, rawGet(cols[record.entityType] || record.entityType, record.entityId), seen);
@@ -112,7 +125,7 @@
   }
 
   A.inScope = (type, record) => {
-    if (A.role() !== 'ops') return true;
+    if (!isScoped(A.role())) return true;
     const allowed = A.allowedBuildingIds(); if (!allowed || !allowed.size) return false;
     type = COLLECTION_TYPE[type] || type;
     if (typeof record === 'string') {
@@ -126,11 +139,11 @@
     if (type === 'expenseAllocation') { const expense = rawGet('expenses', record.expenseId); return !!expense && A.inScope('expense', expense); }
     return buildingIds(type, record).some(id => allowed.has(id));
   };
-  A.scope = (type, records) => A.role() === 'ops' ? (records || []).filter(r => A.inScope(type, r)) : (records || []);
+  A.scope = (type, records) => isScoped(A.role()) ? (records || []).filter(r => A.inScope(type, r)) : (records || []);
   A.can = (permission, context) => {
     const allow = PERMS[permission], role = A.role();
     if (!role || !allow || !allow.includes(role)) return false; // fail closed
-    if (role !== 'ops' || !context) return true;
+    if (!isScoped(role) || !context) return true;
     if (context.buildingId) return A.allowedBuildingIds().has(context.buildingId);
     if (context.type || context.record) return A.inScope(context.type, context.record || context.id);
     return true;
@@ -149,7 +162,7 @@
   };
   A.canRoute = (meta, params) => {
     if (!meta || !meta.permission || !A.can(meta.permission)) return false;
-    if (!meta.resource || A.role() !== 'ops') return true;
+    if (!meta.resource || !isScoped(A.role())) return true;
     const id = params && params[meta.resource.param || 'id'];
     return !!id && A.inScope(meta.resource.type, A.resource(meta.resource.type, id));
   };
@@ -187,6 +200,17 @@
     }
     if (path.startsWith('/zalo') && role === 'accountant') hide('new retry retry-msg start send test save toggle new-tpl edit-tpl export');
     if (path.startsWith('/settings/catalog') && !A.can('catalog.manage')) hide('apply add-svc save toggle del add-item edit-item rm-item');
+    // Phase 3: cổ đông read-only (FR-SHR-04 AC-2); Nhân sự không thấy nút ghi ngoài module HR
+    if (role === 'codong') root.querySelectorAll('[data-act]').forEach(el => { const a = el.dataset.act; if (!/^(view|tab|stab|page|psize|tsort|tsel|export|reset|f|back|home|more|cols|filter|roi|detail|open|sb-|guide|palette)/.test(a)) el.remove(); });
+    if (role === 'hr' && (path.startsWith('/buildings') || path.startsWith('/dashboard'))) hide('add import edit add-lc schedule actions upload rm-doc add-pay paid paid2 landlord-paid go-catalog add-room bulk import-rooms remind more');
+    if (path.startsWith('/hr') && !A.can('hr.manage')) hide('add edit assign assign-more status doc-add doc-rm profile fill confirm');
+    if (path.startsWith('/hr/payroll') && !A.can('payroll.approve')) hide('approve pay');
+    if (path.startsWith('/hr/payroll') && !A.can('payroll.manage')) hide('build submit');
+    if (path.startsWith('/assets') && !A.can('inventory.manage')) hide('start finish export-report');
+    if (path.startsWith('/assets') && !A.can('assets.manage')) hide('add edit dispose');
+    if (path.startsWith('/investment') && !A.can('shareholders.manage')) hide('add edit add-round record add-dist add-project');
+    if (path.startsWith('/investment') && !A.can('distributions.approve')) hide('approve');
+    if (path.startsWith('/finance/bank') && !A.can('bank.manage')) hide('import reconcile qr match ignore add-acc');
   };
   A.login = (username, password) => {
     username = String(username || '').trim().toLowerCase();
@@ -194,7 +218,7 @@
     if (!u || !password) throw new Error('Vui lòng kiểm tra lại email/tên đăng nhập và mật khẩu.');
     if (u.status === 'locked') throw new Error('Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.');
     if (u.status === 'expired') throw new Error('Tài khoản đã hết hiệu lực. Vui lòng liên hệ quản trị viên.');
-    if (!roleAllowed(u.role)) throw new Error('Vai trò ' + A.ROLE_LABEL[u.role] + ' thuộc Phase 2 – ' + (TH.phase && TH.phase.available(2) ? 'bật Phase 2 trong Công cụ nâng cao (Admin) để đăng nhập.' : 'chưa mở trong bản demo này.'));
+    if (!roleAllowed(u.role)) { const ph = phaseOfRole(u.role); throw new Error('Vai trò ' + A.ROLE_LABEL[u.role] + ' thuộc Phase ' + ph + ' – ' + (TH.phase && TH.phase.available(ph) ? 'bật Phase ' + ph + ' trong Công cụ nâng cao (Admin) để đăng nhập.' : 'chưa mở trong bản demo này.')); }
     TH.store.state.session = { userId: u.id, name: u.name, role: u.role, at: TH.f.nowISO() };
     u.lastLogin = TH.f.nowISO(); TH.store.saveNow(); TH.store.audit('login', 'user', u.id, u.name + ' đăng nhập');
     return u;
@@ -204,11 +228,11 @@
   A.switchRole = role => {
     const current = A.session();
     if (!current || (current.role !== 'admin' && !current.impersonator)) throw new Error('Chỉ Admin được dùng chế độ chuyển vai trò demo.');
-    if (!roleAllowed(role)) throw new Error(['sale', 'kythuat'].includes(role) ? 'Vai trò ' + A.ROLE_LABEL[role] + ' thuộc Phase 2 – bật Phase 2 trong Công cụ nâng cao.' : 'Vai trò không được hỗ trợ trong Phase 1.');
+    if (!roleAllowed(role)) { const ph = phaseOfRole(role); throw new Error(ph > 1 ? 'Vai trò ' + A.ROLE_LABEL[role] + ' thuộc Phase ' + ph + ' – bật Phase ' + ph + ' trong Công cụ nâng cao.' : 'Vai trò không được hỗ trợ trong Phase 1.'); }
     const origin = current.impersonator || { userId: current.userId, name: current.name, role: current.role };
     if (origin.role !== 'admin') throw new Error('Phiên gốc không có quyền Admin.');
     if (role === 'admin') return A.endImpersonation();
-    const demo = { accountant: 'ketoan', ops: 'vanhanh', sale: 'sale', kythuat: 'kythuat' }[role];
+    const demo = { accountant: 'ketoan', ops: 'vanhanh', sale: 'sale', kythuat: 'kythuat', hr: 'nhansu', codong: 'codong' }[role];
     const u = rawAll('users').find(x => x && x.username === demo && x.status === 'active') || rawAll('users').find(x => x && x.role === role && x.status === 'active');
     if (!u) throw new Error('Không có tài khoản demo hoạt động cho vai trò này.');
     TH.store.state.session = { userId: u.id, name: u.name, role: u.role, at: TH.f.nowISO(), impersonator: origin };

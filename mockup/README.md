@@ -1,12 +1,12 @@
-# TimoHouse – Mockup tương tác Phase 1 + Phase 2
+# TimoHouse – Mockup tương tác Phase 1 + Phase 2 + Phase 3
 
-Mockup click-through dựng từ bộ PNG `Phase_1_Core_Rental_GoLive/` (mặc định) và `Phase_2_Sales_Automation_Operations/` (bật bằng công tắc phase – xem mục *Phase 2* bên dưới), SRS v1.2 và UI Spec v1.5. Mọi nút trong PNG đều bấm được; dữ liệu thay đổi thật (localStorage) theo state machine của SRS §6.
+Mockup click-through dựng từ bộ PNG `Phase_1_Core_Rental_GoLive/` (mặc định), `Phase_2_Sales_Automation_Operations/` và `Phase_3_Enterprise_Investment/` (bật bằng công tắc phase – xem mục *Phase 2* / *Phase 3* bên dưới), SRS v1.2 và UI Spec v1.5. Mọi nút trong PNG đều bấm được; dữ liệu thay đổi thật (localStorage) theo state machine của SRS §6.
 
 ## Chạy
 - **Cách 1:** mở `index.html` bằng Chrome/Edge (double-click) – chạy trực tiếp từ file://.
 - **Cách 2:** ở thư mục gốc repo chạy `npm run dev` rồi mở `http://localhost:8765` (cần Node ≥ 20, không cần cài dependency).
 - **Deploy Netlify:** xem mục *Deploy lên Netlify* trong `README.md` ở gốc repo (`npm run build` → thư mục `dist/`; repo đã có `netlify.toml`).
-- Tài khoản demo (mật khẩu bất kỳ): `admin` (Quản trị viên), `ketoan` (Kế toán), `vanhanh` (Vận hành); khi bật Phase 2 thêm `sale` (Sale), `kythuat` (Kỹ thuật). Đổi vai trò nhanh ở menu góc phải.
+- Tài khoản demo (mật khẩu bất kỳ): `admin` (Quản trị viên), `ketoan` (Kế toán), `vanhanh` (Vận hành); khi bật Phase 2 thêm `sale` (Sale), `kythuat` (Kỹ thuật); khi bật Phase 3 thêm `nhansu` (Nhân sự), `codong` (Cổ đông – read-only). Đổi vai trò nhanh ở menu góc phải.
 - Ngày hệ thống demo cố định **28/10/2026**, kỳ **Tháng 10/2026** để khớp số liệu mockup (đổi tại *Công cụ nâng cao*).
 
 ## Kịch bản demo 16 điều kiện Go-live
@@ -34,6 +34,7 @@ Các nút trong panel (Đi tới màn hình, Chuyển vai trò, Xem/Điền dữ
 ## Quy ước & mặc định nghiệp vụ (OI còn mở)
 - Mã phòng chuẩn hóa `A.12.03`; mã đợt Zalo `ZL-202610-xxx`.
 - Nút thao tác trên dòng bảng ở dạng icon; rê chuột hoặc focus (Tab) vào icon để xem tên thao tác. Nút ⋮ mở menu thao tác đầy đủ.
+- **Bố cục màn danh sách** (P1/P2/P3): bảng, kanban, lịch, lưới chấm công luôn **full-width**; các card phụ (biểu đồ, lịch sắp tới, hướng dẫn, quy tắc…) nằm trong dải **Thông tin liên quan** phía trên bảng – bấm thẻ để mở/đóng nội dung. Chỉ màn chi tiết (thông tin + tiến trình) và wizard (form + tóm tắt/xem trước) dùng bố cục 2 cột.
 - **Kỳ báo cáo**: chọn kỳ ở topbar hoặc trong bộ lọc trang đều đồng bộ với nhau; "Tất cả kỳ" (từ chuông việc cần xử lý) bỏ lọc kỳ cho trang đó.
 - **Kết thúc HĐ**: mặc định phòng → Chờ dọn (BR-02); bỏ tick "Chuyển phòng sang Chờ dọn" thì phòng → Sẵn sàng ngay. Phòng không bao giờ kẹt ở Đang thuê khi không còn HĐ hiệu lực.
 - **Zalo**: rule 3 ngày (không gửi lại khách vừa nhận tin) áp dụng cả ở nút Gửi nhắc nhanh – có ô "Vẫn gửi" để ghi đè khi demo; công nợ được re-check lại đúng lúc bấm Xác nhận gửi; rule đang tắt trong Cấu hình Zalo sẽ chặn tạo đợt gửi cùng sự kiện (FR-ZAL-01). Các đợt gửi lịch sử (seed) chỉ có số liệu tổng, không có chi tiết tin.
@@ -50,7 +51,7 @@ Các nút trong panel (Đi tới màn hình, Chuyển vai trò, Xem/Điền dữ
 Bộ 18 màn PNG `Phase_2_Sales_Automation_Operations/` được dựng vào cùng mockup, gắn nhãn **P2** (chip cạnh tiêu đề trang, badge trên sidebar/nút/tab/menu, badge luồng trong panel hướng dẫn). Kế hoạch chi tiết: `Timehouse-Mockup-Plan-Phase2-v1.0.md`.
 
 ### Bật / tắt phase
-- **Công cụ nâng cao** (cuối sidebar, Admin) → khối *Phạm vi demo*: Phase 1 luôn bật; **Phase 2** bật/tắt; Phase 3 có công tắc nhưng khóa (chưa có mockup).
+- **Công cụ nâng cao** (cuối sidebar, Admin) → khối *Phạm vi demo*: Phase 1 luôn bật; **Phase 2** và **Phase 3** bật/tắt độc lập.
 - **Mặc định lần đầu mở: chỉ Phase 1.** Trạng thái phase lưu riêng `localStorage['timehouse-phase-v1']`, không nằm trong state nghiệp vụ → *Đặt lại dữ liệu demo / Xóa trắng / Nhập state JSON* **không** đổi phase; đổi phase không xóa dữ liệu.
 - Tắt P2: mọi màn/nút hành xử y hệt bản Phase 1 (mục P2 mờ → trang coming-soon, nút P2 disabled). Đang đứng ở route P2 khi tắt → trang tự thành coming-soon (giữ URL); đang là Sale/Kỹ thuật → tự về Admin.
 - Bật P2: mở thêm 2 vai trò **`sale`** (Nguyễn Thị Hương – Sale) và **`kythuat`** (Trần Minh Đức – Kỹ thuật) – đăng nhập hoặc *Chuyển vai trò* ở menu góc phải.
@@ -97,5 +98,43 @@ F11 CRM: lead → gọi → lịch xem → giữ chỗ → chốt thuê → HĐ 
 - File mẫu mới: `assets/samples/mau-bang-ke-thu-tien.csv` (20 dòng: khớp mã HĐ, khớp khách + số tiền, không ghép, trùng, hóa đơn nháp), `mau-so-du-dau-ky.csv` (13 dòng, 2 chênh lệch, 1 HĐ không tồn tại), `mau-hop-dong-ocr.txt`. Trong app các file mẫu được sinh từ dữ liệu hiện có (nút *Dùng file mẫu*).
 - State `schema = 3`: state cũ (v2) được migrate và seed bổ sung dữ liệu P2 trên dữ liệu hiện có (idempotent `meta.p2Seeded`), không mất dữ liệu người dùng.
 
+## Phase 3 – Enterprise & Investment (công tắc phase)
+
+Bộ 4 màn PNG `Phase_3_Enterprise_Investment/` + các màn **tự thiết kế** cho mọi mục sidebar P3 được dựng vào cùng mockup, gắn nhãn **P3** (chip cạnh tiêu đề, badge sidebar, badge luồng). Kế hoạch chi tiết: `Timehouse-Mockup-Plan-Phase3-v1.0.md`.
+
+### Bật / tắt
+- **Công cụ nâng cao** → *Phạm vi demo* → tick **Phase 3** (độc lập với P2; bật cả hai để dùng đủ liên kết chéo: kiểm kê → tạo sự cố, KPI nhân viên từ CRM, đối soát ngân hàng dùng quy tắc ghép bảng kê).
+- Bật P3 mở thêm 2 vai trò: **`nhansu`** (Ngô Thị Quỳnh – Nhân sự: hồ sơ/chấm công/lương, không có quyền tài chính – FR-HR-01) và **`codong`** (Trần Minh Đức – Cổ đông: read-only, chỉ thấy tòa/dự án đã góp vốn – FR-SHR-03/04). Tắt P3 khi đang là 2 vai trò này → tự về Admin; route P3 → coming-soon (giữ URL).
+- Console: `__timehouseDemo.setPhase(3, true|false)`, `__timehouseDemo.runAllP3()`.
+
+### Màn Phase 3 → route
+| Nhóm | PNG / Tự thiết kế | Route |
+|---|---|---|
+| Tài sản | 06/03 Kiểm kê tài sản | `#/assets/inventory` · biên bản `#/assets/inventory/:id` (cũng từ Bảo trì → tab *Kiểm kê hàng tháng*) |
+| Tài sản | – Sổ tài sản (tự thiết kế: danh mục, QR, nguyên giá, khấu hao) | `#/assets` · tab *Tài sản* ở chi tiết tòa · link mã TS ở tab Tài sản phòng |
+| Nhân sự | 07/01 Quản lý nhân viên | `#/hr` |
+| Nhân sự | 07/02 Chi tiết nhân viên (Tổng quan / Phân công / Hồ sơ / Lịch sử) | `#/hr/:id` |
+| Nhân sự | – Chấm công (tự thiết kế, mô phỏng – ngoài SRS §2.2) | `#/hr/timesheet` |
+| Nhân sự | – Lương thưởng (tự thiết kế, FR-HR-02/BR-14, OI-15) | `#/hr/payroll` |
+| Đầu tư | 09/01 Cổ đông, vốn góp & phân phối (tab Cổ đông · Đóng góp theo kỳ · Phân phối lợi nhuận) | `#/investment/shareholders` (sidebar *Hiệu quả đầu tư* như PNG) |
+| Đầu tư | – Dự án đầu tư (tự thiết kế) | `#/investment/projects` |
+| Đầu tư | – Hiệu quả đầu tư theo tòa (tự thiết kế; Report Hub `roi`) | `#/investment/roi` |
+| Tài chính | – Ngân hàng & đối soát (tự thiết kế, mô phỏng – scope §4.5) | `#/finance/bank` |
+
+Report Hub: 4 báo cáo nhóm *Đầu tư* (`roi`, `shareholder`, `asset-value`, `project-progress`) mở trang P3 tương ứng khi P3 bật.
+
+### Kịch bản demo Phase 3 (panel Hướng dẫn, +4 luồng / 15 mốc khi bật P3)
+F16 Kiểm kê: bắt đầu đợt kỳ tới → cập nhật tình trạng 1 tài sản (ảnh, ghi chú) → đánh dấu hàng loạt → hoàn tất & xuất biên bản · F17 Nhân sự: thêm NV (thử việc) → phân công tòa chính → xác nhận bảng công → tính lương → gửi duyệt → Kế toán duyệt & ghi chi (chi phí nhóm Lương theo tòa) · F18 Cổ đông: thêm cổ đông với tỷ lệ nhập tay → tạo đợt góp vốn (nghĩa vụ theo tỷ lệ) → ghi nhận góp → lập bảng phân phối → Admin duyệt → ghi đã chi → xem với vai trò Cổ đông · F19 Ngân hàng: nhập sao kê mẫu → đối soát tự động (cần P2) → khớp tay 1 giao dịch. `runAllP3()` chạy kỹ thuật toàn bộ.
+
+### Quy ước & giả định Phase 3 (ghi rõ để BA xác nhận)
+- Ngày demo 2026 (PNG ghi 2024): `BB-KK-2026-10`, `BL-2026-10`, `PP-2026-Q3`; mã NV chuẩn `NV001` (PNG chi tiết ghi `NV-2024-012` → `NV002`). Tên người trùng nhau chéo module (Trần Minh Đức vừa là Kỹ thuật P2, NV001, cổ đông #1) giữ nguyên theo PNG; hồ sơ NV/cổ đông chỉ link tài khoản khi trùng tên user hiện có.
+- Sổ tài sản 248 = 10 hero PNG + tài sản trong phòng P1 (`roomAssets` được promote, đồng bộ tình trạng hai chiều) + tài sản khu vực chung. Kiểm kê 10/2026 seed **Đang kiểm kê** 198/248 (32 cần xử lý, 18 hư hỏng) để demo F16; 09/2026 đã hoàn thành. Kết quả kiểm kê **không** tạo chi phí/giảm tài sản (AC-FR-MNT-02-2); tài sản cần xử lý → *Tạo sự cố* (P2).
+- Nhân sự 28 (24 làm việc + 5 thử việc tính vào "Đang làm việc", 3 tạm nghỉ, 6 QLKV). Trạng thái SRS: Thử việc / Đang làm / Nghỉ việc; *Tạm nghỉ* theo PNG (ngoài SRS). KPI cá nhân tính thật từ CRM P2 theo tài khoản (số PNG chỉ là ví dụ); *Tỷ lệ hài lòng 92%* là số mẫu.
+- Lương (BR-14, OI-15 TBD): lương cứng × công/công chuẩn + PC chức danh + PC số nhà 500.000/tòa (vận hành) + hoa hồng Sale đã chi trong kỳ − 10,5% khấu trừ mẫu. `BL-2026-09` seed *Đã duyệt* (kỳ 09 đã khóa – không ghi chi); chi lương tạo chi phí nhóm *Lương* theo tòa, bị chặn khi kỳ khóa (FR-FIN-08).
+- Cổ đông: tỷ lệ nhập tay theo dự án (Σ ≤ 100%/dự án, FR-SHR-02 AC-1); "Tỷ lệ góp vốn" = Σ(tỷ lệ × vốn dự án)/tổng vốn = 25/20/15/10/10/8/7/5 như PNG; "Còn thiếu" = nghĩa vụ đến hạn/sắp đến hạn (≤7 ngày) chưa góp (Trang 400tr, Mai 140tr); "Tổng vốn góp" = vốn điều lệ 12 tỷ (thực góp 11,46 tỷ). Nghĩa vụ định kỳ sinh theo kỳ trả chủ nhà của tòa (BR-15). Phân phối: dòng làm tròn dồn vào cổ đông lớn nhất; *Đã chi* chỉ đánh dấu, không tạo chi phí (UC-08, OI-17).
+- ROI theo tòa: vốn = vốn điều lệ dự án + nguyên giá tài sản; LN = thu thật − chi phí − khấu hao tháng; ROI năm hóa – tạm tính (OI-10/12/13/17).
+- Ngân hàng, chấm công, QR nằm ngoài SRS v1.2 §2.2 – mô phỏng theo scope §4; đối soát tái dùng 4 quy tắc ghép bảng kê P2 (idempotent theo mã giao dịch).
+- Không đổi `schema`/`KEY`: state cũ được seed bổ sung P3 (idempotent `meta.p3Seeded`), không mất dữ liệu người dùng.
+
 ## Cấu trúc
-`index.html` · `css/` (tokens, base, components, pages) · `js/core/` (format, store, phase, seed, seed-p2, selectors, selectors-p2, auth, actions, import, actions-p2, router, guide, guide-p2) · `js/ui/` (icons, components, table, chart, components-p2, layout, forms) · `js/pages/` (1 file / nhóm màn; P2: crm, ocr, finance2, maintenance, reportHub, jobs, zalo2) · `assets/samples/` (CSV mẫu import).
+`index.html` · `css/` (tokens, base, components, pages) · `js/core/` (format, store, phase, seed, seed-p2, seed-p3, selectors, selectors-p2, selectors-p3, auth, actions, import, actions-p2, actions-p3, router, guide, guide-p2, guide-p3) · `js/ui/` (icons, components, table, chart, components-p2, components-p3, layout, forms) · `js/pages/` (1 file / nhóm màn; P2: crm, ocr, finance2, maintenance, reportHub, jobs, zalo2; P3: assets, hr, investment, bank) · `assets/samples/` (CSV mẫu import).

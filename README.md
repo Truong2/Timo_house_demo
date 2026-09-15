@@ -14,7 +14,7 @@ Xem `00_SCOPE_3_PHASE.md` để biết scope chi tiết. `INDEX.tsv` liệt kê 
 
 ## Mockup tương tác & Deploy lên Netlify
 
-Mockup click-through nằm trong `mockup/` (static SPA vanilla JS, không bundler). Xem `mockup/README.md` để biết tài khoản demo và kịch bản.
+Mockup click-through nằm trong `mockup/` (static SPA vanilla JS, không bundler) – dựng đủ 3 phase, bật/tắt Phase 2 và Phase 3 bằng công tắc trong *Công cụ nâng cao*. Xem `mockup/README.md` để biết tài khoản demo và kịch bản; kế hoạch từng phase: `Timehouse-Mockup-Plan-Phase1-v1.0.md`, `-Phase2-`, `-Phase3-`.
 
 ### Chạy local
 ```bash

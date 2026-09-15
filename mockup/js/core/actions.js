@@ -350,7 +350,7 @@
   /* ---------- Tài khoản ---------- */
   X.saveUser = (d) => {
     Au.need('manageUsers'); req(d.name, 'Họ tên'); req(d.email, 'Email'); req(d.phone, 'Số điện thoại'); req(d.role, 'Vai trò'); req(d.effectiveDate, 'Ngày hiệu lực');
-    if (d.role === 'tech') d.role = 'kythuat'; if (['sale', 'kythuat'].includes(d.role) && !d.id && !(TH.phase && TH.phase.on(2))) err('Vai trò Sale/Kỹ thuật thuộc Phase 2 – bật Phase 2 trong Công cụ nâng cao để tạo');
+    if (d.role === 'tech') d.role = 'kythuat'; { const ph = TH.phase ? TH.phase.ofRole(d.role) : 1; if (ph > 1 && !d.id && !TH.phase.on(ph)) err('Vai trò ' + Au.ROLE_LABEL[d.role] + ' thuộc Phase ' + ph + ' – bật Phase ' + ph + ' trong Công cụ nâng cao để tạo'); }
     if (St.one('users', u => u.email.toLowerCase() === d.email.toLowerCase() && u.id !== d.id)) err('Email đã tồn tại');
     d.buildingIds = d.role === 'ops' && Array.isArray(d.buildingIds) ? [...new Set(d.buildingIds)] : [];
     let u; if (d.id) u = St.update('users', d.id, d); else u = St.add('users', Object.assign({ username: d.email.split('@')[0].toLowerCase(), status: 'active', lastLogin: null, note: '', scope: d.scope || 'Toàn hệ thống' }, d));

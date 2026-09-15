@@ -11,7 +11,7 @@
   const METHODS = ['Chuyển khoản', 'Tiền mặt', 'Chuyển khoản', 'Chuyển khoản', 'Ví điện tử'];
 
   const seed = {};
-  seed.catalogOnly = (st) => { addUsers(st); addCatalog(st); addZaloConfig(st); if (seed.catalogP2) seed.catalogP2(st); st.meta.seededAt = F.nowISO(); };
+  seed.catalogOnly = (st) => { addUsers(st); addCatalog(st); addZaloConfig(st); if (seed.catalogP2) seed.catalogP2(st); if (seed.catalogP3) seed.catalogP3(st); st.meta.seededAt = F.nowISO(); };
   seed.helpers = { rng, HO, DEM, TEN, JOBS, SEG, ROOM_TYPES, METHODS };
 
   seed.run = (st) => {
@@ -318,6 +318,7 @@
     st.meta.seededAt = F.nowISO();
     st.meta.counters = { tenant: tCounter, contract: cCounter };
     if (seed.phase2) seed.phase2(st); // Phase 2: luôn seed, ẩn khi P2 tắt
+    if (seed.phase3) seed.phase3(st); // Phase 3: luôn seed, ẩn khi P3 tắt
     return st;
   };
 

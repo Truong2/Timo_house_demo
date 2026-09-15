@@ -2,7 +2,7 @@
 (function (TH) {
   const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, X = TH.actions, esc = F.esc;
   const G = { KEY: 'timehouse-guide-p1-v1', openState: false };
-  const ROLE = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', any: 'Bất kỳ' };
+  const ROLE = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông', any: 'Bất kỳ' };
   /* ---- ngữ cảnh: record do người demo tạo ---- */
   const ctx = () => {
     const pin = (St.state.guide && St.state.guide.pin) || {};
@@ -125,7 +125,7 @@
       } else html += `<div class="ms">${U.note('ok', 'Luồng ' + focusFlow.key + ' hoàn thành', cur ? 'Mốc tiếp theo: ' + cur.ms.id + ' ' + esc(cur.ms.title) + ' (' + cur.flow.key + ')' : 'Toàn bộ 16 điều kiện Go-live đã được thực hiện 🎉')}${cur ? `<div class="gacts">${U.btn({ label: 'Sang luồng ' + cur.flow.key, icon: 'arrow-right', cls: 'btn-primary', size: 'btn-sm', act: 'g-pick', attrs: { 'data-k': cur.flow.key } })}</div>` : ''}</div>`;
       html += `</div><details><summary>Nguyên tắc hướng dẫn</summary><div class="xs muted mt8">Các nút trong panel không tạo record, không submit. Record chỉ được tạo qua nút Lưu/Xác nhận của màn nghiệp vụ. Mốc được đánh giá lại sau mỗi render/save/action/route; dữ liệu do bạn tạo (không phải seed) mới được tính. Chạy tự động chỉ có trong Công cụ nâng cao (sidebar).</div></details>`;
     }
-    body.innerHTML = html; const gf = document.getElementById('guide-foot'); if (gf) gf.textContent = '16 điều kiện Go-live P1 · 10 luồng' + (TH.phase && TH.phase.on(2) ? ' · + ' + G.flows().filter(f => f.phase === 2).length + ' luồng Phase 2' : '');
+    body.innerHTML = html; const gf = document.getElementById('guide-foot'); if (gf) gf.textContent = '16 điều kiện Go-live P1 · 10 luồng' + (TH.phase && TH.phase.on(2) ? ' · + ' + G.flows().filter(f => f.phase === 2).length + ' luồng Phase 2' : '') + (TH.phase && TH.phase.on(3) ? ' · + ' + G.flows().filter(f => f.phase === 3).length + ' luồng Phase 3' : '');
   };
   /* ---- dữ liệu mẫu ---- */
   G.openSample = (id) => { const m = G.find(id); if (!m || !m.sample) return; const s = m.sample; U.modal({ title: 'Dữ liệu mẫu – ' + m.id, sub: s.kind === 'form' ? 'Giá trị form (chỉ điền khi form đang mở; không submit)' : 'Metadata file mẫu (không đưa vào hệ thống khi xem)', body: s.kind === 'form' ? `<div class="sample-meta"><dl>${Object.entries(s.values).map(([k, val]) => `<dt>${esc(k)}</dt><dd>${esc(typeof val === 'number' ? F.vnd(val) : val)}</dd>`).join('')}</dl></div>${s.open ? U.note('info', '', esc(s.open)) : ''}` : `<div class="sample-meta"><dl><dt>Mục đích</dt><dd>${esc(s.purpose)}</dd><dt>Tên file</dt><dd class="mono">${esc(s.name)}</dd><dt>Số dòng</dt><dd>${s.rows}</dd><dt>Cột</dt><dd>${esc(s.cols)}</dd><dt>Quan hệ mã</dt><dd>${esc(s.relations || '-')}</dd><dt>Lỗi cố ý</dt><dd>${esc(s.errors)}</dd></dl></div>` }); };
