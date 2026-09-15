@@ -1,7 +1,7 @@
 # Plan: Mockup tương tác TimoHouse – Phase 2 Sales, Automation & Operations
 
 > Đầu vào: bộ PNG `Phase_2_Sales_Automation_Operations/` (18 màn), `Timehouse-SRS-v1.2.docx`, `Timehouse-UI-Mockup-Spec-v1.5.md`, `00_SCOPE_3_PHASE.md` §3, mockup Phase 1 đang chạy trong `mockup/`.
-> Ngày lập: 14/09/2026 · Trạng thái: Draft chờ duyệt
+> Ngày lập: 14/09/2026 · Trạng thái: **Đã thực hiện 15/09/2026** (M0–M9) – xem `mockup/README.md` mục *Phase 2*
 > Đầu ra: cùng thư mục `mockup/` (mở `index.html` hoặc Netlify), bổ sung toàn bộ màn Phase 2 gắn nhãn **P2**, có **công tắc bật/tắt phase** trong Công cụ nâng cao; tắt P2 thì mockup hành xử y hệt bản Phase 1 hiện tại.
 
 ---

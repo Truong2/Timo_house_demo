@@ -16,7 +16,7 @@
     lcontract: { active: ['Đang hiệu lực', 'green'], expiring: ['Sắp hết hạn', 'amber'], ended: ['Đã kết thúc', 'gray'] },
     lpay: { paid: ['Đã thanh toán', 'green'], pending: ['Chờ thanh toán', 'amber'], upcoming: ['Chưa đến hạn', 'gray'] },
     user: { active: ['Đang hoạt động', 'green'], locked: ['Tài khoản bị khóa', 'red'], expired: ['Hết hiệu lực', 'amber'] },
-    role: { admin: ['Quản trị viên', 'blue'], accountant: ['Kế toán', 'amber'], ops: ['Vận hành', 'teal'], sale: ['Sale', 'purple'], tech: ['Kỹ thuật', 'orange'] },
+    role: { admin: ['Quản trị viên', 'blue'], accountant: ['Kế toán', 'amber'], ops: ['Vận hành', 'teal'], sale: ['Sale', 'purple'], kythuat: ['Kỹ thuật', 'orange'], tech: ['Kỹ thuật', 'orange'] },
     zmsg: { queued: ['Chờ xử lý', 'amber'], sending: ['Đang gửi', 'blue'], accepted: ['Đã tiếp nhận', 'teal'], delivered: ['Đã giao', 'green'], failed: ['Thất bại', 'red'], unknown: ['Chưa rõ kết quả', 'purple'], skipped: ['Bỏ qua', 'gray'] },
     zbatch: { draft: ['Nháp', 'gray'], scheduled: ['Đã hẹn giờ', 'blue'], sending: ['Đang gửi', 'blue'], done: ['Thành công', 'green'], partial: ['Một phần', 'amber'], failed: ['Thất bại', 'red'] },
     payment: { recorded: ['Đã ghi nhận', 'green'], reversed: ['Đã hoàn tác', 'red'], adjusted: ['Đã điều chỉnh', 'purple'] },

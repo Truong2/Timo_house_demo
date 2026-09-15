@@ -11,7 +11,8 @@
   const METHODS = ['Chuyển khoản', 'Tiền mặt', 'Chuyển khoản', 'Chuyển khoản', 'Ví điện tử'];
 
   const seed = {};
-  seed.catalogOnly = (st) => { addUsers(st); addCatalog(st); addZaloConfig(st); st.meta.seededAt = F.nowISO(); };
+  seed.catalogOnly = (st) => { addUsers(st); addCatalog(st); addZaloConfig(st); if (seed.catalogP2) seed.catalogP2(st); st.meta.seededAt = F.nowISO(); };
+  seed.helpers = { rng, HO, DEM, TEN, JOBS, SEG, ROOM_TYPES, METHODS };
 
   seed.run = (st) => {
     const r = rng(20241028);
@@ -315,6 +316,7 @@
     mk('importJobs', { type: 'tenant', fileName: 'khach_thue_thang10.csv', rows: 94, valid: 86, warn: 6, error: 2, status: 'done', createdBy: uid('admin'), createdAt: '2024-10-15T10:00', checksum: 'seed1' });
     st.meta.seededAt = F.nowISO();
     st.meta.counters = { tenant: tCounter, contract: cCounter };
+    if (seed.phase2) seed.phase2(st); // Phase 2: luôn seed, ẩn khi P2 tắt
     return st;
   };
 
@@ -331,20 +333,20 @@
       ['lehoang', 'Lê Hoàng', 'hoangl@timohouse.vn', '0907 890 123', 'ops', 'Tòa Moonlight', 'active', '2024-10-19T17:30'],
       ['ptlan', 'Phạm Thị Lan', 'lanpt@timohouse.vn', '0908 901 234', 'accountant', 'Tài chính', 'active', '2024-10-22T10:05'],
       ['vtmai', 'Vũ Thị Mai', 'maivt@timohouse.vn', '0909 012 345', 'sale', 'Khu vực TP.HCM', 'expired', '2024-08-30T09:00'],
-      ['nvan', 'Ngô Văn An', 'annv@timohouse.vn', '0910 123 456', 'tech', 'Tòa Riverside', 'locked', '2024-09-12T13:20'],
+      ['nvan', 'Ngô Văn An', 'annv@timohouse.vn', '0910 123 456', 'kythuat', 'Tòa Riverside', 'locked', '2024-09-12T13:20'],
       ['ttmai', 'Trần Thị Mai', 'maitt@timohouse.vn', '0911 234 567', 'sale', 'Khu vực Hà Nội', 'active', '2024-10-21T15:00'],
       ['pttrang', 'Phạm Thu Trang', 'trangpt@timohouse.vn', '0912 345 678', 'ops', 'Tòa Sunrise', 'active', '2024-10-22T12:00'],
       ['dqbao', 'Đặng Quốc Bảo', 'baodq@timohouse.vn', '0913 456 789', 'sale', 'Khu vực TP.HCM', 'active', '2024-10-18T09:40'],
       ['ntlinh', 'Ngô Thị Linh', 'linhnt@timohouse.vn', '0914 567 890', 'ops', 'Tòa Central', 'locked', '2024-07-01T09:00'],
-      ['lvthanh', 'Lê Văn Thành', 'thanhlv@timohouse.vn', '0915 678 901', 'tech', 'Tòa Sunrise', 'active', '2024-10-22T06:50'],
+      ['lvthanh', 'Lê Văn Thành', 'thanhlv@timohouse.vn', '0915 678 901', 'kythuat', 'Tòa Sunrise', 'active', '2024-10-22T06:50'],
       ['btha', 'Bùi Thị Hà', 'habt@timohouse.vn', '0916 789 012', 'accountant', 'Tài chính', 'active', '2024-10-21T09:00'],
       ['dvnam', 'Đỗ Văn Nam', 'namdv@timohouse.vn', '0917 890 123', 'ops', 'Tòa Riverside', 'active', '2024-10-22T08:00'],
       ['hthoa', 'Hồ Thị Hoa', 'hoaht@timohouse.vn', '0918 901 234', 'sale', 'Khu vực TP.HCM', 'expired', '2024-06-30T09:00'],
-      ['pvquan', 'Phan Văn Quân', 'quanpv@timohouse.vn', '0919 012 345', 'tech', 'Tòa Moonlight', 'active', '2024-10-20T14:00'],
+      ['pvquan', 'Phan Văn Quân', 'quanpv@timohouse.vn', '0919 012 345', 'kythuat', 'Tòa Moonlight', 'active', '2024-10-20T14:00'],
       ['dtmy', 'Dương Thị My', 'mydt@timohouse.vn', '0920 123 456', 'ops', 'Tòa Garden', 'active', '2024-10-22T09:30'],
       ['lgphuc', 'Lý Gia Phúc', 'phuclg@timohouse.vn', '0921 234 567', 'sale', 'Khu vực Hà Nội', 'active', '2024-10-19T10:00'],
       ['tkngan', 'Tô Kim Ngân', 'ngantk@timohouse.vn', '0922 345 678', 'accountant', 'Tài chính', 'expired', '2024-05-31T09:00'],
-      ['cxson', 'Cao Xuân Sơn', 'soncx@timohouse.vn', '0923 456 789', 'tech', 'Tòa Central', 'active', '2024-10-21T08:15'],
+      ['cxson', 'Cao Xuân Sơn', 'soncx@timohouse.vn', '0923 456 789', 'kythuat', 'Tòa Central', 'active', '2024-10-21T08:15'],
       ['mtloan', 'Mai Thị Loan', 'loanmt@timohouse.vn', '0924 567 890', 'ops', 'Tòa Sunrise', 'locked', '2024-09-01T09:00'],
     ];
     U.forEach(u => mk({ username: u[0], name: u[1], email: u[2], phone: u[3], role: u[4], scope: u[5], status: u[6], lastLogin: u[7], effectiveDate: '2024-01-01', note: '' }));

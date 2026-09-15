@@ -1,12 +1,14 @@
 /* Store: state + persist localStorage */
 (function (TH) {
   const KEY = 'timehouse-demo-p1-v2';
-  const SCHEMA = 2;
-  const COLLECTIONS = ['users', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds'];
+  const SCHEMA = 3;
+  const COLLECTIONS = ['users', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
+    // Phase 2
+    'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines'];
   const S = { state: null, listeners: [], _t: null };
   S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2024-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
   S.migrate = (st) => {
-    if (!st || ![1, SCHEMA].includes(Number(st.schema))) throw new Error('Schema không khớp');
+    if (!st || ![1, 2, SCHEMA].includes(Number(st.schema))) throw new Error('Schema không khớp');
     const legacy = Number(st.schema) < SCHEMA;
     COLLECTIONS.forEach(c => { if (!Array.isArray(st[c])) st[c] = []; });
     st.meta = st.meta || { today: TH.f.DEMO_TODAY, period: '2024-10' };
@@ -18,11 +20,13 @@
       if (!Array.isArray(u.buildingIds) || (legacy && !u.buildingIds.length)) u.buildingIds = st.buildings.filter(b => b && b.managerId === u.id).map(b => b.id);
       u.buildingIds = [...new Set(u.buildingIds.filter(id => st.buildings.some(b => b && b.id === id)))];
     });
+    // Phase 2: state cũ (schema ≤ 2) hoặc state chưa có dữ liệu P2 → seed bổ sung trên dữ liệu hiện có (idempotent, không đụng record P1)
+    if (TH.seed && TH.seed.phase2 && !st.meta.p2Seeded && st.buildings.length) { try { TH.seed.phase2(st); } catch (e) { console.warn('seed phase2', e); } }
     st.schema = SCHEMA;
     return st;
   };
   S.load = () => {
-    try { const raw = localStorage.getItem(KEY); if (raw) { const st = JSON.parse(raw); if (st && [1, SCHEMA].includes(Number(st.schema))) { S.state = S.migrate(st); S.saveNow(); return true; } } } catch (e) { console.warn('store load', e); }
+    try { const raw = localStorage.getItem(KEY); if (raw) { const st = JSON.parse(raw); if (st && [1, 2, SCHEMA].includes(Number(st.schema))) { S.state = S.migrate(st); S.saveNow(); return true; } } } catch (e) { console.warn('store load', e); }
     S.state = S.empty(); return false;
   };
   S.save = () => { clearTimeout(S._t); S._t = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) { console.warn('store save', e); } }, 60); };

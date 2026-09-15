@@ -27,20 +27,35 @@
     issueInvoice: ['admin', 'accountant'], adjustInvoice: ['admin', 'accountant'], reversePayment: ['admin', 'accountant'],
     adjustPayment: ['admin', 'accountant'], recordPayment: ['admin', 'accountant', 'ops'], manageUsers: ['admin'],
     manageCatalog: ['admin', 'accountant'], zaloConfig: ['admin'], deactivateBuilding: ['admin'],
+    // Phase 2 (A=admin, K=accountant, O=ops, S=sale, T=kythuat) – chỉ có hiệu lực khi TH.phase.on(2)
+    'crm.view': ['admin', 'accountant', 'ops', 'sale'], 'crm.manage': ['admin', 'sale'], 'viewings.manage': ['admin', 'ops', 'sale'], 'holds.manage': ['admin', 'ops', 'sale'],
+    'deals.view': ['admin', 'accountant', 'sale'], 'deals.manage': ['admin', 'sale'], 'commission.view': ['admin', 'accountant', 'sale'], 'commission.pay': ['admin', 'accountant'],
+    'ocr.use': ['admin', 'ops'], 'statement.import': ['admin', 'accountant'], 'openingBalance.manage': ['admin', 'accountant'], 'deposits.view': ['admin', 'accountant', 'ops'],
+    'dataJobs.view': ['admin', 'accountant', 'ops'], 'dataJobs.manage': ['admin', 'accountant'],
+    'maintenance.view': ['admin', 'accountant', 'ops', 'kythuat'], 'maintenance.manage': ['admin', 'ops', 'kythuat'], 'maintenance.assign': ['admin', 'ops'], 'maintenance.schedule': ['admin', 'ops', 'kythuat'],
+    'reports.hub': ['admin', 'accountant'], 'period.close': ['admin', 'accountant'], 'zalo.log': ['admin'], 'refunds.requestEdit': ['admin', 'accountant'], 'expenses.depreciation': ['admin', 'accountant'],
   };
+  // Vai trò P2 được đọc một số màn P1 (read-only)
+  const P2_READ = { sale: ['dashboard.view', 'rooms.view', 'tenants.view', 'contracts.view', 'buildings.view'], kythuat: ['dashboard.view', 'rooms.view', 'buildings.view', 'expenses.view'] };
+  Object.entries(P2_READ).forEach(([role, perms]) => perms.forEach(k => { if (PERMS[k] && !PERMS[k].includes(role)) PERMS[k].push(role); }));
+  const P1_ROLES = ['admin', 'accountant', 'ops'];
+  const roleAllowed = (role) => P1_ROLES.includes(role) || (['sale', 'kythuat'].includes(role) && TH.phase && TH.phase.on(2));
   const COLLECTION_TYPE = {
     buildings: 'building', rooms: 'room', landlords: 'landlord', landlordContracts: 'landlordContract', landlordPayments: 'landlordPayment',
     tenants: 'tenant', contracts: 'contract', contractMembers: 'contractMember', contractServices: 'contractService', holds: 'hold', roomAssets: 'roomAsset',
     meterReadings: 'meterReading', invoices: 'invoice', invoiceLines: 'invoiceLine', payments: 'payment', paymentAllocations: 'paymentAllocation',
     refunds: 'refund', refundDeductions: 'refundDeduction', expenses: 'expense', expenseAllocations: 'expenseAllocation', documents: 'document',
     importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage',
+    // Phase 2: record có buildingId/roomId → ops vẫn bị giới hạn theo tòa
+    leads: 'lead', viewings: 'viewing', deals: 'deal', incidents: 'incident', incidentUpdates: 'incidentUpdate', maintenanceSchedules: 'maintenanceSchedule', openingBalances: 'openingBalance',
   };
   const SCOPED = new Set(Object.keys(COLLECTION_TYPE));
   const rawAll = c => TH.store.rawAll ? TH.store.rawAll(c) : (TH.store.state[c] || []);
   const rawGet = (c, id) => TH.store.rawGet ? TH.store.rawGet(c, id) : rawAll(c).find(x => x && x.id === id) || null;
   const uniq = rows => [...new Set(rows.filter(Boolean))];
 
-  A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', tech: 'Kỹ thuật' };
+  A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật' };
+  A.P1_ROLES = P1_ROLES; A.roleAllowed = roleAllowed;
   A.PERMISSIONS = PERMS;
   A.session = () => TH.store.state.session;
   A.user = () => { const s = A.session(); return s ? rawGet('users', s.userId) : null; };
@@ -86,6 +101,9 @@
     }
     if (type === 'zaloBatch') return uniq(rawAll('zaloMessages').filter(x => x && x.batchId === record.id).flatMap(x => buildingIds('zaloMessage', x, seen)));
     if (type === 'zaloMessage') return record.buildingId ? [record.buildingId] : buildingIds('invoice', rawGet('invoices', record.invoiceId), seen);
+    if (type === 'lead') return record.buildingIds && record.buildingIds.length ? record.buildingIds : [];
+    if (type === 'incidentUpdate') return buildingIds('incident', rawGet('incidents', record.incidentId), seen);
+    if (type === 'openingBalance') return buildingIds('contract', rawGet('contracts', record.contractId), seen);
     if (type === 'auditLog') {
       const cols = { building: 'buildings', room: 'rooms', tenant: 'tenants', contract: 'contracts', invoice: 'invoices', payment: 'payments', refund: 'refunds', expense: 'expenses', landlord: 'landlords', landlordContract: 'landlordContracts' };
       return buildingIds(record.entityType, rawGet(cols[record.entityType] || record.entityType, record.entityId), seen);
@@ -139,7 +157,7 @@
   A.validateSession = () => {
     const s = A.session(); if (!s) return false;
     const u = rawGet('users', s.userId);
-    if (!u || u.status !== 'active' || !['admin', 'accountant', 'ops'].includes(u.role) || u.role !== s.role) { TH.store.state.session = null; TH.store.saveNow(); return false; }
+    if (!u || u.status !== 'active' || !roleAllowed(u.role) || u.role !== s.role) { TH.store.state.session = null; TH.store.saveNow(); return false; }
     return true;
   };
   A.enforceUI = (root, path) => {
@@ -154,6 +172,9 @@
       if (role === 'ops') hide('add-pay paid paid2');
     }
     if (path.startsWith('/rooms') && role === 'accountant') hide('edit svc add-asset edit-asset rm-asset newc newc-any hold release clean upload rm-doc more');
+    if (path.startsWith('/rooms') && ['sale', 'kythuat'].includes(role)) hide('edit svc add-asset edit-asset rm-asset newc newc-any hold release clean upload rm-doc more export inv');
+    if (path.startsWith('/buildings') && ['sale', 'kythuat'].includes(role)) hide('add import edit add-lc schedule actions upload rm-doc add-pay paid paid2 landlord-paid go-catalog add-room bulk import-rooms');
+    if ((path.startsWith('/tenants') || path.startsWith('/contracts')) && role === 'sale') hide('add edit newc upload rm-doc more new save activate cancel terminate renew note');
     if (path.startsWith('/tenants') && role === 'accountant') hide('add edit newc upload rm-doc more');
     if (path.startsWith('/contracts') && role === 'accountant') hide('add new edit save activate cancel terminate renew note upload rm-doc more');
     if (path.startsWith('/invoices') && role === 'ops') hide('batch import issue-valid bulk-issue issue adjust add-line note remind bulk-zalo zalo more');
@@ -171,7 +192,7 @@
     if (!u || !password) throw new Error('Vui lòng kiểm tra lại email/tên đăng nhập và mật khẩu.');
     if (u.status === 'locked') throw new Error('Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.');
     if (u.status === 'expired') throw new Error('Tài khoản đã hết hiệu lực. Vui lòng liên hệ quản trị viên.');
-    if (!['admin', 'accountant', 'ops'].includes(u.role)) throw new Error('Vai trò ' + A.ROLE_LABEL[u.role] + ' thuộc Phase 2 – chưa mở trong bản demo này.');
+    if (!roleAllowed(u.role)) throw new Error('Vai trò ' + A.ROLE_LABEL[u.role] + ' thuộc Phase 2 – ' + (TH.phase && TH.phase.available(2) ? 'bật Phase 2 trong Công cụ nâng cao (Admin) để đăng nhập.' : 'chưa mở trong bản demo này.'));
     TH.store.state.session = { userId: u.id, name: u.name, role: u.role, at: TH.f.nowISO() };
     u.lastLogin = TH.f.nowISO(); TH.store.saveNow(); TH.store.audit('login', 'user', u.id, u.name + ' đăng nhập');
     return u;
@@ -181,11 +202,11 @@
   A.switchRole = role => {
     const current = A.session();
     if (!current || (current.role !== 'admin' && !current.impersonator)) throw new Error('Chỉ Admin được dùng chế độ chuyển vai trò demo.');
-    if (!['admin', 'accountant', 'ops'].includes(role)) throw new Error('Vai trò không được hỗ trợ trong Phase 1.');
+    if (!roleAllowed(role)) throw new Error(['sale', 'kythuat'].includes(role) ? 'Vai trò ' + A.ROLE_LABEL[role] + ' thuộc Phase 2 – bật Phase 2 trong Công cụ nâng cao.' : 'Vai trò không được hỗ trợ trong Phase 1.');
     const origin = current.impersonator || { userId: current.userId, name: current.name, role: current.role };
     if (origin.role !== 'admin') throw new Error('Phiên gốc không có quyền Admin.');
     if (role === 'admin') return A.endImpersonation();
-    const demo = { accountant: 'ketoan', ops: 'vanhanh' }[role];
+    const demo = { accountant: 'ketoan', ops: 'vanhanh', sale: 'sale', kythuat: 'kythuat' }[role];
     const u = rawAll('users').find(x => x && x.username === demo && x.status === 'active') || rawAll('users').find(x => x && x.role === role && x.status === 'active');
     if (!u) throw new Error('Không có tài khoản demo hoạt động cho vai trò này.');
     TH.store.state.session = { userId: u.id, name: u.name, role: u.role, at: TH.f.nowISO(), impersonator: origin };

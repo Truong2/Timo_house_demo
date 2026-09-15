@@ -1,12 +1,12 @@
-# TimoHouse – Mockup tương tác Phase 1 (Core Rental / Go-live)
+# TimoHouse – Mockup tương tác Phase 1 + Phase 2
 
-Mockup click-through dựng từ bộ PNG `Phase_1_Core_Rental_GoLive/`, SRS v1.2 và UI Spec v1.5. Mọi nút trong PNG đều bấm được; dữ liệu thay đổi thật (localStorage) theo state machine của SRS §6.
+Mockup click-through dựng từ bộ PNG `Phase_1_Core_Rental_GoLive/` (mặc định) và `Phase_2_Sales_Automation_Operations/` (bật bằng công tắc phase – xem mục *Phase 2* bên dưới), SRS v1.2 và UI Spec v1.5. Mọi nút trong PNG đều bấm được; dữ liệu thay đổi thật (localStorage) theo state machine của SRS §6.
 
 ## Chạy
 - **Cách 1:** mở `index.html` bằng Chrome/Edge (double-click) – chạy trực tiếp từ file://.
 - **Cách 2:** ở thư mục gốc repo chạy `npm run dev` rồi mở `http://localhost:8765` (cần Node ≥ 20, không cần cài dependency).
 - **Deploy Netlify:** xem mục *Deploy lên Netlify* trong `README.md` ở gốc repo (`npm run build` → thư mục `dist/`; repo đã có `netlify.toml`).
-- Tài khoản demo (mật khẩu bất kỳ): `admin` (Quản trị viên), `ketoan` (Kế toán), `vanhanh` (Vận hành). Đổi vai trò nhanh ở menu góc phải.
+- Tài khoản demo (mật khẩu bất kỳ): `admin` (Quản trị viên), `ketoan` (Kế toán), `vanhanh` (Vận hành); khi bật Phase 2 thêm `sale` (Sale), `kythuat` (Kỹ thuật). Đổi vai trò nhanh ở menu góc phải.
 - Ngày hệ thống demo cố định **28/10/2024**, kỳ **Tháng 10/2024** để khớp số liệu mockup (đổi tại *Công cụ nâng cao*).
 
 ## Kịch bản demo 16 điều kiện Go-live
@@ -45,5 +45,57 @@ Các nút trong panel (Đi tới màn hình, Chuyển vai trò, Xem/Điền dữ
 - Zalo: ZBS Template Message; fallback SMS chưa dùng (OI-21); gửi thành công ≠ đã thanh toán.
 - Mục sidebar gắn **P2/P3** là ngoài scope Phase 1, mở trang mô tả scope, không có action.
 
+## Phase 2 – Sales, Automation & Operations (công tắc phase)
+
+Bộ 18 màn PNG `Phase_2_Sales_Automation_Operations/` được dựng vào cùng mockup, gắn nhãn **P2** (chip cạnh tiêu đề trang, badge trên sidebar/nút/tab/menu, badge luồng trong panel hướng dẫn). Kế hoạch chi tiết: `Timehouse-Mockup-Plan-Phase2-v1.0.md`.
+
+### Bật / tắt phase
+- **Công cụ nâng cao** (cuối sidebar, Admin) → khối *Phạm vi demo*: Phase 1 luôn bật; **Phase 2** bật/tắt; Phase 3 có công tắc nhưng khóa (chưa có mockup).
+- **Mặc định lần đầu mở: chỉ Phase 1.** Trạng thái phase lưu riêng `localStorage['timehouse-phase-v1']`, không nằm trong state nghiệp vụ → *Đặt lại dữ liệu demo / Xóa trắng / Nhập state JSON* **không** đổi phase; đổi phase không xóa dữ liệu.
+- Tắt P2: mọi màn/nút hành xử y hệt bản Phase 1 (mục P2 mờ → trang coming-soon, nút P2 disabled). Đang đứng ở route P2 khi tắt → trang tự thành coming-soon (giữ URL); đang là Sale/Kỹ thuật → tự về Admin.
+- Bật P2: mở thêm 2 vai trò **`sale`** (Nguyễn Thị Hương – Sale) và **`kythuat`** (Trần Minh Đức – Kỹ thuật) – đăng nhập hoặc *Chuyển vai trò* ở menu góc phải.
+- Console: `__timehouseDemo.setPhase(2, true|false)`, `__timehouseDemo.phases()`, `__timehouseDemo.runAllP2()`.
+
+### 18 màn Phase 2 → route
+| Nhóm | PNG | Route |
+|---|---|---|
+| CRM | 04/01 Tổng quan kinh doanh | `#/crm` |
+| CRM | 04/02 Lead & pipeline (Kanban kéo-thả / Bảng) | `#/crm/leads` |
+| CRM | 04/03 Chi tiết lead | `#/crm/leads/:id` |
+| CRM | 04/04 Đặt lịch xem phòng (wizard 4 bước) | `#/crm/viewings/new?lead=` · danh sách `#/crm/viewings` |
+| CRM | 04/05 Giữ chỗ phòng (wizard 4 bước, countdown) | `#/crm/holds/new?lead=` · danh sách `#/crm/holds` |
+| CRM | 04/06 Chốt thuê (wizard 5 bước) | `#/crm/deals/new?lead=` → `#/contracts/new?deal=` |
+| CRM | 04/07 Giao dịch & hoa hồng | `#/crm/deals` · chi tiết `#/crm/deals/:id` |
+| Hợp đồng | 02/05 Review trích xuất hợp đồng (OCR) | `#/contracts/ocr` → `#/contracts/new?ocr=` |
+| Tài chính | 03/06 Nhập bảng kê thu tiền | `#/finance/statement-import` |
+| Tài chính | 03/09 Duyệt hoàn cọc (yêu cầu chỉnh sửa, hiện trạng, ghi chú) | `#/refunds/:id` (layout P2 khi bật) |
+| Tài chính | 03/11 Chuyển số dư ban đầu | `#/finance/opening-balance` |
+| Tài chính | – Quản lý cọc (sidebar, không có PNG) | `#/finance/deposits` |
+| Zalo | 05/05 Chi tiết lần gửi (provider 200/300/403/408, retry, log, donut) | `#/zalo/batches/:id` · chính sách retry/mẫu ở `#/zalo/config` |
+| Bảo trì | 06/01 Bảo trì & sự cố | `#/maintenance` · chi tiết `#/maintenance/incidents/:id` |
+| Bảo trì | 06/02 Lịch bảo dưỡng (lịch tháng) | `#/maintenance/schedules` |
+| Báo cáo | 08/01 Trung tâm báo cáo (32 báo cáo) | `#/reports/hub` · báo cáo chuẩn `#/reports/r/:key` |
+| Báo cáo | 08/02 Báo cáo dòng tiền & quản lý kỳ (khóa kỳ) | `#/reports/cashflow` |
+| Data Job | 10/05 Danh sách tác vụ (tên file PNG bị đảo) | `#/settings/jobs` |
+| Data Job | 10/04 Chi tiết job (Kiểm tra lại / Thử lại phần đủ điều kiện) | `#/settings/jobs/:id` |
+
+Điểm nối P2 trong màn P1 khi bật: Phòng → *Tạo sự cố* + tab *Sự cố*; Tòa nhà → tab *Hiệu suất*, *Lưu bộ lọc*; Khách thuê → *Lưu bộ lọc*; Hóa đơn → *Bộ lọc nâng cao*; Chi phí → *Khấu hao* (số tháng); Chủ nhà → *Nhắc thanh toán Zalo*; Danh mục → tab *Nguồn khách*, *Nhà cung cấp*; Import → tile *Bảng kê*, *Lead*; Báo cáo P1 → *Trung tâm báo cáo*; Tạo HĐ → radio *Tải hợp đồng* → OCR.
+
+### Kịch bản demo Phase 2 (panel Hướng dẫn thao tác, +6 luồng / 23 mốc khi bật P2)
+F11 CRM: lead → gọi → lịch xem → giữ chỗ → chốt thuê → HĐ → thu cọc → hoa hồng đã chi · F12 OCR hợp đồng (file mẫu 5 trường sai) · F13 Bảng kê thu tiền → Data Job kiểm tra lại/thử lại → số dư đầu kỳ · F14 Sự cố (Vận hành tạo, Kỹ thuật xử lý, chi phí) → lịch bảo dưỡng (nhắc 7 ngày) · F15 Ghim báo cáo → khóa kỳ 10/2024 → Zalo retry 403/408 · F08.5 Hoàn cọc yêu cầu chỉnh sửa → sửa → duyệt lại. Nút *▶ Chạy kịch bản Phase 2 (kỹ thuật)* trong Công cụ nâng cao chạy toàn bộ bằng actions.
+
+### Quy ước & giả định Phase 2 (ghi rõ để BA xác nhận)
+- Mã hoàn cọc dùng `RC…` của P1 (PNG P2 ghi `HC-001`); đợt Zalo hero `ZL-202410-104` (PNG `ZL-2024-104`); lead `LD-2024-081` là hero (Trần Minh Đức, cột Cân nhắc).
+- Hoa hồng: 10% giá thuê tháng đầu, chi một lần, idempotent; đủ điều kiện khi **cọc thu đủ và HĐ kích hoạt** (BR-13/OI-14); hủy/kết thúc HĐ → về tạm tính, không tạo khoản mới.
+- Giữ chỗ tối đa 14 ngày, phí trừ vào cọc (OI-09), tự hết hạn theo ngày demo → phòng Sẵn sàng; khách thuê được tạo từ lead ngay khi giữ chỗ.
+- Số dư đầu kỳ: mỗi HĐ tạo **1 hóa đơn `kind:'opening'`** (kỳ = mốc) + 1 khoản thu `kind:'opening'` cho phần đã thu → tái dùng công nợ/nhắc nợ P1, không sinh khoản thu ngoài số dư.
+- Dòng tiền: thu thật từ khoản thu (FR-REP-02), chi loại trừ khấu hao (BR-08), cọc/phí giữ chỗ tách riêng (BR-20). Khấu hao đường thẳng theo số tháng nhập tay (OI-11). Hiệu suất tòa = ngày có khách / ngày kỳ, tòa bảo trì = N/A (BR-09, OI-12).
+- Khóa kỳ (FR-FIN-08): checklist 6 mục (3 tự động theo dữ liệu – có thể xác nhận tay sau rà soát, 2 tick tay, 1 = bấm Khóa); sau khóa `recordPayment / issueInvoice / adjustInvoice / createInvoiceDrafts / saveExpense / reversePayment` trong kỳ bị chặn; báo cáo dùng snapshot.
+- Zalo: mã lỗi P1 `ZLM-1001/2003` ↔ provider `300/403`, thêm `408 Timeout`; retry chỉ 403/408 và chưa quá số lần trong chính sách; 300 là lỗi vĩnh viễn (fallback SMS mô phỏng nếu bật – OI-21). *Tải log (.xlsx)* / *Tải template* xuất CSV (offline, không SheetJS).
+- Trung tâm báo cáo: 32 báo cáo, 10 chạy thật trên dữ liệu (`cashflow, expense-by-building, operating-result, occupancy, refunds, room-status, maintenance, sales-performance, leads-funnel, customer-segment`), 18 báo cáo nhãn **OI** mở trang "Công thức chờ chốt", 4 báo cáo Đầu tư → P3.
+- Mục scope không có PNG (Kênh cho thuê, Marketing, Thiết lập hệ thống) → coming-soon "Chưa có mockup UI". Kiểm kê hàng tháng = P3.
+- File mẫu mới: `assets/samples/mau-bang-ke-thu-tien.csv` (20 dòng: khớp mã HĐ, khớp khách + số tiền, không ghép, trùng, hóa đơn nháp), `mau-so-du-dau-ky.csv` (13 dòng, 2 chênh lệch, 1 HĐ không tồn tại), `mau-hop-dong-ocr.txt`. Trong app các file mẫu được sinh từ dữ liệu hiện có (nút *Dùng file mẫu*).
+- State `schema = 3`: state cũ (v2) được migrate và seed bổ sung dữ liệu P2 trên dữ liệu hiện có (idempotent `meta.p2Seeded`), không mất dữ liệu người dùng.
+
 ## Cấu trúc
-`index.html` · `css/` (tokens, base, components, pages) · `js/core/` (format, store, seed, selectors, auth, actions, router, guide) · `js/ui/` (icons, components, table, chart, layout, forms) · `js/pages/` (1 file / nhóm màn) · `assets/samples/` (CSV mẫu import).
+`index.html` · `css/` (tokens, base, components, pages) · `js/core/` (format, store, phase, seed, seed-p2, selectors, selectors-p2, auth, actions, import, actions-p2, router, guide, guide-p2) · `js/ui/` (icons, components, table, chart, components-p2, layout, forms) · `js/pages/` (1 file / nhóm màn; P2: crm, ocr, finance2, maintenance, reportHub, jobs, zalo2) · `assets/samples/` (CSV mẫu import).

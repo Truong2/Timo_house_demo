@@ -2,7 +2,7 @@
 (function (TH) {
   const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, X = TH.actions, esc = F.esc;
   const G = { KEY: 'timehouse-guide-p1-v1', openState: false };
-  const ROLE = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', any: 'Bất kỳ' };
+  const ROLE = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', any: 'Bất kỳ' };
   /* ---- ngữ cảnh: record do người demo tạo ---- */
   const ctx = () => {
     const pin = (St.state.guide && St.state.guide.pin) || {};
@@ -76,7 +76,9 @@
       { id: 'F10.4', title: 'Xuất báo cáo công nợ', route: '#/reports?tab=debt', role: 'accountant', how: 'Báo cáo → Báo cáo công nợ → "Xuất CSV".', expect: 'File CSV tải về với phải thu/đã thu/còn nợ theo tòa.', check: c => v(c, '/reports') },
     ] },
   ];
-  G.all = () => G.FLOWS.flatMap(f => f.ms.map(m => Object.assign({ flow: f.key }, m)));
+  // Phase 2: luồng có phase:2 chỉ hiện khi TH.phase.on(2) (tắt P2 → panel y hệt bản P1: 10 luồng / 36 mốc)
+  G.flows = () => G.FLOWS.filter(f => !f.phase || (TH.phase && TH.phase.on(f.phase)));
+  G.all = () => G.flows().flatMap(f => f.ms.map(m => Object.assign({ flow: f.key, phase: f.phase }, m)));
   /* ---- đánh giá ---- */
   G.evaluate = (what) => {
     const g = St.state.guide = St.state.guide || { done: {}, ts: {}, visited: {} }; g.done = g.done || {}; g.ts = g.ts || {}; g.visited = g.visited || {};
@@ -88,10 +90,10 @@
     St.save(); try { localStorage.setItem(G.KEY, JSON.stringify({ done: g.done, ts: g.ts, current: g.current })); } catch (e) { }
     G.render(); return changed;
   };
-  G.current = () => { const g = St.state.guide; for (const f of G.FLOWS) { const m = f.ms.find(x => !g.done[x.id]); if (m) return { flow: f, ms: m }; } return null; };
+  G.current = () => { const g = St.state.guide; for (const f of G.flows()) { const m = f.ms.find(x => !g.done[x.id]); if (m) return { flow: f, ms: m }; } return null; };
   G.status = (m) => { const g = St.state.guide; if (g.done[m.id]) return 'done'; const cur = G.current(); if (cur && cur.ms.id === m.id) return 'active'; const all = G.all(); const idx = all.findIndex(x => x.id === m.id); return all.slice(0, idx).every(x => g.done[x.id]) ? 'active' : 'pending'; };
   /* ---- panel ---- */
-  G.init = () => { const root = document.getElementById('guide-root'); root.innerHTML = `<aside class="guide" aria-label="Hướng dẫn thao tác"><div class="guide-h"><h3>${I('book-open')} Hướng dẫn thao tác</h3><div class="row gap4">${U.iconBtn('list', 'g-all', 'Xem toàn bộ luồng')}${U.iconBtn('x', 'g-close', 'Đóng')}</div></div><div class="guide-b" id="guide-body"></div><div class="guide-f"><span>16 điều kiện Go-live Phase 1 · 10 luồng</span><a class="link" data-act="g-reset">Reset tiến độ</a></div></aside>`;
+  G.init = () => { const root = document.getElementById('guide-root'); root.innerHTML = `<aside class="guide" aria-label="Hướng dẫn thao tác"><div class="guide-h"><h3>${I('book-open')} Hướng dẫn thao tác</h3><div class="row gap4">${U.iconBtn('list', 'g-all', 'Xem toàn bộ luồng')}${U.iconBtn('x', 'g-close', 'Đóng')}</div></div><div class="guide-b" id="guide-body"></div><div class="guide-f"><span id="guide-foot">16 điều kiện Go-live Phase 1 · 10 luồng</span><a class="link" data-act="g-reset">Reset tiến độ</a></div></aside>`;
     U.bind(root, {
       'g-close': () => G.toggle(false), 'g-all': () => { G.showAll = !G.showAll; G.render(); }, 'g-reset': async () => { if (await U.confirm({ title: 'Reset tiến độ hướng dẫn?', text: 'Chỉ xóa trạng thái mốc; dữ liệu nghiệp vụ giữ nguyên. Mốc sẽ được nhận diện lại từ dữ liệu hiện có.', ok: 'Reset' })) G.resetProgress(); },
       'g-go': (el) => { const m = G.find(el.dataset.id); TH.go(G.routeOf(m)); setTimeout(() => m.hl && U.highlight(`[data-guide="${m.hl}"]`), 350); },
@@ -108,14 +110,14 @@
   G.open = (flowKey) => { if (flowKey) St.state.guide.current = flowKey; G.toggle(true); };
   G.render = () => {
     const body = document.getElementById('guide-body'); if (!body) return; const g = St.state.guide; const all = G.all(); const done = all.filter(m => g.done[m.id]).length;
-    const cur = G.current(); const focusFlow = g.current ? G.FLOWS.find(f => f.key === g.current) : (cur ? cur.flow : G.FLOWS[G.FLOWS.length - 1]);
+    const cur = G.current(); const focusFlow = (g.current && G.flows().find(f => f.key === g.current)) || (cur ? cur.flow : G.flows()[G.flows().length - 1]);
     const flowMs = focusFlow.ms; const curMs = flowMs.find(m => !g.done[m.id]) || null; const next = curMs ? all[all.findIndex(m => m.id === curMs.id) + 1] : null;
     const stChip = (s) => s === 'done' ? U.chip('Hoàn thành', 'green') : s === 'active' ? U.chip('Đang thực hiện', 'blue') : U.chip('Chưa sẵn sàng', 'gray');
     const flowDone = (f) => f.ms.filter(m => g.done[m.id]).length;
     let html = `<div class="prog"><span class="bold" style="color:var(--text)">${done}/${all.length} mốc</span><div class="progress"><i style="width:${Math.round(done / all.length * 100)}%"></i></div><span>${Math.round(done / all.length * 100)}%</span></div>`;
-    if (G.showAll) { html += `<div class="fl-list">${G.FLOWS.map(f => { const d = flowDone(f); const s = d === f.ms.length ? 'done' : (cur && cur.flow.key === f.key) ? 'active' : d > 0 ? 'active' : 'pending'; return `<div class="fl-row ${focusFlow.key === f.key ? 'cur' : ''}" data-act="g-pick" data-k="${f.key}"><b>${f.key}</b><span>${esc(f.title)}</span>${f.golive ? `<span class="xs muted">Go-live #${f.golive}</span>` : ''}<span class="st">${d}/${f.ms.length} ${stChip(s)}</span></div>`; }).join('')}</div><div class="xs muted">Tiền đề: mỗi luồng cần luồng trước hoàn thành (S0 → F01 → F02 → … → F09). F10 độc lập.</div>`; }
+    if (G.showAll) { html += `<div class="fl-list">${G.flows().map(f => { const d = flowDone(f); const s = d === f.ms.length ? 'done' : (cur && cur.flow.key === f.key) ? 'active' : d > 0 ? 'active' : 'pending'; return `<div class="fl-row ${focusFlow.key === f.key ? 'cur' : ''}" data-act="g-pick" data-k="${f.key}"><b>${f.key}</b><span>${esc(f.title)}${f.phase ? ' ' + TH.phase.tag(f.phase) : ''}</span>${f.golive ? `<span class="xs muted">Go-live #${f.golive}</span>` : ''}<span class="st">${d}/${f.ms.length} ${stChip(s)}</span></div>`; }).join('')}</div><div class="xs muted">Tiền đề: mỗi luồng cần luồng trước hoàn thành (S0 → F01 → F02 → … → F09). F10 độc lập.</div>`; }
     else {
-      html += `<div class="fl"><div class="fh"><span>${focusFlow.key} · ${esc(focusFlow.title)}</span><span class="xs muted">${flowDone(focusFlow)}/${flowMs.length}${focusFlow.golive ? ' · Go-live #' + focusFlow.golive : ''}</span></div><div class="sub-ms">${flowMs.map(m => `<div class="it ${g.done[m.id] ? 'done' : (curMs && curMs.id === m.id ? 'cur' : '')}">${I(g.done[m.id] ? 'check-circle' : curMs && curMs.id === m.id ? 'arrow-right' : 'minus-circle')} <span>${m.id} ${esc(m.title)}</span></div>`).join('')}</div>`;
+      html += `<div class="fl"><div class="fh"><span>${focusFlow.key} · ${esc(focusFlow.title)}${focusFlow.phase ? ' ' + TH.phase.tag(focusFlow.phase) : ''}</span><span class="xs muted">${flowDone(focusFlow)}/${flowMs.length}${focusFlow.golive ? ' · Go-live #' + focusFlow.golive : ''}</span></div><div class="sub-ms">${flowMs.map(m => `<div class="it ${g.done[m.id] ? 'done' : (curMs && curMs.id === m.id ? 'cur' : '')}">${I(g.done[m.id] ? 'check-circle' : curMs && curMs.id === m.id ? 'arrow-right' : 'minus-circle')} <span>${m.id} ${esc(m.title)}</span></div>`).join('')}</div>`;
       if (curMs) {
         const m = curMs; const roleOk = m.role === 'any' || TH.auth.role() === m.role;
         html += `<div class="ms"><div class="mt"><span>${m.id} · ${esc(m.title)}</span>${stChip(G.status(m))}</div><dl><dt>Màn hình</dt><dd><code>${esc(G.routeOf(m))}</code></dd><dt>Vai trò</dt><dd>${ROLE[m.role]}${roleOk ? ' <span class="green">✓</span>' : ' <span class="amber">(đang là ' + ROLE[TH.auth.role()] + ')</span>'}</dd><dt>Thao tác</dt><dd>${esc(m.how)}</dd><dt>Kết quả phải thấy</dt><dd>${esc(m.expect)}</dd>${next ? `<dt>Mốc tiếp theo</dt><dd class="muted">${next.id} ${esc(next.title)}</dd>` : ''}</dl>
@@ -123,13 +125,13 @@
       } else html += `<div class="ms">${U.note('ok', 'Luồng ' + focusFlow.key + ' hoàn thành', cur ? 'Mốc tiếp theo: ' + cur.ms.id + ' ' + esc(cur.ms.title) + ' (' + cur.flow.key + ')' : 'Toàn bộ 16 điều kiện Go-live đã được thực hiện 🎉')}${cur ? `<div class="gacts">${U.btn({ label: 'Sang luồng ' + cur.flow.key, icon: 'arrow-right', cls: 'btn-primary', size: 'btn-sm', act: 'g-pick', attrs: { 'data-k': cur.flow.key } })}</div>` : ''}</div>`;
       html += `</div><details><summary>Nguyên tắc hướng dẫn</summary><div class="xs muted mt8">Các nút trong panel không tạo record, không submit. Record chỉ được tạo qua nút Lưu/Xác nhận của màn nghiệp vụ. Mốc được đánh giá lại sau mỗi render/save/action/route; dữ liệu do bạn tạo (không phải seed) mới được tính. Chạy tự động chỉ có trong Công cụ nâng cao (sidebar).</div></details>`;
     }
-    body.innerHTML = html;
+    body.innerHTML = html; const gf = document.getElementById('guide-foot'); if (gf) gf.textContent = '16 điều kiện Go-live P1 · 10 luồng' + (TH.phase && TH.phase.on(2) ? ' · + ' + G.flows().filter(f => f.phase === 2).length + ' luồng Phase 2' : '');
   };
   /* ---- dữ liệu mẫu ---- */
   G.openSample = (id) => { const m = G.find(id); if (!m || !m.sample) return; const s = m.sample; U.modal({ title: 'Dữ liệu mẫu – ' + m.id, sub: s.kind === 'form' ? 'Giá trị form (chỉ điền khi form đang mở; không submit)' : 'Metadata file mẫu (không đưa vào hệ thống khi xem)', body: s.kind === 'form' ? `<div class="sample-meta"><dl>${Object.entries(s.values).map(([k, val]) => `<dt>${esc(k)}</dt><dd>${esc(typeof val === 'number' ? F.vnd(val) : val)}</dd>`).join('')}</dl></div>${s.open ? U.note('info', '', esc(s.open)) : ''}` : `<div class="sample-meta"><dl><dt>Mục đích</dt><dd>${esc(s.purpose)}</dd><dt>Tên file</dt><dd class="mono">${esc(s.name)}</dd><dt>Số dòng</dt><dd>${s.rows}</dd><dt>Cột</dt><dd>${esc(s.cols)}</dd><dt>Quan hệ mã</dt><dd>${esc(s.relations || '-')}</dd><dt>Lỗi cố ý</dt><dd>${esc(s.errors)}</dd></dl></div>` }); };
   G.useSample = (id, force) => {
     const m = G.find(id); if (!m || !m.sample || m.sample.kind !== 'form') return; const s = m.sample;
-    const scope = document.querySelector('.overlay .drawer, .overlay .modal') || (s.form === 'contract' ? document.getElementById('cf') : s.form === 'meter' ? document.getElementById('content') : null);
+    const scope = document.querySelector('.overlay .drawer, .overlay .modal') || (s.form === 'contract' ? document.getElementById('cf') : s.form === 'meter' ? document.getElementById('content') : s.form === 'hold' ? document.getElementById('hf') : s.form === 'deal' ? document.getElementById('df') : null);
     if (!scope) return U.toast('warn', 'Form chưa mở', s.open || 'Mở form nghiệp vụ trước rồi bấm Điền dữ liệu mẫu');
     let n = 0;
     if (s.form === 'meter') { scope.querySelectorAll('input[data-m=electricCurr]:not([disabled]), input[data-m=waterCurr]:not([disabled])').forEach(inp => { if (inp.value && !force) return; const prev = scope.querySelector(`input[data-m=${inp.dataset.m.replace('Curr', 'Prev')}][data-r="${inp.dataset.r}"]`); inp.value = Number(prev.value) + (inp.dataset.m === 'electricCurr' ? 150 : 12); inp.dispatchEvent(new Event('input', { bubbles: true })); n++; }); }

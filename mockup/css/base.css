@@ -127,3 +127,5 @@ body.guide-open .main{margin-right:var(--guide-w)}
   .tb-menu-btn{display:grid}
   .tb-guide span{display:none}
 }
+.sb-item.p2.on,.sb-item.p3.on{opacity:1}
+.sb-item .ptag.on{background:rgba(255,255,255,.28);border:1px solid rgba(255,255,255,.5)}
