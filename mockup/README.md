@@ -79,15 +79,15 @@ Bộ 18 màn PNG `Phase_2_Sales_Automation_Operations/` được dựng vào cù
 | Data Job | 10/05 Danh sách tác vụ (tên file PNG bị đảo) | `#/settings/jobs` |
 | Data Job | 10/04 Chi tiết job (Kiểm tra lại / Thử lại phần đủ điều kiện) | `#/settings/jobs/:id` |
 
-Điểm nối P2 trong màn P1 khi bật: Phòng → *Tạo sự cố* + tab *Sự cố*; Tòa nhà → tab *Hiệu suất*, *Lưu bộ lọc*; Khách thuê → *Lưu bộ lọc*; Hóa đơn → *Bộ lọc nâng cao*; Chi phí → *Khấu hao* (số tháng); Chủ nhà → *Nhắc thanh toán Zalo*; Danh mục → tab *Nguồn khách*, *Nhà cung cấp*; Import → tile *Bảng kê*, *Lead*; Báo cáo P1 → *Trung tâm báo cáo*; Tạo HĐ → radio *Tải hợp đồng* → OCR.
+Điểm nối P2 trong màn P1 khi bật: Phòng → *Tạo sự cố* + tab *Sự cố*; Tòa nhà → tab *Hiệu suất*, *Lưu bộ lọc*; Khách thuê → *Lưu bộ lọc*; Hóa đơn → *Bộ lọc nâng cao* (tòa, khách, khoảng tiền, đã nhắc Zalo, quá hạn); Chi phí → *Khấu hao* (số tháng); Chủ nhà → *Nhắc thanh toán Zalo*; Danh mục → tab *Nguồn khách*, *Nhà cung cấp*; Import → tile *Bảng kê*, *Lead*; Báo cáo P1 → *Trung tâm báo cáo*; Tạo HĐ → radio *Tải hợp đồng* → OCR.
 
 ### Kịch bản demo Phase 2 (panel Hướng dẫn thao tác, +6 luồng / 23 mốc khi bật P2)
-F11 CRM: lead → gọi → lịch xem → giữ chỗ → chốt thuê → HĐ → thu cọc → hoa hồng đã chi · F12 OCR hợp đồng (file mẫu 5 trường sai) · F13 Bảng kê thu tiền → Data Job kiểm tra lại/thử lại → số dư đầu kỳ · F14 Sự cố (Vận hành tạo, Kỹ thuật xử lý, chi phí) → lịch bảo dưỡng (nhắc 7 ngày) · F15 Ghim báo cáo → khóa kỳ 10/2024 → Zalo retry 403/408 · F08.5 Hoàn cọc yêu cầu chỉnh sửa → sửa → duyệt lại. Nút *▶ Chạy kịch bản Phase 2 (kỹ thuật)* trong Công cụ nâng cao chạy toàn bộ bằng actions.
+F11 CRM: lead → gọi → lịch xem → giữ chỗ → chốt thuê → HĐ → thu cọc → hoa hồng đã chi · F12 OCR hợp đồng (file mẫu 5 trường sai) · F13 Bảng kê thu tiền → Data Job kiểm tra lại/thử lại → số dư đầu kỳ · F14 Sự cố (Vận hành tạo, Kỹ thuật xử lý, chi phí) → lịch bảo dưỡng (nhắc 7 ngày) · F15 Ghim báo cáo → khóa kỳ 10/2024 → Zalo retry 403/408 · F08.5 Hoàn cọc yêu cầu chỉnh sửa → sửa → duyệt lại. Nút *▶ Chạy kịch bản Phase 2 (kỹ thuật)* trong Công cụ nâng cao chạy toàn bộ bằng actions; chạy lại nhiều lần được (tự mở lại kỳ đã khóa, bỏ qua bước đã có dữ liệu).
 
 ### Quy ước & giả định Phase 2 (ghi rõ để BA xác nhận)
 - Mã hoàn cọc dùng `RC…` của P1 (PNG P2 ghi `HC-001`); đợt Zalo hero `ZL-202410-104` (PNG `ZL-2024-104`); lead `LD-2024-081` là hero (Trần Minh Đức, cột Cân nhắc).
 - Hoa hồng: 10% giá thuê tháng đầu, chi một lần, idempotent; đủ điều kiện khi **cọc thu đủ và HĐ kích hoạt** (BR-13/OI-14); hủy/kết thúc HĐ → về tạm tính, không tạo khoản mới.
-- Giữ chỗ tối đa 14 ngày, phí trừ vào cọc (OI-09), tự hết hạn theo ngày demo → phòng Sẵn sàng; khách thuê được tạo từ lead ngay khi giữ chỗ.
+- Giữ chỗ tối đa 14 ngày, phí trừ vào cọc (OI-09), tự hết hạn theo ngày demo → phòng Sẵn sàng; khách thuê được tạo từ lead ngay khi giữ chỗ. Kanban: kéo thẻ vào *Giữ chỗ*/*Chốt thuê* mở wizard tương ứng; thẻ đang giữ chỗ không kéo lùi được (phải hủy giữ chỗ trước); vai trò chỉ xem không kéo được.
 - Số dư đầu kỳ: mỗi HĐ tạo **1 hóa đơn `kind:'opening'`** (kỳ = mốc) + 1 khoản thu `kind:'opening'` cho phần đã thu → tái dùng công nợ/nhắc nợ P1, không sinh khoản thu ngoài số dư.
 - Dòng tiền: thu thật từ khoản thu (FR-REP-02), chi loại trừ khấu hao (BR-08), cọc/phí giữ chỗ tách riêng (BR-20). Khấu hao đường thẳng theo số tháng nhập tay (OI-11). Hiệu suất tòa = ngày có khách / ngày kỳ, tòa bảo trì = N/A (BR-09, OI-12).
 - Khóa kỳ (FR-FIN-08): checklist 6 mục (3 tự động theo dữ liệu – có thể xác nhận tay sau rà soát, 2 tick tay, 1 = bấm Khóa); sau khóa `recordPayment / issueInvoice / adjustInvoice / createInvoiceDrafts / saveExpense / reversePayment` trong kỳ bị chặn; báo cáo dùng snapshot.

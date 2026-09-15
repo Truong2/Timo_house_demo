@@ -123,6 +123,7 @@
   L.ensure = (app) => {
     if (app.querySelector('.app')) { L.refreshTop(); return; }
     app.innerHTML = `<div class="app"><div class="sb-backdrop" data-act="sb-close"></div><aside class="sidebar"><div class="sb-logo"><div class="mark">${I('home')}</div><div><div class="name">Timo<span>House</span></div><div class="tag">Quản lý nhà cho thuê</div></div></div><nav class="sb-nav" data-guide="sidebar">${L.MENU.map(sidebarGroup).join('')}</nav><div class="sb-foot"><div id="sb-version">Phiên bản 2.0.0 · Phạm vi: P1</div><div>TimoHouse © 2026</div><details><summary>${I('settings')} Công cụ nâng cao</summary><div class="adv"><div class="phase-switch" id="phase-switch"></div><button data-act="adv-reset">↺ Đặt lại dữ liệu demo</button><button data-act="adv-clear">✕ Xóa trắng dữ liệu nghiệp vụ</button><button data-act="adv-today">📅 Đổi ngày hệ thống demo</button><button data-act="adv-export">⇩ Xuất state JSON</button><button data-act="adv-import">⇧ Nhập state JSON</button><button data-act="adv-runall">▶ Chạy toàn bộ kịch bản Go-live</button><button data-act="adv-runall-p2" id="adv-runall-p2" hidden>▶ Chạy kịch bản Phase 2 (kỹ thuật)</button><button data-act="adv-guide-reset">⟲ Reset tiến độ hướng dẫn</button></div></details></div></aside><div class="main"><header class="topbar"><button class="tb-menu-btn" data-act="sb-toggle" aria-label="Menu">${I('menu')}</button><div class="crumbs" id="crumbs"></div><div class="tb-search" data-act="palette">${I('search')}<input placeholder="Tìm kiếm phòng, khách thuê, hợp đồng..." readonly><span class="kbd">Ctrl</span><span class="kbd">K</span></div><button class="tb-guide" data-act="guide" data-guide="guide-btn">${I('book-open')}<span>Hướng dẫn thao tác</span></button><button class="tb-bell" data-act="bell" aria-label="Thông báo">${I('bell')}<span class="badge" id="bell-badge">0</span></button><div class="tb-period"><span>Kỳ báo cáo</span><select id="period-sel" data-on="period"></select></div><div class="tb-user" data-act="user-menu"><div class="avatar" id="tb-avatar"></div><div><div class="nm" id="tb-name"></div><div class="rl" id="tb-role"></div></div>${I('chevron-down')}</div></header><main class="content" id="content"></main></div></div>`;
+    if (!app.dataset.bound) { app.dataset.bound = '1';
     U.bind(app, {
       'sb-toggle': () => document.body.classList.toggle('sb-open'), 'sb-close': () => document.body.classList.remove('sb-open'),
       'sb-group': (el) => L.setOpenGroup(el.dataset.group === L._openGroup ? '' : el.dataset.group),
@@ -141,6 +142,8 @@
     U.onChange(app, { 'phase-2': (el) => L.togglePhase(2, el.checked), 'phase-3': (el) => { el.checked = false; U.toast('info', 'Phase 3 chưa có mockup', 'Công tắc bị khóa'); } });
     app.querySelector('#period-sel').addEventListener('change', (e) => { TH.store.state.meta.period = e.target.value; TH.store.save(); TH.router.refresh(); });
     document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); L.palette(); } });
+    }
+    else app.querySelector('#period-sel').addEventListener('change', (e) => { TH.store.state.meta.period = e.target.value; TH.store.save(); TH.router.refresh(); });
     L.refreshTop();
   };
   L.refreshTop = () => {

@@ -145,6 +145,7 @@
   /* ---- Chạy toàn bộ kịch bản (Công cụ nâng cao) ---- */
   G.runAll = async () => {
     const wait = (ms) => new Promise(r => setTimeout(r, ms)); const prevRole = TH.auth.role(); const log = [];
+    if (TH.phase && TH.phase.on(2) && Q.periodLocked && Q.periodLocked(St.state.meta.period)) { TH.auth.switchRole('admin'); X.unlockPeriod(St.state.meta.period, 'Chạy lại kịch bản demo'); log.push('Mở lại kỳ ' + St.state.meta.period + ' (đã khóa bởi kịch bản P2)'); }
     TH.auth.switchRole('ops');
     const t = X.saveTenant({ name: 'Khách Auto ' + Date.now().toString().slice(-4), phone: '091' + Date.now().toString().slice(-7).replace(/(\d{1})(\d{3})(\d{3})/, '$1 $2 $3'), job: 'Kỹ sư', segment: 'Chuyên gia' }); log.push('Khách ' + t.code);
     const room = St.where('rooms', r => r.status === 'ready').sort((a, b) => a.code.localeCompare(b.code))[0]; if (!room) throw new Error('Không còn phòng Sẵn sàng');

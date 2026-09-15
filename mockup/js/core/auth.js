@@ -174,7 +174,9 @@
     if (path.startsWith('/rooms') && role === 'accountant') hide('edit svc add-asset edit-asset rm-asset newc newc-any hold release clean upload rm-doc more');
     if (path.startsWith('/rooms') && ['sale', 'kythuat'].includes(role)) hide('edit svc add-asset edit-asset rm-asset newc newc-any hold release clean upload rm-doc more export inv');
     if (path.startsWith('/buildings') && ['sale', 'kythuat'].includes(role)) hide('add import edit add-lc schedule actions upload rm-doc add-pay paid paid2 landlord-paid go-catalog add-room bulk import-rooms');
-    if ((path.startsWith('/tenants') || path.startsWith('/contracts')) && role === 'sale') hide('add edit newc upload rm-doc more new save activate cancel terminate renew note');
+    if ((path.startsWith('/tenants') || path.startsWith('/contracts')) && role === 'sale') hide('add edit newc upload rm-doc more new save activate cancel terminate renew note edit-note pay import inv refund go-refund');
+    if (path.startsWith('/expenses') && ['sale', 'kythuat'].includes(role)) hide('add e more');
+    if (path.startsWith('/dashboard') && ['sale', 'kythuat'].includes(role)) hide('remind more');
     if (path.startsWith('/tenants') && role === 'accountant') hide('add edit newc upload rm-doc more');
     if (path.startsWith('/contracts') && role === 'accountant') hide('add new edit save activate cancel terminate renew note upload rm-doc more');
     if (path.startsWith('/invoices') && role === 'ops') hide('batch import issue-valid bulk-issue issue adjust add-line note remind bulk-zalo zalo more');

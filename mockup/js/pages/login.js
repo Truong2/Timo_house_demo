@@ -29,7 +29,7 @@
       const form = app.querySelector('#login-form'), errBox = app.querySelector('#login-err');
       const showErr = (msg) => { errBox.hidden = false; errBox.innerHTML = `<div class="login-alert" role="alert">${I('alert-triangle')}<div><b>Thông tin đăng nhập không chính xác</b><span>${esc(msg)}</span></div><button type="button" class="close-x" data-act="close-err" aria-label="Đóng thông báo lỗi">${I('x')}</button></div>`; };
       form.addEventListener('submit', (e) => { e.preventDefault(); const d = U.formData(form); try { TH.auth.login(d.username, d.password); TH.router.render(); U.toast('ok', 'Đăng nhập thành công', 'Xin chào ' + TH.store.state.session.name); } catch (err) { showErr(err.message); } });
-      U.bind(app, { eye: (b) => { const inp = form.querySelector('input[name=password]'); inp.type = inp.type === 'password' ? 'text' : 'password'; b.innerHTML = I(inp.type === 'password' ? 'eye-off' : 'eye'); b.setAttribute('aria-label', inp.type === 'password' ? 'Hiện mật khẩu' : 'Ẩn mật khẩu'); }, forgot: () => U.toast('info', 'Liên hệ quản trị viên', 'Bản demo: dùng admin / ketoan / vanhanh với mật khẩu bất kỳ'), 'close-err': () => errBox.hidden = true });
+      U.bind(app.querySelector('.login') || form.closest('section') || form, { eye: (b) => { const inp = form.querySelector('input[name=password]'); inp.type = inp.type === 'password' ? 'text' : 'password'; b.innerHTML = I(inp.type === 'password' ? 'eye-off' : 'eye'); b.setAttribute('aria-label', inp.type === 'password' ? 'Hiện mật khẩu' : 'Ẩn mật khẩu'); }, forgot: () => U.toast('info', 'Liên hệ quản trị viên', 'Bản demo: dùng admin / ketoan / vanhanh với mật khẩu bất kỳ'), 'close-err': () => errBox.hidden = true });
     }
   };
 })(window.TH);
