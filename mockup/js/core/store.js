@@ -1,32 +1,47 @@
 /* Store: state + persist localStorage */
 (function (TH) {
-  const KEY = 'timehouse-demo-p1-v2';
-  const SCHEMA = 3;
+  const KEY = 'timehouse-demo-p1-v3-2026';
+  const SCHEMA = 4;
   const COLLECTIONS = ['users', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
     // Phase 2
     'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines'];
   const S = { state: null, listeners: [], _t: null };
-  S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2024-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
+  S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
   S.migrate = (st) => {
-    if (!st || ![1, 2, SCHEMA].includes(Number(st.schema))) throw new Error('Schema không khớp');
-    const legacy = Number(st.schema) < SCHEMA;
+    if (!st || Number(st.schema) !== SCHEMA) throw new Error('Schema không khớp');
     COLLECTIONS.forEach(c => { if (!Array.isArray(st[c])) st[c] = []; });
-    st.meta = st.meta || { today: TH.f.DEMO_TODAY, period: '2024-10' };
+    st.meta = st.meta || { today: TH.f.DEMO_TODAY, period: '2026-10' };
     st.guide = st.guide || { done: {}, ts: {}, current: null };
     // Phase 1 RBAC: preserve explicit assignments and only backfill legacy
     // operation accounts from buildings they already manage.
     st.users.forEach(u => {
       if (!u || u.role !== 'ops') return;
-      if (!Array.isArray(u.buildingIds) || (legacy && !u.buildingIds.length)) u.buildingIds = st.buildings.filter(b => b && b.managerId === u.id).map(b => b.id);
+      if (!Array.isArray(u.buildingIds)) u.buildingIds = st.buildings.filter(b => b && b.managerId === u.id).map(b => b.id);
       u.buildingIds = [...new Set(u.buildingIds.filter(id => st.buildings.some(b => b && b.id === id)))];
     });
-    // Phase 2: state cũ (schema ≤ 2) hoặc state chưa có dữ liệu P2 → seed bổ sung trên dữ liệu hiện có (idempotent, không đụng record P1)
+    // Phase 2: state hiện hành chưa có dữ liệu P2 → seed bổ sung trên dữ liệu hiện có (idempotent, không đụng record P1)
     if (TH.seed && TH.seed.phase2 && !st.meta.p2Seeded && st.buildings.length) { try { TH.seed.phase2(st); } catch (e) { console.warn('seed phase2', e); } }
+    // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
+    // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
+    const leadGroups = {};
+    st.leads.forEach((lead, sourceIndex) => {
+      if (!lead) return;
+      const status = lead.status || 'new';
+      (leadGroups[status] = leadGroups[status] || []).push({ lead, sourceIndex });
+    });
+    Object.values(leadGroups).forEach(items => items
+      .sort((a, b) => {
+        const ao = Number(a.lead.boardOrder), bo = Number(b.lead.boardOrder);
+        const av = Number.isFinite(ao) && ao > 0 ? ao : Number.MAX_SAFE_INTEGER;
+        const bv = Number.isFinite(bo) && bo > 0 ? bo : Number.MAX_SAFE_INTEGER;
+        return av - bv || a.sourceIndex - b.sourceIndex;
+      })
+      .forEach((item, i) => { item.lead.boardOrder = (i + 1) * 1000; }));
     st.schema = SCHEMA;
     return st;
   };
   S.load = () => {
-    try { const raw = localStorage.getItem(KEY); if (raw) { const st = JSON.parse(raw); if (st && [1, 2, SCHEMA].includes(Number(st.schema))) { S.state = S.migrate(st); S.saveNow(); return true; } } } catch (e) { console.warn('store load', e); }
+    try { const raw = localStorage.getItem(KEY); if (raw) { const st = JSON.parse(raw); if (st && Number(st.schema) === SCHEMA) { S.state = S.migrate(st); S.saveNow(); return true; } } } catch (e) { console.warn('store load', e); }
     S.state = S.empty(); return false;
   };
   S.save = () => { clearTimeout(S._t); S._t = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) { console.warn('store save', e); } }, 60); };

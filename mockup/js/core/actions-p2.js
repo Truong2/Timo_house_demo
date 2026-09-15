@@ -4,11 +4,31 @@
   const err = (m) => { throw new Error(m); };
   const req = (v, m) => { if (v === undefined || v === null || v === '' || (typeof v === 'number' && isNaN(v))) err(m); return v; };
   const me = () => (St.state.session || {}).userId || null;
+  const yearCode = (date = F.today()) => String(date || F.today()).slice(0, 4);
+  const periodCode = (period = F.today().slice(0, 7)) => String(period || F.today().slice(0, 7)).replace('-', '');
   const done = () => { St.save(); St.emit('change'); };
   const on2 = () => TH.phase && TH.phase.on(2);
   const need2 = () => { if (!on2()) err('Chức năng thuộc Phase 2 – bật Phase 2 trong Công cụ nâng cao'); };
   const idem = (key, fn) => { if (!key) return fn(); St.state.meta.idem = St.state.meta.idem || {}; if (St.state.meta.idem[key]) return Object.assign({ duplicate: true }, St.state.meta.idem[key]); const res = fn(); try { St.state.meta.idem[key] = JSON.parse(JSON.stringify(res)); } catch (e) { St.state.meta.idem[key] = { id: res && res.id, code: res && res.code }; } St.save(); return res; };
   const act = (leadId, type, note, extra = {}) => St.add('leadActivities', Object.assign({ leadId, type, note, at: F.nowISO(), by: me() }, extra));
+  const boardValue = (lead) => { const n = Number(lead && lead.boardOrder); return Number.isFinite(n) && n > 0 ? n : Number.MAX_SAFE_INTEGER; };
+  const boardList = (status, omitId) => St.rawAll('leads').filter(l => l && l.id !== omitId && (l.status || 'new') === status).sort((a, b) => boardValue(a) - boardValue(b) || F.cmp(a.createdAt || '', b.createdAt || '') || String(a.id).localeCompare(String(b.id)));
+  const reindexBoard = (items) => items.forEach((lead, i) => { lead.boardOrder = (i + 1) * 1000; });
+  const placeLead = (lead, status, beforeId = null) => {
+    if (!lead) return null;
+    const from = lead.status || 'new';
+    const source = boardList(from, lead.id);
+    const target = status === from ? source : boardList(status, lead.id);
+    let at = beforeId ? target.findIndex(x => x.id === beforeId) : target.length;
+    if (at < 0) at = target.length;
+    lead.status = status;
+    target.splice(at, 0, lead);
+    reindexBoard(target);
+    if (status !== from) reindexBoard(source);
+    return lead;
+  };
+  const appendLead = (lead, status = (lead && lead.status) || 'new') => placeLead(lead, status, null);
+  TH.crmBoard = Object.assign(TH.crmBoard || {}, { place: placeLead, append: appendLead });
 
   /* ================= CRM ================= */
   X.saveLead = (d) => {
@@ -18,24 +38,36 @@
     const payload = { name: d.name, phone: d.phone, email: d.email || '', sourceId: d.sourceId, channel: d.channel || '', roomType: d.roomType || '', people: F.num(d.people) || 1, budgetMin: F.num(d.budgetMin), budgetMax: F.num(d.budgetMax), buildingIds: Array.isArray(d.buildingIds) ? d.buildingIds.filter(Boolean) : (d.buildingIds ? [d.buildingIds] : []), moveInDate: d.moveInDate || '', saleId: d.saleId || me(), temp: d.temp || 'warm', note: d.note || '', updatedAt: F.nowISO() };
     if (payload.budgetMax && payload.budgetMin > payload.budgetMax) err('Ngân sách từ phải nhỏ hơn đến');
     if (d.id) { const l = St.update('leads', d.id, payload); St.audit('update', 'lead', l.id, 'Cập nhật lead ' + l.name); done(); return l; }
-    const l = St.add('leads', Object.assign({ code: St.nextCode('leads', 'LD-2024-', 3), status: ['new', 'contacted', 'viewing', 'considering'].includes(d.status) ? d.status : 'new', lostReason: '', tenantId: null }, payload));
+    const l = St.add('leads', Object.assign({ code: St.nextCode('leads', 'LD-' + yearCode() + '-', 3), status: ['new', 'contacted', 'viewing', 'considering'].includes(d.status) ? d.status : 'new', lostReason: '', tenantId: null }, payload)); appendLead(l);
     act(l.id, 'create', 'Tạo lead từ nguồn ' + (Q.leadSource(l.sourceId).name || '')); St.audit('create', 'lead', l.id, 'Tạo lead ' + l.name + ' (' + l.code + ')'); done(); return l;
   };
-  X.setLeadStage = (id, status, opts = {}) => {
-    need2(); Au.need('crm.manage'); const l = St.get('leads', id); if (!l) err('Không tìm thấy lead'); if (l.status === status) return l;
-    if (status === 'held' && !Q.leadHold(id)) err('Chuyển sang Giữ chỗ phải qua wizard Giữ chỗ phòng (có phòng, phí, thời hạn)');
-    if (status === 'won' && !Q.leadDeal(id)) err('Chuyển sang Chốt thuê phải qua wizard Chốt thuê (tạo giao dịch)');
+  const validateLeadMove = (l, status, opts = {}) => {
+    if (status === 'held' && !Q.leadHold(l.id)) err('Chuyển sang Giữ chỗ phải qua wizard Giữ chỗ phòng (có phòng, phí, thời hạn)');
+    if (status === 'won' && !Q.leadDeal(l.id)) err('Chuyển sang Chốt thuê phải qua wizard Chốt thuê (tạo giao dịch)');
     if (status === 'lost') req(opts.reason, 'Nhập lý do mất lead');
     if (l.status === 'won' && !opts.force) err('Lead đã chốt thuê – không đổi giai đoạn');
-    if (l.status === 'held' && !['held', 'won', 'lost'].includes(status) && Q.leadHold(id)) err('Lead đang giữ chỗ phòng ' + (Q.room(Q.leadHold(id).roomId).code || '') + ' – hủy giữ chỗ trước khi lùi giai đoạn');
-    const before = l.status; Object.assign(l, { status, updatedAt: F.nowISO(), lostReason: status === 'lost' ? opts.reason : l.lostReason });
-    act(id, status === 'lost' ? 'lost' : 'status', (status === 'lost' ? 'Đánh dấu mất: ' + opts.reason : 'Đổi giai đoạn ' + Q.label('lead', before) + ' → ' + Q.label('lead', status)) + (opts.note ? ' – ' + opts.note : ''));
-    St.audit('stage', 'lead', id, l.name + ': ' + Q.label('lead', before) + ' → ' + Q.label('lead', status)); done(); return l;
+    if (l.status === 'held' && !['held', 'won', 'lost'].includes(status) && Q.leadHold(l.id)) err('Lead đang giữ chỗ phòng ' + (Q.room(Q.leadHold(l.id).roomId).code || '') + ' – hủy giữ chỗ trước khi lùi giai đoạn');
+  };
+  X.moveLead = (id, opts = {}) => {
+    need2(); Au.need('crm.manage'); const l = St.get('leads', id); if (!l) err('Không tìm thấy lead');
+    const status = opts.status || l.status || 'new'; const before = l.status || 'new';
+    if (status !== before) validateLeadMove(l, status, opts);
+    placeLead(l, status, opts.beforeId || null);
+    if (status !== before) {
+      Object.assign(l, { updatedAt: F.nowISO(), lostReason: status === 'lost' ? opts.reason : l.lostReason });
+      act(id, status === 'lost' ? 'lost' : 'status', (status === 'lost' ? 'Đánh dấu mất: ' + opts.reason : 'Đổi giai đoạn ' + Q.label('lead', before) + ' → ' + Q.label('lead', status)) + (opts.note ? ' – ' + opts.note : ''));
+      St.audit('stage', 'lead', id, l.name + ': ' + Q.label('lead', before) + ' → ' + Q.label('lead', status));
+    } else St.audit('reorder', 'lead', id, 'Sắp xếp ' + l.name + ' trong cột ' + Q.label('lead', status));
+    done(); return l;
+  };
+  X.setLeadStage = (id, status, opts = {}) => {
+    const l = St.get('leads', id); if (l && l.status === status) return l;
+    return X.moveLead(id, Object.assign({}, opts, { status, beforeId: null }));
   };
   X.addLeadActivity = (id, { type, result, note }) => {
     need2(); Au.need('crm.manage'); const l = St.get('leads', id); if (!l) err('Không tìm thấy lead'); req(type, 'Loại hoạt động'); if (type !== 'note') req(result || note, 'Nhập kết quả/ghi chú');
     const a = act(id, type, note || '', { result: result || '' }); l.updatedAt = F.nowISO();
-    if (['call', 'zalo'].includes(type) && l.status === 'new') { l.status = 'contacted'; act(id, 'status', 'Tự chuyển giai đoạn Mới → Đã liên hệ'); }
+    if (['call', 'zalo'].includes(type) && l.status === 'new') { placeLead(l, 'contacted'); act(id, 'status', 'Tự chuyển giai đoạn Mới → Đã liên hệ'); }
     if (type === 'call' && result === 'no_answer') l.temp = l.temp === 'hot' ? 'warm' : 'cold'; if (result === 'interested') l.temp = 'hot';
     done(); return a;
   };
@@ -43,7 +75,7 @@
   X.importLeads = ({ rows, fileName, checksum }) => idem('lead-import:' + checksum, () => {
     need2(); Au.need('crm.manage'); let created = 0, skipped = 0; const lines = [];
     rows.forEach(r => { const d = r.data; const issues = []; if (!d.name) issues.push('Thiếu họ tên'); if (!d.phone) issues.push('Thiếu SĐT'); else if (St.one('leads', l => l.phone.replace(/\s/g, '') === d.phone.replace(/\s/g, ''))) issues.push('Trùng SĐT'); if (issues.length) { skipped++; lines.push({ i: r.i, src: Object.values(d).join(' | '), data: d, status: 'failed', reason: issues.join('; '), hash: F.hash(JSON.stringify(d)) }); return; }
-      const srcObj = St.one('leadSources', s => F.norm(s.name) === F.norm(d.source || '')) || St.all('leadSources')[0]; const b = St.one('buildings', x => F.norm(x.name) === F.norm(d.building || '')); const l = St.add('leads', { code: St.nextCode('leads', 'LD-2024-', 3), name: d.name, phone: d.phone, email: d.email || '', sourceId: srcObj.id, channel: 'Import', roomType: '', people: 1, budgetMin: F.num(d.budget), budgetMax: F.num(d.budget) ? F.num(d.budget) + 3000000 : 0, buildingIds: b ? [b.id] : [], moveInDate: '', saleId: me(), status: 'new', temp: 'warm', note: (d.note || '') + ' (import ' + fileName + ')', lostReason: '', tenantId: null, updatedAt: F.nowISO() }); act(l.id, 'create', 'Import từ ' + fileName); created++; lines.push({ i: r.i, src: Object.values(d).join(' | '), data: d, status: 'ok', reason: '', link: '#/crm/leads/' + l.id, hash: F.hash(JSON.stringify(d)) }); });
+      const srcObj = St.one('leadSources', s => F.norm(s.name) === F.norm(d.source || '')) || St.all('leadSources')[0]; const b = St.one('buildings', x => F.norm(x.name) === F.norm(d.building || '')); const l = St.add('leads', { code: St.nextCode('leads', 'LD-' + yearCode() + '-', 3), name: d.name, phone: d.phone, email: d.email || '', sourceId: srcObj.id, channel: 'Import', roomType: '', people: 1, budgetMin: F.num(d.budget), budgetMax: F.num(d.budget) ? F.num(d.budget) + 3000000 : 0, buildingIds: b ? [b.id] : [], moveInDate: '', saleId: me(), status: 'new', temp: 'warm', note: (d.note || '') + ' (import ' + fileName + ')', lostReason: '', tenantId: null, updatedAt: F.nowISO() }); appendLead(l); act(l.id, 'create', 'Import từ ' + fileName); created++; lines.push({ i: r.i, src: Object.values(d).join(' | '), data: d, status: 'ok', reason: '', link: '#/crm/leads/' + l.id, hash: F.hash(JSON.stringify(d)) }); });
     const job = St.add('importJobs', { code: St.nextCode('importJobs', 'IMP-' + F.today().slice(0, 7).replace('-', '') + '-', 3), type: 'lead', typeLabel: 'Lead (CRM)', fileName, fileSize: (rows.length * 0.1).toFixed(1) + ' KB', rows: rows.length, valid: created, warn: 0, error: skipped, created, skipped, ok: created, failed: skipped, progress: 100, status: skipped ? 'partial' : 'done', createdBy: me(), updatedAt: F.nowISO(), checksum, lines, attempts: [{ n: 1, at: F.nowISO(), by: me(), total: rows.length, ok: created, failed: skipped, status: skipped ? 'partial' : 'done', note: '' }], mapping: ['Họ tên', 'SĐT', 'Nguồn'], rules: ['Bắt buộc: Họ tên, SĐT', 'Không trùng SĐT lead đang mở'], buildingLabel: 'Tất cả tòa nhà', period: F.today().slice(0, 7) });
     St.audit('import', 'importJobs', job.id, 'Import lead: tạo ' + created + ', bỏ qua ' + skipped); done(); return job;
   });
@@ -54,20 +86,20 @@
     const clash = St.one('viewings', v => v.id !== d.id && v.status === 'scheduled' && v.saleId === d.saleId && v.date === d.date && v.time === d.time); if (clash && !d.force) { const e = new Error('Nhân viên ' + Q.userName(d.saleId) + ' đã có lịch ' + clash.code + ' lúc ' + d.time + ' ' + F.date(d.date)); e.code = 'CLASH'; throw e; }
     const room = Q.room(d.roomId); const payload = { leadId: d.leadId, roomId: d.roomId, buildingId: room.buildingId, date: d.date, time: d.time, saleId: d.saleId, remind: d.remind, place: d.place, note: d.note || '' };
     let v; if (d.id) { v = St.update('viewings', d.id, payload); act(d.leadId, 'viewing', 'Đổi lịch xem ' + v.code + ' → ' + F.date(v.date) + ' ' + v.time); }
-    else { v = St.add('viewings', Object.assign({ code: St.nextCode('viewings', 'LX-' + F.today().slice(0, 7).replace('-', '') + '-', 3), status: 'scheduled', result: '', resultNote: '', confirmed: false }, payload)); const l = St.get('leads', d.leadId); if (l && ['new', 'contacted'].includes(l.status)) { l.status = 'viewing'; act(l.id, 'status', 'Tự chuyển giai đoạn → Hẹn xem'); } act(d.leadId, 'viewing', 'Đặt lịch xem phòng ' + room.code + ' vào ' + F.date(v.date) + ' ' + v.time); }
+    else { v = St.add('viewings', Object.assign({ code: St.nextCode('viewings', 'LX-' + F.today().slice(0, 7).replace('-', '') + '-', 3), status: 'scheduled', result: '', resultNote: '', confirmed: false }, payload)); const l = St.get('leads', d.leadId); if (l && ['new', 'contacted'].includes(l.status)) { placeLead(l, 'viewing'); act(l.id, 'status', 'Tự chuyển giai đoạn → Hẹn xem'); } act(d.leadId, 'viewing', 'Đặt lịch xem phòng ' + room.code + ' vào ' + F.date(v.date) + ' ' + v.time); }
     St.update('leads', d.leadId, { updatedAt: F.nowISO() }); St.audit('save', 'viewing', v.id, 'Lịch xem ' + v.code + ' – ' + Q.lead(d.leadId).name + ' – ' + room.code); done(); return v;
   };
   X.viewingResult = (id, { result, note }) => {
     need2(); Au.need('viewings.manage'); const v = St.get('viewings', id); if (!v || v.status !== 'scheduled') err('Lịch không ở trạng thái Đã lên lịch'); req(result, 'Chọn kết quả xem');
     Object.assign(v, { status: 'done', result, resultNote: note || '', doneAt: F.nowISO() }); const l = St.get('leads', v.leadId);
-    if (l) { if (['interested', 'considering'].includes(result) && ['new', 'contacted', 'viewing'].includes(l.status)) l.status = 'considering'; if (result === 'interested') l.temp = 'hot'; if (result === 'declined') { l.temp = 'cold'; if (l.status === 'viewing') l.status = 'contacted'; } l.updatedAt = F.nowISO(); act(l.id, 'viewing', 'Kết quả xem ' + Q.room(v.roomId).code + ': ' + Q.label('viewingResult', result) + (note ? ' – ' + note : ''), { result }); }
+    if (l) { if (['interested', 'considering'].includes(result) && ['new', 'contacted', 'viewing'].includes(l.status)) placeLead(l, 'considering'); if (result === 'interested') l.temp = 'hot'; if (result === 'declined') { l.temp = 'cold'; if (l.status === 'viewing') placeLead(l, 'contacted'); } l.updatedAt = F.nowISO(); act(l.id, 'viewing', 'Kết quả xem ' + Q.room(v.roomId).code + ': ' + Q.label('viewingResult', result) + (note ? ' – ' + note : ''), { result }); }
     St.audit('result', 'viewing', id, 'Ghi kết quả ' + v.code + ': ' + Q.label('viewingResult', result)); done(); return v;
   };
   X.cancelViewing = (id, reason, noShow = false) => { need2(); Au.need('viewings.manage'); const v = St.get('viewings', id); if (!v || v.status !== 'scheduled') err('Lịch không ở trạng thái Đã lên lịch'); Object.assign(v, { status: noShow ? 'no_show' : 'cancelled', resultNote: reason || '' }); act(v.leadId, 'viewing', (noShow ? 'Khách không đến lịch ' : 'Hủy lịch ') + v.code + (reason ? ' – ' + reason : '')); done(); return v; };
   X.sendViewingReminders = (ids) => {
     need2(); Au.need('zalo.send'); const vs = ids.map(id => St.get('viewings', id)).filter(v => v && v.status === 'scheduled'); if (!vs.length) err('Không có lịch Đã lên lịch để nhắc');
     const tpl = St.one('zaloTemplates', t => t.eventKey === 'viewing_reminder'); if (!tpl) err('Chưa có mẫu Nhắc lịch xem phòng');
-    const b = St.add('zaloBatches', { code: St.nextCode('zaloBatches', 'ZL-202410-', 3), name: 'Nhắc lịch xem phòng ' + F.date(F.today()), eventKey: 'viewing_reminder', sourceKey: 'viewing_reminder', audience: 'Khách quan tâm', plannedCount: vs.length, sentCount: 0, failedCount: 0, sentAt: null, createdBy: me(), status: 'draft', templateId: tpl.id, scopeLabel: 'Lịch xem đã chọn', period: F.today().slice(0, 7), sendMode: 'now', rules: 'Chỉ nhắc lịch Đã lên lịch · 1 tin / lịch', phase: 2, log: [] });
+    const b = St.add('zaloBatches', { code: St.nextCode('zaloBatches', 'ZL-' + periodCode() + '-', 3), name: 'Nhắc lịch xem phòng ' + F.date(F.today()), eventKey: 'viewing_reminder', sourceKey: 'viewing_reminder', audience: 'Khách quan tâm', plannedCount: vs.length, sentCount: 0, failedCount: 0, sentAt: null, createdBy: me(), status: 'draft', templateId: tpl.id, scopeLabel: 'Lịch xem đã chọn', period: F.today().slice(0, 7), sendMode: 'now', rules: 'Chỉ nhắc lịch Đã lên lịch · 1 tin / lịch', phase: 2, log: [] });
     vs.forEach(v => { const l = Q.lead(v.leadId); const room = Q.room(v.roomId); St.add('zaloMessages', { batchId: b.id, tenantId: l.tenantId || null, leadId: l.id, roomId: v.roomId, buildingId: v.buildingId, invoiceId: null, viewingId: v.id, channel: 'Zalo', templateCode: tpl.code, status: 'queued', errorCode: '', sentAt: null, phone: l.phone, content: Q.renderTemplate(tpl.body, Q.templateCtx(null, { name: l.name }, { room, buildingId: v.buildingId, due: v.date, ngay_den_han: F.date(v.date) + ' ' + v.time })), amountAtSend: 0, retryOfId: null, attempt: 1, recipientName: l.name }); v.reminded = F.nowISO(); act(l.id, 'zalo', 'Gửi nhắc lịch xem ' + v.code + ' qua Zalo'); });
     St.audit('create', 'zaloBatch', b.id, 'Tạo đợt nhắc lịch xem ' + b.code + ' (' + vs.length + ')'); X.startBatch(b.id); return b;
   };
@@ -87,10 +119,10 @@
     St.update('rooms', room.id, { status: 'held' });
     const h = St.add('holds', { code: St.nextCode('holds', 'GC-' + F.today().slice(0, 7).replace('-', '') + '-', 3), roomId: room.id, tenantId: t.id, leadId: l.id, start: d.start, until: d.until, expiresAt: d.until, deposit: fee, fee, feeMethod: d.feeMethod, receiverId: d.receiverId, cancelPolicy: d.cancelPolicy, autoExpire: d.autoExpire !== false, requireDeposit: !!d.requireDeposit, lockFromSales: !!d.lockFromSales, note: d.note || '', status: 'active', createdBy: me() });
     St.add('payments', { code: St.nextCode('payments', 'PAY-' + F.today().slice(0, 7).replace('-', '') + '-', 3), kind: 'hold_fee', holdId: h.id, tenantId: t.id, roomId: room.id, buildingId: room.buildingId, date: F.today(), amount: fee, method: d.feeMethod, ref: 'GC-' + h.code, evidence: '', note: 'Phí giữ chỗ ' + h.code + ' (trừ vào cọc khi ký HĐ)', status: 'recorded', createdBy: me(), unallocated: fee, history: [{ at: F.nowISO(), who: (St.state.session || {}).name, what: 'Thu phí giữ chỗ' }] });
-    Object.assign(l, { status: 'held', updatedAt: F.nowISO() }); act(l.id, 'hold', 'Giữ chỗ phòng ' + room.code + ' đến ' + F.date(d.until) + ' – phí ' + F.vnd(fee));
+    placeLead(l, 'held'); l.updatedAt = F.nowISO(); act(l.id, 'hold', 'Giữ chỗ phòng ' + room.code + ' đến ' + F.date(d.until) + ' – phí ' + F.vnd(fee));
     St.audit('hold', 'room', room.id, 'Giữ chỗ ' + h.code + ' phòng ' + room.code + ' cho lead ' + l.name); done(); return h;
   };
-  X.expireHolds = () => { let n = 0; St.rawAll('holds').forEach(h => { if (!h || !Q.holdActive(h) || h.autoExpire === false) return; const until = h.until || h.expiresAt; if (until && until < F.today()) { h.status = 'expired'; h.expiredAt = F.nowISO(); const r = St.rawGet('rooms', h.roomId); if (r && r.status === 'held') r.status = 'ready'; const l = h.leadId && St.rawGet('leads', h.leadId); if (l && l.status === 'held') { l.status = 'considering'; St.add('leadActivities', { leadId: l.id, type: 'hold', note: 'Giữ chỗ ' + (h.code || '') + ' hết hạn – phòng mở lại', at: F.nowISO(), by: null }); } n++; } }); if (n) { St.audit('expire_hold', 'hold', null, 'Tự động hết hạn ' + n + ' giữ chỗ'); St.save(); } return n; };
+  X.expireHolds = () => { let n = 0; St.rawAll('holds').forEach(h => { if (!h || !Q.holdActive(h) || h.autoExpire === false) return; const until = h.until || h.expiresAt; if (until && until < F.today()) { h.status = 'expired'; h.expiredAt = F.nowISO(); const r = St.rawGet('rooms', h.roomId); if (r && r.status === 'held') r.status = 'ready'; const l = h.leadId && St.rawGet('leads', h.leadId); if (l && l.status === 'held') { placeLead(l, 'considering'); St.add('leadActivities', { leadId: l.id, type: 'hold', note: 'Giữ chỗ ' + (h.code || '') + ' hết hạn – phòng mở lại', at: F.nowISO(), by: null }); } n++; } }); if (n) { St.audit('expire_hold', 'hold', null, 'Tự động hết hạn ' + n + ' giữ chỗ'); St.save(); } return n; };
   X.extendHold = (id, until) => { need2(); Au.need('holds.manage'); const h = St.get('holds', id); if (!h || !Q.holdActive(h)) err('Giữ chỗ không còn hiệu lực'); req(until, 'Chọn ngày'); if (until <= (h.until || h.expiresAt)) err('Ngày mới phải sau ngày hết hạn hiện tại'); if (F.daysBetween(h.start || h.createdAt.slice(0, 10), until) > 14) err('Tổng thời gian giữ chỗ tối đa 14 ngày (OI-09)'); Object.assign(h, { until, expiresAt: until }); if (h.leadId) act(h.leadId, 'hold', 'Gia hạn giữ chỗ ' + h.code + ' đến ' + F.date(until)); done(); return h; };
   X.cancelHoldP2 = (id, { reason, refund }) => { need2(); Au.need('holds.manage'); const h = St.get('holds', id); if (!h || !Q.holdActive(h)) err('Giữ chỗ không còn hiệu lực'); X.releaseHold(h.roomId, reason); h.refunded = !!refund; if (h.leadId) act(h.leadId, 'hold', 'Hủy giữ chỗ ' + h.code + (refund ? ' – hoàn phí' : ' – mất phí') + (reason ? ' (' + reason + ')' : '')); done(); return h; };
   /* ---- Chốt thuê / giao dịch ---- */
@@ -104,7 +136,7 @@
     const deal = St.add('deals', { code: St.nextCode('deals', 'GD', 5), leadId: l.id, tenantId: t.id, roomId: room.id, buildingId: room.buildingId, saleId: l.saleId || me(), holdId: hold && hold.leadId === l.id ? hold.id : null, moveIn: d.moveIn, months: Number(d.months), price, deposit, cycle: d.cycle, serviceIds: d.serviceIds || [], extraServices: d.extraServices || [], people: F.num(d.people), note: d.note || '', status: 'pending_contract', contractId: null, closedAt: F.today(), depositPaid: hold && hold.leadId === l.id ? (hold.fee || 0) : 0, createdBy: me(), docs: d.docs || [] });
     St.add('commissions', { dealId: deal.id, saleId: deal.saleId, rate: sale.commissionRate || 10, amount: Math.round(price * (sale.commissionRate || 10) / 100), status: 'provisional', paidAt: null, paidRef: '', expenseId: null }); // OI-14: 10% tháng đầu, chi một lần
     if (hold && hold.leadId === l.id) hold.dealId = deal.id;
-    Object.assign(l, { status: 'won', updatedAt: F.nowISO() }); act(l.id, 'deal', 'Chốt thuê ' + deal.code + ' – phòng ' + room.code + ' – ' + F.vnd(price) + '/tháng');
+    placeLead(l, 'won'); l.updatedAt = F.nowISO(); act(l.id, 'deal', 'Chốt thuê ' + deal.code + ' – phòng ' + room.code + ' – ' + F.vnd(price) + '/tháng');
     St.audit('create', 'deal', deal.id, 'Chốt thuê ' + deal.code + ' – ' + t.name + ' – ' + room.code); done(); return deal;
   };
   X.linkDealContract = (dealId, contractId) => { const d = St.get('deals', dealId); const c = St.get('contracts', contractId); if (!d || !c) return; d.contractId = c.id; c.dealId = d.id; if (c.status === 'active') d.status = 'active'; St.save(); };
@@ -133,7 +165,7 @@
   wrap('saveContractDraft', (c, args) => { const d0 = args[0] || {}; if (d0.dealId && c) X.linkDealContract(d0.dealId, c.id); if (d0.ocrId && c) { const o = St.get('ocrExtractions', d0.ocrId); if (o) { o.contractId = c.id; o.status = 'created'; c.source = 'ocr'; c.ocrId = o.id; St.save(); } } });
 
   /* ================= OCR hợp đồng ================= */
-  X.ocrUpload = ({ fileName, size, sample }) => { need2(); Au.need('ocr.use'); req(fileName, 'Chọn file'); if (size && size > 20 * 1024 * 1024) err('File tối đa 20MB (FR-DOC-01)'); if (!/\.(pdf|jpe?g|png|txt)$/i.test(fileName)) err('Chỉ nhận PDF/JPG/PNG'); const o = St.add('ocrExtractions', { code: St.nextCode('ocrExtractions', 'OCR-2024-', 3), fileName, size: size ? (size / 1024 / 1024).toFixed(1) + ' MB' : '2.4 MB', pages: 6, sample: !!sample, status: 'uploaded', fields: [], contractId: null, createdBy: me() }); St.audit('upload', 'ocr', o.id, 'Tải file trích xuất ' + fileName); done(); return o; };
+  X.ocrUpload = ({ fileName, size, sample }) => { need2(); Au.need('ocr.use'); req(fileName, 'Chọn file'); if (size && size > 20 * 1024 * 1024) err('File tối đa 20MB (FR-DOC-01)'); if (!/\.(pdf|jpe?g|png|txt)$/i.test(fileName)) err('Chỉ nhận PDF/JPG/PNG'); const o = St.add('ocrExtractions', { code: St.nextCode('ocrExtractions', 'OCR-' + yearCode() + '-', 3), fileName, size: size ? (size / 1024 / 1024).toFixed(1) + ' MB' : '2.4 MB', pages: 6, sample: !!sample, status: 'uploaded', fields: [], contractId: null, createdBy: me() }); St.audit('upload', 'ocr', o.id, 'Tải file trích xuất ' + fileName); done(); return o; };
   /* Mô phỏng trích xuất: file mẫu cố tình sai 5 trường (tên, mã phòng, cọc, ngày kết thúc, SĐT) → confidence < 0.8 = Cần kiểm tra */
   X.ocrExtract = (id) => { need2(); const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); o.status = 'extracting'; St.save(); St.emit('change', { source: 'timer' }); return o; };
   X.ocrFinish = (id) => {
@@ -145,7 +177,7 @@
       f('start', 'Ngày bắt đầu', s.start, 0.94, 'term'), f('end', 'Ngày kết thúc', s.endWrong, 0.66, 'term'), f('months', 'Thời hạn', '12 tháng', 0.95, 'term'),
       f('price', 'Giá thuê (VND)', String(s.price), 0.79, 'money', true), f('deposit', 'Tiền cọc (VND)', s.depositWrong, 0.41, 'money', true), f('cycle', 'Chu kỳ thanh toán', 'Hàng tháng', 0.98, 'money'), f('payDay', 'Ngày thanh toán hàng tháng', '05', 0.9, 'money'), f('note', 'Ghi chú', '', 1, 'money'),
       f('svc_internet', 'Internet', 'true', 0.9, 'services'), f('svc_cable', 'Truyền hình', 'false', 0.9, 'services'), f('svc_parking', 'Giữ xe máy', 'true', 0.88, 'services'), f('svc_clean', 'Dọn vệ sinh', 'false', 0.9, 'services'), f('svc_mgmt', 'Phí quản lý', 'false', 0.85, 'services'), f('svc_other', 'Khác', 'false', 0.9, 'services'),
-      f('landlord', 'Bên cho thuê', 'Trần Văn Hải', 0.95, 'meta'), f('contractNo', 'Số hợp đồng', 'HD-2024-001', 0.97, 'meta'), f('signPlace', 'Nơi ký', 'TP. Hồ Chí Minh', 0.93, 'meta'), f('signDate', 'Ngày ký', '01/11/2024', 0.96, 'meta'), f('idDate', 'Ngày cấp CCCD', '12/05/2021', 0.9, 'meta'), f('bank', 'Tài khoản nhận', 'VCB 0011 002233', 0.92, 'meta'),
+      f('landlord', 'Bên cho thuê', 'Trần Văn Hải', 0.95, 'meta'), f('contractNo', 'Số hợp đồng', 'HD-2026-001', 0.97, 'meta'), f('signPlace', 'Nơi ký', 'TP. Hồ Chí Minh', 0.93, 'meta'), f('signDate', 'Ngày ký', '01/11/2026', 0.96, 'meta'), f('idDate', 'Ngày cấp CCCD', '12/05/2021', 0.9, 'meta'), f('bank', 'Tài khoản nhận', 'VCB 0011 002233', 0.92, 'meta'),
     ];
     o.status = 'review'; o.extractedAt = F.nowISO(); St.audit('extract', 'ocr', id, 'Trích xuất ' + o.fields.length + ' trường (' + o.fields.filter(x => !x.confirmed).length + ' cần kiểm tra)'); done(); return o;
   };
@@ -313,7 +345,7 @@
       if (j.type === 'meter') { const room = St.one('rooms', x => x.code === d.roomCode); ['electric', 'water'].forEach(tp => { const curr = F.num(d[tp + 'Curr']); if (!curr) return; if (St.one('meterReadings', m => m.roomId === room.id && m.period === d.period && m.type === tp)) return; St.add('meterReadings', { roomId: room.id, period: d.period, type: tp, prev: F.num(d[tp + 'Prev']), curr, status: 'draft', enteredBy: me(), jobId: j.id, lineHash: l.hash }); }); l.link = '#/rooms/' + room.id; }
       else if (j.type === 'statement') { const inv = St.get('invoices', l.invoiceId); const p = X.recordPayment({ tenantId: inv.tenantId, date: d.date, amount: F.num(d.amount), method: d.method || 'Chuyển khoản', ref: d.refCode || '', evidence: j.fileName, note: 'Bảng kê ' + j.fileName + ' (thử lại #' + n + ')', allocations: [{ invoiceId: inv.id, amount: l.alloc || Math.min(F.num(d.amount), Q.invRemaining(inv)) }] }, 'st:' + j.checksum + ':' + l.hash); p.kind = 'statement'; l.link = '#/payments/' + p.id; }
       else if (j.type === 'tenant') { const t = St.add('tenants', { code: St.nextCode('tenants', 'KH', 5), name: d.name, phone: d.phone, zalo: d.zalo || d.phone, email: d.email || '', idNumber: d.idNumber || '', dob: '', job: d.job || '', segment: '', verified: false, managerId: me(), note: 'Import ' + j.fileName + ' (thử lại)' }); l.link = '#/tenants/' + t.id; }
-      else if (j.type === 'lead') { const l2 = St.add('leads', { code: St.nextCode('leads', 'LD-2024-', 3), name: d.name, phone: d.phone, email: d.email || '', sourceId: St.all('leadSources')[0].id, channel: 'Import', roomType: '', people: 1, budgetMin: F.num(d.budget), budgetMax: 0, buildingIds: [], moveInDate: '', saleId: me(), status: 'new', temp: 'warm', note: d.note || '', lostReason: '', tenantId: null, updatedAt: F.nowISO() }); l.link = '#/crm/leads/' + l2.id; }
+      else if (j.type === 'lead') { const l2 = St.add('leads', { code: St.nextCode('leads', 'LD-' + yearCode() + '-', 3), name: d.name, phone: d.phone, email: d.email || '', sourceId: St.all('leadSources')[0].id, channel: 'Import', roomType: '', people: 1, budgetMin: F.num(d.budget), budgetMax: 0, buildingIds: [], moveInDate: '', saleId: me(), status: 'new', temp: 'warm', note: d.note || '', lostReason: '', tenantId: null, updatedAt: F.nowISO() }); appendLead(l2); l.link = '#/crm/leads/' + l2.id; }
       else if (j.type === 'room') { const b = St.one('buildings', x => x.code === d.buildingCode || x.name === d.buildingCode); const rm = St.add('rooms', { code: d.code, buildingId: b.id, floor: F.num(d.floor) || 1, type: d.type || 'Phòng đơn', area: F.num(d.area) || 20, price: F.num(d.price), physical: 'good', status: 'ready', managerId: b.managerId, direction: '', furniture: 'Cơ bản', defaultServiceIds: [] }); l.link = '#/rooms/' + rm.id; }
       else if (j.type === 'opening') { const r = X.reconcileOpening([{ i: l.i, data: d }], j.asOf)[0]; if (!r.contractId) throw new Error(r.reason); if (r.done) throw new Error('Đã chuyển số dư mốc này'); if (r.status === 'check') throw new Error(r.reason); r.selected = true; r.useSource = 'file'; const c = St.get('contracts', r.contractId); const res = applyOpeningLine(c, r, j.asOf, F.period(j.asOf), j.fileName); l.link = res.inv ? '#/invoices/' + res.inv.id : '#/contracts/' + c.id; }
       else { throw new Error('Loại dữ liệu chưa hỗ trợ thử lại'); }

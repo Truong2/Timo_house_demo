@@ -3,7 +3,7 @@
   const F = TH.f, U = TH.ui, esc = F.esc;
   /* ---- icon mới (Lucide subset) ---- */
   Object.assign(TH.icons, {
-    kanban: '<path d="M6 5v11M10 5v6M14 5v14M18 5v9"/>', flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>', thermometer: '<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
+    kanban: '<path d="M6 5v11M10 5v6M14 5v14M18 5v9"/>', 'grip-vertical': '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>', flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>', thermometer: '<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
     'phone-call': '<path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>', timer: '<line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>',
     scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/>', 'git-merge': '<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/>', 'hard-hat': '<path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2zM10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5M4 15v-3a6 6 0 0 1 6-6M14 6a6 6 0 0 1 6 6v3"/>',
     tool: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>', 'calendar-days': '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>',
@@ -12,15 +12,74 @@
     hand: '<path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>', trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/>', target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>', 'trending-down': '<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>', 'arrow-down': '<path d="M12 5v14M19 12l-7 7-7-7"/>', lightbulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>', 'check-square': '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>', 'file-warning': '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M12 9v4M12 17h.01"/>',
   });
 
-  /* ---- Kanban: cols [{key,label,count,color}], cards [{col,id,html}], HTML5 drag-drop, fallback ⋮ ---- */
-  U.kanban = ({ cols, cards, addAct = 'add-card', moveAct = 'kb-move', draggable = true }) => `<div class="kanban">${cols.map(c => `<div class="kb-col" data-col="${esc(c.key)}"><div class="kb-h ${c.color || ''}"><b>${esc(c.label)}</b><span class="cnt">${c.count != null ? c.count : cards.filter(x => x.col === c.key).length}</span></div><div class="kb-body" data-kb-drop="${esc(c.key)}">${cards.filter(x => x.col === c.key).map(x => `<div class="kb-card" draggable="${draggable ? 'true' : 'false'}" data-kb-card="${esc(x.id)}" data-col="${esc(c.key)}">${x.html}</div>`).join('')}${c.addable === false ? '' : `<button type="button" class="kb-add" data-act="${addAct}" data-col="${esc(c.key)}">+ Thêm lead</button>`}</div></div>`).join('')}</div>`;
-  U.bindKanban = (root, onMove) => {
-    let dragId = null, fromCol = null;
-    root.addEventListener('dragstart', (e) => { const c = e.target.closest('[data-kb-card]'); if (!c) return; dragId = c.dataset.kbCard; fromCol = c.dataset.col; c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (err) { } });
-    root.addEventListener('dragend', (e) => { const c = e.target.closest('[data-kb-card]'); if (c) c.classList.remove('dragging'); root.querySelectorAll('.kb-body.over').forEach(x => x.classList.remove('over')); });
-    root.addEventListener('dragover', (e) => { const b = e.target.closest('[data-kb-drop]'); if (!b || !dragId) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; b.classList.add('over'); });
-    root.addEventListener('dragleave', (e) => { const b = e.target.closest('[data-kb-drop]'); if (b && !b.contains(e.relatedTarget)) b.classList.remove('over'); });
-    root.addEventListener('drop', (e) => { const b = e.target.closest('[data-kb-drop]'); if (!b || !dragId) return; e.preventDefault(); b.classList.remove('over'); const to = b.dataset.kbDrop; const id = dragId; dragId = null; if (to !== fromCol) onMove(id, fromCol, to); });
+  /* ---- Kanban: cột cố định, danh sách cuộn độc lập, sắp xếp trong/giữa cột ---- */
+  U.announce = U.announce || ((message) => {
+    let live = document.querySelector('[data-app-live]');
+    if (!live) { live = document.createElement('div'); live.className = 'sr-only'; live.dataset.appLive = '1'; live.setAttribute('role', 'status'); live.setAttribute('aria-live', 'polite'); live.setAttribute('aria-atomic', 'true'); document.body.appendChild(live); }
+    live.textContent = '';
+    setTimeout(() => { live.textContent = message; }, 20);
+  });
+  U.kanban = ({ cols, cards, addAct = 'add-card', draggable = true, label = 'Bảng Kanban' }) => `<div class="kanban-shell" data-kb-shell><div class="kanban" role="region" aria-label="${esc(label)}">${cols.map(c => {
+    const items = cards.filter(x => x.col === c.key);
+    return `<section class="kb-col" data-col="${esc(c.key)}" aria-label="${esc(c.label)}"><header class="kb-h ${c.color || ''}"><span class="kb-title"><i></i><b>${esc(c.label)}</b></span><span class="cnt" aria-label="${c.count != null ? c.count : items.length} lead">${c.count != null ? c.count : items.length}</span></header><div class="kb-body" data-kb-drop="${esc(c.key)}" data-col-label="${esc(c.label)}"><div class="kb-list" role="list">${items.map(x => {
+      const canDrag = draggable && x.draggable !== false;
+      const cardLabel = x.label || x.title || 'lead';
+      return `<article class="kb-card ${esc(x.cls || '')} ${x.flash ? 'just-moved' : ''}" role="listitem" data-kb-card="${esc(x.id)}" data-col="${esc(c.key)}" data-label="${esc(cardLabel)}">${canDrag ? `<button type="button" class="kb-drag-handle" draggable="true" data-kb-handle aria-label="Kéo để di chuyển ${esc(cardLabel)}" title="Kéo để di chuyển">${TH.icon('grip-vertical')}</button>` : ''}${x.html}</article>`;
+    }).join('')}</div><div class="kb-empty">Thả lead vào đây</div></div>${c.addable === false ? '' : `<footer class="kb-foot"><button type="button" class="kb-add" data-act="${addAct}" data-col="${esc(c.key)}">${TH.icon('plus')} Thêm lead</button></footer>`}</section>`;
+  }).join('')}</div></div>`;
+  U.bindKanban = (root, options) => {
+    const opts = typeof options === 'function' ? { onMove: ({ id, from, to }) => options(id, from, to) } : (options || {});
+    const board = root.querySelector('.kanban');
+    let dragId = null, fromCol = null, dragCard = null, beforeId = null, preview = null;
+    const clearTargets = () => {
+      root.querySelectorAll('.kb-body.over,.kb-body.invalid').forEach(x => x.classList.remove('over', 'invalid'));
+      root.querySelectorAll('.kb-card.drop-before').forEach(x => x.classList.remove('drop-before'));
+      root.querySelectorAll('.kb-list.drop-at-end').forEach(x => x.classList.remove('drop-at-end'));
+    };
+    const clearDrag = () => {
+      if (dragCard) dragCard.classList.remove('dragging');
+      if (preview && preview.parentNode) preview.remove();
+      clearTargets(); dragId = null; fromCol = null; dragCard = null; beforeId = null; preview = null;
+    };
+    const allowed = (to) => !opts.canDrop || opts.canDrop({ id: dragId, from: fromCol, to }) !== false;
+    const locate = (body, clientY) => {
+      const candidates = [...body.querySelectorAll('[data-kb-card]')].filter(x => x !== dragCard);
+      const target = candidates.find(card => clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
+      beforeId = target ? target.dataset.kbCard : null;
+      if (target) target.classList.add('drop-before'); else body.querySelector('.kb-list').classList.add('drop-at-end');
+    };
+    const autoScroll = (body, e) => {
+      const edge = 44, step = 14; const br = body.getBoundingClientRect();
+      if (e.clientY < br.top + edge) body.scrollTop -= step; else if (e.clientY > br.bottom - edge) body.scrollTop += step;
+      if (!board) return; const kr = board.getBoundingClientRect();
+      if (e.clientX < kr.left + edge) board.scrollLeft -= step; else if (e.clientX > kr.right - edge) board.scrollLeft += step;
+    };
+    root.addEventListener('dragstart', (e) => {
+      const handle = e.target.closest('[data-kb-handle]'); const card = handle && handle.closest('[data-kb-card]');
+      if (!card) { e.preventDefault(); return; }
+      dragId = card.dataset.kbCard; fromCol = card.dataset.col; dragCard = card; card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragId); } catch (err) { }
+      preview = document.createElement('div'); preview.className = 'kb-drag-preview'; preview.innerHTML = `<b>${esc(card.dataset.label || 'Lead')}</b><span>${esc((card.querySelector('.ph') || {}).textContent || '')}</span>`; document.body.appendChild(preview);
+      try { e.dataTransfer.setDragImage(preview, 18, 12); } catch (err) { }
+    });
+    root.addEventListener('dragend', clearDrag);
+    root.addEventListener('dragover', (e) => {
+      const body = e.target.closest('[data-kb-drop]'); if (!body || !dragId) return;
+      const to = body.dataset.kbDrop; clearTargets();
+      if (!allowed(to)) { body.classList.add('invalid'); if (e.dataTransfer) e.dataTransfer.dropEffect = 'none'; return; }
+      e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'; body.classList.add('over'); locate(body, e.clientY); autoScroll(body, e);
+    });
+    root.addEventListener('dragleave', (e) => { const body = e.target.closest('[data-kb-drop]'); if (body && !body.contains(e.relatedTarget)) clearTargets(); });
+    root.addEventListener('drop', (e) => {
+      const body = e.target.closest('[data-kb-drop]'); if (!body || !dragId) return;
+      const to = body.dataset.kbDrop; if (!allowed(to)) return clearDrag();
+      e.preventDefault(); const detail = { id: dragId, from: fromCol, to, beforeId }; const label = dragCard ? dragCard.dataset.label : 'Lead';
+      TH._kbFlashLead = dragId;
+      let moved = true;
+      try { if (opts.onMove) moved = opts.onMove(detail) !== false; } catch (err) { moved = false; throw err; } finally { if (!moved) TH._kbFlashLead = null; }
+      if (moved) U.announce(`${label} đã được di chuyển đến ${body.dataset.colLabel || to}`);
+      clearDrag();
+    });
   };
 
   /* ---- Lịch tháng: month 'YYYY-MM', events [{date,label,color,id,tone}], hôm nay highlight, tối đa 2 pill + "+N" ---- */

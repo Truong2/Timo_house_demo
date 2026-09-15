@@ -17,7 +17,7 @@
     const unpaid = St.where('invoices', i => i.docStatus !== 'draft' && i.docStatus !== 'cancelled' && Q.invRemaining(i) > 0).sort((a, b) => F.cmp(a.code, b.code));
     const drafts = St.where('invoices', i => i.docStatus === 'draft' && Q.invLines(i.id).length).slice(0, 2);
     const paid = St.where('payments', p => p.status === 'recorded' && p.ref).slice(0, 2);
-    const row = (i, inv, o = {}) => { const t = Q.tenant(inv.tenantId), r = Q.room(inv.roomId); return [o.date || F.addDays('2024-10-01', i), o.amount != null ? o.amount : Q.invRemaining(inv), o.ref || ('FT2410' + F.pad(i + 1, 2) + '-' + F.pad(i + 3, 2)), o.inv !== undefined ? o.inv : inv.code, o.ctr !== undefined ? o.ctr : Q.contract(inv.contractId).code, o.room !== undefined ? o.room : r.code, o.tenant !== undefined ? o.tenant : t.name, o.method || 'Chuyển khoản', 'THANH TOAN TIEN NHA ' + r.code]; };
+    const row = (i, inv, o = {}) => { const t = Q.tenant(inv.tenantId), r = Q.room(inv.roomId); return [o.date || F.addDays('2026-10-01', i), o.amount != null ? o.amount : Q.invRemaining(inv), o.ref || ('FT2610' + F.pad(i + 1, 2) + '-' + F.pad(i + 3, 2)), o.inv !== undefined ? o.inv : inv.code, o.ctr !== undefined ? o.ctr : Q.contract(inv.contractId).code, o.room !== undefined ? o.room : r.code, o.tenant !== undefined ? o.tenant : t.name, o.method || 'Chuyển khoản', 'THANH TOAN TIEN NHA ' + r.code]; };
     const rows = []; let k = 0;
     unpaid.slice(0, 10).forEach(inv => rows.push(row(k++, inv)));                                             // 10 khớp mã hóa đơn
     unpaid.slice(10, 12).forEach(inv => rows.push(row(k++, inv, { inv: '' })));                                // 2 khớp mã HĐ
@@ -25,8 +25,8 @@
     unpaid.slice(14, 15).forEach(inv => rows.push(row(k++, inv, { inv: '', ctr: '', tenant: '', amount: 0 + Q.invRemaining(inv), date: inv.dueDate })));   // 1 khớp phòng + ngày
     paid.forEach(p => { const a = Q.payAllocs(p.id)[0]; const inv = a ? St.get('invoices', a.invoiceId) : unpaid[0]; rows.push(row(k++, inv, { ref: p.ref, amount: p.amount, date: p.date })); });   // 2 trùng mã ngoài
     drafts.forEach(inv => rows.push(row(k++, inv, { amount: inv.total || 5000000 })));                          // 2 hóa đơn nháp → cần kiểm tra
-    rows.push([F.addDays('2024-10-01', k), 3500000, 'VTB2410' + F.pad(k, 2), '', '', 'A12.04', '', 'Chuyển khoản', 'CK KHONG RO']); k++;                    // không ghép
-    rows.push([F.addDays('2024-10-01', k), 7000000, 'TCB2410' + F.pad(k, 2), '', '', '', 'Nguyễn Văn Không Có', 'Chuyển khoản', 'THANH TOAN']); k++;   // không ghép
+    rows.push([F.addDays('2026-10-01', k), 3500000, 'VTB2610' + F.pad(k, 2), '', '', 'A12.04', '', 'Chuyển khoản', 'CK KHONG RO']); k++;                    // không ghép
+    rows.push([F.addDays('2026-10-01', k), 7000000, 'TCB2610' + F.pad(k, 2), '', '', '', 'Nguyễn Văn Không Có', 'Chuyển khoản', 'THANH TOAN']); k++;   // không ghép
     while (rows.length < 20 && unpaid[15 + rows.length - 18]) rows.push(row(k++, unpaid[15 + rows.length - 18]));
     return [['Ngày giao dịch', 'Số tiền', 'Mã ngoài', 'Mã hóa đơn', 'Mã hợp đồng', 'Phòng', 'Khách thuê', 'Phương thức', 'Nội dung'], ...rows];
   };
@@ -36,7 +36,7 @@
   I.openingSample = (n = 12) => {
     const cs = St.where('contracts', c => c.status === 'active').sort((a, b) => F.cmp(a.code, b.code)).slice(0, n);
     const rows = cs.map((c, i) => { const t = Q.tenant(c.tenantId), r = Q.room(c.roomId); const rec = c.price; const paid = i % 3 === 2 ? Math.round(c.price * 0.6 / 100000) * 100000 : c.price; const dep = i === 2 || i === 6 ? c.deposit - 200000 : c.deposit; return [t.name, c.code, r.code, rec, paid, dep, i % 4 === 3 ? 'Hệ thống cũ' : 'File Excel']; });
-    rows.push(['Khách Hệ Thống Cũ', 'HD-2023-042', 'C.08.02', 7000000, 4000000, 6800000, 'Hệ thống cũ']);
+    rows.push(['Khách Hệ Thống Cũ', 'HD-2025-042', 'C.08.02', 7000000, 4000000, 6800000, 'Hệ thống cũ']);
     return [['Khách hàng', 'Mã hợp đồng', 'Phòng', 'Phải thu', 'Đã thu', 'Cọc giữ', 'Nguồn dữ liệu'], ...rows];
   };
   I.openingSampleLarge = () => { const s = I.openingSample(120); return s; };

@@ -40,7 +40,7 @@
   /* ================= #/finance/opening-balance ================= */
   TH.router.register('/finance/opening-balance', (root, p, q) => {
     TH.router.crumb([{ label: 'Tài chính' }, { label: 'Chuyển số dư ban đầu' }]);
-    const w = TH._wz.opening = TH._wz.opening || { step: 1, asOf: '2024-11-01', buildingId: '', kind: '' }; const step = w.step; const T = Imp.OPENING;
+    const w = TH._wz.opening = TH._wz.opening || { step: 1, asOf: '2026-11-01', buildingId: '', kind: '' }; const step = w.step; const T = Imp.OPENING;
     const STEPS = [{ title: 'Chọn mốc & phạm vi', sub: 'Chọn thời điểm và phạm vi dữ liệu' }, { title: 'Tải file số dư', sub: 'Tải lên file từ hệ thống cũ' }, { title: 'Đối chiếu', sub: 'Kiểm tra và đối chiếu dữ liệu' }, { title: 'Xác nhận', sub: 'Xác nhận chuyển số dư' }];
     const filter = U.filterbar([U.field({ label: 'Mốc chuyển đổi', req: true, input: U.date({ name: 'asOf', value: w.asOf, attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Tòa nhà', input: U.select({ name: 'buildingId', value: w.buildingId, all: 'Tất cả tòa nhà', options: St.where('buildings', b => !b.stub).map(b => [b.id, b.name]), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Loại dữ liệu', input: U.select({ name: 'kind', value: w.kind, all: 'Tất cả', options: [['debt', 'Công nợ'], ['deposit', 'Cọc']], attrs: { 'data-on': 'f' } }) })], U.btn({ label: 'Làm mới', icon: 'refresh', cls: 'btn-light', act: 'reset' }));
     let body = '';

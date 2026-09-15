@@ -4,7 +4,7 @@
   const on2 = () => TH.phase && TH.phase.on(2);
   Object.assign(Q.L, {
     lead: { new: ['Mới', 'blue'], contacted: ['Đã liên hệ', 'teal'], viewing: ['Hẹn xem', 'amber'], considering: ['Cân nhắc', 'purple'], held: ['Giữ chỗ', 'orange'], won: ['Chốt thuê', 'green'], lost: ['Đã mất', 'gray'] },
-    leadTemp: { hot: ['Nóng', 'red'], warm: ['Ấm', 'amber'], cold: ['Lạnh', 'blue'] },
+    leadTemp: { hot: ['Cao', 'red'], warm: ['Trung bình', 'amber'], cold: ['Thấp', 'blue'] },
     viewing: { scheduled: ['Đã lên lịch', 'blue'], done: ['Đã xem', 'green'], cancelled: ['Hủy lịch', 'red'], no_show: ['Không đến', 'gray'] },
     viewingResult: { interested: ['Quan tâm', 'green'], considering: ['Cân nhắc', 'amber'], declined: ['Từ chối', 'red'] },
     hold: { active: ['Đang giữ', 'amber'], converted: ['Đã chuyển đổi', 'green'], expired: ['Hết hạn', 'gray'], cancelled: ['Đã hủy', 'red'] },
@@ -52,7 +52,12 @@
   Q.leadDeal = (leadId) => St.one('deals', d => d.leadId === leadId && d.status !== 'ended') || St.one('deals', d => d.leadId === leadId);
   Q.leadLastTouch = (l) => { const a = Q.leadActivities(l.id)[0]; return a ? a.at : l.updatedAt || l.createdAt; };
   Q.leadOnBoard = (l) => l.status !== 'lost' && !(l.status === 'won' && (Q.leadDeal(l.id) || {}).status === 'active');
-  Q.boardLeads = (f = {}) => St.where('leads', l => Q.leadOnBoard(l) && Q.leadMatch(l, f));
+  Q.boardLeads = (f = {}) => St.where('leads', l => Q.leadOnBoard(l) && Q.leadMatch(l, f)).sort((a, b) => {
+    const ao = Number(a.boardOrder), bo = Number(b.boardOrder);
+    const av = Number.isFinite(ao) && ao > 0 ? ao : Number.MAX_SAFE_INTEGER;
+    const bv = Number.isFinite(bo) && bo > 0 ? bo : Number.MAX_SAFE_INTEGER;
+    return av - bv || F.cmp(a.createdAt || '', b.createdAt || '') || String(a.id).localeCompare(String(b.id));
+  });
   Q.leadMatch = (l, f = {}) => (!f.s || F.norm(l.name + ' ' + l.phone + ' ' + (l.email || '') + ' ' + l.code).includes(F.norm(f.s))) && (!f.sourceId || l.sourceId === f.sourceId) && (!f.saleId || l.saleId === f.saleId) && (!f.buildingId || (l.buildingIds || []).includes(f.buildingId)) && (!f.status || l.status === f.status) && (!f.temp || l.temp === f.temp) && (!f.period || F.period(l.createdAt) === f.period);
   Q.leadsToday = () => St.where('leads', l => Q.leadOnBoard(l) && (l.temp === 'hot' || l.status === 'new' || F.daysBetween(Q.leadLastTouch(l).slice(0, 10), F.today()) >= 3)).sort((a, b) => (a.temp === 'hot' ? 0 : 1) - (b.temp === 'hot' ? 0 : 1)).slice(0, 5);
   Q.suggestRooms = (l, n = 5) => St.where('rooms', r => ['ready', 'held'].includes(r.status) && (!(l.buildingIds || []).length || l.buildingIds.includes(r.buildingId)) && (!l.budgetMax || r.price <= l.budgetMax * 1.15)).sort((a, b) => (a.status === 'ready' ? 0 : 1) - (b.status === 'ready' ? 0 : 1) || ((a.type === l.roomType ? 0 : 1) - (b.type === l.roomType ? 0 : 1)) || Math.abs(a.price - (l.budgetMax || a.price)) - Math.abs(b.price - (l.budgetMax || b.price))).slice(0, n);

@@ -2,7 +2,7 @@
 window.TH = window.TH || {};
 (function (TH) {
   const F = {};
-  F.DEMO_TODAY = '2024-10-28';
+  F.DEMO_TODAY = '2026-10-28';
   F.today = () => (TH.store && TH.store.state && TH.store.state.meta.today) || F.DEMO_TODAY;
   F.pad = (n, l = 2) => String(n).padStart(l, '0');
   F.uid = (p = 'id') => p + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
@@ -26,7 +26,7 @@ window.TH = window.TH || {};
   F.daysBetween = (a, b) => Math.round((F.parseISO(b) - F.parseISO(a)) / 86400000);
   F.daysUntil = (s) => F.daysBetween(F.today(), s);
   F.daysOverdue = (s) => Math.max(0, F.daysBetween(s, F.today()));
-  F.period = (s) => s ? s.slice(0, 7) : '';               // '2024-10'
+  F.period = (s) => s ? s.slice(0, 7) : '';               // '2026-10'
   F.periodLabel = (p) => { if (!p) return '-'; const [y, m] = p.split('-'); return 'Tháng ' + Number(m) + '/' + y; };
   F.periodShort = (p) => { if (!p) return '-'; const [y, m] = p.split('-'); return m + '/' + y; };
   F.monthsDiff = (a, b) => { const da = F.parseISO(a), db = F.parseISO(b); return (db.getFullYear() - da.getFullYear()) * 12 + (db.getMonth() - da.getMonth()) + (db.getDate() >= da.getDate() - 1 ? 1 : 0); };
