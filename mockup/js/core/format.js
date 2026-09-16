@@ -80,6 +80,16 @@ window.TH = window.TH || {};
   F.idx = (arr) => { const m = {}; arr.forEach(x => m[x.id] = x); return m; };
   F.cmp = (a, b) => (a > b ? 1 : a < b ? -1 : 0);
   F.pluralVN = (n, w) => n + ' ' + w;
+  F.roomRef = (building, room) => {
+    const b = typeof building === 'string' && TH.q ? TH.q.building(building) : (building || {});
+    const r = typeof room === 'string' && TH.q ? TH.q.room(room) : (room || {});
+    return [b.code, r.code].filter(Boolean).join(' · ') || '-';
+  };
+  F.stripTags = (html) => {
+    const el = document.createElement('div'); el.innerHTML = String(html == null ? '' : html);
+    return (el.textContent || '').replace(/\s+/g, ' ').trim();
+  };
+  F.monthsSince = (date, to = F.today()) => date ? Math.max(0, F.monthsDiff(date, to)) : 0;
   F.dateInputToISO = (v) => v || '';
   TH.f = F;
   Object.assign(TH, { esc: F.esc, vnd: F.vnd, fdate: F.date, uid: F.uid });

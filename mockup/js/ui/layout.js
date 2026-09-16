@@ -2,68 +2,62 @@
 (function (TH) {
   const F = TH.f, U = TH.ui, I = TH.icon, esc = F.esc, Q = TH.q;
   const L = {};
-  L.MENU = [
-    { items: [{ key: 'dashboard', label: 'Tổng quan', icon: 'home', href: '#/dashboard', permission: 'dashboard.view' }] },
-    { key: 'operations', group: 'Vận hành', icon: 'building', items: [
-      { key: 'buildings', label: 'Tòa nhà', icon: 'building', href: '#/buildings', permission: 'buildings.view' },
-      { key: 'rooms', label: 'Phòng', icon: 'door', href: '#/rooms', permission: 'rooms.view' },
-      { key: 'tenants', label: 'Khách thuê', icon: 'users', href: '#/tenants', permission: 'tenants.view' },
-      { key: 'contracts', label: 'Hợp đồng', icon: 'file-text', href: '#/contracts', permission: 'contracts.view' },
-      { key: 'landlords', label: 'Chủ nhà & đối tác', icon: 'user-check', href: '#/landlords', permission: 'landlords.view' },
-      { key: 'maintenance', label: 'Bảo trì - Sửa chữa', icon: 'wrench', phase: 2, href: '#/maintenance', permission: 'maintenance.view' },
-      { key: 'tasks', label: 'Lịch công việc', icon: 'calendar', phase: 2, href: '#/maintenance/schedules', permission: 'maintenance.view' },
-    ] },
-    { key: 'finance', group: 'Tài chính', icon: 'wallet', items: [
-      { key: 'invoices', label: 'Hóa đơn', icon: 'receipt', href: '#/invoices', permission: 'invoices.view' },
-      { key: 'receivables', label: 'Thu tiền & công nợ', icon: 'wallet', href: '#/receivables', permission: 'payments.view' },
-      { key: 'refunds', label: 'Hoàn cọc', icon: 'hand-coins', href: '#/refunds', permission: 'refunds.view' },
-      { key: 'expenses', label: 'Chi phí', icon: 'credit-card', href: '#/expenses', permission: 'expenses.view' },
-      { key: 'cashbook', label: 'Thu chi', icon: 'arrow-left-right', phase: 2, href: '#/reports/cashflow', permission: 'reports.hub' },
-      { key: 'deposits', label: 'Quản lý cọc', icon: 'piggy', phase: 2, href: '#/finance/deposits', permission: 'deposits.view' },
-      { key: 'statement', label: 'Nhập bảng kê thu tiền', icon: 'database', phase: 2, href: '#/finance/statement-import', permission: 'statement.import', hideWhenOff: true },
-      { key: 'opening', label: 'Chuyển số dư ban đầu', icon: 'file-spreadsheet', phase: 2, href: '#/finance/opening-balance', permission: 'openingBalance.manage', hideWhenOff: true },
-      { key: 'bank', label: 'Ngân hàng', icon: 'landmark', phase: 3, href: '#/finance/bank', permission: 'bank.view' },
-    ] },
-    { key: 'notifications', group: 'Thông báo', icon: 'bell', items: [
-      { key: 'zalo-config', label: 'Cấu hình Zalo', icon: 'sliders', href: '#/zalo/config', permission: 'zalo.config' },
-      { key: 'zalo-new', label: 'Tạo đợt gửi', icon: 'send', href: '#/zalo/batches/new', permission: 'zalo.send' },
-      { key: 'zalo-history', label: 'Lịch sử gửi', icon: 'history', href: '#/zalo/history', permission: 'zalo.view' },
-    ] },
-    { key: 'business', group: 'Kinh doanh', icon: 'briefcase', items: [
-      { key: 'crm-overview', label: 'Tổng quan KD', icon: 'bar-chart-2', phase: 2, href: '#/crm', permission: 'crm.view', hideWhenOff: true },
-      { key: 'crm', label: 'Khách hàng / Lead', icon: 'user', phase: 2, href: '#/crm/leads', permission: 'crm.view', offLabel: 'Khách hàng' },
-      { key: 'viewings', label: 'Lịch xem phòng', icon: 'calendar-check', phase: 2, href: '#/crm/viewings', permission: 'crm.view' },
-      { key: 'holds', label: 'Giữ chỗ', icon: 'clock', phase: 2, href: '#/crm/holds', permission: 'crm.view', hideWhenOff: true },
-      { key: 'deals', label: 'Giao dịch & hoa hồng', icon: 'hand-coins', phase: 2, href: '#/crm/deals', permission: 'deals.view', hideWhenOff: true },
-      { key: 'channels', label: 'Kênh cho thuê', icon: 'share', phase: 2, scopeOnly: true }, { key: 'marketing', label: 'Marketing', icon: 'megaphone', phase: 2, scopeOnly: true },
-    ] },
-    { key: 'hr', group: 'Nhân sự', icon: 'users', items: [{ key: 'hr', label: 'Nhân viên', icon: 'users', phase: 3, href: '#/hr', permission: 'hr.view' }, { key: 'timesheet', label: 'Chấm công', icon: 'clock', phase: 3, href: '#/hr/timesheet', permission: 'timesheet.view' }, { key: 'payroll', label: 'Lương thưởng', icon: 'banknote', phase: 3, href: '#/hr/payroll', permission: 'payroll.view' }] },
-    { key: 'investment', group: 'Đầu tư', icon: 'trending-up', items: [{ key: 'projects', label: 'Dự án', icon: 'folder', phase: 3, href: '#/investment/projects', permission: 'projects.view' }, { key: 'assets', label: 'Tài sản', icon: 'package', phase: 3, href: '#/assets', permission: 'assets.view' }, { key: 'roi', label: 'Hiệu quả đầu tư', icon: 'trending-up', phase: 3, href: '#/investment/shareholders', permission: 'shareholders.view' }] },
-    { key: 'reports', group: 'Báo cáo', icon: 'bar-chart', items: [{ key: 'reports', label: 'Báo cáo Phase 1', icon: 'bar-chart', href: '#/reports', permission: 'reports.view' }, { key: 'reports-detail', label: 'Trung tâm báo cáo', icon: 'list', phase: 2, href: '#/reports/hub', permission: 'reports.hub', offPermission: 'reports.view', offLabel: 'Báo cáo chi tiết' }] },
-    { key: 'settings', group: 'Cấu hình', icon: 'settings', items: [
-      { key: 'users', label: 'Tài khoản & phân quyền', icon: 'shield', href: '#/settings/users', permission: 'users.manage' },
-      { key: 'catalog', label: 'Danh mục dùng chung', icon: 'sliders', href: '#/settings/catalog', permission: 'catalog.view' },
-      { key: 'import', label: 'Import dữ liệu', icon: 'upload', href: '#/settings/import', permission: 'import.view' },
-      { key: 'zalo-settings', label: 'Thông báo & nhắc việc', icon: 'bell', href: '#/zalo/config', permission: 'zalo.config' },
-      { key: 'jobs', label: 'Nhập dữ liệu & tác vụ', icon: 'database', phase: 2, href: '#/settings/jobs', permission: 'dataJobs.view', hideWhenOff: true },
-      { key: 'system', label: 'Thiết lập hệ thống', icon: 'settings', phase: 2, scopeOnly: true, permission: 'advancedTools', offPermission: 'advancedTools' },
-    ] },
-  ];
+  const item = (key, label, icon, href, permission, phase = 0) => ({ key, label, icon, href, permission, phase });
+  const NAV = {
+    admin: [
+      { items: [item('dashboard', 'Tổng quan', 'home', '#/dashboard', 'dashboard.view')] },
+      { key: 'leasing', group: 'Quản lý cho thuê', icon: 'building', items: [item('rooms', 'Phòng', 'door', '#/rooms', 'rooms.view'), item('buildings', 'Tòa nhà', 'building', '#/buildings', 'buildings.view'), item('tenants', 'Khách thuê', 'users', '#/tenants', 'tenants.view'), item('contracts', 'Hợp đồng', 'file-text', '#/contracts', 'contracts.view'), item('ocr', 'Trích xuất hợp đồng', 'file-check', '#/contracts/ocr', 'ocr.use', 2), item('landlords', 'Chủ nhà & đối tác', 'user-check', '#/landlords', 'landlords.view')] },
+      { key: 'business', group: 'Kinh doanh', icon: 'briefcase', items: [item('crm-overview', 'Tổng quan kinh doanh', 'bar-chart-2', '#/crm', 'crm.view', 2), item('crm', 'Khách hàng / Lead', 'user', '#/crm/leads', 'crm.view', 2), item('viewings', 'Lịch xem phòng', 'calendar-check', '#/crm/viewings', 'crm.view', 2), item('holds', 'Giữ chỗ', 'clock', '#/crm/holds', 'crm.view', 2), item('deals', 'Giao dịch & hoa hồng', 'hand-coins', '#/crm/deals', 'deals.view', 2)] },
+      { key: 'finance', group: 'Tài chính', icon: 'wallet', items: [item('invoices', 'Hóa đơn', 'receipt', '#/invoices', 'invoices.view'), item('receivables', 'Thu tiền & công nợ', 'wallet', '#/receivables', 'payments.view'), item('refunds', 'Hoàn cọc', 'hand-coins', '#/refunds', 'refunds.view'), item('deposits', 'Quản lý cọc', 'piggy', '#/finance/deposits', 'deposits.view', 2), item('expenses', 'Chi phí', 'credit-card', '#/expenses', 'expenses.view'), item('bank', 'Ngân hàng', 'landmark', '#/finance/bank', 'bank.view', 3)] },
+      { key: 'operations', group: 'Vận hành', icon: 'wrench', items: [item('maintenance', 'Bảo trì & sự cố', 'wrench', '#/maintenance', 'maintenance.view', 2), item('tasks', 'Lịch công việc', 'calendar', '#/maintenance/schedules', 'maintenance.view', 2), item('documents', 'Tài liệu', 'folder', '#/documents', 'documents.view'), item('assets', 'Tài sản', 'package', '#/assets', 'assets.view', 3), item('inventory', 'Kiểm kê', 'clipboard-check', '#/assets/inventory', 'inventory.view', 3), item('zalo-history', 'Lịch sử gửi Zalo', 'send', '#/zalo/history', 'zalo.view')] },
+      { key: 'reports', group: 'Báo cáo', icon: 'bar-chart', items: [item('reports', 'Báo cáo tổng quan', 'bar-chart', '#/reports', 'reports.view'), item('reports-detail', 'Trung tâm báo cáo', 'list', '#/reports/hub', 'reports.hub', 2), item('cashbook', 'Dòng tiền', 'arrow-left-right', '#/reports/cashflow', 'reports.hub', 2)] },
+    ],
+    ops: [
+      { items: [item('dashboard', 'Công việc của tôi', 'home', '#/dashboard', 'dashboard.view')] },
+      { key: 'property', group: 'Phòng & tòa nhà', icon: 'building', items: [item('rooms', 'Phòng', 'door', '#/rooms', 'rooms.view'), item('buildings', 'Tòa nhà', 'building', '#/buildings', 'buildings.view'), item('landlords', 'Chủ nhà & đối tác', 'user-check', '#/landlords', 'landlords.view')] },
+      { key: 'leasing', group: 'Khách thuê & hợp đồng', icon: 'file-text', items: [item('tenants', 'Khách thuê', 'users', '#/tenants', 'tenants.view'), item('contracts', 'Hợp đồng', 'file-text', '#/contracts', 'contracts.view'), item('ocr', 'Trích xuất hợp đồng', 'file-check', '#/contracts/ocr', 'ocr.use', 2)] },
+      { key: 'collection', group: 'Tài chính vận hành', icon: 'wallet', items: [item('invoices', 'Hóa đơn', 'receipt', '#/invoices', 'invoices.view'), item('receivables', 'Thu tiền & công nợ', 'wallet', '#/receivables', 'payments.view'), item('refunds', 'Hoàn cọc', 'hand-coins', '#/refunds', 'refunds.view'), item('deposits', 'Quản lý cọc', 'piggy', '#/finance/deposits', 'deposits.view', 2), item('expenses', 'Chi phí', 'credit-card', '#/expenses', 'expenses.view')] },
+      { key: 'maintenance', group: 'Bảo trì & tài sản', icon: 'wrench', items: [item('maintenance', 'Bảo trì & sự cố', 'wrench', '#/maintenance', 'maintenance.view', 2), item('tasks', 'Lịch công việc', 'calendar', '#/maintenance/schedules', 'maintenance.view', 2), item('documents', 'Tài liệu', 'folder', '#/documents', 'documents.view'), item('assets', 'Tài sản', 'package', '#/assets', 'assets.view', 3)] },
+      { key: 'sales-ops', group: 'Lịch xem & giữ chỗ', icon: 'calendar-check', items: [item('viewings', 'Lịch xem phòng', 'calendar-check', '#/crm/viewings', 'crm.view', 2), item('holds', 'Giữ chỗ', 'clock', '#/crm/holds', 'crm.view', 2)] },
+    ],
+    accountant: [
+      { items: [item('dashboard', 'Công việc của tôi', 'home', '#/dashboard', 'dashboard.view')] },
+      { key: 'finance', group: 'Tài chính', icon: 'wallet', items: [item('invoices', 'Hóa đơn', 'receipt', '#/invoices', 'invoices.view'), item('receivables', 'Thu tiền & công nợ', 'wallet', '#/receivables', 'payments.view'), item('deposits', 'Quản lý cọc', 'piggy', '#/finance/deposits', 'deposits.view', 2), item('refunds', 'Hoàn cọc', 'hand-coins', '#/refunds', 'refunds.view'), item('expenses', 'Chi phí', 'credit-card', '#/expenses', 'expenses.view'), item('bank', 'Ngân hàng & đối soát', 'landmark', '#/finance/bank', 'bank.view', 3)] },
+      { key: 'data', group: 'Dữ liệu & đối soát', icon: 'database', items: [item('statement', 'Nhập bảng kê thu tiền', 'file-spreadsheet', '#/finance/statement-import', 'statement.import', 2), item('opening', 'Số dư ban đầu', 'layers', '#/finance/opening-balance', 'openingBalance.manage', 2), item('jobs', 'Tác vụ dữ liệu', 'database', '#/settings/jobs', 'dataJobs.view', 2), item('documents', 'Tài liệu', 'folder', '#/documents', 'documents.view')] },
+      { key: 'reports', group: 'Báo cáo', icon: 'bar-chart', items: [item('reports', 'Báo cáo tổng quan', 'bar-chart', '#/reports', 'reports.view'), item('reports-detail', 'Trung tâm báo cáo', 'list', '#/reports/hub', 'reports.hub', 2), item('cashbook', 'Dòng tiền', 'arrow-left-right', '#/reports/cashflow', 'reports.hub', 2)] },
+      { key: 'reference', group: 'Tra cứu', icon: 'search', items: [item('rooms', 'Phòng', 'door', '#/rooms', 'rooms.view'), item('buildings', 'Tòa nhà', 'building', '#/buildings', 'buildings.view'), item('tenants', 'Khách thuê', 'users', '#/tenants', 'tenants.view'), item('contracts', 'Hợp đồng', 'file-text', '#/contracts', 'contracts.view'), item('landlords', 'Chủ nhà & đối tác', 'user-check', '#/landlords', 'landlords.view')] },
+    ],
+    sale: [
+      { items: [item('dashboard', 'Công việc của tôi', 'home', '#/dashboard', 'dashboard.view')] },
+      { key: 'business', group: 'Kinh doanh', icon: 'briefcase', items: [item('crm-overview', 'Tổng quan kinh doanh', 'bar-chart-2', '#/crm', 'crm.view', 2), item('crm', 'Khách hàng / Lead', 'user', '#/crm/leads', 'crm.view', 2), item('viewings', 'Lịch xem phòng', 'calendar-check', '#/crm/viewings', 'crm.view', 2), item('holds', 'Giữ chỗ', 'clock', '#/crm/holds', 'crm.view', 2), item('deals', 'Giao dịch & hoa hồng', 'hand-coins', '#/crm/deals', 'deals.view', 2)] },
+      { key: 'reference', group: 'Tra cứu', icon: 'search', items: [item('rooms', 'Phòng', 'door', '#/rooms', 'rooms.view'), item('buildings', 'Tòa nhà', 'building', '#/buildings', 'buildings.view'), item('tenants', 'Khách thuê', 'users', '#/tenants', 'tenants.view'), item('contracts', 'Hợp đồng', 'file-text', '#/contracts', 'contracts.view')] },
+    ],
+    kythuat: [
+      { items: [item('dashboard', 'Công việc của tôi', 'home', '#/dashboard', 'dashboard.view')] },
+      { key: 'maintenance', group: 'Công việc kỹ thuật', icon: 'wrench', items: [item('maintenance', 'Sự cố được giao', 'wrench', '#/maintenance?assignee=me', 'maintenance.view', 2), item('tasks', 'Lịch bảo dưỡng', 'calendar', '#/maintenance/schedules', 'maintenance.view', 2)] },
+      { key: 'reference', group: 'Tra cứu', icon: 'search', items: [item('rooms', 'Phòng', 'door', '#/rooms', 'rooms.view'), item('buildings', 'Tòa nhà', 'building', '#/buildings', 'buildings.view'), item('assets', 'Tài sản', 'package', '#/assets', 'assets.view', 3), item('inventory', 'Kiểm kê', 'clipboard-check', '#/assets/inventory', 'inventory.view', 3), item('expenses', 'Chi phí sự cố', 'credit-card', '#/expenses', 'expenses.view')] },
+    ],
+    hr: [{ items: [item('dashboard', 'Công việc của tôi', 'home', '#/dashboard', 'dashboard.view')] }, { key: 'hr', group: 'Nhân sự', icon: 'users', items: [item('hr', 'Nhân viên', 'users', '#/hr', 'hr.view', 3), item('timesheet', 'Chấm công', 'clock', '#/hr/timesheet', 'timesheet.view', 3), item('payroll', 'Lương thưởng', 'banknote', '#/hr/payroll', 'payroll.view', 3)] }, { key: 'reference', group: 'Tra cứu', icon: 'search', items: [item('buildings', 'Tòa nhà', 'building', '#/buildings', 'buildings.view')] }],
+    codong: [{ items: [item('dashboard', 'Tổng quan đầu tư', 'home', '#/dashboard', 'dashboard.view')] }, { key: 'investment', group: 'Đầu tư', icon: 'trending-up', items: [item('projects', 'Dự án', 'folder', '#/investment/projects', 'projects.view', 3), item('shareholders', 'Vốn góp & phân phối', 'users', '#/investment/shareholders', 'shareholders.view', 3), item('roi', 'Hiệu quả đầu tư', 'trending-up', '#/investment/roi', 'roi.view', 3)] }],
+  };
+  L.menuForRole = (role) => NAV[role || (TH.store.state && TH.auth.role && TH.auth.role()) || 'admin'] || NAV.admin;
+  L.MENU = NAV.admin;
   const SIDEBAR_GROUP_KEY = 'timohouse.sidebar.openGroup';
-  const validSidebarGroup = (key) => !!key && L.MENU.some(group => group.key === key && group.group);
+  const SIDEBAR_COLLAPSED_KEY = 'timohouse.sidebar.collapsed';
+  const validSidebarGroup = (key) => !!key && L.menuForRole().some(group => group.key === key && group.group);
   const readSidebarGroup = () => { try { const key = sessionStorage.getItem(SIDEBAR_GROUP_KEY); return validSidebarGroup(key) ? key : ''; } catch (e) { return ''; } };
   const saveSidebarGroup = (key) => { try { sessionStorage.setItem(SIDEBAR_GROUP_KEY, key || ''); } catch (e) { } };
   // Mục có phase: phase tắt → hiện như bản P1 (mờ, coming-soon, không lọc quyền trừ offPermission); phase bật → link thật, lọc quyền, giữ badge
   const phaseOn = (it) => !it.phase || (TH.phase && TH.phase.on(it.phase));
-  const visibleItems = group => group.items.filter(it => { if (it.phase && !phaseOn(it)) return !it.hideWhenOff && (!it.offPermission || TH.auth.can(it.offPermission)); return !it.permission || TH.auth.can(it.permission); });
-  const sidebarItem = (it) => { const on = it.phase && phaseOn(it); const live = on && !it.scopeOnly && it.href; return `<a class="sb-item ${it.phase ? 'p' + it.phase + (on ? ' on' : '') : ''}" data-key="${it.key}" href="${live ? it.href : (it.href && !it.phase ? it.href : '#/coming-soon/' + it.key)}">${I(it.icon)}<span>${esc(!on && it.offLabel ? it.offLabel : it.label)}</span>${it.phase ? `<span class="ptag ${on ? 'on' : ''}">P${it.phase}</span>` : ''}</a>`; };
+  const visibleItems = group => group.items.filter(it => phaseOn(it) && (!it.permission || TH.auth.can(it.permission)));
+  const sidebarItem = (it) => `<a class="sb-item" data-key="${it.key}" href="${it.href}" aria-label="${esc(it.label)}" title="${esc(it.label)}">${I(it.icon)}<span>${esc(it.label)}</span>${it.phase ? `<span class="ptag on">P${it.phase}</span>` : ''}</a>`;
   const sidebarGroup = (group) => {
     const items = visibleItems(group); if (!items.length) return '';
     if (!group.group) return `<div class="sb-standalone">${items.map(sidebarItem).join('')}</div>`;
     const open = group.key === L._openGroup; const contentId = 'sb-group-' + group.key;
-    return `<section class="sb-section ${open ? 'open' : ''}" data-sb-group="${group.key}"><button type="button" class="sb-group" data-act="sb-group" data-group="${group.key}" aria-expanded="${open}" aria-controls="${contentId}"><span class="sb-group-icon">${I(group.icon)}</span><span>${esc(group.group)}</span><span class="sb-group-chevron">${I('chevron-down')}</span></button><div class="sb-children" id="${contentId}" aria-hidden="${!open}" ${open ? '' : 'inert'}><div class="sb-children-inner">${items.map(sidebarItem).join('')}</div></div></section>`;
+    return `<section class="sb-section ${open ? 'open' : ''}" data-sb-group="${group.key}"><button type="button" class="sb-group" data-act="sb-group" data-group="${group.key}" aria-label="${esc(group.group)}" title="${esc(group.group)}" aria-expanded="${open}" aria-controls="${contentId}"><span class="sb-group-icon">${I(group.icon)}</span><span>${esc(group.group)}</span><span class="sb-group-chevron">${I('chevron-down')}</span></button><div class="sb-children" id="${contentId}" aria-hidden="${!open}" ${open ? '' : 'inert'}><div class="sb-children-inner">${items.map(sidebarItem).join('')}</div></div></section>`;
   };
-  const renderSidebar = () => { const nav = document.querySelector('.sb-nav'); if (nav) nav.innerHTML = L.MENU.map(sidebarGroup).join(''); };
+  const renderSidebar = () => { L.MENU = L.menuForRole(); if (!validSidebarGroup(L._openGroup)) L._openGroup = ''; const nav = document.querySelector('.sb-nav'); if (nav) nav.innerHTML = L.MENU.map(sidebarGroup).join(''); };
   L._openGroup = readSidebarGroup();
   L._activeMenuKey = null;
   L.setOpenGroup = (key, persist = true) => {
@@ -123,14 +117,64 @@
     items.push({ label: 'Đăng xuất', icon: 'log-out', danger: true, onClick: () => { TH.auth.logout(); TH.go('#/login'); } });
     U.menu(el, items);
   };
+  const setSidebarCollapsed = (collapsed) => {
+    document.body.classList.toggle('sb-collapsed', !!collapsed);
+    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch (e) { }
+    const btn = document.querySelector('[data-act=sb-collapse]');
+    if (btn) { btn.setAttribute('aria-label', collapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'); btn.innerHTML = I(collapsed ? 'chevron-right' : 'arrow-left'); }
+  };
+  L.openCollapsedFlyout = (anchor) => {
+    document.querySelectorAll('.sb-flyout').forEach(x => x.remove());
+    const group = L.menuForRole().find(g => g.key === anchor.dataset.group); if (!group) return;
+    const flyout = U.el(`<div class="sb-flyout" role="menu"><div class="sb-flyout-title">${I(group.icon)} ${esc(group.group)}</div>${visibleItems(group).map(it => `<a role="menuitem" href="${it.href}" data-key="${it.key}">${I(it.icon)}<span>${esc(it.label)}</span>${it.phase ? `<em>P${it.phase}</em>` : ''}</a>`).join('')}</div>`);
+    document.body.appendChild(flyout); const r = anchor.getBoundingClientRect(); flyout.style.left = (r.right + 8) + 'px'; flyout.style.top = Math.min(r.top, window.innerHeight - flyout.offsetHeight - 12) + 'px';
+    const close = (e) => { if (e && (flyout.contains(e.target) || anchor.contains(e.target))) return; flyout.remove(); document.removeEventListener('pointerdown', close, true); window.removeEventListener('scroll', close, true); };
+    setTimeout(() => { document.addEventListener('pointerdown', close, true); window.addEventListener('scroll', close, true); }, 0); flyout.querySelector('a')?.focus();
+  };
+  const launcherApps = () => [
+    { label: 'Kinh doanh', text: 'CRM, lịch xem, giữ chỗ và giao dịch', icon: 'briefcase', href: '#/crm', permission: 'crm.view', phase: 2 },
+    { label: 'OCR hợp đồng', text: 'Trích xuất và review hợp đồng', icon: 'file-check', href: '#/contracts/ocr', permission: 'ocr.use', phase: 2 },
+    { label: 'Nhân sự', text: 'Nhân viên, chấm công, lương', icon: 'users', href: '#/hr', permission: 'hr.view', phase: 3 },
+    { label: 'Lương thưởng', text: 'Bảng lương và phê duyệt', icon: 'banknote', href: '#/hr/payroll', permission: 'payroll.view', phase: 3, roles: ['accountant'] },
+    { label: 'Đầu tư', text: 'Dự án, vốn góp, phân phối', icon: 'trending-up', href: '#/investment/projects', permission: 'projects.view', phase: 3 },
+    { label: 'Tài sản', text: 'Tài sản và kiểm kê', icon: 'package', href: '#/assets', permission: 'assets.view', phase: 3 },
+    { label: 'Tài liệu', text: 'Tra cứu hồ sơ vận hành và pháp lý', icon: 'folder', href: '#/documents', permission: 'documents.view' },
+    { label: 'Lịch sử gửi Zalo', text: 'Theo dõi trạng thái và gửi lại', icon: 'send', href: '#/zalo/history', permission: 'zalo.view' },
+    { label: 'Thiết lập thông báo', text: 'Cấu hình Zalo và mẫu nhắc việc', icon: 'sliders', href: '#/zalo/config', permission: 'zalo.config' },
+    { label: 'Nhập bảng kê', text: 'Nạp và ghép bảng kê thu tiền', icon: 'file-spreadsheet', href: '#/finance/statement-import', permission: 'statement.import', phase: 2 },
+    { label: 'Số dư ban đầu', text: 'Chuyển số dư đầu kỳ', icon: 'layers', href: '#/finance/opening-balance', permission: 'openingBalance.manage', phase: 2 },
+    { label: 'Tác vụ dữ liệu', text: 'Theo dõi import và xử lý dữ liệu', icon: 'database', href: '#/settings/jobs', permission: 'dataJobs.view', phase: 2 },
+    { label: 'Tài khoản', text: 'Người dùng và phân quyền', icon: 'shield', href: '#/settings/users', permission: 'users.manage' },
+    { label: 'Danh mục', text: 'Dịch vụ và dữ liệu dùng chung', icon: 'sliders', href: '#/settings/catalog', permission: 'catalog.view' },
+    { label: 'Import dữ liệu', text: 'Nhập dữ liệu nghiệp vụ', icon: 'upload', href: '#/settings/import', permission: 'import.view' },
+    { label: 'Công cụ hệ thống', text: 'Phạm vi demo và dữ liệu kỹ thuật', icon: 'settings', href: '#/settings/tools', permission: 'advancedTools' },
+  ];
+  L.launcher = () => {
+    const sidebarHrefs = new Set(L.menuForRole().flatMap(group => visibleItems(group).map(item => item.href)));
+    const apps = launcherApps().filter(a => (!a.roles || a.roles.includes(TH.auth.role())) && (!a.permission || TH.auth.can(a.permission)) && !sidebarHrefs.has(a.href));
+    const m = U.modal({ title: 'Phân hệ & Quản trị', sub: 'Truy cập các phân hệ nghiệp vụ và thiết lập quản trị hệ thống.', size: 'lg', body: `<div class="app-launcher-grid">${apps.map((a, i) => { const off = a.phase && !TH.phase.on(a.phase); return `<button type="button" class="app-tile ${off ? 'is-teaser' : ''}" data-act="launch-app" data-i="${i}"><span class="app-tile-icon">${I(a.icon)}</span><span><b>${esc(a.label)}</b><small>${esc(a.text)}</small></span>${off ? `<em>P${a.phase} · Chưa bật</em>` : I('chevron-right')}</button>`; }).join('')}</div>` });
+    U.bind(m.el, { 'launch-app': (el) => { const a = apps[Number(el.dataset.i)]; if (a.phase && !TH.phase.on(a.phase)) return U.toast('info', a.label + ' thuộc Phase ' + a.phase, 'Admin có thể bật phạm vi tại Công cụ hệ thống.'); m.close(); TH.go(a.href); } });
+  };
+  L.quickCreate = (el) => {
+    const options = [
+      { label: 'Tạo hợp đồng', icon: 'file-plus', permission: 'contracts.manage', href: '#/contracts/new' },
+      { label: 'Lập hóa đơn', icon: 'receipt', permission: 'invoices.prepare', href: '#/invoices/batch' },
+      { label: 'Ghi nhận thu tiền', icon: 'wallet', permission: 'payments.record', href: '#/receivables?create=payment' },
+      { label: 'Thêm khách hàng tiềm năng', icon: 'user-plus', permission: 'crm.manage', phase: 2, href: '#/crm/leads?create=1' },
+      { label: 'Tạo sự cố', icon: 'wrench', permission: 'maintenance.manage', phase: 2, href: '#/maintenance?create=1' },
+    ].filter(x => TH.auth.can(x.permission) && (!x.phase || TH.phase.on(x.phase)));
+    U.menu(el, options.length ? options.map(x => ({ label: x.label, icon: x.icon, onClick: () => TH.go(x.href) })) : [{ label: 'Không có thao tác tạo nhanh', icon: 'info', disabled: true }]);
+  };
   L.ensure = (app) => {
     if (app.querySelector('.app')) { L.refreshTop(); return; }
-    app.innerHTML = `<div class="app"><div class="sb-backdrop" data-act="sb-close"></div><aside class="sidebar"><div class="sb-logo"><div class="mark">${I('home')}</div><div><div class="name">Timo<span>House</span></div><div class="tag">Quản lý nhà cho thuê</div></div></div><nav class="sb-nav" data-guide="sidebar">${L.MENU.map(sidebarGroup).join('')}</nav><div class="sb-foot"><div id="sb-version">Phiên bản 3.0.0 · Phạm vi: P1</div><div>TimoHouse © 2026</div><details><summary>${I('settings')} Công cụ nâng cao</summary><div class="adv"><div class="phase-switch" id="phase-switch"></div><button data-act="adv-reset">↺ Đặt lại dữ liệu demo</button><button data-act="adv-clear">✕ Xóa trắng dữ liệu nghiệp vụ</button><button data-act="adv-today">📅 Đổi ngày hệ thống demo</button><button data-act="adv-export">⇩ Xuất state JSON</button><button data-act="adv-import">⇧ Nhập state JSON</button><button data-act="adv-runall">▶ Chạy toàn bộ kịch bản Go-live</button><button data-act="adv-runall-p2" id="adv-runall-p2" hidden>▶ Chạy kịch bản Phase 2 (kỹ thuật)</button><button data-act="adv-runall-p3" id="adv-runall-p3" hidden>▶ Chạy kịch bản Phase 3 (kỹ thuật)</button><button data-act="adv-guide-reset">⟲ Reset tiến độ hướng dẫn</button></div></details></div></aside><div class="main"><header class="topbar"><button class="tb-menu-btn" data-act="sb-toggle" aria-label="Menu">${I('menu')}</button><div class="crumbs" id="crumbs"></div><div class="tb-search" data-act="palette">${I('search')}<input placeholder="Tìm kiếm phòng, khách thuê, hợp đồng..." readonly><span class="kbd">Ctrl</span><span class="kbd">K</span></div><button class="tb-guide" data-act="guide" data-guide="guide-btn">${I('book-open')}<span>Hướng dẫn thao tác</span></button><button class="tb-bell" data-act="bell" aria-label="Thông báo">${I('bell')}<span class="badge" id="bell-badge">0</span></button><div class="tb-period"><span>Kỳ báo cáo</span><select id="period-sel" data-on="period"></select></div><div class="tb-user" data-act="user-menu"><div class="avatar" id="tb-avatar"></div><div><div class="nm" id="tb-name"></div><div class="rl" id="tb-role"></div></div>${I('chevron-down')}</div></header><main class="content" id="content"></main></div></div>`;
+    try { document.body.classList.toggle('sb-collapsed', localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'); } catch (e) { }
+    app.innerHTML = `<div class="app"><div class="sb-backdrop" data-act="sb-close"></div><aside class="sidebar"><div class="sb-logo"><div class="mark">${I('home')}</div><div class="sb-brand"><div class="name">Timo<span>House</span></div><div class="tag">Quản lý nhà cho thuê</div></div><button type="button" class="sb-collapse" data-act="sb-collapse" aria-label="Thu gọn thanh điều hướng">${I('arrow-left')}</button></div><nav class="sb-nav" data-guide="sidebar">${L.MENU.map(sidebarGroup).join('')}</nav><div class="sb-foot"><a class="sb-tool-link" id="sb-tool-link" href="#/settings/tools">${I('settings')}<span>Công cụ hệ thống</span></a><div class="sb-meta"><div id="sb-version">Phiên bản 3.0.0 · P1</div><div>TimoHouse © 2026</div></div></div></aside><div class="main"><header class="topbar"><button class="tb-menu-btn" data-act="sb-toggle" aria-label="Menu">${I('menu')}</button><div class="crumbs" id="crumbs"></div><div class="tb-search" data-act="palette">${I('search')}<input placeholder="Tìm phòng, khách thuê, hợp đồng..." readonly><span class="kbd">Ctrl K</span></div><button class="tb-quick btn btn-primary btn-sm" data-act="quick-create">${I('plus')}<span>Tạo mới</span>${I('chevron-down')}</button><button class="tb-icon" data-act="app-launcher" aria-label="Mở Phân hệ & Quản trị" data-tip="Phân hệ & Quản trị">${I('grid')}</button><button class="tb-icon" data-act="guide" data-guide="guide-btn" aria-label="Hướng dẫn thao tác" data-tip="Hướng dẫn">${I('book-open')}</button><button class="tb-bell" data-act="bell" aria-label="Thông báo">${I('bell')}<span class="badge" id="bell-badge">0</span></button><div class="tb-user" data-act="user-menu"><div class="avatar" id="tb-avatar"></div><div><div class="nm" id="tb-name"></div><div class="rl" id="tb-role"></div></div>${I('chevron-down')}</div></header><main class="content" id="content"></main></div></div>`;
     if (!app.dataset.bound) { app.dataset.bound = '1';
     U.bind(app, {
       'sb-toggle': () => document.body.classList.toggle('sb-open'), 'sb-close': () => document.body.classList.remove('sb-open'),
-      'sb-group': (el) => L.setOpenGroup(el.dataset.group === L._openGroup ? '' : el.dataset.group),
-      palette: () => L.palette(), guide: () => TH.guide && TH.guide.toggle(),
+      'sb-collapse': () => setSidebarCollapsed(!document.body.classList.contains('sb-collapsed')),
+      'sb-group': (el) => document.body.classList.contains('sb-collapsed') && window.innerWidth > 760 ? L.openCollapsedFlyout(el) : L.setOpenGroup(el.dataset.group === L._openGroup ? '' : el.dataset.group),
+      palette: () => L.palette(), guide: () => TH.guide && TH.guide.toggle(), 'app-launcher': () => L.launcher(), 'quick-create': (el) => L.quickCreate(el),
       bell: (el) => { const t = Q.todo(); U.menu(el, [{ header: 'Việc cần xử lý' }, ...(TH.auth.can('contracts.view') ? [{ label: `Hợp đồng sắp hết hạn (${t.expiring})`, icon: 'file-text', onClick: () => TH.go('#/contracts?status=expiring') }] : []), ...(TH.auth.can('payments.view') ? [{ label: `Hóa đơn quá hạn (${t.overdue})`, icon: 'receipt', onClick: () => TH.go('#/receivables?overdue=1&period=all') }] : []), ...(TH.auth.can('zalo.view') ? [{ label: `Tin Zalo gửi lỗi (${t.zaloFailed} tin · ${t.zaloFailedBatches} đợt)`, icon: 'send', onClick: () => TH.go('#/zalo/history?hasFailed=1') }] : []), ...(TH.auth.can('refunds.view') ? [{ label: `Hoàn cọc đang xử lý (${t.refunds})`, icon: 'hand-coins', onClick: () => TH.go('#/refunds?status=processing') }] : []), ...(TH.auth.can('invoices.prepare') ? [{ label: `Hóa đơn nháp chờ phát hành (${t.drafts})`, icon: 'file-plus', onClick: () => TH.go('#/invoices?doc=draft&period=all') }] : []), ...(TH.phase && TH.phase.on(2) && TH.auth.can('maintenance.view') ? [{ label: `Lịch bảo dưỡng sắp đến hạn 7 ngày (${t.maintenanceDue || 0})`, icon: 'wrench', onClick: () => TH.go('#/maintenance/schedules?status=due_soon') }] : []), ...(TH.phase && TH.phase.on(2) && TH.auth.can('crm.view') ? [{ label: `Lịch xem phòng hôm nay (${t.viewingsToday || 0})`, icon: 'calendar-check', onClick: () => TH.go('#/crm/viewings?status=scheduled') }] : []), ...(TH.phase && TH.phase.on(3) && TH.auth.can('inventory.view') ? [{ label: `Tài sản cần xử lý sau kiểm kê (${t.inventoryPending || 0})`, icon: 'package', onClick: () => TH.go('#/assets/inventory?status=needs_action') }] : []), ...(TH.phase && TH.phase.on(3) && TH.auth.can('shareholders.view') ? [{ label: `Đợt góp vốn đến hạn (${t.contributionsDue || 0})`, icon: 'hand-coins', onClick: () => TH.go('#/investment/shareholders?tab=contributions&status=due') }] : []), ...(TH.phase && TH.phase.on(3) && TH.auth.can('hr.view') ? [{ label: `Nhân viên sắp hết thử việc (${t.probationEnding || 0})`, icon: 'user-plus', onClick: () => TH.go('#/hr?status=probation') }] : [])]); },
       'user-menu': openUserMenu,
       'adv-reset': async () => { if (await U.confirm({ title: 'Đặt lại dữ liệu demo?', text: 'Toàn bộ dữ liệu nghiệp vụ sẽ quay về bộ seed ban đầu. Tiến độ hướng dẫn được giữ.', ok: 'Đặt lại', danger: true })) { const g = TH.store.state.guide; TH.store.reset(true); TH.store.state.guide = g; TH.store.saveNow(); TH.auth.login('admin', 'demo'); TH.go('#/dashboard'); TH.router.refresh(); U.toast('ok', 'Đã đặt lại dữ liệu demo'); } },
@@ -144,10 +188,8 @@
       'adv-runall-p2': async () => { if (await U.confirm({ title: 'Chạy kịch bản Phase 2?', text: 'Hệ thống tự thực hiện các luồng F11–F15 (lead → giữ chỗ → chốt thuê → HĐ → hoa hồng; OCR; bảng kê & Data Job; sự cố & bảo dưỡng; báo cáo/khóa kỳ/Zalo retry) trên dữ liệu hiện có. Chỉ dùng để kiểm tra kỹ thuật.', ok: 'Chạy' })) { try { const r = await TH.guide.runAllP2(); U.toast('ok', 'Đã chạy xong kịch bản Phase 2', r, 6000); TH.router.refresh(); } catch (e) { U.toast('err', 'Kịch bản dừng', e.message); TH.router.refresh(); } } },
     });
     U.onChange(app, { 'phase-2': (el) => L.togglePhase(2, el.checked), 'phase-3': (el) => L.togglePhase(3, el.checked) });
-    app.querySelector('#period-sel').addEventListener('change', (e) => { TH.store.state.meta.period = e.target.value; TH.store.save(); TH.router.refresh(); });
     document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); L.palette(); } });
     }
-    else app.querySelector('#period-sel').addEventListener('change', (e) => { TH.store.state.meta.period = e.target.value; TH.store.save(); TH.router.refresh(); });
     L.refreshTop();
   };
   L.refreshTop = () => {
@@ -156,10 +198,8 @@
     const av = document.getElementById('tb-avatar'); if (av) { av.textContent = F.initials(u.name); }
     const nm = document.getElementById('tb-name'); if (nm) nm.textContent = u.name || ''; const rl = document.getElementById('tb-role'); if (rl) rl.textContent = (TH.auth.ROLE_LABEL[u.role] || '') + (s.impersonator ? ' · Đang giả lập' : '');
     const badge = document.getElementById('bell-badge'); if (badge) { const t = Q.todo(); badge.textContent = t.total > 99 ? '99+' : t.total; badge.hidden = !t.total; }
-    const ps = document.getElementById('period-sel'); if (ps) { const periods = [...new Set(TH.store.all('invoices').map(i => i.period).concat(['2026-10', '2026-11', '2026-09']))].sort().reverse(); ps.innerHTML = periods.map(p => `<option value="${p}" ${p === TH.store.state.meta.period ? 'selected' : ''}>${F.periodLabel(p)}</option>`).join(''); }
-    const advanced = document.querySelector('.sb-foot details'); if (advanced) advanced.hidden = !TH.auth.can('advancedTools');
+    const toolLink = document.getElementById('sb-tool-link'); if (toolLink) toolLink.hidden = !TH.auth.can('advancedTools');
     const ver = document.getElementById('sb-version'); if (ver && TH.phase) ver.textContent = 'Phiên bản 3.0.0 · Phạm vi: ' + TH.phase.label();
-    const sw = document.getElementById('phase-switch'); if (sw && TH.phase) sw.innerHTML = `<div class="ps-title">Phạm vi demo</div>${[1, 2, 3].map(n => { const inf = TH.phase.info(n); const on = TH.phase.on(n); const dis = n === 1 || !TH.phase.available(n); return `<label class="ps-row ${dis ? 'dis' : ''}" title="${n === 1 ? 'Phase 1 luôn bật' : !TH.phase.available(n) ? 'Chưa có mockup UI' : esc(inf.name)}"><input type="checkbox" data-on="phase-${n}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}><span><b>${inf.label}</b> – ${esc(inf.name)}${n === 1 ? ' <i>(luôn bật)</i>' : !TH.phase.available(n) ? ' <i>(chưa có mockup)</i>' : ''}</span></label>`; }).join('')}`;
     const rp2 = document.getElementById('adv-runall-p2'); if (rp2) rp2.hidden = !(TH.phase && TH.phase.on(2));
     const rp3 = document.getElementById('adv-runall-p3'); if (rp3) rp3.hidden = !(TH.phase && TH.phase.on(3));
     if (L._activeMenuKey) L.setActive(L._activeMenuKey);

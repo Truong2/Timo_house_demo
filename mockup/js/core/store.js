@@ -2,7 +2,7 @@
 (function (TH) {
   const KEY = 'timehouse-demo-p1-v3-2026';
   const SCHEMA = 4;
-  const COLLECTIONS = ['users', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
+  const COLLECTIONS = ['users', 'areas', 'salesTeams', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
     // Phase 2
     'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines',
     // Phase 3
@@ -25,6 +25,9 @@
     if (TH.seed && TH.seed.phase2 && !st.meta.p2Seeded && st.buildings.length) { try { TH.seed.phase2(st); } catch (e) { console.warn('seed phase2', e); } }
     // Phase 3: tương tự, seed bổ sung trên state hiện có (idempotent qua meta.p3Seeded)
     if (TH.seed && TH.seed.phase3 && !st.meta.p3Seeded && st.buildings.length) { try { TH.seed.phase3(st); } catch (e) { console.warn('seed phase3', e); } }
+    // Workbook alignment v2.3: additive-only migration; giữ nguyên schema và dữ liệu nghiệp vụ cũ.
+    if (TH.seed && TH.seed.workbook && !st.meta.wbSeeded && st.buildings.length) { try { TH.seed.workbook(st); } catch (e) { console.warn('seed workbook alignment', e); } }
+    if (TH.seed && TH.seed.workbookFixups && st.meta.wbSeeded) { try { TH.seed.workbookFixups(st); } catch (e) { console.warn('workbook fixups', e); } }
     // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
     // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
     const leadGroups = {};

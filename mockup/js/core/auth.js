@@ -21,7 +21,7 @@
     'import.view': ['admin', 'accountant', 'ops'], 'import.all': ['admin'],
     'import.finance': ['admin', 'accountant'], 'import.operations': ['admin', 'ops'],
     'users.manage': ['admin'], advancedTools: ['admin'],
-    'documents.view': ['admin', 'accountant', 'ops'], 'documents.manage': ['admin', 'accountant', 'ops'],
+    'documents.view': ['admin', 'accountant', 'ops', 'sale', 'kythuat', 'hr', 'codong'], 'documents.manage': ['admin', 'accountant', 'ops'],
     // Compatibility aliases used by existing pages and forms.
     approveRefund: ['admin', 'accountant'], rejectRefund: ['admin', 'accountant'], recordRefundPaid: ['admin', 'accountant'],
     issueInvoice: ['admin', 'accountant'], adjustInvoice: ['admin', 'accountant'], reversePayment: ['admin', 'accountant'],
@@ -33,7 +33,7 @@
     'ocr.use': ['admin', 'ops'], 'statement.import': ['admin', 'accountant'], 'openingBalance.manage': ['admin', 'accountant'], 'deposits.view': ['admin', 'accountant', 'ops'],
     'dataJobs.view': ['admin', 'accountant', 'ops'], 'dataJobs.manage': ['admin', 'accountant'],
     'maintenance.view': ['admin', 'accountant', 'ops', 'kythuat'], 'maintenance.manage': ['admin', 'ops', 'kythuat'], 'maintenance.assign': ['admin', 'ops'], 'maintenance.schedule': ['admin', 'ops', 'kythuat'],
-    'reports.hub': ['admin', 'accountant'], 'period.close': ['admin', 'accountant'], 'zalo.log': ['admin'], 'refunds.requestEdit': ['admin', 'accountant'], 'expenses.depreciation': ['admin', 'accountant'],
+    'reports.hub': ['admin', 'accountant', 'sale'], 'period.close': ['admin', 'accountant'], 'zalo.log': ['admin'], 'refunds.requestEdit': ['admin', 'accountant'], 'expenses.depreciation': ['admin', 'accountant'],
     // Phase 3 (H=hr, C=codong) – chỉ có hiệu lực khi TH.phase.on(3)
     'assets.view': ['admin', 'accountant', 'ops', 'kythuat'], 'assets.manage': ['admin', 'ops'], 'inventory.view': ['admin', 'accountant', 'ops', 'kythuat'], 'inventory.manage': ['admin', 'accountant'], 'inventory.record': ['admin', 'accountant', 'ops'],
     'hr.view': ['admin', 'hr'], 'hr.manage': ['admin', 'hr'], 'timesheet.view': ['admin', 'hr'], 'timesheet.manage': ['admin', 'hr'], 'payroll.view': ['admin', 'hr', 'accountant'], 'payroll.manage': ['admin', 'hr'], 'payroll.approve': ['admin', 'accountant'],
@@ -65,7 +65,7 @@
   const rawGet = (c, id) => TH.store.rawGet ? TH.store.rawGet(c, id) : rawAll(c).find(x => x && x.id === id) || null;
   const uniq = rows => [...new Set(rows.filter(Boolean))];
 
-  A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
+  A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Kinh doanh', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
   A.P1_ROLES = P1_ROLES; A.roleAllowed = roleAllowed; A.PHASE_ROLES = PHASE_ROLES; A.phaseOfRole = phaseOfRole;
   A.PERMISSIONS = PERMS;
   A.session = () => TH.store.state.session;

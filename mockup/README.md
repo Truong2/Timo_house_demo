@@ -1,5 +1,20 @@
 # TimoHouse – Mockup tương tác Phase 1 + Phase 2 + Phase 3
 
+## Workbook alignment (v2.3)
+
+Mockup có thêm lớp đối soát workbook theo hướng additive, giữ tương thích state cũ:
+
+- Khu nhà, loại nhà T/S/G, phân công nhân sự theo ngày hiệu lực và team kinh doanh.
+- Taxonomy chi phí hai cấp `GV/DV/VH/BH` và nhóm khấu trừ hoàn cọc chuẩn hóa.
+- Bộ lọc dimension dùng chung và registry metric có công thức/nhãn `Giả định`.
+- Preset cột **Đối soát**; thao tác xuất CSV dùng đúng các cột đang hiển thị.
+- Trung tâm Tài liệu tại `#/documents`.
+- Nhóm **Đối soát workbook** tại `#/reports/hub`, gồm sổ doanh số, sổ khách, sổ hoa hồng, lợi nhuận, chi phí, điện nước, đúng hạn, phòng trống và tài sản/cọc cổ đông.
+
+Các query dùng chung: `areaId`, `buildingId`, `buildingType`, `leadId`, `opsId`, `saleId`, `teamId`, `shareholderId`, `vac`, `preset`. Quy ước nhận diện phòng là `Mã tòa · Mã phòng`.
+
+Các công thức gắn nhãn **Giả định – chờ xác nhận** chỉ phục vụ review mockup, chưa phải số liệu kế toán được duyệt. Xem `docs/TimeHouse-Workbook-Alignment-Decisions-v1.0.md` để review 10 quyết định và owner sign-off.
+
 Mockup click-through dựng từ bộ PNG `Phase_1_Core_Rental_GoLive/` (mặc định), `Phase_2_Sales_Automation_Operations/` và `Phase_3_Enterprise_Investment/` (bật bằng công tắc phase – xem mục *Phase 2* / *Phase 3* bên dưới), SRS v1.2 và UI Spec v1.5. Mọi nút trong PNG đều bấm được; dữ liệu thay đổi thật (localStorage) theo state machine của SRS §6.
 
 ## Chạy

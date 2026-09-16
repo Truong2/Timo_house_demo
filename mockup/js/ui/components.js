@@ -125,7 +125,7 @@
     let btns = ''; const add = (p) => btns += `<button type="button" data-act="page" data-p="${p}" class="${p === page ? 'on' : ''}">${p}</button>`;
     const rng = []; for (let p = 1; p <= pages; p++) if (p <= 1 || p > pages - 1 || Math.abs(p - page) <= 1 || (page <= 3 && p <= 5) || (page >= pages - 2 && p >= pages - 4)) rng.push(p);
     let last = 0; rng.forEach(p => { if (p - last > 1) btns += '<span class="dots">…</span>'; add(p); last = p; });
-    return `<div class="card-f"><span>Hiển thị ${total ? from : 0} - ${to} của ${total} ${esc(unit)}</span><div class="row gap12 wrap"><div class="pager"><button type="button" data-act="page" data-p="${page - 1}" ${page <= 1 ? 'disabled' : ''}>${I('chevron-left')}</button>${btns}<button type="button" data-act="page" data-p="${page + 1}" ${page >= pages ? 'disabled' : ''}>${I('chevron-right')}</button></div><select class="inp sm" data-act="psize" style="width:auto">${[10, 20, 50, 100].map(n => `<option ${n === size ? 'selected' : ''} value="${n}">${n} / trang</option>`).join('')}</select></div></div>`;
+    return `<div class="card-f"><span>Hiển thị ${total ? from : 0} - ${to} của ${total} ${esc(unit)}</span><div class="row gap12 wrap"><div class="pager"><button type="button" data-act="page" data-p="${page - 1}" aria-label="Trang trước" ${page <= 1 ? 'disabled' : ''}>${I('chevron-left')}</button>${btns}<button type="button" data-act="page" data-p="${page + 1}" aria-label="Trang sau" ${page >= pages ? 'disabled' : ''}>${I('chevron-right')}</button></div><select class="inp sm" data-act="psize" aria-label="Số dòng mỗi trang" style="width:auto">${[10, 20, 50, 100].map(n => `<option ${n === size ? 'selected' : ''} value="${n}">${n} / trang</option>`).join('')}</select></div></div>`;
   };
   /* event delegation */
   U.bind = (root, handlers, evt = 'click') => {
@@ -143,11 +143,12 @@
   const OV = () => document.getElementById('overlay-root');
   U.openCount = 0;
   U.drawer = ({ title, sub = '', body = '', footer = '', wide = false, modal = false, size = '', onMount, onClose }) => {
+    const returnFocus = document.activeElement;
     const ov = U.el(`<div class="overlay ${modal ? 'center' : ''}"><div class="${modal ? 'modal ' + size : 'drawer ' + (wide ? 'wide' : '')}" role="dialog" aria-modal="true"><div class="drawer-h"><div><h2>${title}</h2>${sub ? `<div class="sub">${sub}</div>` : ''}</div><button type="button" class="close-x" data-act="close" aria-label="Đóng">${I('x')}</button></div><div class="drawer-b">${body}</div>${footer ? `<div class="drawer-f">${footer}</div>` : ''}</div></div>`);
-    const close = (res) => { if (!ov.parentNode) return; ov.remove(); U.openCount--; if (U.openCount <= 0) { U.openCount = 0; document.body.classList.remove('modal-open'); } onClose && onClose(res); };
+    const close = (res) => { if (!ov.parentNode) return; ov.remove(); U.openCount--; if (U.openCount <= 0) { U.openCount = 0; document.body.classList.remove('modal-open'); } onClose && onClose(res); if (returnFocus && document.contains(returnFocus) && returnFocus.focus) setTimeout(() => returnFocus.focus(), 0); };
     ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
     ov.querySelector('[data-act=close]').onclick = () => close();
-    ov.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    ov.addEventListener('keydown', (e) => { if (e.key === 'Escape') return close(); if (e.key === 'Tab') { const focusable = [...ov.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x => x.offsetParent !== null); if (!focusable.length) return; const first = focusable[0], last = focusable[focusable.length - 1]; if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } } });
     OV().appendChild(ov); U.openCount++; document.body.classList.add('modal-open');
     U.onInput(ov); U.bindDropzones(ov);
     const api = { el: ov, box: ov.firstElementChild, body: ov.querySelector('.drawer-b'), close, data: () => U.formData(ov) };
