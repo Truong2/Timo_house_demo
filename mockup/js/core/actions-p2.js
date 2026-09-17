@@ -315,6 +315,13 @@
   guard('deleteExpense', (id) => F.period((St.get('expenses', id) || {}).date), 'xóa chi phí');
   guard('markLandlordPaid', (id, d) => F.period(d && d.paidDate), 'ghi nhận trả chủ nhà');
   guard('adjustPaymentAllocations', (id) => F.period((St.get('payments', id) || {}).date), 'điều chỉnh phân bổ khoản thu');
+  guard('saveMeterReadings', (period) => period, 'nhập chỉ số điện nước');
+  guard('cancelDraftInvoice', (id) => (St.get('invoices', id) || {}).period, 'hủy hóa đơn');
+  guard('addInvoiceLine', (id) => (St.get('invoices', id) || {}).period, 'thêm dòng hóa đơn');
+  guard('terminateContract', (id, d) => F.period(d && d.actualEnd), 'kết thúc hợp đồng');
+  guard('payCommission', (dealId, d) => F.period(d && d.date), 'chi hoa hồng');
+  guard('recordDealDeposit', (dealId, d) => F.period(d && d.date), 'thu tiền cọc');
+  guard('activateContract', (id, key, o) => o && o.depositNow ? F.period(o.depositDate || F.today()) : '', 'ghi nhận thu cọc');
   { const orig = X.saveExpense; X.saveExpense = function (d) { if (d && d.id) { const old = St.get('expenses', d.id); if (old) assertPeriodOpen(F.period(old.date), 'sửa chi phí'); } return orig.apply(this, arguments); }; }
 
   /* ================= Zalo nâng cao ================= */

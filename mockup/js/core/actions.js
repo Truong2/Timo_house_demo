@@ -100,7 +100,10 @@
     St.audit('schedule', 'landlordContract', c.id, 'Sinh ' + made.length + ' kỳ thanh toán chủ nhà'); done(); return made;
   };
   X.addLandlordPayment = (d) => { Au.need('landlordPayments.manage'); req(d.dueDate, 'Hạn thanh toán'); req(d.amount, 'Số tiền'); const p = St.add('landlordPayments', Object.assign({ status: 'upcoming', paidDate: null, evidence: null }, d)); done(); return p; };
-  X.markLandlordPaid = (id, { paidDate, evidence, amount }) => { Au.need('landlordPayments.manage'); req(paidDate, 'Ngày thanh toán'); const cur = St.get('landlordPayments', id); if (cur.status === 'paid') err('Kỳ này đã được ghi nhận thanh toán'); const patch = { status: 'paid', paidDate, evidence: evidence || 'chung_tu.pdf' }; if (F.num(amount) > 0) patch.amount = F.num(amount); const p = St.update('landlordPayments', id, patch); St.audit('landlord_paid', 'landlordPayment', id, 'Ghi nhận trả chủ nhà ' + F.vnd(p.amount) + ' – ' + p.periodLabel); done(); return p; };
+  X.markLandlordPaid = (id, { paidDate, evidence, amount }) => { Au.need('landlordPayments.manage'); req(paidDate, 'Ngày thanh toán'); const cur = St.get('landlordPayments', id); if (cur.status === 'paid') err('Kỳ này đã được ghi nhận thanh toán'); const patch = { status: 'paid', paidDate, evidence: evidence || 'chung_tu.pdf' }; if (F.num(amount) > 0) patch.amount = F.num(amount); const p = St.update('landlordPayments', id, patch);
+    // Tiền trả chủ nhà là chi phí Thuê nhà của tòa → ghi vào sổ chi phí (1 kỳ trả = 1 chi phí, không tạo trùng)
+    if (!St.one('expenses', e => e.landlordPaymentId === id)) { const ll = St.get('landlords', p.landlordId) || {}; const ex = St.add('expenses', { code: St.nextCode('expenses', 'CP', 4), date: paidDate, categoryCode: 'GV-THUE', group: 'Thuê nhà', desc: 'Trả tiền thuê nhà ' + (ll.name || '') + ' – ' + (p.periodLabel || ''), buildingId: p.buildingId || null, amount: p.amount, recordType: 'ops', method: 'cash', evidence: patch.evidence, note: 'Tự tạo từ kỳ thanh toán chủ nhà', createdBy: me(), status: 'recorded', landlordPaymentId: id, landlordId: p.landlordId }); p.expenseId = ex.id; }
+    St.audit('landlord_paid', 'landlordPayment', id, 'Ghi nhận trả chủ nhà ' + F.vnd(p.amount) + ' – ' + p.periodLabel); done(); return p; };
 
   /* ---------- Khách thuê ---------- */
   X.saveTenant = (d) => {
@@ -117,7 +120,7 @@
   function validateContract(d) {
     req(d.tenantId, 'Chọn khách thuê'); req(d.roomId, 'Chọn phòng'); req(d.start, 'Ngày bắt đầu'); req(d.end, 'Ngày kết thúc');
     if (d.end <= d.start) err('Ngày kết thúc phải sau ngày bắt đầu'); req(d.price, 'Giá thuê thực tế'); if (d.deposit == null) err('Tiền cọc là bắt buộc');
-    const clash = St.one('contracts', c => c.roomId === d.roomId && c.id !== d.id && c.status === 'active' && !(d.end < c.start || d.start > c.end)); if (clash) err('Phòng đã có hợp đồng ' + clash.code + ' hiệu lực trùng khoảng thuê (FR-CUS-02)');
+    const clash = St.one('contracts', c => c.roomId === d.roomId && c.id !== d.id && c.id !== d.renewedFromId && c.status === 'active' && !(d.end < c.start || d.start > c.end)); if (clash) err('Phòng đã có hợp đồng ' + clash.code + ' hiệu lực trùng khoảng thuê (FR-CUS-02)');
   }
   X.saveContractDraft = (d) => {
     Au.need('contracts.manage', d.id ? { type: 'contract', record: St.get('contracts', d.id) } : { type: 'room', record: St.get('rooms', d.roomId) });
@@ -129,15 +132,35 @@
     St.removeWhere('contractMembers', s => s.contractId === c.id); memRows.forEach(m => { if (m.name) St.add('contractMembers', { contractId: c.id, name: m.name, dob: m.dob || '', idNumber: m.idNumber || '', relation: m.relation || 'Người thuê (chính)', phone: m.phone || '', note: m.note || '' }); });
     St.audit('save_draft', 'contract', c.id, 'Lưu nháp hợp đồng ' + c.code); done(); return c;
   };
-  X.activateContract = (id, key) => idem(key, () => {
+  /* Kích hoạt HĐ có thể sinh chứng từ đi kèm (opts): thu cọc ngay (payments kind=deposit) và hóa đơn nháp kỳ đầu (tiền phòng tính theo ngày + DV cố định).
+     Kết quả phụ (phiếu thu/hóa đơn/ghi chú) đặt ở X.lastActivation để UI hiển thị. */
+  const prorateFirstInvoice = (inv, c) => { const period = inv.period; const [y, m] = period.split('-').map(Number); const dim = new Date(y, m, 0).getDate(); const startDay = Number(String(c.start).slice(8, 10)) || 1; if (startDay <= 1) return; const days = dim - startDay + 1; const line = Q.invLines(inv.id).find(l => l.kind === 'rent'); if (!line) return; line.amount = Math.round(c.price * days / dim / 1000) * 1000; line.desc += ' (từ ' + F.date(c.start) + ', ' + days + '/' + dim + ' ngày)'; inv.total = F.sum(Q.invLines(inv.id), l => l.amount); };
+  X.activateContract = (id, key, opts = {}) => idem(key, () => {
     Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) });
     const c = St.get('contracts', id); if (!c) err('Không tìm thấy hợp đồng'); if (c.status === 'active') return c; if (c.status !== 'draft') err('Chỉ kích hoạt được hợp đồng Dự thảo');
-    validateContract(c); const room = Q.room(c.roomId); if (!['ready', 'held'].includes(room.status)) err('Phòng ' + room.code + ' đang ' + Q.label('room', room.status) + ', không thể kích hoạt hợp đồng');
+    validateContract(c); const room = Q.room(c.roomId);
+    // Gia hạn: HĐ mới kích hoạt thay thế HĐ cũ trên cùng phòng (phòng vẫn Đang thuê, cọc chuyển tiếp)
+    const prev = c.renewedFromId ? St.get('contracts', c.renewedFromId) : null; const renewing = !!(prev && prev.status === 'active' && prev.roomId === c.roomId);
+    if (!renewing && !['ready', 'held'].includes(room.status)) err('Phòng ' + room.code + ' đang ' + Q.label('room', room.status) + ', không thể kích hoạt hợp đồng');
     if (Q.building(room.buildingId).status === 'inactive') err('Tòa ' + Q.building(room.buildingId).name + ' đang tạm ngừng – không thể kích hoạt hợp đồng');
-    const hold = Q.roomHold(room.id); if (hold && hold.tenantId !== c.tenantId) err('Phòng ' + room.code + ' đang giữ chỗ cho khách ' + Q.tenant(hold.tenantId).name + ' – hủy giữ chỗ trước'); if (hold) { if (hold.code || hold.leadId) Object.assign(hold, { status: 'converted', convertedAt: F.nowISO(), contractId: c.id }); else St.remove('holds', hold.id); St.audit('release_hold', 'room', room.id, 'Giữ chỗ chuyển thành hợp đồng ' + c.code); }
+    const hold = renewing ? null : Q.roomHold(room.id); if (hold && hold.tenantId !== c.tenantId) err('Phòng ' + room.code + ' đang giữ chỗ cho khách ' + Q.tenant(hold.tenantId).name + ' – hủy giữ chỗ trước'); if (hold) { if (hold.code || hold.leadId) Object.assign(hold, { status: 'converted', convertedAt: F.nowISO(), contractId: c.id }); else St.remove('holds', hold.id); St.audit('release_hold', 'room', room.id, 'Giữ chỗ chuyển thành hợp đồng ' + c.code); }
     Object.assign(c, { status: 'active', signedDate: c.signedDate || F.today(), activatedAt: F.nowISO() });
+    if (renewing) { Object.assign(prev, { status: 'ended', actualEnd: F.addDays(c.start, -1), renewedToId: c.id, endReason: 'Gia hạn bằng hợp đồng ' + c.code }); if (!c.depositPaymentId && prev.depositPaymentId) { c.depositPaymentId = prev.depositPaymentId; c.depositPaidAt = prev.depositPaidAt; c.depositCarriedFrom = prev.code; } St.audit('renew', 'contract', prev.id, 'Gia hạn ' + prev.code + ' → ' + c.code + ' (kích hoạt)'); }
     St.update('rooms', room.id, { status: 'occupied' });
-    St.audit('activate', 'contract', c.id, 'Kích hoạt hợp đồng ' + c.code + ' – phòng ' + room.code + ' → Đang thuê'); done(); return c;
+    St.audit('activate', 'contract', c.id, 'Kích hoạt hợp đồng ' + c.code + ' – phòng ' + room.code + ' → Đang thuê');
+    const extras = X.lastActivation = { contractId: c.id, payment: null, invoice: null, notes: [] };
+    if (opts.depositNow && c.deposit > 0 && !c.depositPaymentId) {
+      try { Au.need('payments.record'); const date = opts.depositDate || F.today(); if (Q.periodLocked && Q.periodLocked(F.period(date))) err('Kỳ ' + F.periodLabel(F.period(date)) + ' đã khóa');
+        const pay = St.add('payments', { code: St.nextCode('payments', 'PAY-' + date.slice(0, 7).replace('-', '') + '-', 3), kind: 'deposit', contractId: c.id, tenantId: c.tenantId, roomId: c.roomId, buildingId: c.buildingId, date, amount: c.deposit, method: opts.depositMethod || 'Tiền mặt', ref: opts.depositRef || '', evidence: '', note: 'Thu tiền cọc hợp đồng ' + c.code, status: 'recorded', createdBy: me(), unallocated: 0, history: [{ at: F.nowISO(), who: (St.state.session || {}).name, what: 'Thu tiền cọc khi kích hoạt HĐ' }] });
+        c.depositPaymentId = pay.id; c.depositPaidAt = date; St.audit('deposit', 'contract', c.id, 'Thu cọc ' + F.vnd(c.deposit) + ' (' + pay.code + ') khi kích hoạt ' + c.code); extras.payment = pay;
+      } catch (e) { extras.notes.push('Chưa ghi nhận thu cọc: ' + e.message); }
+    }
+    if (opts.firstInvoice) {
+      try { const period = F.period(c.start); const res = X.createInvoiceDrafts({ period, contractIds: [c.id], services: ['FIXED'], key: 'act-inv:' + c.id }); const inv = res && res.created && res.created[0];
+        if (inv) { prorateFirstInvoice(inv, c); extras.invoice = inv; } else if (res && res.skipped && res.skipped[0]) extras.notes.push('Không tạo hóa đơn kỳ đầu: ' + res.skipped[0].why);
+      } catch (e) { extras.notes.push('Không tạo hóa đơn kỳ đầu: ' + e.message); }
+    }
+    done(); return c;
   });
   X.cancelContract = (id, reason) => { const c = St.get('contracts', id); Au.need('contracts.manage', { type: 'contract', record: c }); if (c.status !== 'draft') err('Chỉ hủy được hợp đồng Dự thảo'); c.status = 'cancelled'; c.note = (c.note ? c.note + ' | ' : '') + 'Hủy: ' + (reason || ''); St.audit('cancel', 'contract', id, 'Hủy hợp đồng ' + c.code); done(); };
   X.terminateContract = (id, { actualEnd, reason, toCleaning = true, createRefund = true }) => {
@@ -150,7 +173,7 @@
     if (createRefund && !St.one('refunds', r => r.contractId === c.id)) {
       const debt = Q.contractDebt(c.id);
       rf = St.add('refunds', { code: St.nextCode('refunds', 'RC' + periodCode() + '-', 3), contractId: c.id, tenantId: c.tenantId, roomId: c.roomId, buildingId: c.buildingId, requestDate: F.today(), moveOutDate: actualEnd, deposit: c.deposit, debt, offsetDebt: false, deductionsTotal: 200000, refundAmount: Math.max(0, c.deposit - 200000), status: 'draft', handlerId: me(), approverRole: 'Kế toán trưởng', rejectReason: '', inspection: {}, files: [] });
-      St.add('refundDeductions', { refundId: rf.id, group: 'Khấu hao', groupCode: 'KH', desc: 'Khấu hao cố định theo phòng (BR-12)', amount: 200000, evidenceCount: 0, status: 'confirmed' });
+      Q.refundDefaults().forEach(d => St.add('refundDeductions', Object.assign({ refundId: rf.id }, d)));
     }
     St.audit('terminate', 'contract', c.id, 'Kết thúc hợp đồng ' + c.code + ' – phòng ' + room.code + (toCleaning ? ' → Chờ dọn' : ' → Sẵn sàng (không qua dọn)') + (rf ? ' – tạo hồ sơ hoàn cọc ' + rf.code : '')); done(); return { contract: c, refund: rf };
   };
@@ -158,11 +181,12 @@
     Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) });
     const old = St.get('contracts', id); if (old.status !== 'active') err('Chỉ gia hạn hợp đồng hiệu lực'); req(end, 'Ngày kết thúc mới'); if (end <= old.end) err('Ngày kết thúc mới phải sau ' + F.date(old.end));
     const start = F.addDays(old.end, 1);
-    const n = St.add('contracts', Object.assign({}, old, { id: undefined, code: St.nextCode('contracts', 'HD-' + yearCode() + '-', 3), start, end, price: price || old.price, deposit: deposit != null ? deposit : old.deposit, status: 'active', signedDate: F.today(), renewedFromId: old.id, renewedToId: null, createdAt: undefined, source: undefined, activatedAt: F.nowISO() }));
+    if (old.renewedToId && (St.get('contracts', old.renewedToId) || {}).status === 'draft') return St.get('contracts', old.renewedToId);
+    const n = St.add('contracts', Object.assign({}, old, { id: undefined, code: St.nextCode('contracts', 'HD-' + yearCode() + '-', 3), start, end, price: price || old.price, deposit: deposit != null ? deposit : old.deposit, status: 'draft', signedDate: null, renewedFromId: old.id, renewedToId: null, createdAt: undefined, source: undefined, activatedAt: null, depositPaymentId: null, depositPaidAt: null, note: '' }));
     Q.contractServices(old.id).forEach(s => St.add('contractServices', Object.assign({}, s, { id: undefined, contractId: n.id, createdAt: undefined, source: undefined })));
     Q.contractMembers(old.id).forEach(m => St.add('contractMembers', Object.assign({}, m, { id: undefined, contractId: n.id, createdAt: undefined, source: undefined })));
-    Object.assign(old, { status: 'ended', actualEnd: old.end, renewedToId: n.id, endReason: 'Gia hạn bằng hợp đồng ' + n.code });
-    St.audit('renew', 'contract', old.id, 'Gia hạn ' + old.code + ' → ' + n.code + ' đến ' + F.date(end)); done(); return n;
+    old.renewedToId = n.id;
+    St.audit('renew', 'contract', old.id, 'Lập hợp đồng gia hạn ' + n.code + ' (nháp) đến ' + F.date(end) + ' – HĐ cũ kết thúc khi HĐ mới kích hoạt'); done(); return n;
   };
   X.updateContractNote = (id, note) => { Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) }); const c = St.update('contracts', id, { note, noteBy: (St.state.session || {}).name, noteAt: F.nowISO() }); St.audit('note', 'contract', id, 'Cập nhật ghi chú hợp đồng ' + c.code); done(); return c; };
 
@@ -317,7 +341,7 @@
   };
   X.createZaloBatch = ({ name, eventKey, sourceKey, templateId, recipients, sendMode, sendAt, scopeLabel, period, key }) => idem(key, () => {
     req(templateId, 'Chọn mẫu thông báo');
-    const ev = St.one('zaloEvents', e => e.key === eventKey); if (ev && !ev.enabled && sourceKey !== 'test') err('Rule "' + ev.name + '" đang tắt – bật tại Cấu hình Zalo trước khi tạo đợt gửi (FR-ZAL-01)');
+    const ev = St.one('zaloEvents', e => e.key === eventKey); if (ev && !ev.enabled && sourceKey !== 'test') err('Rule "' + ev.name + '" đang tắt – bật tại Cấu hình → Thông báo & nhắc việc (#/zalo/config) trước khi tạo đợt gửi');
     // re-check công nợ ngay lúc xác nhận (FR-ZAL-02): khách đã trả đủ → bỏ qua, trả một phần → số còn nợ mới
     recipients = recipients.map(r => { if (!r.invoiceId || r.elig === 'error') return r; const inv = St.get('invoices', r.invoiceId); if (!inv || inv.docStatus === 'cancelled') return Object.assign({}, r, { elig: 'skip', reason: 'Hóa đơn không còn hiệu lực' }); const rem = Q.invRemaining(inv); if (rem <= 0) return Object.assign({}, r, { elig: 'skip', reason: 'Đã thanh toán đủ (re-check lúc gửi)', amount: 0 }); return Object.assign({}, r, { amount: rem }); });
     const ok = recipients.filter(r => r.elig === 'ok' && r.selected !== false); if (!ok.length) err('Không có người nhận đủ điều kiện (sau re-check công nợ)');

@@ -28,7 +28,7 @@
   };
   /* ---------- Danh sách phòng ---------- */
   TH.router.register('/rooms', (root, p, q) => {
-    TH.router.crumb([{ label: 'Vận hành' }, { label: 'Phòng' }]);
+    TH.router.crumb([{ label: 'Quản lý cho thuê' }, { label: 'Phòng' }]);
     const f = { s: q.s || '', areaId: q.areaId || '', buildingId: q.buildingId || '', floor: q.floor || '', status: q.status || '', vac: q.vac || '', avail: q.avail || '', managerId: q.managerId || '', leadId: q.leadId || '' };
     const scope = Q.scope({ areaId: f.areaId, buildingId: f.buildingId, leadId: f.leadId });
     const all = St.all('rooms'); const st = Q.roomStats(all);
@@ -41,8 +41,8 @@
     const wrap = document.createElement('div'); root.querySelector('#tbl-card').appendChild(wrap);
     U.table(wrap, { rows, selectable: true, unit: 'phòng', colPrefsKey: 'rooms', densityControl: true, rowHref: r => '#/rooms/' + r.id, rowClass: r => ({ held: 'tint-amber', occupied: '', cleaning: 'tint-orange', maintenance: 'tint-red', inactive: 'tint-red' })[r.status] || '', cols: [
       { key: 'code', label: 'Phòng / Tòa', sortable: true, render: r => U.cell2(U.link('#/rooms/' + r.id, esc(r.code), 'bold'), esc(Q.building(r.buildingId).name) + ' · Tầng ' + r.floor) },
-      { key: 'status', label: 'Trạng thái', sortable: true, render: r => r.status === 'maintenance' || r.status === 'inactive' ? U.chip(r.status === 'inactive' ? 'Ngừng sử dụng' : 'Không khả dụng', 'red', true) : Q.chipDot('room', r.status) },
-      { key: 'vacancy', label: 'Trống (WB)', render: r => { const k = Q.roomVacancy(r, St.state.meta.period); return k ? Q.chip('vacancy', k) + ' ' + U.assume() : '-'; } },
+      { key: 'status', label: 'Trạng thái', sortable: true, render: r => r.status === 'maintenance' || r.status === 'inactive' ? U.chip(r.status === 'inactive' ? 'Ngừng sử dụng' : 'Bảo trì', 'red', true) : Q.chipDot('room', r.status) },
+      { key: 'vacancy', label: 'Phân loại trống', render: r => { const k = Q.roomVacancy(r, St.state.meta.period); return k ? Q.chip('vacancy', k) + ' ' + U.assume() : '-'; } },
       { key: 'tenant', label: 'Khách hiện tại', render: r => { if (r.status === 'held') { const h = Q.roomHold(r.id); return h ? esc(Q.tenant(h.tenantId).name) + ' <span class="xs muted">(giữ đến ' + F.date(h.until) + ')</span>' : '-'; } const t = Q.roomTenant(r.id); return t ? U.link('#/tenants/' + t.id, esc(t.name)) : '-'; } },
       { key: 'price', label: 'Giá tham chiếu', num: true, sortable: true, render: r => F.vnd(r.price) },
       { key: 'exp', label: 'HĐ hết hạn', render: r => { const c = Q.activeContractOfRoom(r.id); if (!c) return '-'; const d = F.daysUntil(c.end); return `<span class="${d <= 35 ? 'red bold' : ''}">${F.date(c.end)}</span>`; } },
@@ -63,7 +63,7 @@
   TH.router.register('/rooms/:id', (root, p, q) => {
     const r = St.get('rooms', p.id); if (!r) { root.innerHTML = U.empty({ title: 'Không tìm thấy phòng' }); return; }
     const b = Q.building(r.buildingId); const c = Q.activeContractOfRoom(r.id); const t = c ? Q.tenant(c.tenantId) : null; const tab = q.tab || 'overview'; const debt = Q.roomDebt(r.id);
-    TH.router.crumb([{ label: 'Vận hành' }, { label: 'Phòng', href: '#/rooms' }, { label: r.code }]);
+    TH.router.crumb([{ label: 'Quản lý cho thuê' }, { label: 'Phòng', href: '#/rooms' }, { label: r.code }]);
     const invs = St.where('invoices', i => i.roomId === r.id && i.docStatus !== 'cancelled').sort((a, z) => F.cmp(z.period, a.period));
     const svcs = c ? Q.contractServices(c.id) : (r.defaultServiceIds || []).map(id => { const s = Q.service(id); return { name: s.name, price: s.price, unit: s.unit, qty: 1, def: true }; });
     const assets = St.where('roomAssets', a => a.roomId === r.id); const hist = Q.contractsOfRoom(r.id);

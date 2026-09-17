@@ -63,7 +63,7 @@ body.guide-open .main{margin-right:var(--guide-w)}
 .tb-bell{position:relative;width:38px;height:38px;display:grid;place-items:center;border-radius:10px;color:var(--text-2);font-size:19px}
 .tb-bell:hover{background:var(--gray-bg)}
 .tb-bell .badge{position:absolute;top:2px;right:2px;background:var(--red-500);color:#fff;font-size:10px;font-weight:700;border-radius:999px;min-width:17px;height:17px;display:grid;place-items:center;padding:0 4px}
-.tb-period{display:flex;flex-direction:column;font-size:10.5px;color:var(--muted)}
+.tb-period{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}.tb-period[hidden]{display:none}
 .tb-period select{height:30px;border:1px solid var(--border);border-radius:8px;padding:0 8px;font-size:12.5px;background:#fff}
 .tb-user{display:flex;align-items:center;gap:10px;padding-left:16px;border-left:1px solid var(--border);cursor:pointer;position:relative}
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary-100);color:var(--blue);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none;overflow:hidden}

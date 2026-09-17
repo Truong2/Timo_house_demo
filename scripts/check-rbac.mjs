@@ -54,7 +54,8 @@ const fixture = {
   landlords: [], landlordContracts: [], landlordPayments: [], meterReadings: [], invoices: [], invoiceLines: [],
   payments: [], paymentAllocations: [], refunds: [], refundDeductions: [], expenses: [], expenseAllocations: [],
   documents: [], importJobs: [{ id: 'job-mine', createdBy: 'u-ops' }, { id: 'job-other', createdBy: 'u-admin' }],
-  auditLog: [], zaloBatches: [], zaloMessages: [], openingBalances: [], reportRuns: [],
+  auditLog: [], zaloBatches: [], zaloMessages: [], openingBalances: [],
+  reportRuns: [{ id: 'report-mine', cat: 'sales', createdBy: 'u-sale-member' }, { id: 'report-team', cat: 'sales', createdBy: 'u-sale-lead' }, { id: 'report-admin', cat: 'sales', createdBy: 'u-admin' }],
   ocrExtractions: [{ id: 'ocr-mine', createdBy: 'u-ops', fields: [] }, { id: 'ocr-b2', createdBy: 'u-admin', fields: [{ key: 'roomCode', value: 'R2' }] }],
 };
 
@@ -110,6 +111,9 @@ login('sale', 'u-sale-member');
 assert.deepEqual([...TH.auth.allowedSaleIds()], ['u-sale-member']);
 assert.deepEqual(ids(TH.auth.filterByScope('leads', state.leads)), ['l-member']);
 assert.deepEqual(ids(TH.auth.filterByScope('holds', state.holds)), ['h-member']);
+assert.deepEqual(ids(TH.auth.filterByScope('reportRuns', state.reportRuns)), ['report-mine']);
+login('sale', 'u-sale-lead');
+assert.deepEqual(ids(TH.auth.filterByScope('reportRuns', state.reportRuns)), ['report-mine', 'report-team']);
 
 login('kythuat', 'u-tech');
 assert.deepEqual([...TH.auth.allowedBuildingIds()], ['b1']);
@@ -124,7 +128,7 @@ assert.deepEqual(ids(TH.auth.filterByScope('distributions', state.distributions)
 
 // Sidebar structure is declarative and every referenced item comes from the canonical registry.
 run('mockup/js/ui/layout.js');
-const expectedTopLevel = { admin: 6, ops: 6, accountant: 5, sale: 3, kythuat: 3, hr: 3, codong: 2 };
+const expectedTopLevel = { admin: 6, ops: 6, accountant: 5, sale: 4, kythuat: 3, hr: 3, codong: 2 };
 for (const [role, count] of Object.entries(expectedTopLevel)) {
   const groups = TH.layout.menuForRole(role);
   assert.equal(groups.length, count, `${role} must have ${count} top-level sidebar entries`);
@@ -195,12 +199,15 @@ assert.equal(routeAt('/crm/deals/:id').resource.type, 'deal');
 assert.equal(routeAt('/maintenance/incidents/:id').resource.type, 'incident');
 assert.equal(routeAt('/assets/inventory/:id').resource.type, 'inventory');
 assert.equal(routeAt('/settings/jobs/:id').resource.type, 'importJob');
+assert.equal(routeAt('/reports/runs/:id').resource.type, 'reportRun');
 
 // Direct URLs to records outside the account scope must be denied by canRoute().
 login('sale', 'u-sale-member');
 assert.equal(TH.auth.canRoute(routeAt('/crm/leads/:id'), { id: 'l-member' }), true);
 assert.equal(TH.auth.canRoute(routeAt('/crm/leads/:id'), { id: 'l-other' }), false);
 assert.equal(TH.auth.canRoute(routeAt('/rooms/:id'), { id: 'r2' }), true, 'Sale room lookup should remain global');
+assert.equal(TH.auth.canRoute(routeAt('/reports/runs/:id'), { id: 'report-mine' }), true);
+assert.equal(TH.auth.canRoute(routeAt('/reports/runs/:id'), { id: 'report-admin' }), false);
 login('kythuat', 'u-tech');
 assert.equal(TH.auth.canRoute(routeAt('/maintenance/incidents/:id'), { id: 'i-mine' }), true);
 assert.equal(TH.auth.canRoute(routeAt('/maintenance/incidents/:id'), { id: 'i-other-tech' }), false);

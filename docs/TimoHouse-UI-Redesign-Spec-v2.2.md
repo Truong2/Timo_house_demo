@@ -1,4 +1,4 @@
-# TimoHouse UI Redesign Specification v2.5
+# TimoHouse UI Redesign Specification v2.6
 
 **Trạng thái:** Draft for Stakeholder Sign-off  
 **Ngày lập:** 16/09/2026  
@@ -13,7 +13,7 @@
 **Hướng thiết kế:** Enterprise tinh gọn  
 **Chiến lược:** Giữ tương thích nghiệp vụ, dữ liệu và route hiện có; thay đổi kiến trúc thông tin và UX; được phép **thêm additive** collection/field và route được kiểm soát tại Phụ lục D
 
-> Tài liệu này kế thừa v2.3, bổ sung lớp Business Clarification v2.4 từ câu trả lời làm rõ nghiệp vụ của khách hàng (06/09/2026) và v2.5 (mô hình bản ghi báo cáo, mục 8.5). Thay đổi xem Phụ lục C/D/E.
+> Tài liệu này kế thừa v2.3, bổ sung lớp Business Clarification v2.4 từ câu trả lời làm rõ nghiệp vụ của khách hàng (06/09/2026), v2.5 (mô hình bản ghi báo cáo, mục 8.5) và v2.6 (kết quả review sản phẩm/UX 17/09/2026: IA, thuật ngữ, điều hướng, chuỗi tài chính). Thay đổi xem Phụ lục C/D/E.
 
 ### Lịch sử phiên bản
 
@@ -24,7 +24,8 @@
 | v2.2 | 16/09/2026 | Khóa contract UX, decision log, acceptance, test và traceability | Superseded |
 | v2.3 | 16/09/2026 | Bổ sung dimension, metric, preset đối soát và Trung tâm Tài liệu theo audit workbook | Superseded |
 | v2.4 | 17/09/2026 | Đối chiếu câu trả lời làm rõ nghiệp vụ 06/09/2026: xác nhận rule, sửa ngữ nghĩa T/S/G, thêm contract thông báo/chủ nhà/cổ đông, decision phân quyền D-13..D-18, Phụ lục E | Draft for Review |
-| v2.5 | 17/09/2026 | Trung tâm báo cáo chuyển sang mô hình bản ghi báo cáo: tạo theo loại + tham số (Từ kỳ–Đến kỳ), snapshot lúc tạo, xem trước và tải CSV; route `/reports/new`, `/reports/runs/:id`; collection `reportRuns` | Current |
+| v2.5 | 17/09/2026 | Trung tâm báo cáo chuyển sang mô hình bản ghi báo cáo: tạo theo loại + tham số (Từ kỳ–Đến kỳ), snapshot lúc tạo, xem trước và tải CSV; route `/reports/new`, `/reports/runs/:id`; collection `reportRuns` | Superseded |
+| v2.6 | 17/09/2026 | Review sản phẩm/UX: breadcrumb khớp nhóm sidebar, glossary chuẩn, cờ `demoNotes` ẩn chú thích nội bộ; vá điều hướng (quick-create mở form, menu theo quyền, stepper trung thực, cột Thao tác cuối, header 1 primary); chuỗi tài chính (kích hoạt HĐ sinh phiếu cọc + hóa đơn kỳ đầu, trả chủ nhà → chi phí Thuê nhà, khóa kỳ chặn đủ, gia hạn qua nháp/review, KPI delta tính thật, pill Kỳ topbar) | Current |
 
 ---
 
@@ -196,8 +197,10 @@ Ký hiệu: `→ route` là đích đến; `(P2)`/`(P3)` chỉ hiện khi phase 
 2. Quản lý cho thuê: Phòng, Tòa nhà, Khách thuê, Hợp đồng, OCR hợp đồng (P2), Chủ nhà & đối tác
 3. Kinh doanh (P2): Tổng quan kinh doanh → `/crm`, Lead, Lịch xem, Giữ chỗ, Giao dịch & hoa hồng
 4. Tài chính: Hóa đơn, Thu tiền & công nợ, Hoàn cọc, Quản lý cọc (P2), Chi phí, Ngân hàng (P3)
-5. Vận hành: Sự cố (P2), Lịch bảo dưỡng (P2), Tài sản (P3), Kiểm kê (P3), Thông báo Zalo
-6. Báo cáo: Báo cáo Phase 1, Trung tâm báo cáo (P2), Thu chi (P2)
+5. Vận hành: Sự cố (P2), Lịch bảo dưỡng (P2), Tài liệu, Tài sản (P3), Kiểm kê (P3), Lịch sử gửi Zalo, **[v2.6]** Thông báo & nhắc việc (`/zalo/config`, trước đây chỉ có ở Launcher)
+6. Báo cáo: Báo cáo tổng quan, Trung tâm báo cáo (P2), Dòng tiền (P2)
+
+**[v2.6] Bổ sung theo quyền đã cấp:** Kinh doanh có thêm nhóm `Báo cáo` (Trung tâm báo cáo – chỉ nhóm báo cáo Kinh doanh); Kế toán có `Giao dịch & hoa hồng` trong `Tra cứu`; Vận hành có `Tổng quan kinh doanh` trong `Hỗ trợ kinh doanh`. Nguyên tắc: permission đã cấp thì phải có entry point trong sidebar hoặc Launcher, không để chỉ đến được bằng deep link. Breadcrumb dùng **đúng nhãn nhóm sidebar Admin** làm root (`Quản lý cho thuê`, `Kinh doanh`, `Tài chính`, `Vận hành`, `Báo cáo`, `Nhân sự`, `Đầu tư`, `Cấu hình`).
 Launcher topbar `Phân hệ & Quản trị`: Nhân sự (P3), Đầu tư (P3), Thiết lập (Tài khoản, Danh mục, Import, Data Job (P2), Nhập bảng kê (P2), Chuyển số dư (P2), Thiết lập thông báo Zalo, Công cụ demo)
 
 Lý do Zalo nằm ở `Vận hành` thay vì launcher: đợt nhắc nợ là tác vụ định kỳ hằng tuần của Admin. `Nhập bảng kê`/`Chuyển số dư` là tác vụ khởi tạo, không hằng ngày, nên vào Thiết lập.
@@ -266,6 +269,7 @@ Vai trò Cổ đông tiếp tục ở chế độ read-only và chỉ thấy d�
 - Đổi kỳ ở bất kỳ màn nào cập nhật `meta.period`; các màn khác dùng cùng giá trị. Kế toán không phải chọn lại kỳ khi chuyển màn.
 - Màn không dùng kỳ không hiển thị control và không bị lọc theo kỳ (giữ hành vi `router.applyFilter` hiện tại).
 - Trạng thái kỳ khóa hiển thị cạnh control kỳ.
+- **[v2.6]** Topbar có pill `Kỳ` (`#tb-period`) chỉ hiện khi màn hiện tại có bộ lọc kỳ (`select[name=period]`); đổi kỳ tại pill = `router.applyFilter` với query hiện tại → `meta.period` đồng bộ mọi màn theo kỳ. Các màn dùng tham số cục bộ (`month` lịch bảo dưỡng, kỳ kiểm kê, kỳ lương) giữ control trong trang, nhãn thống nhất `Kỳ`.
 
 ---
 
@@ -492,18 +496,27 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - **[v2.4]** Mốc `Sắp hết hạn` = còn ≤ 35 ngày là hằng số toàn hệ thống (Q9); không có cấu hình theo tòa/loại phòng và không thêm field vào Thiết lập.
 - **[v2.4]** Nút `Tải hợp đồng` trên list và bước 1 của wizard dẫn vào OCR (`/contracts/ocr`) làm luồng chính để đọc dữ liệu tự động từ file (Q10); nhập tay chỉ là fallback khi không có file hoặc OCR thất bại. Wizard tạo hợp đồng nhận prefill từ OCR như hiện tại.
 - **[v2.4]** Section `Xe` trong wizard là repeater không giới hạn số dòng (`contracts.vehicles`, Q12); mỗi xe sinh một dòng phí gửi xe trên hóa đơn theo kỳ; summary header hợp đồng hiển thị badge `N xe` và detail hóa đơn cho phép mở danh sách biển số từ dòng phí gửi xe.
+- **[v2.6]** Wizard hợp đồng hiển thị đúng số màn: 3 bước `Khách & phòng` → `Giá, dịch vụ & thành viên` → `Kiểm tra & kích hoạt`; card `Chọn cách tạo hợp đồng` chỉ hiện khi tạo mới (không hiện với nháp/OCR/giao dịch).
+- **[v2.6]** Bước Kiểm tra có card `Chứng từ khi kích hoạt`: (1) `Ghi nhận thu tiền cọc ngay` (phương thức, ngày; mặc định bật khi chưa thu cọc qua giao dịch/HĐ cũ và có `payments.record`) → tạo `payments.kind = deposit` gắn `contractId`, HĐ lưu `depositPaymentId/depositPaidAt`; (2) `Tạo hóa đơn nháp kỳ đầu` (mặc định bật) → `createInvoiceDrafts` kỳ bắt đầu với tiền phòng **tính theo ngày** nếu vào giữa kỳ + dịch vụ cố định (điện nước nhập ở Tạo hóa đơn theo kỳ). Toast sau kích hoạt liệt kê phiếu thu/hóa đơn đã sinh; KPI `Tiền cọc` ghi `Đã thu dd/mm · đang giữ` hoặc `chưa ghi nhận thu`; sổ cọc (`/finance/deposits`) đánh dấu cọc chưa ghi nhận thu.
+- **[v2.6]** `Gia hạn` lập hợp đồng mới ở trạng thái **Nháp** (sao chép dịch vụ/thành viên, `renewedFromId`) và mở bước Kiểm tra; hợp đồng cũ chỉ chuyển `Đã kết thúc` (ngày trước ngày bắt đầu mới) khi hợp đồng mới được kích hoạt; phòng giữ `Đang thuê`, cọc chuyển tiếp (`depositCarriedFrom`).
 - **[v2.4]** Thuật ngữ giá: `Giá niêm yết` (`listPrice`, giá tiêu chuẩn của TimoHouse) và `Giá thuê` (`price`, giá thực tế khách đang thuê) (Q13); không dùng `Giá chốt` ngoài preset Đối soát.
 
 ### 7.5. Hóa đơn, thu tiền và công nợ
 
 - Tách rõ ba intent: phát hành hóa đơn, ghi nhận thu và theo dõi công nợ.
-- Hóa đơn chỉ còn một primary `Tạo hóa đơn theo kỳ`; `Xuất danh sách` chuyển sang toolbar.
+- Hóa đơn chỉ còn một primary `Tạo hóa đơn theo kỳ`; `Xuất danh sách` chuyển sang toolbar. **[v2.6]** Header list = 1 primary + tối đa 2 outline + menu `⋯` (Import, Xuất CSV); KPI delta tính từ kỳ trước (`Q.deltaPct`), bỏ mọi delta hard-code toàn hệ thống; cột `Thao tác` luôn là cột cuối (`U.table` ép thứ tự, cột preset chèn trước).
+- **[v2.6]** Quick create `Ghi nhận thu tiền` (`/receivables?create=payment`), `Thêm khách hàng tiềm năng` (`/crm/leads?create=1`), `Tạo sự cố` (`/maintenance?create=1`) mở ngay form tương ứng khi vào trang (query được xóa sau khi mở).
+- **[v2.6]** Khóa kỳ chặn thêm: nhập chỉ số điện nước, hủy hóa đơn nháp, thêm dòng hóa đơn, kết thúc hợp đồng (ngày kết thúc thuộc kỳ khóa), chi hoa hồng, thu cọc giao dịch, thu cọc khi kích hoạt HĐ.
 - Công nợ có primary `Ghi nhận thu`; bỏ card search thứ hai, gộp vào toolbar.
 - Dashboard Kế toán liên kết trực tiếp đến từng filtered list.
 - Màn công nợ mặc định sort theo mức độ ưu tiên, sau đó số ngày quá hạn.
 - Bulk action chỉ xuất hiện khi có row được chọn.
 - Trạng thái kỳ khóa hiển thị tại header và giải thích action bị chặn.
 - **[v2.4]** Định nghĩa tab `Công nợ` trên `/receivables`: hóa đơn đã phát hành từ 5 ngày trở lên và còn dư nợ (BR-07, khách xác nhận tại Q14). Tab count, work queue `Hóa đơn quá hạn` và nguồn đợt gửi Zalo `Cần xử lý công nợ` dùng cùng ngưỡng này.
+
+**[v2.6] Chủ nhà:** `Ghi nhận đã trả` một kỳ thanh toán chủ nhà tự tạo chi phí nhóm `Thuê nhà` (`categoryCode = GV-THUE`, `landlordPaymentId` chống trùng) cho tòa tương ứng, để Chi phí/Dòng tiền/Lợi nhuận vận hành phản ánh tiền thuê nhà; modal nêu rõ khoản chi sẽ được ghi sổ.
+
+**[v2.6] Hoàn cọc:** một bộ khấu trừ mặc định `Q.refundDefaults()` dùng chung cho hồ sơ tự tạo khi kết thúc HĐ và wizard; copy `Từ chối` mô tả đúng trạng thái `rejected`; legend trạng thái thêm `Cần chỉnh sửa` khi Phase 2 bật.
 
 ### 7.6. Hoàn cọc và chi phí
 
@@ -823,6 +836,8 @@ Các hạng mục sau chưa có trong mockup và là điều kiện để các m
 - Ngôn ngữ giao diện là tiếng Việt; sentence case cho title/button, không viết hoa toàn bộ trừ mã và heading bảng ngắn.
 - Thuật ngữ chuẩn: `Lead` trước khi trở thành khách thuê; `Khách thuê` sau khi có hồ sơ/giữ chỗ/hợp đồng; không dùng xen kẽ `Khách hàng` nếu không chỉ khái niệm chung.
 - **[v2.4]** Thuật ngữ đã được khách xác nhận: `Giá niêm yết` = giá tiêu chuẩn của TimoHouse, `Giá thuê` = giá thực tế khách đang thuê (Q13); `Nhóm tòa (T/S/G)` thay cho `Loại nhà` (Q2); `Hiệu suất thực tế` = sau khi thu tiền xong, `Hiệu suất tạm tính` = tại thời điểm lập (Q22); `Kỳ trả chủ nhà` cho lịch TimoHouse thanh toán chủ nhà (Q8) và `Lịch đóng tiền nhà` cho phần cổ đông (Q29); `Thời gian giữ giá` = thời gian chủ nhà không được tăng giá (Q5).
+- **[v2.6] Glossary chuẩn (áp dụng cho sidebar, title, breadcrumb, nhãn bộ lọc, cột):** `Khách thuê` (không dùng `Khách hàng` cho tenant) · `Khách hàng tiềm năng` (lead; tránh `Lead & pipeline` ở title) · `Kỳ` (không dùng `Tháng`, `Thời gian`, `Kỳ báo cáo`, `Có kỳ`; ngoại lệ `Kỳ lương`, `Kỳ kiểm kê`) · `Tòa nhà` · `Thu tiền` (không `Thanh toán` cho khoản thu từ khách) · `Bảo trì & sự cố` / `Lịch bảo dưỡng` (bỏ `Bảo trì - Sửa chữa`, `Lịch công việc`) · `Tài sản` / `Kiểm kê tài sản` (bỏ `Sổ tài sản`) · `Báo cáo tổng quan` / `Trung tâm báo cáo` / `Dòng tiền & khóa kỳ` (bỏ `Báo cáo Phase 1`) · `Tác vụ dữ liệu`, `Số dư ban đầu`, `Nhập bảng kê thu tiền`, `Thông báo & nhắc việc`, `Tài khoản & phân quyền`, `Vốn góp & phân phối`, `Nhân viên`, `Dự án` (một tên cho cả sidebar/launcher/title/crumb) · trạng thái phòng `maintenance` = `Bảo trì` (không `Không khả dụng`). Trang chủ: title = nhãn sidebar (`Tổng quan` / `Công việc của tôi` / `Tổng quan đầu tư`), phụ đề mô tả theo vai trò.
+- **[v2.6] Chú thích nội bộ** (mã FR/BR/OI/AC, chip `Giả định`, tag `OI`, `Tự thiết kế – không có PNG`, `Mô phỏng – ngoài SRS`, tag phase trên title trang) mặc định **ẩn** với người dùng cuối; bật bằng `Hiện chú thích demo / BA` tại Công cụ hệ thống (`meta.uiPrefs.demoNotes`, helper `U.demoNote`, `U.stripRefs` cho phụ đề/KPI cap). Sidebar vẫn giữ tag P2/P3.
 - Ngày hiển thị `dd/mm/yyyy`; kỳ hiển thị `Tháng mm/yyyy`; dữ liệu nội bộ tiếp tục dùng ISO.
 - Tiền hiển thị phân tách hàng nghìn và hậu tố `đ` hoặc header có đơn vị `VND`, không dùng cả hai trong cùng cell.
 - Error message phải nêu vấn đề và cách sửa; tránh chỉ hiển thị mã lỗi kỹ thuật.
@@ -1241,6 +1256,9 @@ Kiểm tra: 41 mục cũ đều có dòng trong A.1 hoặc A.3; 63 route đều 
 | Query **[v2.4]** | `/tenants/:id?tab=zalo` | tenants.view | 2 | Tùy chọn | Tab hội thoại trong detail khách thuê; chỉ khi D-17 Approved |
 | Route **[v2.5]** | `#/reports/new` | reports.hub | 2 | Có | Wizard tạo báo cáo; query `?type=<key>` (bước 2), `?cat=&s=` (lọc bước 1) |
 | Route **[v2.5]** | `#/reports/runs/:id` | reports.hub | 2 | Có | Bản ghi báo cáo (snapshot) – xem trước, tải CSV, tạo lại, xóa |
+| Query **[v2.6]** | `/receivables?create=payment`, `/crm/leads?create=1`, `/maintenance?create=1` | payments.record / crm.manage / maintenance.manage | 1–2 | Có | Quick create mở form ngay; trang xóa query sau khi mở |
+| Query **[v2.6]** | `/contracts/new?id=&step=5` | contracts.manage | 1 | Có | Bước Kiểm tra & kích hoạt (dùng cho nháp và HĐ gia hạn) |
+| Query **[v2.6]** | `/expenses?s=<mã>`, `/crm/holds?s=<mã>` | expenses.view / crm.view | 1–2 | Tùy chọn | Deep link từ sự cố (chi phí liên kết) và sổ cọc (phí giữ chỗ) |
 | Query **[v2.5]** | `/reports/hub?cat=&type=&per=&createdBy=&s=` | reports.hub | 2 | Tùy chọn | Bộ lọc danh sách bản ghi; `per` là kỳ chứa trong bản ghi (không đồng bộ `meta.period`) |
 
 Launcher `Phân hệ & Quản trị` là popover, không phải route. `Công việc của tôi` dùng `/dashboard`, không tạo route mới.
@@ -1265,6 +1283,7 @@ Launcher `Phân hệ & Quản trị` là popover, không phải route. `Công vi
 12. Phụ lục D: cập nhật contract `buildingType`, phạm vi và quyền upload Trung tâm Tài liệu (Q3); tham chiếu Decision Pack v1.1.
 13. OCR (8.2): card Kết quả trích xuất theo thực thể, tài liệu cuộn liên tục, OCR = bước tạo khách thuê (khớp SĐT/CCCD, tạo mới từ HĐ), tách mã phòng/tòa và gợi ý phòng; thêm `tenants.address`, `tenants.idPlace` (D.1). Thay mô phỏng 29 trường bằng parser thật theo template HĐ của Linh (43 trường, 7 nhóm, bảng tài sản), đọc PDF text-based qua pdf.js hoặc .txt; prefill wizard hợp đồng gồm xe và đơn giá dịch vụ; file mẫu `mau-hop-dong-ocr.txt` cập nhật theo template.
 14. **[v2.5]** Báo cáo (8.5): Trung tâm báo cáo = danh sách bản ghi + wizard Tạo báo cáo (loại → tham số Từ kỳ–Đến kỳ) → bản ghi snapshot có xem trước và tải CSV; route `/reports/new`, `/reports/runs/:id`; collection `reportRuns`; guide F15.1 đổi sang luồng tạo bản ghi.
+15. **[v2.6]** Review sản phẩm/UX: 4.2 (sidebar theo quyền, breadcrumb theo nhóm), 4.4 (pill Kỳ topbar), 7.4 (wizard 3 bước, chứng từ khi kích hoạt, gia hạn qua nháp), 7.5 (header/KPI/cột, quick create, khóa kỳ, chủ nhà → chi phí, hoàn cọc), 13.4 (glossary, chú thích nội bộ `demoNotes`), Phụ lục B (query mới); D.1 thêm field `contracts.depositPaymentId/depositPaidAt/depositCarriedFrom`, `expenses.landlordPaymentId`, `landlordPayments.expenseId`, `meta.uiPrefs.demoNotes`.
 
 ### C.1. Thay đổi từ v2.1 lên v2.2
 
@@ -1304,7 +1323,7 @@ Launcher `Phân hệ & Quản trị` là popover, không phải route. `Công vi
 
 ### D.1. Ngoại lệ schema được phép
 
-Theo D-12, mockup được thêm các collection `areas`, `salesTeams` và các field sau: `buildings.areaId`, `buildings.buildingType`, `buildings.areaM2`, `buildings.condition`, `buildings.operatingSince`, `buildings.licenseExpiry`, `buildings.pccc`, `expenseGroups.parentCode`, `expenses.categoryCode`, `refundDeductions.groupCode`, `services.wbType`, `contracts.vehicles`, `leadSources.kind`, `leads.handoverDate`, `users.teamId`, `documents.expiry`, **[v2.4]** `tenants.address` (hộ khẩu thường trú), `tenants.idPlace` (nơi cấp CCCD) – điền từ OCR hoặc form khách thuê; **[v2.5]** collection `reportRuns` (`code`, `type`, `name`, `cat`, `params{periodFrom, periodTo, buildingId, …dims}`, `periods[]`, `rowCount`, `snapshot.byPeriod[]{period, kpi, headers, rows}`, `note`, `rerunOf`, `createdBy`) – bản ghi báo cáo, snapshot text thuần.
+Theo D-12, mockup được thêm các collection `areas`, `salesTeams` và các field sau: `buildings.areaId`, `buildings.buildingType`, `buildings.areaM2`, `buildings.condition`, `buildings.operatingSince`, `buildings.licenseExpiry`, `buildings.pccc`, `expenseGroups.parentCode`, `expenses.categoryCode`, `refundDeductions.groupCode`, `services.wbType`, `contracts.vehicles`, `leadSources.kind`, `leads.handoverDate`, `users.teamId`, `documents.expiry`, **[v2.4]** `tenants.address` (hộ khẩu thường trú), `tenants.idPlace` (nơi cấp CCCD) – điền từ OCR hoặc form khách thuê; **[v2.5]** collection `reportRuns` (`code`, `type`, `name`, `cat`, `params{periodFrom, periodTo, buildingId, …dims}`, `periods[]`, `rowCount`, `snapshot.byPeriod[]{period, kpi, headers, rows}`, `note`, `rerunOf`, `createdBy`) – bản ghi báo cáo, snapshot text thuần; **[v2.6]** `contracts.depositPaymentId`, `contracts.depositPaidAt`, `contracts.depositCarriedFrom` (thu cọc khi kích hoạt / chuyển tiếp khi gia hạn), `payments.kind = deposit` gắn `contractId`, `expenses.landlordPaymentId` + `landlordPayments.expenseId` (chi phí Thuê nhà từ kỳ trả chủ nhà), `meta.uiPrefs.demoNotes`.
 
 Ràng buộc:
 

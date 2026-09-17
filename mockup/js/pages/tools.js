@@ -10,7 +10,7 @@
     }).join('');
     root.innerHTML = `${U.pageHead({ title: 'Công cụ hệ thống', sub: 'Khu vực dành cho quản trị viên. Các tác vụ kỹ thuật được tách khỏi điều hướng nghiệp vụ hàng ngày.' })}
       <div class="settings-layout">
-        <section class="card"><div class="card-h"><div><h3>${I('layers')} Phạm vi tính năng</h3><div class="sub">Bật hoặc tắt các phase trong môi trường demo.</div></div></div><div class="card-b tool-settings">${phaseRows}</div></section>
+        <section class="card"><div class="card-h"><div><h3>${I('layers')} Phạm vi tính năng</h3><div class="sub">Bật hoặc tắt các phase trong môi trường demo.</div></div></div><div class="card-b tool-settings">${phaseRows}<label class="tool-setting"><span class="tool-setting-icon">${I('info')}</span><span class="grow"><b>Hiện chú thích demo / BA</b><small>Mã FR/BR/OI, chip "Giả định", "Tự thiết kế", tag phase trên tiêu đề trang. Tắt để xem giao diện như người dùng cuối.</small></span><input type="checkbox" data-on="demo-notes" ${U.demoNotes() ? 'checked' : ''}></label></div></section>
         <section class="card"><div class="card-h"><div><h3>${I('database')} Dữ liệu demo</h3><div class="sub">Sao lưu, phục hồi hoặc đưa dữ liệu về trạng thái kiểm thử.</div></div></div><div class="card-b tool-actions">
           ${U.btn({ label: 'Xuất state JSON', icon: 'download', cls: 'btn-outline', act: 'adv-export' })}
           ${U.btn({ label: 'Nhập state JSON', icon: 'upload', cls: 'btn-outline', act: 'adv-import' })}

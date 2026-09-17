@@ -32,7 +32,7 @@
   };
   TH.ocr = O;
   TH.router.register('/contracts/ocr', (root, p, q) => {
-    TH.router.crumb([{ label: 'Vận hành' }, { label: 'Hợp đồng', href: '#/contracts' }, { label: 'Review trích xuất' }]);
+    TH.router.crumb([{ label: 'Quản lý cho thuê' }, { label: 'Hợp đồng', href: '#/contracts' }, { label: 'Trích xuất hợp đồng' }]);
     const o = q.id ? St.get('ocrExtractions', q.id) : null; const step = !o ? 1 : o.status === 'uploaded' || o.status === 'extracting' ? 2 : o.status === 'review' ? 3 : 4;
     const STEPS = [{ title: 'Tải file', sub: 'Tải lên hợp đồng' }, { title: 'Trích xuất', sub: 'Hệ thống nhận diện thông tin' }, { title: 'Review', sub: 'Kiểm tra và chỉnh sửa' }, { title: 'Hoàn tất', sub: 'Tạo hợp đồng' }];
     const head = U.pageHead({ title: step === 3 ? 'Review trích xuất hợp đồng' : 'Trích xuất hợp đồng (OCR)', phase: 2, sub: step === 3 ? 'Kiểm tra và chỉnh sửa thông tin trước khi tạo hợp đồng' : 'Tải hợp đồng theo mẫu "Hợp đồng cho thuê phòng" – PDF điền trên máy hoặc .txt (≤ 20MB, FR-DOC-01); ảnh scan chưa hỗ trợ. Hệ thống trích xuất trường, review confidence rồi tạo hợp đồng (BR-03).', acts: [U.btn({ label: 'Nhập tay (dự phòng)', icon: 'pencil', cls: 'btn-outline', act: 'manual' })] });

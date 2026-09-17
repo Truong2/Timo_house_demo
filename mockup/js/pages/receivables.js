@@ -30,13 +30,15 @@
       'bulk-zalo': () => Fm.zaloQuick({ invoiceIds: tbl.selected(), eventKey: 'debt', title: 'Nhắc công nợ qua Zalo' }), more: (b) => TH.pages.invMenu(b, St.get('invoices', b.dataset.id)), cols: b => U.columnMenu(b, tbl, tbl.state.opts.cols),
       export: () => { F.download('cong-no-' + (f.period || 'all') + '.csv', U.tableCsv(tbl, rows), 'text/csv'); U.toast('ok', 'Đã xuất công nợ theo bộ cột đang chọn'); },
     });
+    // Quick create 'Ghi nhận thu tiền' (#/receivables?create=payment): mở drawer ngay, bỏ query để refresh không mở lại
+    if (q.create === 'payment') { TH.router.replaceQuery(Object.assign({}, f, { create: '' })); Fm.payment({}); }
   }, { menu: 'receivables', permission: 'payments.view' });
 
   /* ---------- Chi tiết khoản thu ---------- */
   TH.router.register('/payments/:id', (root, p) => {
     const pay = St.get('payments', p.id); if (!pay) { root.innerHTML = U.empty({ title: 'Không tìm thấy khoản thu' }); return; }
     const t = Q.tenant(pay.tenantId), r = Q.room(pay.roomId), b = Q.building(pay.buildingId), allocs = Q.payAllocs(pay.id); const allocTotal = F.sum(allocs, a => a.amount); const un = pay.amount - allocTotal;
-    TH.router.crumb([{ label: 'Tài chính' }, { label: 'Thu tiền', href: '#/receivables' }, { label: 'Chi tiết khoản thu' }]);
+    TH.router.crumb([{ label: 'Tài chính' }, { label: 'Thu tiền & công nợ', href: '#/receivables' }, { label: 'Chi tiết khoản thu' }]);
     const reversed = pay.status === 'reversed';
     const evidenceBody = `<div class="row gap12" style="border:1px solid var(--border);border-radius:10px;padding:10px"><div class="fic pdf" style="width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--red-bg);color:var(--red);font-size:20px">${I('file-text')}</div><div class="grow"><b>${esc(pay.evidence || 'bien_lai_' + pay.code + '.pdf')}</b><div class="xs muted">PDF · 512 KB</div></div>${U.btn({ label: 'Xem trước', icon: 'eye', size: 'btn-xs', cls: 'btn-outline', act: 'preview' })}</div><div class="xs muted mt12 mb8">Tệp đính kèm khác</div><div class="file-list">${U.fileItem({ name: 'bien_lai_' + pay.code + '.pdf', size: '512 KB', date: pay.date }, U.iconBtn('download', 'dl', 'Tải'))}${U.fileItem({ name: 'sao_ke_' + pay.date.slice(8) + pay.date.slice(5, 7) + '.png', size: '1.2 MB', date: pay.date }, U.iconBtn('download', 'dl', 'Tải'))}</div>`;
     const historyBody = U.timeline([{ when: F.datetime(pay.createdAt), title: 'Tạo khoản thu', sub: Q.userName(pay.createdBy) + ' tạo khoản thu', color: 'blue', fill: true }, { when: F.datetime(pay.createdAt), title: 'Kiểm tra ghép', sub: 'Đối chiếu khách, hóa đơn và số tiền', color: 'blue' }, { when: F.datetime(pay.createdAt), title: 'Xác nhận ghi nhận', sub: Q.userName(pay.createdBy) + ' xác nhận ghi nhận', color: 'green', fill: true }, { when: F.datetime(pay.createdAt), title: 'Phân bổ vào hóa đơn', sub: 'Phân bổ ' + allocs.length + ' hóa đơn', color: 'blue' }, ...((pay.history || []).slice(1).map(h => ({ when: F.datetime(h.at), title: h.what.split(':')[0], sub: h.who + (h.what.includes(':') ? ' – ' + h.what.split(':').slice(1).join(':') : ''), color: /Hoàn tác/.test(h.what) ? 'red' : 'amber', fill: true })))]);

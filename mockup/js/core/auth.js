@@ -56,7 +56,7 @@
     tenants: 'tenant', contracts: 'contract', contractMembers: 'contractMember', contractServices: 'contractService', holds: 'hold', roomAssets: 'roomAsset',
     meterReadings: 'meterReading', invoices: 'invoice', invoiceLines: 'invoiceLine', payments: 'payment', paymentAllocations: 'paymentAllocation',
     refunds: 'refund', refundDeductions: 'refundDeduction', expenses: 'expense', expenseAllocations: 'expenseAllocation', documents: 'document',
-    importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage', ocrExtractions: 'ocrExtraction',
+    importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage', ocrExtractions: 'ocrExtraction', reportRuns: 'reportRun',
     // Phase 2: record có buildingId/roomId → ops vẫn bị giới hạn theo tòa
     leads: 'lead', leadActivities: 'leadActivity', viewings: 'viewing', deals: 'deal', commissions: 'commission', incidents: 'incident', incidentUpdates: 'incidentUpdate', maintenanceSchedules: 'maintenanceSchedule', openingBalances: 'openingBalance',
     // Phase 3: tài sản/kiểm kê theo tòa; dự án/vốn góp/phân phối theo tòa của dự án
@@ -64,7 +64,7 @@
   };
   const DATA_SCOPE = {
     ops: new Set(Object.keys(COLLECTION_TYPE)),
-    sale: new Set(['leads', 'leadActivities', 'viewings', 'holds', 'deals', 'commissions', 'tenants', 'contracts']),
+    sale: new Set(['leads', 'leadActivities', 'viewings', 'holds', 'deals', 'commissions', 'tenants', 'contracts', 'reportRuns']),
     kythuat: new Set(['buildings', 'rooms', 'expenses', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'assets', 'inventories', 'inventoryLines']),
     codong: new Set(['buildings', 'rooms', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions']),
   };
@@ -177,6 +177,7 @@
       if (type === 'hold') return record.leadId ? A.inScope('lead', rawGet('leads', record.leadId)) : A.inScope('tenant', rawGet('tenants', record.tenantId));
       if (type === 'tenant') return rawAll('deals').some(d => d && d.tenantId === record.id && saleIds.has(d.saleId)) || rawAll('leads').some(l => l && l.tenantId === record.id && saleIds.has(l.saleId));
       if (type === 'contract') return rawAll('deals').some(d => d && d.contractId === record.id && saleIds.has(d.saleId));
+      if (type === 'reportRun') return record.cat === 'sales' && saleIds.has(record.createdBy);
       return false;
     }
     if (role === 'codong') {

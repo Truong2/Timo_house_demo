@@ -23,7 +23,8 @@
       const total = rows.length, pages = Math.max(1, Math.ceil(total / st.size)); if (st.page > pages) st.page = pages;
       const from = (st.page - 1) * st.size; const pageRows = o.noPager ? rows : rows.slice(from, from + st.size);
       const hidden = effectiveHidden();
-      const cols = o.cols.filter(c => !hidden.has(c.key));
+      // Cột Thao tác luôn nằm cuối bảng (cột preset/workbook chèn trước nó)
+      const cols = o.cols.filter(c => !hidden.has(c.key)).sort((a, b) => (a.key === 'actions') - (b.key === 'actions'));
       const key = (r) => o.rowKey ? o.rowKey(r) : r.id;
       const allSel = pageRows.length && pageRows.every(r => st.selected.has(key(r)));
       const head = `<tr>${o.selectable ? `<th style="width:36px"><input type="checkbox" data-act="tsel-all" ${allSel ? 'checked' : ''}></th>` : ''}${cols.map(c => `<th class="${c.num ? 'num' : ''} ${c.sortable ? 'sortable' : ''} ${st.sortKey === c.key ? 'sorted' : ''} ${c.cls || ''}" ${c.sortable ? `data-act="tsort" data-key="${c.key}"` : ''} ${c.width ? `style="width:${c.width}"` : ''}>${c.label}${c.sortable ? `<span class="sort">${st.sortKey === c.key ? (st.sortDir === 'asc' ? '↑' : '↓') : '⇅'}</span>` : ''}</th>`).join('')}</tr>`;

@@ -1,10 +1,10 @@
 (function (TH) {
   const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, esc = F.esc, C = TH.chart;
   TH.router.register('/reports', (root, p, q) => {
-    TH.router.crumb([{ label: 'Báo cáo' }, { label: 'Báo cáo Phase 1' }]);
+    TH.router.crumb([{ label: 'Báo cáo' }, { label: 'Báo cáo tổng quan' }]);
     const tab = q.tab || 'rooms'; const period = TH.router.periodOf(q) || St.state.meta.period; const bId = q.buildingId || '';
     const bs = St.where('buildings', b => !b.stub && (!bId || b.id === bId));
-    root.innerHTML = `${U.pageHead({ title: 'Báo cáo Phase 1', sub: 'Ba báo cáo vận hành cơ bản: Phòng, Công nợ, Thu tiền (00_SCOPE §2.6). Report Hub, hiệu suất, lợi nhuận thuộc Phase 2 – công thức TBD.', acts: [U.btn({ label: 'Xuất CSV', icon: 'download', cls: 'btn-primary', act: 'export' }), U.btn({ label: 'Trung tâm báo cáo', icon: 'bar-chart', cls: 'btn-outline', p2: true, act: 'hub' })] })}
+    root.innerHTML = `${U.pageHead({ title: 'Báo cáo tổng quan', sub: 'Ba báo cáo vận hành cơ bản: Phòng, Công nợ, Thu tiền. Báo cáo chi tiết và bản ghi báo cáo nằm ở Trung tâm báo cáo.', acts: [U.btn({ label: 'Xuất CSV', icon: 'download', cls: 'btn-primary', act: 'export' }), U.btn({ label: 'Trung tâm báo cáo', icon: 'bar-chart', cls: 'btn-outline', p2: true, act: 'hub' })] })}
     ${U.tabs([{ key: 'rooms', label: 'Báo cáo phòng', icon: 'door' }, { key: 'debt', label: 'Báo cáo công nợ', icon: 'receipt' }, { key: 'collect', label: 'Báo cáo thu tiền', icon: 'wallet' }], tab, 'boxed')}
     ${U.filterbar([U.field({ label: 'Kỳ', input: U.select({ name: 'period', value: period, options: [...new Set(St.all('invoices').map(i => i.period))].sort().reverse().map(x => [x, F.periodLabel(x)]), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Tòa nhà', input: U.select({ name: 'buildingId', value: bId, all: 'Tất cả tòa nhà', options: St.where('buildings', b => !b.stub).map(b => [b.id, b.name]), attrs: { 'data-on': 'f' } }) })])}
     <div id="rep"></div>`;

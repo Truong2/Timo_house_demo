@@ -64,6 +64,11 @@
   Q.tenantDeposit = (tId) => { const c = Q.activeContractOfTenant(tId); return c ? c.deposit : 0; };
 
   /* ---- hóa đơn ---- */
+  // Bộ khấu trừ mặc định khi lập phương án hoàn cọc – dùng chung cho auto-draft khi kết thúc HĐ và wizard Hoàn cọc
+  // % thay đổi so với kỳ trước (null khi không có cơ sở so sánh) – dùng cho KPI delta thay vì số hard-code
+  Q.deltaPct = (cur, prev) => { cur = Number(cur) || 0; prev = Number(prev) || 0; if (!prev) return null; const v = Math.round((cur - prev) / Math.abs(prev) * 1000) / 10; return Math.abs(v) > 500 ? null : v; };
+  Q.prevPeriod = (p) => p ? F.addMonths(p + '-01', -1).slice(0, 7) : '';
+  Q.refundDefaults = () => [{ group: 'Khấu hao', groupCode: 'KH', desc: 'Khấu hao cố định theo phòng (BR-12)', amount: 200000, evidenceCount: 1, status: 'confirmed' }, { group: 'Dịch vụ', groupCode: 'VS', desc: 'Vệ sinh phòng', amount: 200000, evidenceCount: 1, status: 'confirmed' }, { group: 'Sửa chữa', groupCode: 'SC', desc: 'Sửa chữa hư hỏng (nếu có)', amount: 0, evidenceCount: 0, status: 'pending' }];
   Q.invLines = (invId) => TH.store.where('invoiceLines', l => l.invoiceId === invId).sort((a, b) => a.seq - b.seq);
   Q.invPaid = (inv) => { const pays = F.idx(TH.store.all('payments')); return F.sum(TH.store.where('paymentAllocations', a => a.invoiceId === inv.id && pays[a.paymentId] && pays[a.paymentId].status === 'recorded'), a => a.amount); };
   Q.invRemaining = (inv) => Math.max(0, (inv.total || 0) - Q.invPaid(inv));

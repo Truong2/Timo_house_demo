@@ -29,7 +29,7 @@
   U.dimFields = (f = {}, dims = []) => dims.map(k => dim(k, f)).join('');
   // Khối "Bộ lọc khác" chứa dimension workbook, dùng cho page đã có filterbar riêng.
   U.dimMore = (f = {}, dims = [], extraFields = '') => `<details class="filter-more"><summary>${I('filter')} Bộ lọc khác</summary><div class="filter-pop">${U.dimFields(f, dims)}${extraFields}</div></details>`;
-  U.assume = (label = 'Giả định') => `<span class="chip amber wb-assume" title="Chờ khách xác nhận">${F.esc(label)}</span>`;
+  U.assume = (label = 'Giả định') => !U.demoNotes() ? '' : `<span class="chip amber wb-assume" title="Chờ khách xác nhận">${F.esc(label)}</span>`;
   U.metricInfo = key => { const d = TH.metrics && TH.metrics.get(key); return d ? `<button type="button" class="metric-info" data-act="metric-info" data-metric="${F.esc(key)}" title="${F.esc(d.formula)}">ⓘ</button>${d.status === 'assumed' ? U.assume() : ''}` : ''; };
   U.bindMetricInfo = root => U.bind(root, { 'metric-info': el => { const d = TH.metrics.get(el.dataset.metric); if (!d) return; const m = U.modal({ title: 'Công thức · ' + d.label, size: 'sm', body: TH.metrics.info(el.dataset.metric), footer: U.btn({ label: 'Đóng', act: 'close-metric', cls: 'btn-primary' }) }); U.bind(m.el, { 'close-metric': () => m.close() }); } });
   U.roomRef = roomId => { const r = Q.room(roomId), b = Q.building(r.buildingId); return U.cell2(U.link('#/rooms/' + r.id, F.esc(F.roomRef(b, r)), 'bold'), F.esc(b.name || '')); };

@@ -14,7 +14,7 @@
   const rt = TH.router.routes.find(r => r.pattern === '/zalo/batches/:id'); const p1 = rt && rt.handler;
   const detailP2 = (root, p, q) => {
     const b = St.get('zaloBatches', p.id); if (!b) { root.innerHTML = U.empty({ title: 'Không tìm thấy đợt gửi' }); return; }
-    TH.router.crumb([{ label: 'Kinh doanh' }, { label: 'Thông báo Zalo', href: '#/zalo/config' }, { label: 'Lịch sử gửi', href: '#/zalo/history' }, { label: 'Chi tiết' }]);
+    TH.router.crumb([{ label: 'Vận hành' }, { label: 'Lịch sử gửi Zalo', href: '#/zalo/history' }, { label: b.code }]);
     const msgs = Q.batchMessages(b.id).filter(m => !m.retried); const tpl = Q.template(b.templateId); const legacy = !msgs.length && b.source === 'seed';
     const total = msgs.length || b.plannedCount || 0; const okN = legacy ? b.sentCount : msgs.filter(m => ['delivered', 'accepted'].includes(m.status)).length; const waitN = msgs.filter(Q.msgRetryWait).length; const failN = legacy ? b.failedCount : msgs.filter(m => (m.status === 'failed' && !Q.msgRetryWait(m)) || m.status === 'unknown').length; const pend = msgs.filter(m => ['queued', 'sending'].includes(m.status)).length;
     const pct = (n) => total ? Math.round(n / total * 1000) / 10 : 0; const f = { s: q.s || '', st: q.st || '' };

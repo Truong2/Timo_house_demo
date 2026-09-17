@@ -14,7 +14,7 @@
   const status = d => !d.expiry ? 'valid' : d.expiry < F.today() ? 'expired' : F.daysUntil(d.expiry) <= 30 ? 'expiring' : 'valid';
   const legalMissing = b => ['Sổ đỏ', 'PCCC', 'ĐKKD', 'Hợp đồng'].some(k => !St.all('documents').some(d => { const e = entity(d); return e.buildingId === b.id && F.norm(d.name).includes(F.norm(k)); }));
   TH.router.register('/documents', (root, p, q) => {
-    TH.router.crumb([{ label: 'Tài liệu' }]);
+    TH.router.crumb([{ label: 'Vận hành' }, { label: 'Tài liệu' }]);
     const f = { s: q.s || '', type: q.type || '', entityType: q.entityType || '', areaId: q.areaId || '', buildingId: q.buildingId || '', status: q.status || '' }, scope = Q.scope(f);
     let rows = St.all('documents').map(d => ({ ...d, _entity: entity(d), _status: status(d) })).filter(d => (!f.s || F.norm([d.name, d.fileName, d._entity.label].join(' ')).includes(F.norm(f.s))) && (!f.type || F.norm(d.name).includes(F.norm(f.type))) && (!f.entityType || d.entityType === f.entityType) && (!f.buildingId || d._entity.buildingId === f.buildingId) && (!f.areaId || scope.buildingIds.includes(d._entity.buildingId)) && (!f.status || d._status === f.status));
     const all = St.all('documents').map(d => ({ ...d, _entity: entity(d), _status: status(d) }));
@@ -34,8 +34,12 @@
     ] });
     U.onChange(root, { f: () => TH.router.applyFilter(f, U.formData(root.querySelector('.filterbar'))) });
     U.bind(root, { reset: () => { TH.router.replaceQuery({}); TH.router.refresh(); }, upload: () => {
-      const buildings = St.where('buildings', b => !b.stub); const m = U.modal({ title: 'Chọn đối tượng tải tài liệu', size: 'sm', body: U.field({ label: 'Tòa nhà', req: true, input: U.select({ name: 'entityId', placeholder: 'Chọn tòa nhà', options: buildings.map(b => [b.id, b.name]) }) }), footer: U.btn({ label: 'Hủy', act: 'cancel' }) + U.btn({ label: 'Tiếp tục', act: 'next', cls: 'btn-primary' }) });
-      U.bind(m.el, { cancel: () => m.close(), next: () => { const id = m.data().entityId; if (!id) throw new Error('Chọn tòa nhà'); m.close(); Fm.upload('building', id); } });
+      // Chọn loại đối tượng (tòa / phòng / khách thuê / hợp đồng) rồi chọn bản ghi – không chỉ giới hạn tòa nhà
+      const TYPES = { building: ['Tòa nhà', () => St.where('buildings', b => !b.stub).map(b => [b.id, b.name])], room: ['Phòng', () => St.all('rooms').map(r => [r.id, r.code + ' – ' + (Q.building(r.buildingId).name || '')])], tenant: ['Khách thuê', () => St.all('tenants').map(t => [t.id, t.name + ' · ' + (t.phone || '')])], contract: ['Hợp đồng', () => St.all('contracts').map(c => [c.id, c.code + ' – ' + (Q.tenant(c.tenantId).name || '')])] };
+      const opts = (k) => TYPES[k][1]();
+      const m = U.modal({ title: 'Chọn đối tượng tải tài liệu', size: 'sm', body: `${U.field({ label: 'Loại đối tượng', req: true, input: U.select({ name: 'entityType', value: 'building', options: Object.entries(TYPES).map(([k, v]) => [k, v[0]]), attrs: { id: 'doc-type' } }) })}<div id="doc-entity">${U.field({ label: 'Tòa nhà', req: true, input: U.select({ name: 'entityId', placeholder: 'Chọn tòa nhà', options: opts('building') }) })}</div>`, footer: U.btn({ label: 'Hủy', act: 'cancel' }) + U.btn({ label: 'Tiếp tục', act: 'next', cls: 'btn-primary' }) });
+      m.el.querySelector('#doc-type').addEventListener('change', (e) => { const k = e.target.value; m.el.querySelector('#doc-entity').innerHTML = U.field({ label: TYPES[k][0], req: true, input: U.select({ name: 'entityId', placeholder: 'Chọn ' + TYPES[k][0].toLowerCase(), options: opts(k) }) }); });
+      U.bind(m.el, { cancel: () => m.close(), next: () => { const d = m.data(); if (!d.entityId) throw new Error('Chọn ' + TYPES[d.entityType][0].toLowerCase()); m.close(); Fm.upload(d.entityType, d.entityId, () => TH.router.refresh()); } });
     } });
   }, { menu: 'documents', permission: 'documents.view' });
 })(window.TH);
