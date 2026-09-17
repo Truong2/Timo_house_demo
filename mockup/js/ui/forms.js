@@ -41,8 +41,8 @@
       ${U.field({ label: 'Mã tòa', input: U.input({ name: 'code', value: b.code || '', placeholder: 'TH-XXX-11 (để trống tự sinh)' }) })}
       ${U.field({ label: 'Tên tòa', req: true, name: 'name', input: U.input({ name: 'name', value: b.name || '', placeholder: 'Tòa …' }) })}
       ${U.field({ label: 'Địa chỉ', req: true, name: 'address', input: U.input({ name: 'address', value: b.address || '', icon: 'map-pin' }), cls: 'span2' })}
-      ${U.field({ label: 'Khu vực', input: U.input({ name: 'district', value: b.district || '', placeholder: 'Quận/Huyện', attrs: { list: 'dl-district' } }) })}<datalist id="dl-district">${Q.districts().map(d => `<option value="${esc(d)}">`).join('')}</datalist>
-      ${U.field({ label: 'Khu nhà', input: U.select({ name: 'areaId', value: b.areaId || '', all: 'Chưa gán', options: Q.areas().map(a => [a.id, a.name]) }) })}
+      ${U.field({ label: 'Quận/Huyện', input: U.input({ name: 'district', value: b.district || '', placeholder: 'Thông tin địa lý của tòa', attrs: { list: 'dl-district' } }), help: 'Khác với Khu nhà quản lý.' })}<datalist id="dl-district">${Q.districts().map(d => `<option value="${esc(d)}">`).join('')}</datalist>
+      ${U.field({ label: 'Khu nhà quản lý', input: U.select({ name: 'areaId', value: b.areaId || '', all: 'Chưa gán', options: Q.areas().map(a => [a.id, a.name]) }), help: 'Danh mục dùng chung cho tòa, nhân sự và báo cáo.' })}
       ${U.field({ label: 'Loại nhà', input: U.select({ name: 'buildingType', value: b.buildingType || 'T', options: Object.entries(Q.L.buildingType).map(([k, v]) => [k, v[0]]) }), help: 'Giả định theo workbook: T thuê lại · S sở hữu · G góp vốn' })}
       ${U.field({ label: 'Tiền tố mã phòng', input: U.input({ name: 'prefix', value: b.prefix || '', placeholder: 'A', attrs: { maxlength: 2 } }), help: 'VD: A → A.01.01' })}
       ${U.field({ label: 'Số tầng', input: U.input({ name: 'floors', type: 'number', value: b.floors || 1 }) })}
@@ -94,6 +94,7 @@
   };
   /* ---- Chủ nhà ---- */
   Fm.landlord = (l = {}) => {
+    if (!l.id) { TH._wz = TH._wz || {}; delete TH._wz.landlordOnboarding; TH.go('#/landlords/new'); return; }
     const m = U.drawer({ title: l.id ? 'Sửa chủ nhà' : 'Thêm chủ nhà', sub: 'Hồ sơ chủ nhà / đối tác cho thuê đầu vào (FR-BLD-01/06)', body: `<div class="form-grid">
       ${U.field({ label: 'Loại', input: U.select({ name: 'type', value: l.type || 'person', options: [['person', 'Cá nhân'], ['company', 'Công ty']] }) })}
       ${U.field({ label: 'Tên chủ nhà / đối tác', req: true, name: 'name', input: U.input({ name: 'name', value: l.name || '' }) })}

@@ -10,6 +10,23 @@
   const idem = (key, fn) => { if (!key) return fn(); St.state.meta.idem = St.state.meta.idem || {}; if (St.state.meta.idem[key]) { const prev = St.state.meta.idem[key]; return Object.assign({ duplicate: true }, prev); } const res = fn(); try { St.state.meta.idem[key] = res && typeof res === 'object' ? JSON.parse(JSON.stringify(res)) : { ok: true }; } catch (e) { St.state.meta.idem[key] = { id: res && res.id, code: res && res.code }; } St.save(); return res; };
   const done = () => { St.save(); St.emit('change'); };
 
+  // Giữ quan hệ Chủ nhà ↔ Tòa nhà nhất quán ở mọi điểm ghi.
+  // Xóa buildingId khỏi các chủ nhà khác trước khi thêm vào chủ nhà mới.
+  const assignBuildingLandlord = (building, landlordId) => {
+    if (!building) return;
+    const nextId = landlordId || null;
+    (St.state.landlords || []).forEach(l => {
+      l.buildingIds = Array.isArray(l.buildingIds) ? l.buildingIds : [];
+      if (l.id !== nextId) l.buildingIds = l.buildingIds.filter(id => id !== building.id);
+    });
+    building.landlordId = nextId;
+    if (nextId) {
+      const landlord = (St.state.landlords || []).find(l => l && l.id === nextId);
+      if (!landlord) err('Chủ nhà được chọn không tồn tại');
+      landlord.buildingIds = [...new Set([...(landlord.buildingIds || []), building.id])];
+    }
+  };
+
   /* ---------- Tòa & phòng ---------- */
   X.saveBuilding = (d) => {
     Au.need('buildings.manage');
@@ -18,11 +35,13 @@
     if (d.id) {
       const old = St.get('buildings', d.id);
       if (d.status === 'inactive' && old.status !== 'inactive') { Au.need('deactivateBuilding'); checkDeactivate(d.id); }
-      const b = St.update('buildings', d.id, d); St.audit('update', 'building', b.id, 'Cập nhật tòa ' + b.name); done(); return b;
+      const nextLandlordId = d.landlordId === undefined ? old.landlordId : d.landlordId;
+      const b = St.update('buildings', d.id, d); assignBuildingLandlord(b, nextLandlordId); St.audit('update', 'building', b.id, 'Cập nhật tòa ' + b.name); done(); return b;
     }
     const code = d.code || St.nextCode('buildings', 'TH-', 2);
     if (St.byCode('buildings', code)) err('Mã tòa ' + code + ' đã tồn tại');
     const b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, prefix: (d.prefix || code.split('-')[1] || 'X').slice(0, 1).toUpperCase(), status: 'active', payCycle: 3, payDay: 5, roomCount: 0, amenities: [] }, d, { code }));
+    assignBuildingLandlord(b, d.landlordId);
     St.audit('create', 'building', b.id, 'Tạo tòa ' + b.name); done(); return b;
   };
   // FR-BLD-02: không ngừng tòa còn HĐ hiệu lực / giữ chỗ / HĐ dự thảo
@@ -77,10 +96,106 @@
   X.saveLandlord = (d) => {
     Au.need('landlords.manage');
     req(d.name, 'Tên chủ nhà là bắt buộc'); req(d.phone, 'Số điện thoại là bắt buộc');
-    if (d.id) { const old = St.get('landlords', d.id); const prevB = (old.buildingIds || []).slice(); const l = St.update('landlords', d.id, d); prevB.filter(b => !(l.buildingIds || []).includes(b)).forEach(bid => { const b = St.get('buildings', bid); if (b && b.landlordId === l.id) b.landlordId = null; }); (l.buildingIds || []).forEach(bid => St.update('buildings', bid, { landlordId: l.id })); St.audit('update', 'landlord', l.id, 'Cập nhật chủ nhà ' + l.name); done(); return l; }
-    const l = St.add('landlords', Object.assign({ code: St.nextCode('landlords', 'CN', 3), type: 'person', buildingIds: [], status: 'active', cycleMonths: 3, managerId: me() }, d));
-    (l.buildingIds || []).forEach(bid => St.update('buildings', bid, { landlordId: l.id }));
+    if (d.id) {
+      const old = St.get('landlords', d.id); const prevB = (old.buildingIds || []).slice(); const selected = Array.isArray(d.buildingIds) ? [...new Set(d.buildingIds)] : prevB;
+      const l = St.update('landlords', d.id, Object.assign({}, d, { buildingIds: selected }));
+      prevB.filter(id => !selected.includes(id)).forEach(id => { const b = St.get('buildings', id); if (b && b.landlordId === l.id) assignBuildingLandlord(b, null); });
+      selected.forEach(id => { const b = St.get('buildings', id); if (b) assignBuildingLandlord(b, l.id); });
+      l.buildingIds = selected.filter(id => !!St.get('buildings', id));
+      St.audit('update', 'landlord', l.id, 'Cập nhật chủ nhà ' + l.name); done(); return l;
+    }
+    const selected = Array.isArray(d.buildingIds) ? [...new Set(d.buildingIds)] : [];
+    const l = St.add('landlords', Object.assign({ code: St.nextCode('landlords', 'CN', 3), type: 'person', buildingIds: [], status: 'active', cycleMonths: 3, managerId: me() }, d, { buildingIds: [] }));
+    selected.forEach(id => { const b = St.get('buildings', id); if (b) assignBuildingLandlord(b, l.id); });
     St.audit('create', 'landlord', l.id, 'Thêm chủ nhà ' + l.name); done(); return l;
+  };
+
+  /* Tạo/cập nhật hồ sơ chủ nhà cùng Khu nhà, Tòa nhà và HĐ đầu vào trong một lần xác nhận. */
+  X.createLandlordOnboarding = (payload = {}) => {
+    Au.need('landlords.manage'); Au.need('buildings.manage'); Au.need('catalog.manage');
+    const landlordData = Object.assign({}, payload.landlord || {});
+    const areaDrafts = (payload.areas || []).map(x => Object.assign({}, x));
+    const buildingDrafts = (payload.buildings || []).map(x => Object.assign({}, x, { data: x.data ? Object.assign({}, x.data) : null }));
+    const contractData = payload.contract ? Object.assign({}, payload.contract) : null;
+    const existingLandlord = landlordData.id ? St.get('landlords', landlordData.id) : null;
+
+    req(landlordData.name, 'Tên chủ nhà là bắt buộc'); req(landlordData.phone, 'Số điện thoại là bắt buộc');
+    if (landlordData.id && !existingLandlord) err('Không tìm thấy chủ nhà cần bổ sung tòa');
+    const areaRefs = new Set(); const areaCodes = new Set();
+    areaDrafts.forEach(a => {
+      req(a.ref, 'Thiếu mã tham chiếu Khu nhà'); req(a.name, 'Tên Khu nhà là bắt buộc');
+      if (areaRefs.has(a.ref)) err('Khu nhà nháp bị trùng'); areaRefs.add(a.ref);
+      if (a.code) {
+        const code = String(a.code).trim();
+        if (areaCodes.has(code) || St.byCode('areas', code)) err('Mã Khu nhà ' + code + ' đã tồn tại');
+        a.code = code; areaCodes.add(code);
+      }
+    });
+    const knownArea = ref => areaRefs.has(ref) || !!St.get('areas', ref);
+    const buildingRefs = new Set(); const buildingCodes = new Set();
+    buildingDrafts.forEach(item => {
+      req(item.ref, 'Thiếu mã tham chiếu tòa nhà');
+      if (buildingRefs.has(item.ref)) err('Tòa nhà bị chọn trùng'); buildingRefs.add(item.ref);
+      if (item.mode === 'existing') {
+        const b = St.get('buildings', item.id); if (!b) err('Tòa nhà đã chọn không tồn tại');
+        if (b.landlordId && b.landlordId !== landlordData.id) err('Tòa ' + b.name + ' đã thuộc chủ nhà khác');
+        return;
+      }
+      const d = item.data || {}; req(d.name, 'Tên tòa là bắt buộc'); req(d.address, 'Địa chỉ tòa là bắt buộc'); req(d.areaRef, 'Khu nhà quản lý là bắt buộc');
+      if (!knownArea(d.areaRef)) err('Khu nhà của tòa ' + d.name + ' không tồn tại');
+      if (d.code) {
+        const code = String(d.code).trim();
+        if (buildingCodes.has(code) || St.byCode('buildings', code)) err('Mã tòa ' + code + ' đã tồn tại');
+        d.code = code; buildingCodes.add(code);
+      }
+    });
+    if (contractData) {
+      req(contractData.start, 'Ngày bắt đầu hợp đồng là bắt buộc'); req(contractData.end, 'Ngày kết thúc hợp đồng là bắt buộc');
+      if (contractData.end <= contractData.start) err('Ngày kết thúc hợp đồng phải sau ngày bắt đầu');
+      if (!(F.num(contractData.rent) > 0)) err('Giá thuê hợp đồng phải lớn hơn 0');
+      if (![3, 4, 6].includes(Number(contractData.cycleMonths))) err('Chu kỳ trả phải là 3, 4 hoặc 6 tháng');
+      if (!(contractData.buildingRefs || []).length) err('Hợp đồng cần liên kết ít nhất một tòa');
+      (contractData.buildingRefs || []).forEach(ref => { if (!buildingRefs.has(ref)) err('Hợp đồng chứa tòa không thuộc hồ sơ onboarding'); });
+    }
+
+    const snapshot = {};
+    ['areas', 'landlords', 'buildings', 'landlordContracts', 'auditLog'].forEach(k => snapshot[k] = JSON.parse(JSON.stringify(St.state[k] || [])));
+    try {
+      const areaMap = new Map(); const createdAreas = [];
+      areaDrafts.forEach(a => {
+        const area = St.add('areas', { code: a.code || St.nextCode('areas', 'KV', 2), name: a.name.trim(), districts: Array.isArray(a.districts) ? a.districts.filter(Boolean) : [], leadEmployeeId: a.leadEmployeeId || null, status: 'active' });
+        areaMap.set(a.ref, area); createdAreas.push(area); St.audit('create', 'area', area.id, 'Tạo Khu nhà ' + area.name + ' từ onboarding chủ nhà');
+      });
+      const landlord = existingLandlord
+        ? St.update('landlords', existingLandlord.id, Object.assign({}, landlordData, { cycleMonths: Number(landlordData.cycleMonths) || 3 }))
+        : St.add('landlords', Object.assign({ code: St.nextCode('landlords', 'CN', 3), type: 'person', buildingIds: [], status: 'active', cycleMonths: 3, managerId: me() }, landlordData, { buildingIds: [] }));
+      landlord.buildingIds = Array.isArray(landlord.buildingIds) ? landlord.buildingIds : [];
+      St.audit(existingLandlord ? 'update' : 'create', 'landlord', landlord.id, (existingLandlord ? 'Cập nhật' : 'Thêm') + ' chủ nhà ' + landlord.name + ' qua onboarding');
+
+      const buildingMap = new Map(); const buildings = [];
+      buildingDrafts.forEach(item => {
+        let b;
+        if (item.mode === 'existing') b = St.get('buildings', item.id);
+        else {
+          const d = item.data || {}; const area = areaMap.get(d.areaRef) || St.get('areas', d.areaRef); const code = d.code || St.nextCode('buildings', 'TH-', 2);
+          b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, prefix: (d.prefix || code.split('-')[1] || 'X').slice(0, 1).toUpperCase(), status: 'active', payCycle: Number(d.payCycle) || Number(landlord.cycleMonths) || 3, payDay: 5, roomCount: 0, amenities: [], buildingType: 'T', condition: 'medium', operatingSince: F.today() }, d, { code, areaId: area.id, landlordId: landlord.id }));
+          delete b.areaRef; delete b.ref; St.audit('create', 'building', b.id, 'Tạo tòa ' + b.name + ' từ onboarding ' + landlord.name);
+        }
+        assignBuildingLandlord(b, landlord.id); buildingMap.set(item.ref, b); buildings.push(b);
+      });
+
+      let contract = null;
+      if (contractData) {
+        const ids = contractData.buildingRefs.map(ref => buildingMap.get(ref).id); const first = St.get('buildings', ids[0]);
+        contract = St.add('landlordContracts', Object.assign({ code: 'HD-' + first.code + '-' + F.pad(Q.landlordContracts(landlord.id).length + 1, 3), landlordId: landlord.id, status: 'active', type: 'Hợp đồng thuê tòa nhà', managerId: me(), deposit: 0, priceHoldMonths: 0 }, contractData, { landlordId: landlord.id, buildingIds: ids, cycleMonths: Number(contractData.cycleMonths), rent: F.num(contractData.rent), deposit: F.num(contractData.deposit), priceHoldMonths: Number(contractData.priceHoldMonths) || 0 }));
+        delete contract.buildingRefs; delete contract.enabled; delete contract.contractEnabled;
+        ids.forEach(id => { const b = St.get('buildings', id); b.payCycle = contract.cycleMonths; assignBuildingLandlord(b, landlord.id); });
+        St.audit('create', 'landlordContract', contract.id, 'Tạo HĐ đầu vào ' + contract.code + ' từ onboarding');
+      }
+      done(); return { landlord, areas: createdAreas, buildings, contract };
+    } catch (e) {
+      Object.keys(snapshot).forEach(k => { St.state[k] = snapshot[k]; }); St.saveNow(); throw e;
+    }
   };
   X.setLandlordStatus = (id, status) => { Au.need('landlords.manage'); St.update('landlords', id, { status }); done(); };
   X.saveLandlordContract = (d) => {
@@ -450,7 +565,7 @@
   });
   guard('saveRoomAsset', 'rooms.manage', d => d && d.roomId ? recordCtx('room', 'rooms', d.roomId) : recordCtx('roomAsset', 'roomAssets', d));
   guard('removeRoomAsset', 'rooms.manage', id => recordCtx('roomAsset', 'roomAssets', id));
-  guard('saveLandlord setLandlordStatus saveLandlordContract generateLandlordSchedule', 'landlords.manage');
+  guard('saveLandlord setLandlordStatus saveLandlordContract generateLandlordSchedule createLandlordOnboarding', 'landlords.manage');
   guard('addLandlordPayment markLandlordPaid', 'landlordPayments.manage');
   guard('saveTenant', 'tenants.manage', d => d && d.id ? recordCtx('tenant', 'tenants', d) : null);
   guard('saveContractDraft', 'contracts.manage', d => { if (Au.role() === 'ops' && (!d || !Au.inScope('tenant', raw('tenants', d.tenantId)))) throw new Error('Khách thuê ngoài phạm vi được giao.'); return d && d.roomId ? recordCtx('room', 'rooms', d.roomId) : recordCtx('contract', 'contracts', d); });

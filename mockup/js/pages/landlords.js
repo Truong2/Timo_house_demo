@@ -1,6 +1,13 @@
 (function (TH) {
   const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, X = TH.actions, Fm = TH.forms, esc = F.esc;
   const periodCode = (period = F.today().slice(0, 7)) => String(period || F.today().slice(0, 7)).replace('-', '');
+  const onboardingState = (landlord = null, step = 1) => ({
+    at: Date.now(), step, landlordId: landlord ? landlord.id : '',
+    landlord: landlord ? { id: landlord.id, type: landlord.type || 'person', name: landlord.name || '', phone: landlord.phone || '', email: landlord.email || '', taxCode: landlord.taxCode || '', bankAccount: landlord.bankAccount || '', address: landlord.address || '', cycleMonths: Number(landlord.cycleMonths) || 3, status: landlord.status || 'active', managerId: landlord.managerId || (TH.auth.user() || {}).id } : { type: 'person', name: '', phone: '', email: '', taxCode: '', bankAccount: '', address: '', cycleMonths: 3, status: 'active', managerId: (TH.auth.user() || {}).id },
+    selectedBuildingIds: landlord ? [...new Set(landlord.buildingIds || [])] : [], buildings: [], areas: [], allowNoBuildings: false,
+    contract: { enabled: false, buildingRefs: [], signedDate: F.today(), type: 'Hợp đồng thuê tòa nhà', start: F.today(), end: F.addMonths(F.today(), 36), rent: '', deposit: '', priceHoldMonths: 24, cycleMonths: Number((landlord || {}).cycleMonths) || 3, note: '' }
+  });
+  const openOnboarding = (landlord = null, step = 1) => { TH._wz = TH._wz || {}; TH._wz.landlordOnboarding = onboardingState(landlord, step); TH.go('#/landlords/new' + (landlord ? '?landlordId=' + encodeURIComponent(landlord.id) : '')); };
   const llMenu = (btn, l) => { const items = [{ label: 'Xem', icon: 'eye', onClick: () => TH.go('#/landlords/' + l.id) }]; if (TH.auth.can('landlords.manage')) items.push({ label: 'Sửa', icon: 'pencil', onClick: () => Fm.landlord(l) }, { label: 'Thêm HĐ đầu vào', icon: 'file-plus', onClick: () => Fm.landlordContract(l.id) }, '-', l.status === 'paused' ? { label: 'Kích hoạt lại', icon: 'check', onClick: () => { X.setLandlordStatus(l.id, 'active'); U.toast('ok', 'Đã kích hoạt'); } } : { label: 'Tạm ngừng hợp tác', icon: 'minus-circle', danger: true, onClick: () => { X.setLandlordStatus(l.id, 'paused'); U.toast('ok', 'Đã tạm ngừng'); } }); U.menu(btn, items); };
   TH.router.register('/landlords', (root, p, q) => {
     TH.router.crumb([{ label: 'Quản lý cho thuê' }, { label: 'Chủ nhà & đối tác' }]);
@@ -27,8 +34,138 @@
     const tbl = U.table(wrap, { rows, cols, selectable: true, unit: 'chủ nhà', colPrefsKey: 'landlords' });
     U.onChange(root, { f: () => { const d = U.formData(root.querySelector('.filterbar')); TH.router.replaceQuery(Object.assign({}, f, d)); TH.router.refresh(); } });
     root.querySelector('input[name=s]').addEventListener('keydown', e => { if (e.key === 'Enter') { TH.router.replaceQuery(Object.assign({}, f, { s: e.target.value })); TH.router.refresh(); } });
-    U.bind(root, { add: () => Fm.landlord(), reset: () => { TH.router.replaceQuery({}); TH.router.refresh(); }, cols: (b) => U.columnMenu(b, tbl, cols), view: (b) => TH.go('#/landlords/' + b.dataset.id), more: (b) => llMenu(b, St.get('landlords', b.dataset.id)), export: () => { F.download('chu-nha.csv', F.csv(rows.map(l => [l.code, l.name, l.phone, l.email, l.buildingIds.map(id => Q.building(id).name).join('; '), l.cycleMonths, Q.label('landlord', l.status)]), ['Mã', 'Tên', 'SĐT', 'Email', 'Tòa', 'Chu kỳ', 'Trạng thái']), 'text/csv'); U.toast('ok', 'Đã xuất danh sách'); } });
+    U.bind(root, { add: () => openOnboarding(), reset: () => { TH.router.replaceQuery({}); TH.router.refresh(); }, cols: (b) => U.columnMenu(b, tbl, cols), view: (b) => TH.go('#/landlords/' + b.dataset.id), more: (b) => llMenu(b, St.get('landlords', b.dataset.id)), export: () => { F.download('chu-nha.csv', F.csv(rows.map(l => [l.code, l.name, l.phone, l.email, l.buildingIds.map(id => Q.building(id).name).join('; '), l.cycleMonths, Q.label('landlord', l.status)]), ['Mã', 'Tên', 'SĐT', 'Email', 'Tòa', 'Chu kỳ', 'Trạng thái']), 'text/csv'); U.toast('ok', 'Đã xuất danh sách'); } });
   }, { menu: 'landlords', permission: 'landlords.view' });
+
+  TH.router.register('/landlords/new', (root, p, q) => {
+    TH._wz = TH._wz || {};
+    const requestedLandlord = q.landlordId ? St.get('landlords', q.landlordId) : null;
+    let w = TH._wz.landlordOnboarding;
+    if (!w || (q.landlordId || '') !== (w.landlordId || '')) w = TH._wz.landlordOnboarding = onboardingState(requestedLandlord, requestedLandlord ? 2 : 1);
+    w.at = Date.now(); w.step = Math.max(1, Math.min(4, Number(w.step) || 1));
+    const step = w.step; const editing = !!w.landlordId;
+    const STEPS = [{ title: 'Chủ nhà', sub: 'Thông tin liên hệ' }, { title: 'Tòa nhà', sub: 'Tòa và Khu nhà' }, { title: 'Hợp đồng', sub: 'Không bắt buộc' }, { title: 'Xác nhận', sub: 'Kiểm tra và lưu' }];
+    const managers = Q.managers().map(u => [u.id, u.name]);
+    const persistedAreas = Q.areas();
+    const areaName = ref => ((w.areas || []).find(a => a.ref === ref) || St.get('areas', ref) || {}).name || '-';
+    const areaOptions = () => [...persistedAreas.map(a => [a.id, a.name]), ...(w.areas || []).map(a => [a.ref, a.name + ' (mới)'])];
+    const allBuildings = St.where('buildings', b => !b.stub);
+    const selectedRefs = () => [...(w.selectedBuildingIds || []).map(id => 'existing:' + id), ...(w.buildings || []).map(b => b.ref)];
+    const refLabel = ref => { if (String(ref).startsWith('existing:')) { const b = St.get('buildings', String(ref).slice(9)); return b ? b.code + ' · ' + b.name : '-'; } const b = (w.buildings || []).find(x => x.ref === ref); return b ? (b.code ? b.code + ' · ' : '') + (b.name || 'Tòa mới chưa đặt tên') : '-'; };
+    const selectedCount = () => (w.selectedBuildingIds || []).length + (w.buildings || []).length;
+
+    const readLandlord = (validate = false) => {
+      const form = root.querySelector('#onboard-landlord'); if (form) Object.assign(w.landlord, U.formData(form));
+      w.landlord.cycleMonths = Number(w.landlord.cycleMonths) || 3;
+      if (!validate || !form) return true;
+      const errs = {}; if (!String(w.landlord.name || '').trim()) errs.name = 'Nhập tên chủ nhà / đối tác'; if (!String(w.landlord.phone || '').trim()) errs.phone = 'Nhập số điện thoại'; U.setErrors(form, errs);
+      return !Object.keys(errs).length;
+    };
+    const readBuildings = (validate = false) => {
+      w.selectedBuildingIds = [...root.querySelectorAll('[data-existing-building]:checked')].map(el => el.dataset.existingBuilding);
+      root.querySelectorAll('[data-new-building]').forEach(card => { const b = (w.buildings || []).find(x => x.ref === card.dataset.newBuilding); if (b) Object.assign(b, U.formData(card)); });
+      const noBuildings = root.querySelector('[name=allowNoBuildings]'); if (noBuildings) w.allowNoBuildings = noBuildings.checked;
+      if (!validate) return true;
+      let ok = true;
+      root.querySelectorAll('[data-new-building]').forEach(card => {
+        const b = (w.buildings || []).find(x => x.ref === card.dataset.newBuilding); const errs = {};
+        if (!String(b.name || '').trim()) errs.name = 'Nhập tên tòa'; if (!String(b.address || '').trim()) errs.address = 'Nhập địa chỉ'; if (!b.areaRef) errs.areaRef = 'Chọn Khu nhà quản lý'; U.setErrors(card, errs); if (Object.keys(errs).length) ok = false;
+      });
+      const codes = (w.buildings || []).map(b => String(b.code || '').trim()).filter(Boolean); const duplicateDraft = codes.find((x, i) => codes.indexOf(x) !== i); const duplicateStored = codes.find(code => !!St.byCode('buildings', code));
+      if (duplicateDraft || duplicateStored) { U.toast('err', 'Mã tòa bị trùng', duplicateDraft || duplicateStored); ok = false; }
+      if (!selectedCount() && !w.allowNoBuildings) { U.toast('warn', 'Chưa có tòa nhà', 'Chọn/thêm ít nhất một tòa hoặc xác nhận bổ sung sau'); ok = false; }
+      return ok;
+    };
+    const readContract = (validate = false) => {
+      const form = root.querySelector('#onboard-contract'); if (!form) return true; const d = U.formData(form);
+      w.contract.enabled = !!d.contractEnabled; Object.assign(w.contract, d, { enabled: !!d.contractEnabled, buildingRefs: [...form.querySelectorAll('[data-contract-building]:checked')].map(el => el.dataset.contractBuilding) });
+      if (!validate || !w.contract.enabled) return true;
+      const errs = {}; if (!w.contract.start) errs.start = 'Chọn ngày bắt đầu'; if (!w.contract.end) errs.end = 'Chọn ngày kết thúc'; else if (w.contract.start && w.contract.end <= w.contract.start) errs.end = 'Ngày kết thúc phải sau ngày bắt đầu'; if (!(F.num(w.contract.rent) > 0)) errs.rent = 'Nhập giá thuê lớn hơn 0';
+      U.setErrors(form, errs); if (!w.contract.buildingRefs.length) { U.toast('warn', 'Chưa chọn tòa cho hợp đồng'); return false; } return !Object.keys(errs).length;
+    };
+    const keepCurrentStep = () => { if (step === 1) readLandlord(false); else if (step === 2) readBuildings(false); else if (step === 3) readContract(false); };
+    const summary = () => U.card({ title: 'Tóm tắt hồ sơ', icon: 'clipboard-check', body: U.kv([['Chủ nhà', esc(w.landlord.name || 'Chưa nhập')], ['Số điện thoại', esc(w.landlord.phone || '-')], ['Tòa liên kết', selectedCount()], ['Khu nhà tạo mới', (w.areas || []).length], ['Hợp đồng đầu vào', w.contract.enabled ? 'Có' : 'Bổ sung sau']], 'one'), collapsible: true, collapseKey: 'landlord-onboarding-summary' });
+
+    let main = '';
+    if (step === 1) main = U.card({ title: editing ? 'Thông tin chủ nhà hiện tại' : 'Bước 1 – Thông tin chủ nhà', icon: 'user-check', sub: editing ? 'Có thể cập nhật thông tin trước khi bổ sung tòa.' : 'Nhập hồ sơ chủ nhà hoặc đối tác cho thuê đầu vào.', body: `<form id="onboard-landlord" class="form-grid">
+      ${U.field({ label: 'Loại', input: U.select({ name: 'type', value: w.landlord.type, options: [['person', 'Cá nhân'], ['company', 'Công ty']] }) })}
+      ${U.field({ label: 'Tên chủ nhà / đối tác', req: true, name: 'name', input: U.input({ name: 'name', value: w.landlord.name || '', attrs: { autocomplete: 'name' } }) })}
+      ${U.field({ label: 'Số điện thoại', req: true, name: 'phone', input: U.input({ name: 'phone', value: w.landlord.phone || '', icon: 'phone', attrs: { autocomplete: 'tel' } }) })}
+      ${U.field({ label: 'Email', input: U.input({ name: 'email', value: w.landlord.email || '', type: 'email', icon: 'mail', attrs: { autocomplete: 'email' } }) })}
+      ${U.field({ label: 'Mã số thuế', input: U.input({ name: 'taxCode', value: w.landlord.taxCode || '' }) })}
+      ${U.field({ label: 'Tài khoản nhận tiền', input: U.input({ name: 'bankAccount', value: w.landlord.bankAccount || '', placeholder: 'Ngân hàng – số tài khoản' }) })}
+      ${U.field({ label: 'Địa chỉ', input: U.input({ name: 'address', value: w.landlord.address || '', icon: 'map-pin' }), cls: 'span2' })}
+      ${U.field({ label: 'Chu kỳ trả mặc định', input: U.select({ name: 'cycleMonths', value: w.landlord.cycleMonths, options: [[3, '3 tháng'], [4, '4 tháng'], [6, '6 tháng']] }) })}
+      ${U.field({ label: 'Người phụ trách', input: U.select({ name: 'managerId', value: w.landlord.managerId || '', options: managers }) })}
+      ${U.field({ label: 'Trạng thái', input: U.select({ name: 'status', value: w.landlord.status || 'active', options: [['active', 'Đang hợp tác'], ['expiring', 'Sắp hết hạn'], ['paused', 'Tạm ngừng']] }) })}
+      </form>` }) + `<div class="wz-foot">${U.btn({ label: 'Hủy', cls: 'btn-ghost', act: 'cancel' })}${U.btn({ label: 'Tiếp tục thêm tòa →', cls: 'btn-primary', act: 'to2' })}</div>`;
+
+    if (step === 2) {
+      const existingRows = allBuildings.map(b => { const owner = b.landlordId ? St.get('landlords', b.landlordId) : null; const other = owner && owner.id !== w.landlordId; const linked = owner && owner.id === w.landlordId; const checked = (w.selectedBuildingIds || []).includes(b.id) || linked; return `<label class="row between" style="padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start"><span class="row gap12"><input type="checkbox" data-existing-building="${esc(b.id)}" ${checked ? 'checked' : ''} ${other || linked ? 'disabled' : ''}><span><b>${esc(b.code)} · ${esc(b.name)}</b><small class="muted" style="display:block">${esc(b.address || '-')} · ${esc(Q.area(b.areaId).name || b.district || 'Chưa gán Khu nhà')}</small></span></span>${other ? U.chip('Thuộc ' + owner.name, 'gray') : linked ? U.chip('Đã liên kết', 'green') : U.chip('Chưa có chủ nhà', 'blue')}</label>`; }).join('');
+      const newCards = (w.buildings || []).map((b, i) => U.card({ title: 'Tòa mới ' + (i + 1), icon: 'building', actions: U.iconBtn('trash', 'remove-building', 'Xóa tòa nháp', { 'data-ref': b.ref }), cls: 'mb16', attrs: `data-new-building="${esc(b.ref)}"`, body: `<div class="form-grid">
+        ${U.field({ label: 'Mã tòa', name: 'code', input: U.input({ name: 'code', value: b.code || '', placeholder: 'Để trống để tự sinh' }) })}
+        ${U.field({ label: 'Tên tòa', req: true, name: 'name', input: U.input({ name: 'name', value: b.name || '', placeholder: 'Tòa Sunrise...' }) })}
+        ${U.field({ label: 'Địa chỉ', req: true, name: 'address', input: U.input({ name: 'address', value: b.address || '', icon: 'map-pin' }), cls: 'span2' })}
+        ${U.field({ label: 'Khu nhà quản lý', req: true, name: 'areaRef', input: `<div class="row gap8">${U.select({ name: 'areaRef', value: b.areaRef || '', placeholder: 'Chọn Khu nhà', options: areaOptions(), attrs: { style: 'flex:1' } })}${U.btn({ label: 'Thêm nhanh', icon: 'plus', size: 'btn-sm', cls: 'btn-outline', act: 'quick-area', attrs: { 'data-ref': b.ref } })}</div>`, help: 'Danh mục quản lý dùng chung cho tòa, nhân sự và báo cáo.' })}
+        ${U.field({ label: 'Quận/Huyện', input: U.input({ name: 'district', value: b.district || '', placeholder: 'Thông tin địa lý của tòa' }), help: 'Khác với Khu nhà quản lý.' })}
+        ${U.field({ label: 'Số tầng', input: U.input({ name: 'floors', type: 'number', value: b.floors || 1, attrs: { min: 1 } }) })}
+        ${U.field({ label: 'Số phòng dự kiến', input: U.input({ name: 'roomCount', type: 'number', value: b.roomCount || 0, attrs: { min: 0 } }) })}
+        ${U.field({ label: 'Người phụ trách', input: U.select({ name: 'managerId', value: b.managerId || w.landlord.managerId || '', options: managers }) })}
+        ${U.field({ label: 'Chu kỳ trả chủ nhà', input: U.select({ name: 'payCycle', value: b.payCycle || w.landlord.cycleMonths || 3, options: [[3, '3 tháng/lần'], [4, '4 tháng/lần'], [6, '6 tháng/lần']] }) })}
+      </div>` })).join('');
+      main = `${U.card({ title: 'Chọn tòa đã có', icon: 'list-checks', sub: 'Chỉ tòa chưa có chủ nhà mới được chọn. Tòa đã liên kết được khóa để tránh chuyển chủ ngoài ý muốn.', body: existingRows || U.empty({ title: 'Chưa có tòa nhà trong hệ thống' }) })}
+      ${U.section('Khai báo tòa mới', 'Có thể thêm nhiều tòa trước khi hoàn tất.', U.btn({ label: 'Thêm tòa mới', icon: 'plus', cls: 'btn-primary', size: 'btn-sm', act: 'add-building' }))}${newCards || U.card({ body: U.empty({ icon: 'building', title: 'Chưa khai báo tòa mới', text: 'Chọn tòa có sẵn ở trên hoặc thêm một tòa mới.' }) })}
+      ${U.card({ body: U.check({ name: 'allowNoBuildings', label: '<b>Tôi sẽ bổ sung tòa nhà sau</b><br><span class="muted small">Hồ sơ chủ nhà sẽ được lưu nhưng chưa có tòa liên kết.</span>', checked: !!w.allowNoBuildings }) })}
+      <div class="wz-foot">${U.btn({ label: '← Quay lại', cls: 'btn-ghost', act: 'to1' })}<div class="row">${U.btn({ label: 'Hủy', cls: 'btn-outline', act: 'cancel' })}${U.btn({ label: 'Tiếp tục hợp đồng →', cls: 'btn-primary', act: 'to3' })}</div></div>`;
+    }
+
+    if (step === 3) {
+      const refs = selectedRefs(); if (!w.contract.buildingRefs.length) w.contract.buildingRefs = refs.slice(); else w.contract.buildingRefs = w.contract.buildingRefs.filter(ref => refs.includes(ref));
+      const contractBuildings = refs.map(ref => U.check({ name: 'contract_' + F.slug(ref), label: esc(refLabel(ref)), checked: w.contract.buildingRefs.includes(ref), attrs: { 'data-contract-building': ref } })).join('');
+      main = `<form id="onboard-contract">${U.card({ title: 'Bước 3 – Hợp đồng đầu vào', icon: 'file-text', sub: 'Có thể bỏ qua và bổ sung sau tại chi tiết chủ nhà.', body: selectedCount() ? U.check({ name: 'contractEnabled', label: '<b>Tạo hợp đồng đầu vào trong lần onboarding này</b>', checked: !!w.contract.enabled, attrs: { 'data-on': 'contract-enabled' } }) : U.note('warn', 'Chưa có tòa để lập hợp đồng', 'Quay lại bước Tòa nhà để chọn hoặc khai báo tòa.') })}
+      ${w.contract.enabled && selectedCount() ? U.card({ title: 'Điều khoản hợp đồng', body: `<div class="form-grid">
+        ${U.field({ label: 'Ngày ký', input: U.date({ name: 'signedDate', value: w.contract.signedDate }) })}${U.field({ label: 'Loại hợp đồng', input: U.select({ name: 'type', value: w.contract.type, options: ['Hợp đồng thuê tòa nhà', 'Hợp đồng hợp tác kinh doanh'] }) })}
+        ${U.field({ label: 'Ngày bắt đầu', req: true, name: 'start', input: U.date({ name: 'start', value: w.contract.start }) })}${U.field({ label: 'Ngày kết thúc', req: true, name: 'end', input: U.date({ name: 'end', value: w.contract.end }) })}
+        ${U.field({ label: 'Giá thuê / tháng', req: true, name: 'rent', input: U.money({ name: 'rent', value: w.contract.rent }) })}${U.field({ label: 'Tiền cọc', input: U.money({ name: 'deposit', value: w.contract.deposit }) })}
+        ${U.field({ label: 'Thời gian giữ giá (tháng)', input: U.input({ name: 'priceHoldMonths', type: 'number', value: w.contract.priceHoldMonths || 24, attrs: { min: 0 } }) })}${U.field({ label: 'Chu kỳ trả', input: U.select({ name: 'cycleMonths', value: w.contract.cycleMonths || w.landlord.cycleMonths, options: [[3, '3 tháng/lần'], [4, '4 tháng/lần'], [6, '6 tháng/lần']] }) })}
+        <div class="field span2"><label>Tòa thuộc hợp đồng<span class="req">*</span></label><div class="col gap8">${contractBuildings}</div></div>
+        ${U.field({ label: 'Ghi chú', input: U.textarea({ name: 'note', value: w.contract.note || '' }), cls: 'span2' })}
+      </div>` }) : ''}</form><div class="wz-foot">${U.btn({ label: '← Quay lại tòa nhà', cls: 'btn-ghost', act: 'to2' })}<div class="row">${U.btn({ label: 'Bỏ qua hợp đồng', cls: 'btn-outline', act: 'skip-contract' })}${U.btn({ label: 'Kiểm tra hồ sơ →', cls: 'btn-primary', act: 'to4' })}</div></div>`;
+    }
+
+    if (step === 4) {
+      const buildingReview = [...(w.selectedBuildingIds || []).map(id => { const b = St.get('buildings', id); return b ? `<tr><td><b>${esc(b.code)}</b></td><td>${esc(b.name)}</td><td>${esc(Q.area(b.areaId).name || b.district || '-')}</td><td>${U.chip('Có sẵn', 'blue')}</td></tr>` : ''; }), ...(w.buildings || []).map(b => `<tr><td><b>${esc(b.code || 'Tự sinh')}</b></td><td>${esc(b.name)}</td><td>${esc(areaName(b.areaRef))}</td><td>${U.chip('Tạo mới', 'green')}</td></tr>`)].join('');
+      main = `${U.card({ title: 'Thông tin chủ nhà', icon: 'user-check', actions: U.btn({ label: 'Sửa', icon: 'pencil', size: 'btn-sm', cls: 'btn-outline', act: 'to1' }), body: U.kv([['Tên', esc(w.landlord.name)], ['Loại', w.landlord.type === 'company' ? 'Công ty' : 'Cá nhân'], ['Số điện thoại', esc(w.landlord.phone)], ['Email', esc(w.landlord.email || '-')], ['Địa chỉ', esc(w.landlord.address || '-')], ['Chu kỳ mặc định', w.landlord.cycleMonths + ' tháng']], 'one') })}
+      ${U.card({ title: 'Tòa nhà liên kết', icon: 'building', actions: U.btn({ label: 'Sửa', icon: 'pencil', size: 'btn-sm', cls: 'btn-outline', act: 'to2' }), bodyCls: 'tight', body: buildingReview ? `<div class="tbl-wrap"><table class="tbl compact"><thead><tr><th>Mã</th><th>Tên tòa</th><th>Khu nhà quản lý</th><th>Nguồn</th></tr></thead><tbody>${buildingReview}</tbody></table></div>` : U.note('warn', 'Chưa có tòa liên kết', 'Bạn đã xác nhận sẽ bổ sung tòa sau.') })}
+      ${U.card({ title: 'Hợp đồng đầu vào', icon: 'file-text', actions: U.btn({ label: 'Sửa', icon: 'pencil', size: 'btn-sm', cls: 'btn-outline', act: 'to3' }), body: w.contract.enabled ? U.kv([['Thời hạn', F.date(w.contract.start) + ' – ' + F.date(w.contract.end)], ['Giá thuê', F.vnd(F.num(w.contract.rent)) + ' / tháng'], ['Tiền cọc', F.vnd(F.num(w.contract.deposit))], ['Chu kỳ trả', w.contract.cycleMonths + ' tháng/lần'], ['Số tòa', w.contract.buildingRefs.length]], 'one') : U.note('info', 'Bổ sung hợp đồng sau', 'Có thể tạo tại tab Hợp đồng đầu vào trong chi tiết chủ nhà.') })}
+      <div class="wz-foot">${U.btn({ label: '← Quay lại', cls: 'btn-ghost', act: 'to3' })}<div class="row">${U.btn({ label: 'Hủy', cls: 'btn-outline', act: 'cancel' })}${U.btn({ label: editing ? 'Lưu bổ sung tòa nhà' : 'Hoàn tất onboarding', icon: 'check-circle', cls: 'btn-primary', act: 'submit' })}</div></div>`;
+    }
+
+    TH.router.crumb([{ label: 'Quản lý cho thuê' }, { label: 'Chủ nhà & đối tác', href: '#/landlords' }, { label: editing ? 'Bổ sung tòa nhà' : 'Thêm chủ nhà' }]);
+    root.innerHTML = `${U.pageHead({ title: editing ? 'Bổ sung tòa nhà cho ' + esc(w.landlord.name) : 'Onboarding chủ nhà', sub: 'Tạo hồ sơ, liên kết tòa, Khu nhà và hợp đồng đầu vào trong một quy trình.', back: editing ? '#/landlords/' + w.landlordId + '?tab=buildings' : '#/landlords' })}${U.wizard(STEPS, step - 1)}<div class="two-col wide"><div class="side-stack">${main}</div><aside class="side-stack">${summary()}${U.card({ title: 'Nguyên tắc liên kết', icon: 'link', body: '<div class="small muted">Khu nhà quản lý → Tòa nhà → Phòng.<br>Chủ nhà liên kết với một hoặc nhiều tòa; không gắn trực tiếp với Khu nhà.</div>', collapsible: true, collapseKey: 'landlord-onboarding-rules' })}</aside></div>`;
+    U.onInput(root);
+    U.onChange(root, { 'contract-enabled': () => { readContract(false); TH.router.refresh(); } });
+    U.bind(root, {
+      to1: () => { keepCurrentStep(); w.step = 1; TH.router.refresh(); },
+      to2: () => { if (step === 1 && !readLandlord(true)) return; keepCurrentStep(); w.step = 2; TH.router.refresh(); },
+      to3: () => { if (step === 2 && !readBuildings(true)) return; keepCurrentStep(); w.step = 3; TH.router.refresh(); },
+      to4: () => { if (step === 3 && !readContract(true)) return; keepCurrentStep(); w.step = 4; TH.router.refresh(); },
+      'skip-contract': () => { readContract(false); w.contract.enabled = false; w.step = 4; TH.router.refresh(); },
+      'add-building': () => { readBuildings(false); w.buildings.push({ ref: F.uid('newb'), code: '', name: '', address: '', areaRef: '', district: '', floors: 1, roomCount: 0, managerId: w.landlord.managerId || '', payCycle: Number(w.landlord.cycleMonths) || 3 }); TH.router.refresh(); },
+      'remove-building': (el) => { readBuildings(false); w.buildings = w.buildings.filter(b => b.ref !== el.dataset.ref); w.contract.buildingRefs = w.contract.buildingRefs.filter(ref => ref !== el.dataset.ref); TH.router.refresh(); },
+      'quick-area': (el) => {
+        readBuildings(false); const building = w.buildings.find(b => b.ref === el.dataset.ref); if (!building) return;
+        const m = U.modal({ title: 'Thêm nhanh Khu nhà', size: 'sm', sub: 'Khu nhà chỉ được lưu khi hoàn tất onboarding.', body: `<div class="col gap12">${U.field({ label: 'Mã Khu nhà', input: U.input({ name: 'code', placeholder: 'Để trống để tự sinh' }) })}${U.field({ label: 'Tên Khu nhà', req: true, name: 'name', input: U.input({ name: 'name', placeholder: 'Khu Cầu Giấy' }) })}${U.field({ label: 'Quận/Huyện', input: U.input({ name: 'districtsText', value: building.district || '', placeholder: 'Cầu Giấy, Nam Từ Liêm' }), help: 'Có thể nhập nhiều quận/huyện, phân tách bằng dấu phẩy.' })}</div>`, footer: U.btn({ label: 'Hủy', act: 'c' }) + U.btn({ label: 'Thêm Khu nhà', icon: 'plus', cls: 'btn-primary', act: 's' }) });
+        U.bind(m.el, { c: () => m.close(), s: () => { const d = m.data(); if (!String(d.name || '').trim()) return U.setErrors(m.el, { name: 'Nhập tên Khu nhà' }); const same = [...persistedAreas.map(a => ({ ref: a.id, name: a.name })), ...w.areas].find(a => F.norm(a.name) === F.norm(d.name)); if (same) { building.areaRef = same.ref; m.close(); U.toast('info', 'Đã chọn Khu nhà có sẵn', same.name); TH.router.refresh(); return; } const area = { ref: F.uid('newa'), code: String(d.code || '').trim(), name: String(d.name).trim(), districts: String(d.districtsText || '').split(',').map(x => x.trim()).filter(Boolean) }; w.areas.push(area); building.areaRef = area.ref; m.close(); TH.router.refresh(); } });
+      },
+      cancel: async () => { if (await U.confirm({ title: 'Hủy onboarding?', text: 'Toàn bộ chủ nhà, tòa và Khu nhà đang nhập sẽ không được lưu.', ok: 'Hủy onboarding', danger: true })) { delete TH._wz.landlordOnboarding; TH.go(editing ? '#/landlords/' + w.landlordId + '?tab=buildings' : '#/landlords'); } },
+      submit: () => {
+        const usedAreaRefs = new Set((w.buildings || []).map(b => b.areaRef));
+        const payload = { landlord: Object.assign({}, w.landlord), areas: (w.areas || []).filter(a => usedAreaRefs.has(a.ref)), buildings: [...(w.selectedBuildingIds || []).map(id => ({ mode: 'existing', id, ref: 'existing:' + id })), ...(w.buildings || []).map(b => ({ mode: 'new', ref: b.ref, data: Object.assign({}, b) }))], contract: w.contract.enabled ? Object.assign({}, w.contract, { buildingRefs: [...w.contract.buildingRefs] }) : null };
+        const res = X.createLandlordOnboarding(payload); delete TH._wz.landlordOnboarding; U.toast('ok', editing ? 'Đã bổ sung tòa nhà' : 'Đã hoàn tất onboarding', res.buildings.length + ' tòa liên kết' + (res.contract ? ' · ' + res.contract.code : '')); TH.go('#/landlords/' + res.landlord.id + '?tab=buildings');
+      }
+    });
+  }, { menu: 'landlords', permission: 'landlords.manage' });
 
   TH.router.register('/landlords/:id', (root, p, q) => {
     const l = St.get('landlords', p.id); if (!l) { root.innerHTML = U.empty({ title: 'Không tìm thấy chủ nhà' }); return; }
@@ -50,11 +187,12 @@
     }
     if (tab === 'payments') { body.innerHTML = U.card({ title: 'Toàn bộ lịch thanh toán', icon: 'calendar', actions: U.btn({ label: 'Thêm kỳ', icon: 'plus', size: 'btn-sm', cls: 'btn-outline', act: 'add-pay' }), body: null, id: 'pay-card' }); const w = document.createElement('div'); body.querySelector('#pay-card').appendChild(w); payTable(w, pays, true); }
     if (tab === 'overview') body.innerHTML = `<div class="grid grid-2">${U.card({ title: 'Thông tin chủ nhà', icon: 'user-check', actions: U.btn({ label: 'Sửa', icon: 'pencil', size: 'btn-sm', cls: 'btn-outline', act: 'edit' }), body: U.kv([['Mã', esc(l.code)], ['Tên', esc(l.name)], ['Loại', l.type === 'company' ? 'Công ty' : 'Cá nhân'], ['MST', esc(l.taxCode || '-')], ['SĐT', esc(l.phone)], ['Email', esc(l.email)], ['Địa chỉ', esc(l.address || '-')], ['Tài khoản nhận tiền', esc(l.bankAccount || '-')], ['Chu kỳ trả', l.cycleMonths + ' tháng'], ['Người phụ trách', esc(Q.userName(l.managerId))]], 'one') })}${U.card({ title: 'Tổng quan thanh toán', icon: 'bar-chart-2', body: `<div class="grid grid-3">${U.stat('Đã trả', pays.filter(x => x.status === 'paid').length + ' kỳ', F.vnd(F.sum(pays.filter(x => x.status === 'paid'), x => x.amount)))}${U.stat('Chờ trả', pays.filter(x => x.status === 'pending').length + ' kỳ', F.vnd(F.sum(pays.filter(x => x.status === 'pending'), x => x.amount)))}${U.stat('Chưa đến hạn', pays.filter(x => x.status === 'upcoming').length + ' kỳ')}</div>` })}</div>`;
-    if (tab === 'buildings') { body.innerHTML = U.card({ title: 'Tòa nhà liên kết', icon: 'building', body: null, id: 'bc' }); const w = document.createElement('div'); body.querySelector('#bc').appendChild(w); U.table(w, { rows: l.buildingIds.map(id => Q.building(id)), noPager: true, cols: [{ key: 'code', label: 'Mã tòa', render: b => U.link('#/buildings/' + b.id, esc(b.code)) }, { key: 'name', label: 'Tên tòa' }, { key: 'address', label: 'Địa chỉ' }, { key: 'rooms', label: 'Số phòng', num: true, render: b => b.stub ? b.roomCount : Q.roomsOf(b.id).length }, { key: 'cycle', label: 'Chu kỳ', render: b => b.payCycle + ' tháng' }, { key: 'st', label: 'Trạng thái', render: b => Q.chip('building', b.status) }] }); }
+    if (tab === 'buildings') { body.innerHTML = U.card({ title: 'Tòa nhà liên kết', icon: 'building', actions: U.btn({ label: 'Thêm tòa', icon: 'plus', size: 'btn-sm', cls: 'btn-primary', act: 'add-building' }), body: null, id: 'bc' }); const w = document.createElement('div'); body.querySelector('#bc').appendChild(w); U.table(w, { rows: l.buildingIds.map(id => Q.building(id)).filter(Boolean), noPager: true, cols: [{ key: 'code', label: 'Mã tòa', render: b => U.link('#/buildings/' + b.id, esc(b.code)) }, { key: 'name', label: 'Tên tòa' }, { key: 'address', label: 'Địa chỉ' }, { key: 'area', label: 'Khu nhà quản lý', render: b => esc(Q.area(b.areaId).name || '-') }, { key: 'rooms', label: 'Số phòng', num: true, render: b => b.stub ? b.roomCount : Q.roomsOf(b.id).length }, { key: 'cycle', label: 'Chu kỳ', render: b => b.payCycle + ' tháng' }, { key: 'st', label: 'Trạng thái', render: b => Q.chip('building', b.status) }] }); }
     if (tab === 'docs') body.innerHTML = U.card({ title: 'Hồ sơ & tài liệu', icon: 'folder', sub: 'Sổ đỏ, PCCC, hợp đồng, biên bản (FR-DOC-03)', actions: U.btn({ label: 'Tải lên', icon: 'upload', size: 'btn-sm', cls: 'btn-primary', act: 'upload' }), body: docs.length ? `<div class="file-list">${docs.map(d => U.fileItem(d, U.iconBtn('download', 'dl', 'Tải', { 'data-name': d.fileName }) + (d.source === 'user' ? U.iconBtn('trash', 'rm-doc', 'Xóa', { 'data-id': d.id }) : ''))).join('')}</div>` : U.empty({ icon: 'folder', title: 'Chưa có tài liệu' }) });
     if (tab === 'history') { const logs = St.where('auditLog', x => (x.entityType === 'landlord' && x.entityId === l.id) || (x.entityType === 'landlordContract' && lcs.some(c => c.id === x.entityId)) || (x.entityType === 'landlordPayment' && pays.some(c => c.id === x.entityId))); body.innerHTML = U.card({ title: 'Lịch sử thao tác', icon: 'history', body: logs.length ? U.timeline(logs.map(x => ({ when: F.datetime(x.at), title: x.summary, sub: x.userName, color: 'blue' }))) : U.empty({ title: 'Chưa có lịch sử' }) }); }
     U.bind(root, {
       tab: (el) => { TH.router.replaceQuery({ tab: el.dataset.key }); TH.router.refresh(); }, edit: () => Fm.landlord(l), 'add-lc': () => Fm.landlordContract(l.id), 'edit-lc': (el) => Fm.landlordContract(l.id, St.get('landlordContracts', el.dataset.id)),
+      'add-building': () => openOnboarding(l, 2),
       schedule: () => lc ? Fm.landlordSchedule(lc) : U.toast('warn', 'Cần có hợp đồng đầu vào trước'), 'add-pay': () => lc ? Fm.landlordPayment(lc) : U.toast('warn', 'Cần có hợp đồng đầu vào trước'),
       'dl-all': () => U.fakePdf('Ho so chu nha ' + l.code, ['Chủ nhà: ' + l.name, 'SĐT: ' + l.phone, ...docs.map(d => '- ' + d.name + ' (' + d.fileName + ')')]), dl: (el) => U.fakePdf(el.dataset.name, ['Chủ nhà: ' + l.name]), upload: () => Fm.upload('landlord', l.id), 'rm-doc': (el) => X.removeDocument(el.dataset.id),
       'view-pay': (el) => { const x = St.get('landlordPayments', el.dataset.id); U.modal({ title: x.periodLabel, size: 'sm', body: U.kv([['Hạn thanh toán', F.date(x.dueDate)], ['Số tiền', F.vnd(x.amount) + ' VND'], ['Trạng thái', Q.chip('lpay', x.status)], ['Ngày thanh toán', x.paidDate ? F.date(x.paidDate) : '-'], ['Bằng chứng', esc(x.evidence || '-')]], 'one'), footer: x.status !== 'paid' ? U.btn({ label: 'Ghi nhận đã trả', cls: 'btn-primary', act: 'paid2', icon: 'check' }) : '' , onMount: (m) => U.bind(m.el, { paid2: () => { m.close(); Fm.landlordPaid(x); } }) }); },
