@@ -416,6 +416,12 @@ body.guide-open .guide{transform:none}
 .dp-page{background:#fff;box-shadow:var(--shadow-md);padding:36px 40px;font-family:'Times New Roman',Georgia,serif;font-size:13.5px;line-height:1.7;color:#111;max-width:640px;margin:0 auto}
 .dp-page h3{text-align:center;font-size:15px;margin:0 0 4px}.dp-page h4{text-align:center;font-size:16px;margin:12px 0}.dp-page p{margin:4px 0}.dp-page .c{text-align:center}
 .dp-page mark{padding:1px 4px;border-radius:3px}.dp-page mark.ok{background:#DBEAFE}.dp-page mark.check{background:#FDE68A}
+.dp-stacked .dp-scroll{max-height:820px}.dp-stacked .dp-page{margin-bottom:6px}.dp-page-label{max-width:640px;margin:0 auto 6px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding-top:8px}.dp-page-label:first-child{padding-top:0}
+.ocr-entities{display:grid;gap:6px}.ocr-entity{display:grid;grid-template-columns:112px minmax(0,1fr);gap:4px 12px;align-items:start;padding:8px 0;border-top:1px solid var(--border)}.ocr-entity:first-child{border-top:0;padding-top:0}.ocr-entity .lbl{display:flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;color:var(--text);padding-top:2px}.ocr-entity .val{font-size:13px;line-height:1.5;min-width:0}.ocr-entity .val b{color:var(--text)}.ocr-entity .act{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start}.ocr-entity .act:empty{display:none}
+.dp-page .dp-table{width:100%;border-collapse:collapse;margin:6px 0 10px;font-size:12.5px;line-height:1.4}.dp-page .dp-table th,.dp-page .dp-table td{border:1px solid #444;padding:3px 6px;vertical-align:top}.dp-page .dp-table th{font-weight:700;text-align:center;background:#F3F4F6}.dp-page .dp-table td.c{text-align:center}
+.dp-page .dp-svc{width:auto;min-width:70%;margin-left:24px}.dp-page .dp-svc td:nth-child(2),.dp-page .dp-svc td:nth-child(4){white-space:nowrap}
+.dp-page .dp-sign{display:grid;grid-template-columns:1fr 1fr;text-align:center;margin-top:28px}.dp-page .dp-sign small{color:#444}
+.ocr-group details summary::-webkit-details-marker{display:none}details.ocr-group>summary{list-style:none}details.ocr-group>summary::before{content:'▸ ';color:var(--muted)}details.ocr-group[open]>summary::before{content:'▾ '}
 .ocr-field .chip{margin-left:6px}
 .ocr-group h4{display:flex;align-items:center;gap:8px;font-size:14px;margin:0 0 10px;color:var(--text)}
 .ocr-review-summary{display:flex;align-items:center;justify-content:space-between;gap:16px}.ocr-review-summary>div:first-child{min-width:170px}.ocr-review-summary b{font-size:22px;color:var(--text)}.ocr-review-summary span{display:block;font-size:11.5px;color:var(--muted)}.ocr-review-summary .progress{height:5px;margin-top:7px}.ocr-review-modes{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.ocr-exception-list{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}.ocr-exception-list button{display:flex;align-items:center;gap:6px;border:1px solid #F6D58A;background:var(--amber-50);color:var(--amber);border-radius:999px;padding:5px 9px;font-size:11.5px}.ocr-exception-list button:hover{border-color:var(--amber-500)}.ocr-exception-list button span{display:flex;align-items:center;gap:4px}.ocr-exception-list button b{font-size:10.5px}.dp-page mark[data-ocr-mark]{cursor:pointer;transition:outline .15s}.ocr-pair-active{outline:2px solid var(--primary)!important;outline-offset:2px;border-radius:5px}[data-ocr-field].ocr-pair-active{padding:4px;background:var(--primary-50)}
@@ -513,3 +519,13 @@ td.c-P .att-btn{background:var(--green-bg);color:var(--green);border-color:trans
 .legal-item>svg{flex:none}.legal-item b{display:block;color:var(--text)}.legal-item small{display:block;color:var(--muted);margin-top:2px}
 .preset-list{display:flex;flex-direction:column;gap:4px;padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--border)}
 @media (max-width:760px){.wb-kpi-grid{grid-template-columns:1fr}.wb-assume{margin-left:0}}
+
+/* Bản ghi báo cáo (reportRuns.js): wizard 2 cột, chi tiết preview + thông tin, thẻ loại chưa chạy được */
+.rp-wz{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.rp-detail{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media(max-width:1100px){.rp-wz,.rp-detail{grid-template-columns:1fr}}
+.rc-card.rc-muted{opacity:.72;background:var(--gray-bg)}
+.rp-doc .dp-page,.rp-doc .dp-page-label{max-width:860px;font-family:inherit;font-size:12.5px;line-height:1.5;padding:28px 32px}
+.rp-doc .dp-page-label{padding:8px 0 0}
+.rp-doc .dp-page h3{font-size:11px;letter-spacing:.08em;color:#555}.rp-doc .dp-page h4{font-size:17px;margin:6px 0 2px}
+.rp-doc .dp-table td.num{text-align:right;white-space:nowrap}.rp-doc .rp-kpi{width:auto;min-width:60%;margin:10px auto 14px}.rp-doc .rp-kpi td:first-child{font-weight:600}

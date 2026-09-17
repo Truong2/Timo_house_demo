@@ -136,7 +136,7 @@
     q = F.norm(q).trim(); if (!q) return [];
     const out = []; const push = (type, label, sub, route) => out.length < 12 && out.push({ type, label, sub, route });
     TH.store.all('rooms').forEach(r => { if (F.norm(r.code).includes(q)) push('Phòng', r.code, Q.building(r.buildingId).name, '#/rooms/' + r.id); });
-    TH.store.all('tenants').forEach(t => { if (F.norm(t.name).includes(q) || F.norm(t.code).includes(q) || t.phone.replace(/\s/g, '').includes(q.replace(/\s/g, ''))) push('Khách thuê', t.name, t.code + ' · ' + t.phone, '#/tenants/' + t.id); });
+    TH.store.all('tenants').forEach(t => { const plates = Q.contractsOfTenant(t.id).flatMap(c => (c.vehicles || []).map(v => v.plate || '')).join(' '); if (F.norm(t.name).includes(q) || F.norm(t.code).includes(q) || t.phone.replace(/\s/g, '').includes(q.replace(/\s/g, '')) || F.norm(plates).includes(q)) push('Khách thuê', t.name, t.code + ' · ' + t.phone + (plates ? ' · ' + plates : ''), '#/tenants/' + t.id); });
     TH.store.all('contracts').forEach(c => { if (F.norm(c.code).includes(q)) push('Hợp đồng', c.code, Q.tenant(c.tenantId).name, '#/contracts/' + c.id); });
     TH.store.all('invoices').forEach(i => { if (F.norm(i.code).includes(q)) push('Hóa đơn', i.code, Q.tenant(i.tenantId).name + ' · ' + F.vnd(i.total), '#/invoices/' + i.id); });
     TH.store.where('buildings', b => !b.stub).forEach(b => { if (F.norm(b.name).includes(q) || F.norm(b.code).includes(q)) push('Tòa nhà', b.name, b.code, '#/buildings/' + b.id); });

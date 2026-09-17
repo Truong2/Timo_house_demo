@@ -4,6 +4,12 @@
   const err = (m) => { throw new Error(m); };
   const req = (v, m) => { if (v === undefined || v === null || v === '' || (typeof v === 'number' && isNaN(v))) err(m); return v; };
   const me = () => (St.state.session || {}).userId || null;
+  const needSaleScope = (saleId) => {
+    if (Au.role() !== 'sale') return true;
+    const allowed = Au.allowedSaleIds();
+    if (!allowed || !allowed.has(saleId || me())) err('Không được thao tác dữ liệu của nhân viên ngoài phạm vi cá nhân/team.');
+    return true;
+  };
   const yearCode = (date = F.today()) => String(date || F.today()).slice(0, 4);
   const periodCode = (period = F.today().slice(0, 7)) => String(period || F.today().slice(0, 7)).replace('-', '');
   const done = () => { St.save(); St.emit('change'); };
@@ -32,7 +38,7 @@
 
   /* ================= CRM ================= */
   X.saveLead = (d) => {
-    need2(); Au.need('crm.manage'); req(d.name, 'Họ tên là bắt buộc'); req(d.phone, 'Số điện thoại là bắt buộc'); req(d.sourceId, 'Chọn nguồn khách');
+    need2(); Au.need('crm.manage'); req(d.name, 'Họ tên là bắt buộc'); req(d.phone, 'Số điện thoại là bắt buộc'); req(d.sourceId, 'Chọn nguồn khách'); needSaleScope(d.saleId || me());
     const ph = String(d.phone).replace(/\s/g, ''); const dup = St.one('leads', l => l.id !== d.id && String(l.phone || '').replace(/\s/g, '') === ph && l.status !== 'lost');
     if (dup && !d.force) { const e = new Error('Trùng SĐT với lead ' + dup.name + ' (' + dup.code + ', ' + Q.label('lead', dup.status) + ') – FR-SAL-01'); e.code = 'DUP'; e.dupId = dup.id; throw e; }
     const payload = { name: d.name, phone: d.phone, email: d.email || '', sourceId: d.sourceId, channel: d.channel || '', roomType: d.roomType || '', people: F.num(d.people) || 1, budgetMin: F.num(d.budgetMin), budgetMax: F.num(d.budgetMax), buildingIds: Array.isArray(d.buildingIds) ? d.buildingIds.filter(Boolean) : (d.buildingIds ? [d.buildingIds] : []), moveInDate: d.moveInDate || '', handoverDate: d.handoverDate || F.today(), saleId: d.saleId || me(), temp: d.temp || 'warm', note: d.note || '', updatedAt: F.nowISO() };
@@ -71,7 +77,7 @@
     if (type === 'call' && result === 'no_answer') l.temp = l.temp === 'hot' ? 'warm' : 'cold'; if (result === 'interested') l.temp = 'hot';
     done(); return a;
   };
-  X.assignLead = (id, saleId) => { need2(); Au.need('crm.manage'); req(saleId, 'Chọn sale'); const l = St.update('leads', id, { saleId, updatedAt: F.nowISO() }); act(id, 'assign', 'Đổi sale phụ trách → ' + Q.userName(saleId)); done(); return l; };
+  X.assignLead = (id, saleId) => { need2(); Au.need('crm.manage'); req(saleId, 'Chọn sale'); needSaleScope(saleId); const current = St.get('leads', id); if (!current) err('Không tìm thấy lead trong phạm vi được phép'); const l = St.update('leads', id, { saleId, updatedAt: F.nowISO() }); act(id, 'assign', 'Đổi sale phụ trách → ' + Q.userName(saleId)); done(); return l; };
   X.importLeads = ({ rows, fileName, checksum }) => idem('lead-import:' + checksum, () => {
     need2(); Au.need('crm.manage'); let created = 0, skipped = 0; const lines = [];
     rows.forEach(r => { const d = r.data; const issues = []; if (!d.name) issues.push('Thiếu họ tên'); if (!d.phone) issues.push('Thiếu SĐT'); else if (St.one('leads', l => l.phone.replace(/\s/g, '') === d.phone.replace(/\s/g, ''))) issues.push('Trùng SĐT'); if (issues.length) { skipped++; lines.push({ i: r.i, src: Object.values(d).join(' | '), data: d, status: 'failed', reason: issues.join('; '), hash: F.hash(JSON.stringify(d)) }); return; }
@@ -81,7 +87,7 @@
   });
   /* ---- Lịch xem ---- */
   X.saveViewing = (d) => {
-    need2(); Au.need('viewings.manage'); req(d.leadId, 'Chọn lead'); req(d.roomId, 'Chọn phòng'); req(d.date, 'Ngày hẹn'); req(d.time, 'Giờ hẹn'); req(d.saleId, 'Nhân viên phụ trách'); req(d.remind, 'Phương thức nhắc hẹn'); req(d.place, 'Địa điểm gặp');
+    need2(); Au.need('viewings.manage'); req(d.leadId, 'Chọn lead'); req(d.roomId, 'Chọn phòng'); req(d.date, 'Ngày hẹn'); req(d.time, 'Giờ hẹn'); req(d.saleId, 'Nhân viên phụ trách'); req(d.remind, 'Phương thức nhắc hẹn'); req(d.place, 'Địa điểm gặp'); needSaleScope(d.saleId); if (!St.get('leads', d.leadId)) err('Lead nằm ngoài phạm vi được phép');
     if (!d.id && d.date < F.today()) err('Ngày hẹn phải từ hôm nay trở đi');
     const clash = St.one('viewings', v => v.id !== d.id && v.status === 'scheduled' && v.saleId === d.saleId && v.date === d.date && v.time === d.time); if (clash && !d.force) { const e = new Error('Nhân viên ' + Q.userName(d.saleId) + ' đã có lịch ' + clash.code + ' lúc ' + d.time + ' ' + F.date(d.date)); e.code = 'CLASH'; throw e; }
     const room = Q.room(d.roomId); const payload = { leadId: d.leadId, roomId: d.roomId, buildingId: room.buildingId, date: d.date, time: d.time, saleId: d.saleId, remind: d.remind, place: d.place, note: d.note || '' };
@@ -105,7 +111,7 @@
   };
   /* ---- Giữ chỗ ---- */
   X.convertLead = (leadId) => {
-    need2(); const l = St.get('leads', leadId); if (!l) err('Không tìm thấy lead'); if (l.tenantId && St.get('tenants', l.tenantId)) return St.get('tenants', l.tenantId);
+    need2(); Au.need('crm.convert'); const l = St.get('leads', leadId); if (!l) err('Không tìm thấy lead'); if (l.tenantId && St.get('tenants', l.tenantId)) return St.get('tenants', l.tenantId);
     const ph = String(l.phone).replace(/\s/g, ''); let t = St.one('tenants', x => String(x.phone || '').replace(/\s/g, '') === ph);
     if (!t) { t = St.add('tenants', { code: St.nextCode('tenants', 'KH', 5), name: l.name, phone: l.phone, zalo: l.phone, email: l.email || '', idNumber: '', dob: '', job: '', segment: '', verified: false, managerId: me(), note: 'Tạo từ lead ' + l.code, fromLeadId: l.id }); St.audit('create', 'tenant', t.id, 'Tạo khách thuê ' + t.name + ' từ lead ' + l.code); }
     l.tenantId = t.id; St.save(); return t;
@@ -139,7 +145,7 @@
     placeLead(l, 'won'); l.updatedAt = F.nowISO(); act(l.id, 'deal', 'Chốt thuê ' + deal.code + ' – phòng ' + room.code + ' – ' + F.vnd(price) + '/tháng');
     St.audit('create', 'deal', deal.id, 'Chốt thuê ' + deal.code + ' – ' + t.name + ' – ' + room.code); done(); return deal;
   };
-  X.linkDealContract = (dealId, contractId) => { const d = St.get('deals', dealId); const c = St.get('contracts', contractId); if (!d || !c) return; d.contractId = c.id; c.dealId = d.id; if (c.status === 'active') d.status = 'active'; St.save(); };
+  X.linkDealContract = (dealId, contractId) => { Au.need('contracts.manage'); const d = St.get('deals', dealId); const c = St.get('contracts', contractId); if (!d || !c) return; d.contractId = c.id; c.dealId = d.id; if (c.status === 'active') d.status = 'active'; St.save(); };
   X.recordDealDeposit = (dealId, { amount, date, method, ref }) => {
     need2(); Au.need('payments.record'); const d = St.get('deals', dealId); if (!d) err('Không tìm thấy giao dịch'); const amt = F.num(amount); if (amt <= 0) err('Số tiền phải lớn hơn 0'); req(date, 'Ngày thu'); req(method, 'Phương thức');
     if (Q.periodLocked(F.period(date))) err('Kỳ ' + F.periodLabel(F.period(date)) + ' đã khóa – không ghi nhận thu (FR-FIN-08)');
@@ -162,29 +168,24 @@
   wrap('activateContract', (c) => { if (!c || !c.id) return; const d = St.one('deals', x => x.contractId === c.id) || (c.dealId ? St.get('deals', c.dealId) : null); if (d && d.status === 'pending_contract') { d.status = 'active'; St.save(); } });
   wrap('cancelContract', (r, args) => { const c = St.get('contracts', args[0]); const d = c && c.dealId ? St.get('deals', c.dealId) : null; if (d) { d.status = 'ended'; d.contractId = null; St.save(); } });
   wrap('terminateContract', (r) => { const c = r && r.contract; const d = c && c.dealId ? St.get('deals', c.dealId) : null; if (d) { d.status = 'ended'; St.save(); } });
-  wrap('saveContractDraft', (c, args) => { const d0 = args[0] || {}; if (d0.dealId && c) X.linkDealContract(d0.dealId, c.id); if (d0.ocrId && c) { const o = St.get('ocrExtractions', d0.ocrId); if (o) { o.contractId = c.id; o.status = 'created'; c.source = 'ocr'; c.ocrId = o.id; St.save(); } } });
+  wrap('saveContractDraft', (c, args) => { const d0 = args[0] || {}; if (d0.dealId && c) X.linkDealContract(d0.dealId, c.id); if (d0.ocrId && c) { const o = St.get('ocrExtractions', d0.ocrId); if (o) { o.contractId = c.id; o.status = 'created'; c.source = 'ocr'; c.ocrId = o.id; if (!c.tenantId && o.tenantId) c.tenantId = o.tenantId; St.save(); } } });
 
   /* ================= OCR hợp đồng ================= */
-  X.ocrUpload = ({ fileName, size, sample }) => { need2(); Au.need('ocr.use'); req(fileName, 'Chọn file'); if (size && size > 20 * 1024 * 1024) err('File tối đa 20MB (FR-DOC-01)'); if (!/\.(pdf|jpe?g|png|txt)$/i.test(fileName)) err('Chỉ nhận PDF/JPG/PNG'); const o = St.add('ocrExtractions', { code: St.nextCode('ocrExtractions', 'OCR-' + yearCode() + '-', 3), fileName, size: size ? (size / 1024 / 1024).toFixed(1) + ' MB' : '2.4 MB', pages: 6, sample: !!sample, status: 'uploaded', fields: [], contractId: null, createdBy: me() }); St.audit('upload', 'ocr', o.id, 'Tải file trích xuất ' + fileName); done(); return o; };
-  /* Mô phỏng trích xuất: file mẫu cố tình sai 5 trường (tên, mã phòng, cọc, ngày kết thúc, SĐT) → confidence < 0.8 = Cần kiểm tra */
+  X.ocrUpload = ({ fileName, size, sample, text, pages }) => { need2(); Au.need('ocr.use'); req(fileName, 'Chọn file'); if (size && size > 20 * 1024 * 1024) err('File tối đa 20MB (FR-DOC-01)'); if (!/\.(pdf|txt)$/i.test(fileName)) err('Chỉ nhận PDF điền trên máy hoặc .txt (ảnh scan chưa hỗ trợ)'); if (!sample && !(text && text.trim())) err('Không đọc được nội dung văn bản của file'); const o = St.add('ocrExtractions', { code: St.nextCode('ocrExtractions', 'OCR-' + yearCode() + '-', 3), fileName, size: size ? (size / 1024 / 1024).toFixed(1) + ' MB' : '0.3 MB', pages: pages || 4, sample: !!sample, text: sample ? '' : String(text || ''), status: 'uploaded', fields: [], assets: [], contractId: null, createdBy: me() }); St.audit('upload', 'ocr', o.id, 'Tải file trích xuất ' + fileName); done(); return o; };
+  /* Trích xuất thật bằng TH.ocrParser (template HĐ cho thuê phòng): file mẫu cố tình sai 5 trường (tên, SĐT, mã phòng, cọc, ngày kết thúc) → confidence < 0.8 = Cần kiểm tra */
   X.ocrExtract = (id) => { need2(); const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); o.status = 'extracting'; St.save(); St.emit('change', { source: 'timer' }); return o; };
   X.ocrFinish = (id) => {
-    const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); const s = TH.ocr ? TH.ocr.sampleSpec() : {};
-    const f = (key, label, value, confidence, group, money = false) => ({ key, label, value, confidence, group, money, raw: value, confirmed: confidence >= 0.8 });
-    o.fields = [
-      f('tenantName', 'Họ và tên', s.tenantNameWrong, 0.62, 'tenant'), f('idNumber', 'CMND/CCCD', s.idNumber, 0.97, 'tenant'), f('phone', 'Số điện thoại', s.phoneWrong, 0.55, 'tenant'), f('address', 'Địa chỉ thường trú', s.address, 0.9, 'tenant'), f('email', 'Email', s.email, 0.91, 'tenant'),
-      f('buildingName', 'Tòa nhà', s.buildingName, 0.96, 'room'), f('roomCode', 'Phòng', s.roomCodeWrong, 0.71, 'room'), f('roomType', 'Loại phòng', s.roomType, 0.93, 'room'), f('area', 'Diện tích (m²)', String(s.area), 0.95, 'room'),
-      f('start', 'Ngày bắt đầu', s.start, 0.94, 'term'), f('end', 'Ngày kết thúc', s.endWrong, 0.66, 'term'), f('months', 'Thời hạn', '12 tháng', 0.95, 'term'),
-      f('price', 'Giá thuê (VND)', String(s.price), 0.79, 'money', true), f('deposit', 'Tiền cọc (VND)', s.depositWrong, 0.41, 'money', true), f('cycle', 'Chu kỳ thanh toán', 'Hàng tháng', 0.98, 'money'), f('payDay', 'Ngày thanh toán hàng tháng', '05', 0.9, 'money'), f('note', 'Ghi chú', '', 1, 'money'),
-      f('svc_internet', 'Internet', 'true', 0.9, 'services'), f('svc_cable', 'Truyền hình', 'false', 0.9, 'services'), f('svc_parking', 'Giữ xe máy', 'true', 0.88, 'services'), f('svc_clean', 'Dọn vệ sinh', 'false', 0.9, 'services'), f('svc_mgmt', 'Phí quản lý', 'false', 0.85, 'services'), f('svc_other', 'Khác', 'false', 0.9, 'services'),
-      f('landlord', 'Bên cho thuê', 'Trần Văn Hải', 0.95, 'meta'), f('contractNo', 'Số hợp đồng', 'HD-2026-001', 0.97, 'meta'), f('signPlace', 'Nơi ký', 'TP. Hồ Chí Minh', 0.93, 'meta'), f('signDate', 'Ngày ký', '01/11/2026', 0.96, 'meta'), f('idDate', 'Ngày cấp CCCD', '12/05/2021', 0.9, 'meta'), f('bank', 'Tài khoản nhận', 'VCB 0011 002233', 0.92, 'meta'),
-    ];
-    o.status = 'review'; o.extractedAt = F.nowISO(); St.audit('extract', 'ocr', id, 'Trích xuất ' + o.fields.length + ' trường (' + o.fields.filter(x => !x.confirmed).length + ' cần kiểm tra)'); done(); return o;
+    const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); if (!TH.ocrParser) err('Thiếu module trích xuất');
+    const r = TH.ocrParser.parse(o.sample && TH.ocr ? TH.ocr.sampleText() : (o.text || ''));
+    o.fields = r.fields; o.assets = r.assets; o.buildingHint = r.buildingHint || ''; o.status = 'review'; o.extractedAt = F.nowISO(); St.audit('extract', 'ocr', id, 'Trích xuất ' + r.meta.found + '/' + r.meta.total + ' trường (' + r.meta.pending + ' cần kiểm tra, ' + r.assets.length + ' tài sản)'); done(); return o;
   };
   X.ocrSetField = (id, key, value, confirm = true) => { need2(); const o = St.get('ocrExtractions', id); const fl = (o.fields || []).find(x => x.key === key); if (!fl) err('Trường không tồn tại'); fl.value = value; fl.confirmed = !!confirm || (fl.value !== '' && fl.value !== fl.raw); fl.editedAt = F.nowISO(); St.save(); return fl; };
   X.ocrConfirmField = (id, key) => { const o = St.get('ocrExtractions', id); const fl = (o.fields || []).find(x => x.key === key); if (fl) { fl.confirmed = true; St.save(); } return fl; };
+  /* OCR = bước tạo khách thuê: gán khách có sẵn hoặc tạo mới từ dữ liệu HĐ (khớp SĐT → dùng khách trùng thay vì báo lỗi) */
+  X.ocrSetTenant = (id, tenantId) => { need2(); const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); const t = St.get('tenants', tenantId); if (!t) err('Không tìm thấy khách thuê'); o.tenantId = t.id; St.audit('link', 'ocr', id, 'Gán khách thuê ' + t.name + ' (' + t.code + ') cho trích xuất'); done(); return t; };
+  X.ocrCreateTenant = (id, override = {}) => { need2(); const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); const e = TH.ocrParser.entities(o); const d = e.tenant.data; const ph = String(d.phone || '').replace(/\D/g, ''); const dup = ph ? St.one('tenants', t => String(t.phone || '').replace(/\D/g, '') === ph) : null; if (dup && !override.force) { o.tenantId = dup.id; St.save(); return dup; } const t = X.saveTenant(Object.assign({ name: d.name, phone: ph || d.phone, idNumber: String(d.idNumber || '').replace(/\D/g, ''), idPlace: d.idPlace || '', dob: F.fromVN(d.dob) || '', address: d.address || '', note: 'Tạo từ trích xuất hợp đồng ' + o.code + (e.contract.contractNo ? ' (HĐ ' + e.contract.contractNo + ')' : '') }, override)); o.tenantId = t.id; St.audit('create', 'ocr', id, 'Tạo khách thuê ' + t.name + ' từ trích xuất'); done(); return t; };
   X.ocrRerun = (id) => { need2(); const o = St.get('ocrExtractions', id); o.fields.forEach(x => { x.value = x.raw; x.confirmed = x.confidence >= 0.8; delete x.editedAt; }); o.rerunAt = F.nowISO(); St.audit('rerun', 'ocr', id, 'Chạy lại trích xuất'); done(); return o; };
-  X.ocrReadyToCreate = (o) => { const rc = (o.fields || []).find(x => x.key === 'roomCode'); if (rc && !St.one('rooms', r => r.code === rc.value)) err('Mã phòng "' + (rc.value || '') + '" không tồn tại – chọn lại phòng trước khi tạo hợp đồng'); const pending = (o.fields || []).filter(x => !x.confirmed); const money = pending.filter(x => x.money); if (money.length) err('Trường ảnh hưởng tiền phải được xác nhận trước khi tạo hợp đồng (BR-03): ' + money.map(x => x.label).join(', ')); if (pending.length) err('Còn ' + pending.length + ' trường Cần kiểm tra chưa xác nhận'); return true; };
+  X.ocrReadyToCreate = (o) => { const rc = (o.fields || []).find(x => x.key === 'roomCode'); if (rc && !St.one('rooms', r => r.code === rc.value)) err('Mã phòng "' + (rc.value || '') + '" không tồn tại – chọn lại phòng trước khi tạo hợp đồng'); const fv = (k) => ((o.fields || []).find(x => x.key === k) || {}).value || ''; const st = F.fromVN(fv('start')), en = F.fromVN(fv('end')); if (st && en && en <= st) err('Ngày kết thúc phải sau ngày bắt đầu (' + fv('start') + ' → ' + fv('end') + ')'); const pending = (o.fields || []).filter(x => !x.confirmed); const money = pending.filter(x => x.money); if (money.length) err('Trường ảnh hưởng tiền phải được xác nhận trước khi tạo hợp đồng (BR-03): ' + money.map(x => x.label).join(', ')); if (pending.length) err('Còn ' + pending.length + ' trường Cần kiểm tra chưa xác nhận'); return true; };
 
   /* ================= Bảng kê thu tiền ================= */
   X.matchStatement = (rows) => {
@@ -239,47 +240,53 @@
 
   /* ================= Hoàn cọc nâng cao ================= */
   X.requestRefundEdit = (id, reason) => { need2(); Au.need('refunds.requestEdit', 'Chỉ Admin/Kế toán được yêu cầu chỉnh sửa (FR-FIN-07)'); const rf = St.get('refunds', id); if (rf.status !== 'pending') err('Hồ sơ không ở trạng thái Chờ duyệt'); req(reason, 'Nhập nội dung cần chỉnh sửa'); Object.assign(rf, { status: 'needs_edit', editReason: reason, editRequestedAt: F.nowISO(), editRequestedBy: me() }); (rf.history = rf.history || []).push({ at: F.nowISO(), by: me(), status: 'needs_edit', note: reason }); (rf.notes = rf.notes || []).unshift({ at: F.nowISO(), by: me(), text: 'Yêu cầu chỉnh sửa: ' + reason, tag: 'Yêu cầu' }); St.audit('request_edit', 'refund', id, 'Yêu cầu chỉnh sửa ' + rf.code + ': ' + reason); done(); return rf; };
-  X.addRefundNote = (id, text) => { need2(); const rf = St.get('refunds', id); req(text, 'Nhập ghi chú'); (rf.notes = rf.notes || []).unshift({ at: F.nowISO(), by: me(), text, tag: 'Nội bộ' }); done(); return rf; };
-  X.setRefundInspection = (id, { inspection2, photos }) => { need2(); const rf = St.get('refunds', id); if (!['draft', 'needs_edit', 'rejected', 'pending'].includes(rf.status)) err('Hồ sơ đã duyệt – không sửa hiện trạng'); if (inspection2) rf.inspection2 = inspection2; if (photos) rf.photos = photos; St.audit('inspection', 'refund', id, 'Cập nhật hiện trạng phòng ' + rf.code); done(); return rf; };
-  X.saveRefundDeductions = (id, deductions) => { need2(); const rf = St.get('refunds', id); if (!['draft', 'needs_edit', 'rejected'].includes(rf.status)) err('Chỉ sửa khấu trừ khi hồ sơ Nháp / Cần chỉnh sửa (số đã duyệt bị đổi phải duyệt lại – FR-FIN-07)'); St.removeWhere('refundDeductions', x => x.refundId === id); deductions.forEach(x => { if (x.desc || x.amount) St.add('refundDeductions', { refundId: id, group: x.group || 'Khác', desc: x.desc || '', qty: F.num(x.qty) || 1, unitPrice: F.num(x.unitPrice) || F.num(x.amount), amount: Math.max(0, F.num(x.amount) || (F.num(x.qty) || 1) * F.num(x.unitPrice)), note: x.note || '', evidenceCount: x.evidenceCount || 1, status: 'confirmed' }); }); const comp = Q.refundCompute(rf); rf.deductionsTotal = comp.ded; rf.refundAmount = comp.refund; St.audit('save', 'refund', id, 'Cập nhật bảng khấu trừ ' + rf.code + ' – ' + F.vnd(comp.ded)); done(); return rf; };
+  X.addRefundNote = (id, text) => { need2(); Au.need('refunds.prepare'); const rf = St.get('refunds', id); req(text, 'Nhập ghi chú'); (rf.notes = rf.notes || []).unshift({ at: F.nowISO(), by: me(), text, tag: 'Nội bộ' }); done(); return rf; };
+  X.setRefundInspection = (id, { inspection2, photos }) => { need2(); Au.need('refunds.prepare'); const rf = St.get('refunds', id); if (!['draft', 'needs_edit', 'rejected', 'pending'].includes(rf.status)) err('Hồ sơ đã duyệt – không sửa hiện trạng'); if (inspection2) rf.inspection2 = inspection2; if (photos) rf.photos = photos; St.audit('inspection', 'refund', id, 'Cập nhật hiện trạng phòng ' + rf.code); done(); return rf; };
+  X.saveRefundDeductions = (id, deductions) => { need2(); Au.need('refunds.prepare'); const rf = St.get('refunds', id); if (!['draft', 'needs_edit', 'rejected'].includes(rf.status)) err('Chỉ sửa khấu trừ khi hồ sơ Nháp / Cần chỉnh sửa (số đã duyệt bị đổi phải duyệt lại – FR-FIN-07)'); St.removeWhere('refundDeductions', x => x.refundId === id); deductions.forEach(x => { if (x.desc || x.amount) St.add('refundDeductions', { refundId: id, group: x.group || 'Khác', desc: x.desc || '', qty: F.num(x.qty) || 1, unitPrice: F.num(x.unitPrice) || F.num(x.amount), amount: Math.max(0, F.num(x.amount) || (F.num(x.qty) || 1) * F.num(x.unitPrice)), note: x.note || '', evidenceCount: x.evidenceCount || 1, status: 'confirmed' }); }); const comp = Q.refundCompute(rf); rf.deductionsTotal = comp.ded; rf.refundAmount = comp.refund; St.audit('save', 'refund', id, 'Cập nhật bảng khấu trừ ' + rf.code + ' – ' + F.vnd(comp.ded)); done(); return rf; };
 
   /* ================= Bảo trì ================= */
   X.saveIncident = (d) => {
-    need2(); Au.need('maintenance.manage'); req(d.buildingId, 'Chọn tòa'); req(d.category, 'Chọn hạng mục'); req(d.priority, 'Chọn ưu tiên'); req(d.desc, 'Mô tả sự cố');
+    need2(); Au.need('maintenance.manage', d.id ? { type: 'incident', record: St.get('incidents', d.id) } : { buildingId: d.buildingId }); req(d.buildingId, 'Chọn tòa'); req(d.category, 'Chọn hạng mục'); req(d.priority, 'Chọn ưu tiên'); req(d.desc, 'Mô tả sự cố');
     if (!Au.can('maintenance.manage', { buildingId: d.buildingId })) err('Tòa ngoài phạm vi được phân công (FR-MNT-03)');
+    if (Au.role() === 'kythuat' && d.assigneeId && d.assigneeId !== me()) err('Kỹ thuật chỉ được nhận sự cố cho chính mình.');
     const payload = { buildingId: d.buildingId, roomId: d.roomId || null, category: d.category, priority: d.priority, desc: d.desc, dueDate: d.dueDate || F.addDays(F.today(), d.priority === 'urgent' ? 1 : d.priority === 'high' ? 3 : 7), assigneeId: d.assigneeId || null, photos: d.photos || [], cost: F.num(d.cost) || 0, vendorId: d.vendorId || null };
     if (d.id) { const i = St.update('incidents', d.id, payload); St.add('incidentUpdates', { incidentId: i.id, at: F.nowISO(), by: me(), type: 'edit', note: 'Cập nhật thông tin sự cố' }); St.audit('update', 'incident', i.id, 'Cập nhật sự cố ' + i.code); done(); return i; }
     const i = St.add('incidents', Object.assign({ code: St.nextCode('incidents', 'SC-' + F.today().slice(0, 7).replace('-', '') + '-', 3), status: payload.assigneeId ? 'assigned' : 'new', expenseId: null, createdBy: me(), doneAt: null }, payload));
     St.add('incidentUpdates', { incidentId: i.id, at: F.nowISO(), by: me(), type: 'create', note: 'Tạo sự cố' + (i.assigneeId ? ' – phân công ' + Q.userName(i.assigneeId) : '') }); St.audit('create', 'incident', i.id, 'Tạo sự cố ' + i.code + ' – ' + i.category + (i.roomId ? ' – phòng ' + Q.room(i.roomId).code : '')); done(); return i;
   };
   X.assignIncident = (id, assigneeId) => { need2(); Au.need('maintenance.assign'); const i = St.get('incidents', id); if (['done', 'cancelled'].includes(i.status)) err('Sự cố đã đóng'); req(assigneeId, 'Chọn người phụ trách'); i.assigneeId = assigneeId; if (i.status === 'new') i.status = 'assigned'; St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'assign', note: 'Phân công ' + Q.userName(assigneeId) }); St.audit('assign', 'incident', id, 'Phân công ' + i.code + ' → ' + Q.userName(assigneeId)); done(); return i; };
-  X.startIncident = (id) => { need2(); Au.need('maintenance.manage'); const i = St.get('incidents', id); if (!['new', 'assigned'].includes(i.status)) err('Sự cố không ở trạng thái Mới/Đã phân công'); i.status = 'in_progress'; i.assigneeId = i.assigneeId || me(); i.startedAt = F.nowISO(); St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'start', note: 'Bắt đầu xử lý' }); St.audit('start', 'incident', id, 'Bắt đầu xử lý ' + i.code); done(); return i; };
+  X.startIncident = (id) => { need2(); const i = St.get('incidents', id); if (!i) err('Không tìm thấy sự cố trong phạm vi được phép'); Au.need('maintenance.manage', { type: 'incident', record: i }); if (!['new', 'assigned'].includes(i.status)) err('Sự cố không ở trạng thái Mới/Đã phân công'); i.status = 'in_progress'; i.assigneeId = i.assigneeId || me(); i.startedAt = F.nowISO(); St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'start', note: 'Bắt đầu xử lý' }); St.audit('start', 'incident', id, 'Bắt đầu xử lý ' + i.code); done(); return i; };
   X.completeIncident = (id, { cost, vendorId, note, photos }) => {
-    need2(); Au.need('maintenance.manage'); const i = St.get('incidents', id); if (!['assigned', 'in_progress', 'new'].includes(i.status)) err('Sự cố đã đóng'); const c = F.num(cost);
+    need2(); const i = St.get('incidents', id); if (!i) err('Không tìm thấy sự cố trong phạm vi được phép'); Au.need('maintenance.manage', { type: 'incident', record: i }); if (!['assigned', 'in_progress', 'new'].includes(i.status)) err('Sự cố đã đóng'); const c = F.num(cost);
     if (c > 0 && Q.periodLocked(F.period(F.today()))) err('Kỳ hiện tại đã khóa – không ghi chi phí (FR-FIN-08)');
     Object.assign(i, { status: 'done', cost: c, vendorId: vendorId || i.vendorId, doneAt: F.nowISO(), doneNote: note || '', photos: (i.photos || []).concat(photos || []) });
     if (c > 0) { const ex = St.add('expenses', { code: St.nextCode('expenses', 'CP', 4), date: F.today(), group: 'Sửa chữa', desc: 'Sửa chữa ' + i.category.toLowerCase() + (i.roomId ? ' phòng ' + Q.room(i.roomId).code : '') + ' (' + i.code + ')', buildingId: i.buildingId, roomId: i.roomId, amount: c, recordType: 'ops', method: 'cash', evidence: photos && photos[0] ? photos[0] : 'bien_ban_' + i.code + '.pdf', note: (note || '') + (vendorId ? ' – NCC ' + Q.vendor(vendorId).name : ''), createdBy: me(), status: 'recorded', incidentId: i.id }); i.expenseId = ex.id; }
     St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'done', note: 'Hoàn tất' + (c ? ' – chi phí ' + F.vnd(c) : '') + (note ? ' – ' + note : '') }); St.audit('done', 'incident', id, 'Hoàn tất ' + i.code + (c ? ' – chi phí ' + F.vnd(c) : '')); done(); return i;
   };
-  X.cancelIncident = (id, reason) => { need2(); Au.need('maintenance.manage'); const i = St.get('incidents', id); if (i.status === 'done') err('Sự cố đã hoàn tất'); req(reason, 'Nhập lý do hủy'); i.status = 'cancelled'; i.cancelReason = reason; St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'cancel', note: 'Hủy: ' + reason }); St.audit('cancel', 'incident', id, 'Hủy ' + i.code); done(); return i; };
-  X.addIncidentUpdate = (id, note, photos) => { need2(); req(note, 'Nhập nội dung'); const i = St.get('incidents', id); if (photos && photos.length) i.photos = (i.photos || []).concat(photos); St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'note', note, photos: photos || [] }); done(); };
+  X.cancelIncident = (id, reason) => { need2(); if (Au.role() === 'kythuat') err('Kỹ thuật không được hủy sự cố.'); const i = St.get('incidents', id); if (!i) err('Không tìm thấy sự cố trong phạm vi được phép'); Au.need('maintenance.manage', { type: 'incident', record: i }); if (i.status === 'done') err('Sự cố đã hoàn tất'); req(reason, 'Nhập lý do hủy'); i.status = 'cancelled'; i.cancelReason = reason; St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'cancel', note: 'Hủy: ' + reason }); St.audit('cancel', 'incident', id, 'Hủy ' + i.code); done(); return i; };
+  X.addIncidentUpdate = (id, note, photos) => { need2(); req(note, 'Nhập nội dung'); const i = St.get('incidents', id); if (!i) err('Không tìm thấy sự cố trong phạm vi được phép'); Au.need('maintenance.manage', { type: 'incident', record: i }); if (photos && photos.length) i.photos = (i.photos || []).concat(photos); St.add('incidentUpdates', { incidentId: id, at: F.nowISO(), by: me(), type: 'note', note, photos: photos || [] }); done(); };
   X.saveSchedule = (d) => {
     need2(); Au.need('maintenance.schedule'); req(d.item, 'Hạng mục/thiết bị'); req(d.buildingId, 'Chọn tòa'); req(d.cycle, 'Chu kỳ'); req(d.date, 'Ngày dự kiến');
+    Au.need('maintenance.schedule', { buildingId: d.buildingId });
+    if (Au.role() === 'kythuat') {
+      if (!d.id) err('Kỹ thuật chỉ thực hiện lịch được giao, không được tạo lịch mới.');
+      if (d.assigneeId && d.assigneeId !== me()) err('Kỹ thuật không được chuyển lịch cho người khác.');
+    }
     const payload = { item: d.item, equipType: d.equipType || d.item, buildingId: d.buildingId, cycle: d.cycle, date: d.date, vendorId: d.vendorId || null, assigneeId: d.assigneeId || null, checklist: (d.checklist || []).filter(x => x && x.text).map(x => ({ text: x.text, done: !!x.done })), note: d.note || '' };
     if (d.id) { const s = St.get('maintenanceSchedules', d.id); if (!s) err('Không tìm thấy lịch'); if (['done', 'cancelled'].includes(s.status)) err('Lịch đã đóng'); const before = s.date; Object.assign(s, payload); St.audit('update', 'schedule', s.id, 'Cập nhật lịch ' + s.code + (before !== s.date ? ' – đổi ngày ' + F.date(before) + ' → ' + F.date(s.date) + ' (cập nhật nhắc)' : '')); done(); return s; }
     const s = St.add('maintenanceSchedules', Object.assign({ code: St.nextCode('maintenanceSchedules', 'BD-' + F.today().slice(0, 7).replace('-', '') + '-', 3), status: 'scheduled', doneAt: null, cost: 0, expenseId: null, nextId: null, createdBy: me() }, payload));
     St.audit('create', 'schedule', s.id, 'Tạo lịch bảo dưỡng ' + s.code + ' – ' + s.item + ' ' + F.date(s.date)); done(); return s;
   };
-  X.startSchedule = (id) => { need2(); Au.need('maintenance.schedule'); const s = St.get('maintenanceSchedules', id); if (s.status !== 'scheduled') err('Lịch không ở trạng thái Đã lên lịch'); s.status = 'in_progress'; s.startedAt = F.nowISO(); s.assigneeId = s.assigneeId || me(); St.audit('start', 'schedule', id, 'Bắt đầu ' + s.code); done(); return s; };
+  X.startSchedule = (id) => { need2(); const s = St.get('maintenanceSchedules', id); if (!s) err('Không tìm thấy lịch trong phạm vi được phép'); Au.need('maintenance.schedule', { type: 'maintenanceSchedule', record: s }); if (s.status !== 'scheduled') err('Lịch không ở trạng thái Đã lên lịch'); s.status = 'in_progress'; s.startedAt = F.nowISO(); s.assigneeId = s.assigneeId || me(); St.audit('start', 'schedule', id, 'Bắt đầu ' + s.code); done(); return s; };
   X.completeSchedule = (id, { checklist, cost, note, photos }) => {
-    need2(); Au.need('maintenance.schedule'); const s = St.get('maintenanceSchedules', id); if (['done', 'cancelled'].includes(s.status)) err('Lịch đã đóng'); const c = F.num(cost);
+    need2(); const s = St.get('maintenanceSchedules', id); if (!s) err('Không tìm thấy lịch trong phạm vi được phép'); Au.need('maintenance.schedule', { type: 'maintenanceSchedule', record: s }); if (['done', 'cancelled'].includes(s.status)) err('Lịch đã đóng'); const c = F.num(cost);
     if (c > 0 && Q.periodLocked(F.period(F.today()))) err('Kỳ hiện tại đã khóa – không ghi chi phí (FR-FIN-08)');
     if (checklist) s.checklist = checklist; else (s.checklist || []).forEach(x => x.done = true); Object.assign(s, { status: 'done', doneAt: F.nowISO(), cost: c, doneNote: note || '', photos: photos || [] });
     if (c > 0) { const ex = St.add('expenses', { code: St.nextCode('expenses', 'CP', 4), date: F.today(), group: 'Sửa chữa', desc: 'Bảo dưỡng ' + s.item + ' (' + s.code + ')', buildingId: s.buildingId, amount: c, recordType: 'ops', method: 'cash', evidence: 'bien_ban_' + s.code + '.pdf', note: note || '', createdBy: me(), status: 'recorded', scheduleId: s.id }); s.expenseId = ex.id; }
     const add = { monthly: 1, q: 3, h: 6, y: 12 }[s.cycle]; if (add) { const nx = St.add('maintenanceSchedules', { code: St.nextCode('maintenanceSchedules', 'BD-' + F.addMonths(s.date, add).slice(0, 7).replace('-', '') + '-', 3), item: s.item, equipType: s.equipType, buildingId: s.buildingId, cycle: s.cycle, date: F.addMonths(s.date, add), vendorId: s.vendorId, assigneeId: s.assigneeId, checklist: (s.checklist || []).map(x => ({ text: x.text, done: false })), note: 'Tự sinh từ ' + s.code, status: 'scheduled', doneAt: null, cost: 0, expenseId: null, nextId: null, createdBy: me(), prevId: s.id }); s.nextId = nx.id; }
     St.audit('done', 'schedule', id, 'Hoàn thành ' + s.code + (c ? ' – chi phí ' + F.vnd(c) : '') + (s.nextId ? ' – sinh lịch kế tiếp' : '')); done(); return s;
   };
-  X.cancelSchedule = (id, reason) => { need2(); Au.need('maintenance.schedule'); const s = St.get('maintenanceSchedules', id); if (s.status === 'done') err('Lịch đã hoàn thành'); s.status = 'cancelled'; s.cancelReason = reason || ''; St.audit('cancel', 'schedule', id, 'Hủy lịch ' + s.code + ' – không sinh nhắc mới (AC-MNT-01-2)'); done(); return s; };
+  X.cancelSchedule = (id, reason) => { need2(); if (Au.role() === 'kythuat') err('Kỹ thuật không được hủy lịch bảo dưỡng.'); Au.need('maintenance.schedule'); const s = St.get('maintenanceSchedules', id); if (!s) err('Không tìm thấy lịch trong phạm vi được phép'); if (s.status === 'done') err('Lịch đã hoàn thành'); s.status = 'cancelled'; s.cancelReason = reason || ''; St.audit('cancel', 'schedule', id, 'Hủy lịch ' + s.code + ' – không sinh nhắc mới (AC-MNT-01-2)'); done(); return s; };
   X.saveVendor = (d) => { need2(); Au.need('manageCatalog'); req(d.name, 'Tên nhà cung cấp'); if (d.id) St.update('vendors', d.id, d); else St.add('vendors', Object.assign({ status: 'active' }, d)); done(); };
   X.removeVendor = (id) => { need2(); Au.need('manageCatalog'); if (St.one('maintenanceSchedules', s => s.vendorId === id) || St.one('incidents', i => i.vendorId === id)) err('Nhà cung cấp đang được dùng trong lịch/sự cố'); St.remove('vendors', id); done(); };
 
@@ -360,4 +367,42 @@
   X.removeFilterPreset = (route, id) => { const m = St.state.meta; if (m.savedFilters && m.savedFilters[route]) m.savedFilters[route] = m.savedFilters[route].filter(x => x.id !== id); St.save(); };
   X.setReportFavorite = (key, on) => { need2(); const p = St.state.meta.reportPrefs = St.state.meta.reportPrefs || { favorites: [], recent: [] }; p.favorites = (p.favorites || []).filter(k => k !== key); if (on) p.favorites.push(key); St.save(); return p; };
   X.touchReport = (key) => { const p = St.state.meta.reportPrefs = St.state.meta.reportPrefs || { favorites: [], recent: [] }; p.recent = [[key, F.nowISO()]].concat((p.recent || []).filter(x => x[0] !== key)).slice(0, 12); St.save(); };
+
+  /* Bản ghi báo cáo: chọn loại → tham số (Từ kỳ–Đến kỳ ≤ 12, tòa/chiều lọc) → snapshot số liệu lúc tạo (preview + CSV luôn khớp) */
+  const DIM_KEYS = ['buildingId', 'areaId', 'buildingType', 'managerId', 'leadId', 'opsId', 'shareholderId', 'saleId', 'teamId'];
+  X.createReportRun = (d = {}) => {
+    need2(); const E = TH.reportEngine; if (!E) err('Thiếu module báo cáo');
+    const r = E.byKey(req(d.type, 'Chọn loại báo cáo')); if (!E.isRunnable(r)) err('Loại báo cáo này chưa chạy được (công thức chờ chốt hoặc thuộc Phase 3)');
+    if (TH.auth.role() === 'sale' && r.cat !== 'sales') err('Vai trò Kinh doanh chỉ tạo được báo cáo nhóm Kinh doanh');
+    const from = req(d.periodFrom, 'Chọn kỳ bắt đầu'), to = d.periodTo || from; if (to < from) err('Đến kỳ phải sau hoặc bằng Từ kỳ');
+    const periods = E.periodsBetween(from, to); if (!periods.length || periods[periods.length - 1] !== to) err('Khoảng kỳ tối đa 12 tháng');
+    const params = { periodFrom: from, periodTo: to }; DIM_KEYS.forEach(k => { if (d[k]) params[k] = d[k]; });
+    const snap = E.runRange(r.key, params); const rowCount = F.sum(snap.byPeriod, x => x.rows.length);
+    const name = (d.name || '').trim() || (r.name + ' – ' + (from === to ? F.periodShort(from) : F.periodShort(from) + '→' + F.periodShort(to)));
+    const rec = St.add('reportRuns', { code: St.nextCode('reportRuns', 'BC-', 4), type: r.key, name, cat: r.cat, params, periods, rowCount, status: 'done', snapshot: { byPeriod: snap.byPeriod }, note: d.note || '', createdBy: me(), rerunOf: d.rerunOf || null });
+    St.audit('create', 'reportRun', rec.id, 'Tạo báo cáo ' + rec.code + ' – ' + name); X.touchReport(r.key); done(); return rec;
+  };
+  X.rerunReport = (id) => { need2(); const o = St.get('reportRuns', id); if (!o) err('Không tìm thấy bản ghi'); return X.createReportRun(Object.assign({ type: o.type, name: o.name, note: o.note, rerunOf: o.id }, o.params)); };
+  X.deleteReportRun = (id) => { need2(); const o = St.get('reportRuns', id); if (!o) err('Không tìm thấy bản ghi'); St.remove('reportRuns', id); St.audit('delete', 'reportRun', id, 'Xóa báo cáo ' + o.code); done(); };
+
+  /* Authorization boundary for Phase 2 public actions. Helpers that only
+     transform wizard rows are intentionally left pure and unwrapped. */
+  const authorize = (names, permission) => String(names).split(' ').forEach(name => {
+    const fn = X[name]; if (!fn) return;
+    X[name] = function (...args) { Au.need(permission); return fn.apply(this, args); };
+  });
+  authorize('saveLead moveLead setLeadStage addLeadActivity assignLead importLeads', 'crm.manage');
+  authorize('saveViewing viewingResult cancelViewing sendViewingReminders', 'viewings.manage');
+  authorize('createHoldP2 extendHold cancelHoldP2', 'holds.manage');
+  authorize('createDeal', 'deals.manage');
+  authorize('linkDealContract', 'contracts.manage');
+  authorize('recordDealDeposit', 'payments.record');
+  authorize('payCommission', 'commission.pay');
+  authorize('ocrUpload ocrExtract ocrFinish ocrSetField ocrConfirmField ocrSetTenant ocrCreateTenant ocrRerun', 'ocr.use');
+  authorize('commitStatement', 'statement.import');
+  authorize('commitOpening', 'openingBalance.manage');
+  authorize('retryBatch', 'zalo.send');
+  authorize('skipJobLine', 'dataJobs.manage');
+  authorize('saveFilterPreset removeFilterPreset', 'dashboard.view');
+  authorize('setReportFavorite touchReport createReportRun rerunReport deleteReportRun', 'reports.hub');
 })(window.TH);

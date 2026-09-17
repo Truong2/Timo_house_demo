@@ -1,19 +1,19 @@
-# TimoHouse UI Redesign Specification v2.3
+# TimoHouse UI Redesign Specification v2.5
 
 **Trạng thái:** Draft for Stakeholder Sign-off  
 **Ngày lập:** 16/09/2026  
-**Ngày cập nhật:** 16/09/2026  
+**Ngày cập nhật:** 17/09/2026  
 **Document owner:** Product Owner TimoHouse  
 **Người soạn:** UX/UI & Product Design  
 **Người phê duyệt:** Chưa chỉ định  
 **Ngày phê duyệt:** Chưa phê duyệt  
-**Phạm vi:** Toàn bộ mockup tương tác Phase 1, Phase 2 và Phase 3 (63 route, 7 vai trò)  
+**Phạm vi:** Toàn bộ mockup tương tác Phase 1, Phase 2 và Phase 3 (67 route, 7 vai trò)  
 **Đối tượng ưu tiên:** Nhân viên nghiệp vụ sử dụng hằng ngày; đồng thời giữ khả năng demo roadmap P2/P3 cho khách hàng (xem mục 18)  
 **Nền tảng chính:** Desktop và laptop, độ rộng 1366-1920 px  
 **Hướng thiết kế:** Enterprise tinh gọn  
 **Chiến lược:** Giữ tương thích nghiệp vụ, dữ liệu và route hiện có; thay đổi kiến trúc thông tin và UX; được phép **thêm additive** collection/field và route được kiểm soát tại Phụ lục D
 
-> Tài liệu này kế thừa v2.2 và bổ sung lớp Workbook Alignment v2.3. Thay đổi xem Phụ lục C/D.
+> Tài liệu này kế thừa v2.3, bổ sung lớp Business Clarification v2.4 từ câu trả lời làm rõ nghiệp vụ của khách hàng (06/09/2026) và v2.5 (mô hình bản ghi báo cáo, mục 8.5). Thay đổi xem Phụ lục C/D/E.
 
 ### Lịch sử phiên bản
 
@@ -21,8 +21,10 @@
 | --- | --- | --- | --- |
 | v2.0 | 16/09/2026 | Định hướng redesign ban đầu | Superseded |
 | v2.1 | 16/09/2026 | Bổ sung baseline, route mapping, rollout và tiền đề kỹ thuật | Superseded |
-| v2.2 | 16/09/2026 | Khóa contract UX, decision log, acceptance, test và traceability | Draft for Sign-off |
-| v2.3 | 16/09/2026 | Bổ sung dimension, metric, preset đối soát và Trung tâm Tài liệu theo audit workbook | Draft for Review |
+| v2.2 | 16/09/2026 | Khóa contract UX, decision log, acceptance, test và traceability | Superseded |
+| v2.3 | 16/09/2026 | Bổ sung dimension, metric, preset đối soát và Trung tâm Tài liệu theo audit workbook | Superseded |
+| v2.4 | 17/09/2026 | Đối chiếu câu trả lời làm rõ nghiệp vụ 06/09/2026: xác nhận rule, sửa ngữ nghĩa T/S/G, thêm contract thông báo/chủ nhà/cổ đông, decision phân quyền D-13..D-18, Phụ lục E | Draft for Review |
+| v2.5 | 17/09/2026 | Trung tâm báo cáo chuyển sang mô hình bản ghi báo cáo: tạo theo loại + tham số (Từ kỳ–Đến kỳ), snapshot lúc tạo, xem trước và tải CSV; route `/reports/new`, `/reports/runs/:id`; collection `reportRuns` | Current |
 
 ---
 
@@ -62,6 +64,7 @@ Cách đo: đếm thủ công trên 6 reference screens (mục 15, giai đoạn 
 - Không triển khai dark mode trong phiên bản này.
 - Không yêu cầu tất cả luồng nghiệp vụ hoạt động đầy đủ trên điện thoại.
 - **[v2.1]** Không thêm nghiệp vụ mới (ví dụ màn phân phối lợi nhuận riêng chỉ được tạo nếu dữ liệu `distributions` hiện có đủ để hiển thị; không thêm seed mới).
+- **[v2.4]** Các yêu cầu mới phát sinh từ câu trả lời của khách hàng (công cụ tự đặt quy tắc gửi thông báo Q34, đồng bộ hội thoại Zalo Q37, khấu hao khoản đầu tư Q6/Q15) chỉ được mô tả ở mức UI contract trong tài liệu này; phase triển khai và cam kết thương mại chốt qua D-16/D-17 tại mục 18.
 
 ---
 
@@ -246,6 +249,8 @@ Mục `Phân công` và `Báo cáo nhân sự` của v2.0 bị bỏ: không có 
 
 Vai trò Cổ đông tiếp tục ở chế độ read-only và chỉ thấy dữ liệu trong phạm vi dự án được cấp quyền.
 
+> **[v2.4] Ghi chú phân quyền:** câu trả lời Q1 (công nợ, lương, hoa hồng chỉ Admin và Kế toán được xem/sửa), Q23 (Cổ đông, Admin, Kế toán, trưởng phòng xem báo cáo lợi nhuận) và Q33 (Admin và Kế toán nhập/duyệt kiểm kê) có thể thay đổi navigation của Vận hành, Kinh doanh, Kế toán và Cổ đông. Các thay đổi này được ghi tại D-13/D-14/D-15 (mục 18.1). Navigation ở 4.2 và Phụ lục A **giữ nguyên** cho đến khi các decision đó Approved.
+
 ### 4.3. Route và quyền **[v2.1]**
 
 - Giữ nguyên toàn bộ 63 hash route hiện tại; không xóa, không đổi.
@@ -342,7 +347,8 @@ Thứ tự chung: `Critical` → `High` → `Medium` → hạn gần nhất → 
 | Admin | Hợp đồng sắp hết hạn | `Q.contractStatus(c) === expiring` | High nếu ≤14 ngày; Medium còn lại | `/contracts?status=expiring` | Xem/Gia hạn |
 | Admin | Tin Zalo lỗi | Message failed chưa retry và chưa có retry record | High | `/zalo/history?status=failed` | Xem lỗi |
 | Admin | Bảo dưỡng đến hạn | `Q.schedulesDue()` khi P2 bật | Medium | `/maintenance/schedules?status=due_soon` | Xem lịch |
-| Admin | Kiểm kê cần xử lý | `Q.latestInventory()` đang thực hiện và `needsAction > 0` | High | `/assets/inventory/:id?status=needs_action` | Tiếp tục kiểm kê |
+| Admin, Kế toán **[v2.4]** | Kiểm kê cần xử lý | `Q.latestInventory()` đang thực hiện và `needsAction > 0`; kiểm kê chu kỳ 1 tháng/lần, Admin và Kế toán nhập/duyệt (Q33; dòng Kế toán phụ thuộc D-15) | High | `/assets/inventory/:id?status=needs_action` | Tiếp tục kiểm kê |
+| Admin, Kế toán **[v2.4]** | Kỳ trả tiền chủ nhà đến hạn | `buildings.payCycle` (3/4/6 tháng) + `payDay`; cùng nguồn với event `landlord_due` (nhắc trước 5 ngày) (Q8) | High nếu ≤5 ngày; Medium nếu ≤15 ngày | `/landlords?due=1` | Xem lịch thanh toán |
 | Vận hành | Phòng chờ dọn | `room.status === cleaning` trong scope | High | `/rooms?status=cleaning` | Xác nhận dọn xong |
 | Vận hành | Hợp đồng sắp hết hạn | `Q.contractStatus(c) === expiring` trong scope | High/Medium theo số ngày | `/contracts?status=expiring` | Gia hạn |
 | Vận hành | Hoàn cọc cần lập/sửa | `refund.status in draft,needs_edit` trong scope | High | `/refunds` theo status | Hoàn thiện hồ sơ |
@@ -362,7 +368,7 @@ Thứ tự chung: `Critical` → `High` → `Medium` → hạn gần nhất → 
 | Nhân sự | Thử việc sắp kết thúc | `Q.probationEnding(14)` | High nếu ≤3 ngày; Medium còn lại | `/hr/:id` | Xem hồ sơ |
 | Nhân sự | Bảng công chưa xác nhận | Timesheet kỳ hiện tại status khác `confirmed` | High trước ngày chốt; Medium còn lại | `/hr/timesheet` | Hoàn thiện bảng công |
 | Nhân sự | Bảng lương cần lập/gửi duyệt | Payroll chưa có hoặc status `draft` | High sau khi bảng công đủ | `/hr/payroll` | Lập/Gửi duyệt |
-| Cổ đông | Nghĩa vụ góp vốn đến hạn | Contribution của cổ đông hiện tại có `st in due,overdue` | High khi overdue; Medium khi due | `/investment/shareholders?tab=contributions` | Xem nghĩa vụ |
+| Cổ đông | Kỳ đóng tiền nhà đến hạn **[v2.4]** | Contribution của cổ đông hiện tại có `st in due,overdue`; mỗi contribution kỳ = kỳ trả chủ nhà của tòa × tỷ lệ % vốn góp nhập tay (Q29/Q30) | High khi overdue; Medium khi due | `/investment/shareholders?tab=contributions` | Xem kỳ đóng tiền |
 | Cổ đông | Phân phối mới | Distribution thuộc dự án được xem có status `approved/paid` và chưa mở trong phiên | Info | `/investment/shareholders?tab=distributions` | Xem phân phối |
 
 Quy tắc action:
@@ -371,6 +377,7 @@ Quy tắc action:
 - Item thuộc phase tắt không được đưa vào work queue.
 - Khi không có item, hiển thị empty state `Không có công việc cần xử lý` và tối đa hai quick link thường dùng theo role.
 - Count trên notification center và Dashboard dùng cùng selector để không lệch số.
+- **[v2.4]** `Vận hành / Phòng chờ dọn` bao gồm cả phòng phát sinh do hoàn cọc hoặc phá hợp đồng: khách xác nhận phải kiểm tra/dọn dẹp trước khi đưa phòng lại thị trường (Q21); dùng chung trạng thái `cleaning`, không thêm loại công việc mới.
 
 ### 6.2. List page
 
@@ -464,6 +471,8 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - Các field tầng, vật lý, khả dụng chuyển vào filter nâng cao hoặc column chooser.
 - Inline action theo trạng thái: `Giữ chỗ`, `Tạo hợp đồng`, `Xem hợp đồng`, `Xác nhận dọn xong` hoặc `Xem sự cố`.
 - Detail phòng giữ Tổng quan, Hợp đồng, Công nợ, Tài sản, Sự cố và Tài liệu dưới dạng tab (gộp `history` vào Hợp đồng, `services` vào Tổng quan để ≤ 6 tab).
+- **[v2.4]** Filter và chip `Loại nhà` đổi nhãn thành `Nhóm tòa (T/S/G)`; giá trị suy ra từ ký tự đầu của `buildings.code` (T2, T3, S1, S2, G1, G2…). Bỏ các nhãn `Thuê lại chủ nhà / Sở hữu công ty / Góp vốn cổ đông` và bỏ chip giả định `U.assume()` trên cột này vì khách đã xác nhận (Q2, D-18).
+- **[v2.4]** Tab Chủ nhà trong detail tòa hiển thị `Thời gian giữ giá` với tooltip “Khoảng thời gian chủ nhà không được tăng giá thuê đối với TimoHouse” (Q5) và `Kỳ thanh toán chủ nhà` (3/4/6 tháng, `buildings.payCycle`) kèm ngày đến hạn kế tiếp; ngày đến hạn là nguồn cho work queue `Kỳ trả tiền chủ nhà đến hạn` và event `landlord_due` (Q8).
 
 ### 7.3. Khách thuê
 
@@ -471,6 +480,8 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - Hiển thị hợp đồng hiện tại, phòng, công nợ và trạng thái liên hệ.
 - Thông tin cá nhân đầy đủ chuyển sang detail; tab mặc định của detail là `Tổng quan` (hiện tại là `Tài chính`).
 - CTA chính trên detail phụ thuộc trạng thái: tạo hợp đồng, ghi nhận thu hoặc liên hệ.
+- **[v2.4]** Tab `Tài chính` giữ nội dung hiện tại (hóa đơn theo kỳ, công nợ, tiền cọc và lịch sử thu) vì khách chưa có mô tả (Q11: “chưa có”); header tab gắn nhãn `Giả định – khách chưa xác nhận nội dung` cho đến khi có phản hồi.
+- **[v2.4]** `Phân khúc` (sinh viên / người đi làm) là field nhập tay trên hợp đồng và đồng bộ sang hồ sơ khách (`tenants.segment`), không suy luận từ nghề nghiệp (Q25).
 
 ### 7.4. Hợp đồng **[v2.1]**
 
@@ -478,6 +489,10 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - Cột mặc định: Hợp đồng/Khách, Phòng/Tòa, Thời hạn (`dd/mm/yyyy – dd/mm/yyyy`, dòng phụ: `còn N ngày` hoặc `quá hạn N ngày`), Giá thuê, Tiền cọc, Người phụ trách, Action. Cột Trạng thái chỉ ở tab Tất cả; cột `Còn lại` riêng bị bỏ vì trùng với Thời hạn.
 - Hành động ưu tiên: dự thảo → Hoàn thiện; sắp hết hạn → Gia hạn; hiệu lực → Xem; đã kết thúc → Xem hồ sơ.
 - Detail contract đưa công nợ, tiền cọc và thời hạn vào summary header.
+- **[v2.4]** Mốc `Sắp hết hạn` = còn ≤ 35 ngày là hằng số toàn hệ thống (Q9); không có cấu hình theo tòa/loại phòng và không thêm field vào Thiết lập.
+- **[v2.4]** Nút `Tải hợp đồng` trên list và bước 1 của wizard dẫn vào OCR (`/contracts/ocr`) làm luồng chính để đọc dữ liệu tự động từ file (Q10); nhập tay chỉ là fallback khi không có file hoặc OCR thất bại. Wizard tạo hợp đồng nhận prefill từ OCR như hiện tại.
+- **[v2.4]** Section `Xe` trong wizard là repeater không giới hạn số dòng (`contracts.vehicles`, Q12); mỗi xe sinh một dòng phí gửi xe trên hóa đơn theo kỳ; summary header hợp đồng hiển thị badge `N xe` và detail hóa đơn cho phép mở danh sách biển số từ dòng phí gửi xe.
+- **[v2.4]** Thuật ngữ giá: `Giá niêm yết` (`listPrice`, giá tiêu chuẩn của TimoHouse) và `Giá thuê` (`price`, giá thực tế khách đang thuê) (Q13); không dùng `Giá chốt` ngoài preset Đối soát.
 
 ### 7.5. Hóa đơn, thu tiền và công nợ
 
@@ -488,6 +503,7 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - Màn công nợ mặc định sort theo mức độ ưu tiên, sau đó số ngày quá hạn.
 - Bulk action chỉ xuất hiện khi có row được chọn.
 - Trạng thái kỳ khóa hiển thị tại header và giải thích action bị chặn.
+- **[v2.4]** Định nghĩa tab `Công nợ` trên `/receivables`: hóa đơn đã phát hành từ 5 ngày trở lên và còn dư nợ (BR-07, khách xác nhận tại Q14). Tab count, work queue `Hóa đơn quá hạn` và nguồn đợt gửi Zalo `Cần xử lý công nợ` dùng cùng ngưỡng này.
 
 ### 7.6. Hoàn cọc và chi phí
 
@@ -495,6 +511,9 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - CTA thay đổi theo vai trò: Vận hành lập/gửi duyệt; Kế toán duyệt/yêu cầu sửa/ghi nhận đã hoàn.
 - Chi phí mặc định hiển thị kỳ, tòa, nhóm, số tiền, trạng thái và người tạo.
 - Phân bổ và khấu hao nằm trong drawer/detail, không chiếm cột mặc định.
+- **[v2.4]** Wizard hoàn cọc prefill dòng khấu trừ `Khấu hao cố định 200.000đ/phòng` (nhóm `KH`, BR-12); số tiền không sửa được, chỉ có thể bỏ dòng kèm lý do. `Sửa chữa` (`SC`) và `Vệ sinh` (`VS`) nhập theo chi phí thực tế phát sinh và bắt buộc chứng từ (Q17).
+- **[v2.4]** Người duyệt số tiền hoàn cọc cuối cùng là Admin hoặc Kế toán (Q17); CTA `Duyệt` render cho cả hai role theo `TH.auth.can()`, Vận hành chỉ lập/sửa.
+- **[v2.4]** Chi phí mua sắm thiết bị/khoản đầu tư: hạch toán một lần trong báo cáo lợi nhuận dòng tiền, khấu hao theo thời gian trong báo cáo kinh doanh (Q6/Q15). Drawer chi phí hiển thị cả hai giá trị (`Chi thực tế kỳ này` và `Khấu hao kỳ này`) kèm biểu tượng thông tin mở công thức từ `TH.metrics`.
 
 ### 7.7. Zalo và thông báo **[v2.1]**
 
@@ -503,11 +522,33 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - Lịch sử gửi ưu tiên trạng thái lỗi và khả năng retry.
 - Mã lỗi kỹ thuật hiển thị sau phần giải thích dễ hiểu.
 
+#### Kênh gửi và dự phòng **[v2.4]**
+
+- Kênh chính là Zalo ZNS (ZBS Template Message): mọi tin cá nhân hóa (hóa đơn, nhắc nợ, hết hạn hợp đồng, hoàn cọc) gửi theo số điện thoại của khách, không yêu cầu khách quan tâm OA (Q35, Q36). OA Broadcast chỉ dùng cho `Thông báo chung`.
+- Template ZNS phải ở trạng thái `Đã duyệt` mới được chọn trong wizard; giữ luồng gửi duyệt/duyệt mẫu hiện có ở `/zalo/config`.
+- Bước `Kiểm tra` của wizard hiển thị số khách chưa liên kết Zalo (không có `zalo`/số điện thoại không hợp lệ) và phương án dự phòng lấy từ policy (`fallbackSms`: SMS hoặc gọi điện); người gửi phải xác nhận phương án dự phòng trước khi gửi (Q36).
+- Tham khảo chi phí và giới hạn kênh tại Phụ lục E.3; không phải cam kết giá.
+
+#### Quy tắc gửi tự động **[v2.4 – phụ thuộc D-16]**
+
+- Khách yêu cầu công cụ tự đặt điều kiện và thời điểm gửi linh hoạt thay vì bật/tắt sự kiện cố định (Q34). Contract: tab `Quy tắc gửi` tại `/zalo/config?tab=rules` (Phụ lục B), mở rộng từ `zaloEvents` hiện có (`condition`, `offsetDays`, `offsetDir`, `buildingId`, `templateId`).
+- Mỗi quy tắc gồm: sự kiện nguồn (hóa đơn phát hành, đến hạn, quá hạn, công nợ ≥ 5 ngày, HĐ sắp hết hạn, hoàn cọc, kỳ trả chủ nhà, bảo dưỡng), ngưỡng (số ngày trước/sau, số tiền còn nợ tối thiểu), thời điểm gửi (offset và giờ trong ngày), phạm vi (tòa, nhóm tòa T/S/G, loại phòng), template ZNS đã duyệt, kênh dự phòng và trạng thái bật/tắt.
+- Danh sách quy tắc ≤ 7 cột nghiệp vụ: Tên, Sự kiện, Điều kiện, Thời điểm, Phạm vi, Template, Trạng thái; form quy tắc mở trong drawer. Có nút `Xem trước đối tượng` cho biết số khách khớp điều kiện tại thời điểm hiện tại.
+- Chỉ role có `zalo.config` được tạo/sửa; lịch sử gửi ghi rõ đợt gửi phát sinh từ quy tắc nào.
+
+#### Hội thoại Zalo **[v2.4 – phụ thuộc D-17]**
+
+- Phản hồi của khách trên Zalo được route về trưởng phòng phụ trách tòa của khách (area lead qua `Q.scope`), không tập trung một đầu mối; hội thoại được đồng bộ vào hệ thống (Q37).
+- Contract: route tùy chọn `#/zalo/inbox` (danh sách hội thoại theo tòa được giao, ưu tiên chưa đọc) và tab `Hội thoại Zalo` trong detail khách thuê (`/tenants/:id?tab=zalo`). Chỉ hiển thị khi phase và tích hợp ZNS webhook sẵn sàng; mockup chỉ cần dữ liệu demo.
+- Work queue có thể thêm `Hội thoại chưa trả lời` cho Vận hành/trưởng phòng sau khi D-17 Approved; chưa đưa vào ma trận 6.1.
+
 ### 7.8. Thiết lập và import
 
 - Thiết lập chỉ hiển thị cho role có quyền, truy cập qua `Phân hệ & Quản trị`.
 - Import dùng cùng pattern wizard và error review.
 - Công cụ demo, reset, phase toggle và state JSON chuyển vào `#/settings/tools` với nhãn `Chỉ dùng cho demo`.
+- **[v2.4]** Danh mục `Nguồn khách` mặc định gồm Facebook, Tờ rơi, Đăng tin, Zalo (Q18); các nguồn khác trong seed (Google Ads, TikTok, Website, Giới thiệu) chuyển trạng thái `inactive`, vẫn chọn được khi bật lại.
+- **[v2.4]** Không thêm cấu hình `Số ngày báo trước hết hạn HĐ` (cố định 35 ngày, Q9) và `Số ngày chuyển công nợ` (cố định 5 ngày, Q14) vào Thiết lập.
 
 ---
 
@@ -520,6 +561,8 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - Lead card chỉ hiển thị tên, nhu cầu, mức độ ưu tiên, lần liên hệ gần nhất và next action.
 - Detail lead có một CTA theo pipeline stage.
 - Wizard lịch xem, giữ chỗ và chốt thuê dùng sticky footer và summary bên phải ở desktop.
+- **[v2.4]** Hoa hồng tính theo % (`sale.commissionRate`); chip `Đủ điều kiện` chỉ khi khách đã đóng đủ cọc 1 và ký hợp đồng (BR-13, khách xác nhận tại Q19). Detail giao dịch giải thích điều kiện còn thiếu khi chip là `Chưa đủ`.
+- **[v2.4]** Hoa hồng luôn chia theo cá nhân (Q20); `teamId` chỉ là dimension lọc/nhóm trong Sổ hoa hồng và Hiệu suất kinh doanh, không có màn chia hoa hồng theo team.
 
 ### 8.2. OCR hợp đồng **[v2.1]**
 
@@ -527,7 +570,10 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 
 - Giữ tài liệu bên trái và panel review bên phải.
 - Tỷ lệ mặc định: tài liệu 56%, review 44%; ở content < 1200 px chuyển 50/50; panel review tối thiểu 460 px. Tỷ lệ này phải được kiểm chứng bằng wireframe 1366 px ở giai đoạn 0.
-- Form review hiển thị đủ **29 trường** đã định nghĩa (bổ sung nhóm `Thông tin ký kết` với 6 trường meta hiện chưa render). Header review hiển thị `N cần kiểm tra / 29 trường` và tiến độ xác nhận.
+- **[v2.4]** Field schema theo template thật `HỢP ĐỒNG CHO THUÊ PHÒNG` (HĐ mới của Linh, 4 trang): **43 trường, 7 nhóm** (Thông tin ký kết; Bên cho thuê A; Bên thuê B; Đối tượng thuê – Điều 1; Thời hạn – Điều 3; Giá & thanh toán – Điều 4; Đơn giá dịch vụ – Điều 4.2) + bảng tài sản bàn giao Điều 2.2 (30 hạng mục, chỉ đọc). Header review hiển thị `N cần kiểm tra / 43 trường` và tiến độ xác nhận; số trường lấy từ schema `TH.ocrParser.FIELDS`, không hard-code.
+- **[v2.4]** Trích xuất là **parser thật** (`mockup/js/core/ocr-parser.js`): đọc text từ PDF điền trên máy bằng pdf.js (nạp từ cdnjs khi cần, ghép item theo tọa độ để không vỡ dấu tiếng Việt) hoặc file `.txt`; nhận diện theo anchor Điều 1–4; confidence tính theo validate (SĐT 10 số, CCCD 12 số, ngày hợp lệ, cọc = 1 tháng tiền nhà, số tiền khớp bằng chữ, thời hạn khớp ngày). Ảnh scan (JPG/PNG) bị từ chối với thông báo rõ, không giả lập.
+- **[v2.4]** Màn review có card **Kết quả trích xuất** theo thực thể (Khách thuê · Tòa & phòng · Hợp đồng · Dịch vụ · Tài sản) với trạng thái khớp hệ thống và hành động; khung tài liệu hiển thị **mọi trang nối tiếp** (nhãn `Trang n/N`, chọn trang để cuộn) để người dùng thấy toàn bộ file đã được đọc.
+- **[v2.4]** OCR đồng thời là **bước tạo khách thuê**: khớp khách theo SĐT hoặc CCCD → dùng khách đó (có nút bổ sung CCCD/nơi cấp/ngày sinh/hộ khẩu còn thiếu từ HĐ); trùng tên nhưng khác SĐT/CCCD chỉ là gợi ý; không khớp → `Tạo khách thuê` mở form đã điền sẵn (sửa được) hoặc tự tạo khi bấm `Tạo hợp đồng`. Phòng: tách "P302 - Tòa TH01" thành mã phòng + gợi ý tòa, khớp phòng theo mã hoặc theo số phòng trong tòa đã chọn; không tạo tòa/phòng mới từ OCR.
 - Mặc định chọn chế độ `Chỉ trường cần kiểm tra`.
 
 #### Hàng đợi lỗi
@@ -569,6 +615,17 @@ Report Hub hiện đã có nhóm nghiệp vụ, search, ghim, gần đây và nh
 - Bỏ 3 KPI (favorites/recent/total) có delta hard-code; giữ tile Ghim/Gần đây.
 - Báo cáo `OI` không dùng CTA giống báo cáo chạy thật; card chuyển sang style muted.
 - Control kỳ nằm trong report header theo 4.4; trạng thái kỳ khóa luôn nhìn thấy.
+- **[v2.4]** Thêm hai metric vào `TH.metrics`: `perf.actual` (Hiệu suất thực tế – tính sau khi đã thu tiền xong) và `perf.provisional` (Hiệu suất tạm tính – tính tại thời điểm lập báo cáo) (Q22, Approved). Report hiển thị cả hai cạnh nhau, nhãn nêu rõ thời điểm chốt số liệu.
+- **[v2.4]** Người xem `Báo cáo lợi nhuận dòng tiền` và `Báo cáo kinh doanh`: Cổ đông, Admin, Kế toán, trưởng phòng (Q23). Cổ đông và trưởng phòng hiện chưa có `reports.hub`; xử lý qua D-14, chưa đổi navigation.
+- **[v2.4]** Các công thức khách hẹn trao đổi trực tiếp (Q7 hiệu suất/lợi nhuận/thời gian vận hành tòa, Q16 Báo cáo kinh doanh của nhà, Q24 Bảng dự kiến lợi nhuận dòng tiền) giữ nhãn `Giả định – chờ họp trực tiếp` và không được dùng để tuyên bố số liệu đã duyệt; danh sách tại Phụ lục E.2.
+
+**[v2.5] Bản ghi báo cáo (report run)** – Trung tâm báo cáo chuyển từ catalog "xem live" sang mô hình **tạo → lưu → xem lại**:
+
+- `/reports/hub` là **danh sách bản ghi báo cáo đã tạo** (`reportRuns`): cột Mã (`BC-0001`), Báo cáo (tên + loại + danh mục), Kỳ, Phạm vi, Số dòng, Người tạo, Ngày tạo; thao tác Xem / Tải CSV / Tạo lại / Xóa; bộ lọc tìm kiếm, danh mục, loại, kỳ, người tạo; KPI đếm không dùng delta hard-code. Trạng thái rỗng có CTA "Tạo báo cáo đầu tiên".
+- `/reports/new` là wizard 2 bước: **Chọn loại** (catalog 48 loại theo danh mục, tìm kiếm; chỉ loại `live` chọn được, loại `OI` hiển thị muted "Chờ chốt công thức", loại Phase 3 mở trang tương ứng) → **Điền thông tin** (Tên, **Từ kỳ – Đến kỳ** tối đa 12 tháng, Tòa nhà hoặc các chiều workbook `dims` của loại, Ghi chú) → "Tạo báo cáo".
+- Khi tạo, hệ thống tính từng kỳ bằng engine hiện có (`TH.reportEngine.run`) và **chốt snapshot** (KPI + bảng, dạng text) vào bản ghi; dữ liệu gốc thay đổi về sau không ảnh hưởng bản ghi. "Tạo lại" lập bản ghi mới cùng tham số (`rerunOf`).
+- `/reports/runs/:id`: KPI (kỳ cuối), card **Tổng hợp theo kỳ** (Kỳ × KPI khi nhiều kỳ), **Xem trước** dạng tài liệu nhiều trang (trang tổng hợp + mỗi kỳ 1 trang, dùng `U.docPreview` stacked, zoom), card thông tin bản ghi, cột dữ liệu; hành động Tải CSV (BOM UTF-8; nhiều kỳ thêm cột `Kỳ`), Tạo lại, Xem live (`/reports/r/:key`), Xóa.
+- Quyền: `reports.hub`; Sale chỉ thấy/tạo bản ghi nhóm Kinh doanh; mọi mutation qua `createReportRun`/`rerunReport`/`deleteReportRun` có `authorize`. `/reports` (Phase 1), `/reports/cashflow` và `/reports/r/:key` giữ nguyên.
 
 ---
 
@@ -581,6 +638,8 @@ Report Hub hiện đã có nhóm nghiệp vụ, search, ghim, gần đây và nh
 - Inventory detail tập trung danh sách cần xử lý; item đã đạt được thu gọn.
 - Bulk action chỉ xuất hiện sau khi chọn tài sản.
 - Tạo sự cố từ tài sản giữ liên kết hai chiều với biên bản kiểm kê.
+- **[v2.4]** Kiểm kê thực hiện theo chu kỳ 1 tháng/lần; Admin và Kế toán được bắt đầu, nhập và kết thúc kiểm kê (`inventory.manage` hiện đã cấp cho `accountant`, Q33). Lịch kiểm kê tháng hiển thị trên dashboard Admin/Kế toán qua work queue 6.1.
+- **[v2.4]** Khoản đầu tư (`assets.ownership = company`) có khấu hao theo thời gian (Q6); cột `Khấu hao lũy kế` và `Giá trị còn lại` thuộc preset Đối soát, không phải cột mặc định. Lịch bảo dưỡng thiết bị nhắc tự động trước 7 ngày (BR-16, Q32 Approved).
 
 ### 9.2. Nhân sự
 
@@ -589,6 +648,8 @@ Report Hub hiện đã có nhóm nghiệp vụ, search, ghim, gần đây và nh
 - Detail nhân viên dùng tab Tổng quan, Phân công, Hồ sơ và Lịch sử.
 - Chấm công dùng sticky name column và cảnh báo ô bất thường.
 - Payroll giữ mô hình trạng thái hiện có (`stepperStatus` Tạo bảng → Kiểm tra → Gửi duyệt → Duyệt/Ghi chi) với một primary theo trạng thái; không chuyển thành wizard nhiều trang.
+- **[v2.4]** Trạng thái nhân viên theo khách: `Thử việc`, `Đang làm`, `Nghỉ việc` (Q27). Status tabs chỉ gồm ba trạng thái này; giá trị `leave` (Tạm nghỉ) giữ trong dữ liệu, hiển thị dưới tab `Đang làm` bằng chip phụ, không có tab riêng.
+- **[v2.4]** Công thức lương theo phòng ban chưa được khách cung cấp (Q26, chờ họp trực tiếp); màn Lương thưởng giữ nhãn `Giả định` trên cột tính toán.
 
 ### 9.3. Đầu tư và cổ đông **[v2.1]**
 
@@ -597,6 +658,10 @@ Report Hub hiện đã có nhóm nghiệp vụ, search, ghim, gần đây và nh
 - Giá trị tiền và tỷ lệ dùng số tabular, căn phải và có giải thích công thức.
 - Action tạo/sửa/duyệt không render cho role read-only.
 - Chi tiết phân phối có summary tổng, trạng thái duyệt và bảng phân bổ.
+- **[v2.4]** Tab `Vốn góp` đổi nhãn thành `Lịch đóng tiền nhà`: mỗi dòng là kỳ cổ đông đóng tiền nhà định kỳ cho chủ nhà theo tỷ lệ % vốn góp (Q29); số tiền = tiền thuê kỳ trả chủ nhà của tòa × tỷ lệ; hiển thị kỳ, tòa, tỷ lệ, số tiền, hạn, trạng thái.
+- **[v2.4]** Một cổ đông có thể góp vào nhiều tòa; tỷ lệ % nhập tay tại form dự án, có validate tổng tỷ lệ mỗi tòa = 100% và cảnh báo khi lệch (Q30).
+- **[v2.4]** `Thống kê tài sản` và `Thống kê tiền cọc` của cổ đông lấy từ module Tòa nhà qua `projects.buildingId` (Q31 Approved); không nhập số độc lập.
+- **[v2.4]** Mẫu `Bảng kê chia cổ phần các nhà` chưa được cung cấp (Q28, chờ họp); báo cáo phân phối giữ nhãn `Giả định`.
 
 ### 9.4. Ngân hàng và đối soát
 
@@ -757,6 +822,7 @@ Các hạng mục sau chưa có trong mockup và là điều kiện để các m
 - Không dùng màu, icon hoặc vị trí làm tín hiệu duy nhất; status luôn có text label.
 - Ngôn ngữ giao diện là tiếng Việt; sentence case cho title/button, không viết hoa toàn bộ trừ mã và heading bảng ngắn.
 - Thuật ngữ chuẩn: `Lead` trước khi trở thành khách thuê; `Khách thuê` sau khi có hồ sơ/giữ chỗ/hợp đồng; không dùng xen kẽ `Khách hàng` nếu không chỉ khái niệm chung.
+- **[v2.4]** Thuật ngữ đã được khách xác nhận: `Giá niêm yết` = giá tiêu chuẩn của TimoHouse, `Giá thuê` = giá thực tế khách đang thuê (Q13); `Nhóm tòa (T/S/G)` thay cho `Loại nhà` (Q2); `Hiệu suất thực tế` = sau khi thu tiền xong, `Hiệu suất tạm tính` = tại thời điểm lập (Q22); `Kỳ trả chủ nhà` cho lịch TimoHouse thanh toán chủ nhà (Q8) và `Lịch đóng tiền nhà` cho phần cổ đông (Q29); `Thời gian giữ giá` = thời gian chủ nhà không được tăng giá (Q5).
 - Ngày hiển thị `dd/mm/yyyy`; kỳ hiển thị `Tháng mm/yyyy`; dữ liệu nội bộ tiếp tục dùng ISO.
 - Tiền hiển thị phân tách hàng nghìn và hậu tố `đ` hoặc header có đơn vị `VND`, không dùng cả hai trong cùng cell.
 - Error message phải nêu vấn đề và cách sửa; tránh chỉ hiển thị mã lỗi kỹ thuật.
@@ -968,8 +1034,14 @@ Không xem việc stakeholder không phản hồi là đồng ý. Mọi quyết 
 | D-10 | Tên launcher customer-facing | `Phân hệ & Quản trị`; không dùng “Ứng dụng” hoặc “Tất cả ứng dụng” | Requester/Product Owner | **Approved** | – |
 | D-11 | Ngôn ngữ và phạm vi sidebar theo role | Dùng `Quản lý cho thuê`; role `Sale` hiển thị là `Kinh doanh`; mọi route có quyền phải có điểm vào sidebar hoặc launcher và launcher không lặp sidebar | Requester/Product Owner | **Approved** | – |
 | D-12 | Ngoại lệ schema additive cho Workbook Alignment | Cho phép thêm collection/field ở Phụ lục D; không xóa/đổi nghĩa field cũ, không tăng `SCHEMA`, migration phải idempotent và giữ tương thích state | Tech Lead/Product Owner | **Approved for mockup** | Production data migration phải review riêng |
+| D-13 **[v2.4]** | Phạm vi quyền dữ liệu nhạy cảm (Q1: công nợ, lương, hoa hồng chỉ Admin và Kế toán) | Khuyến nghị: chỉ Admin/Kế toán được **sửa**; Vận hành giữ quyền xem công nợ trong scope tòa để ghi nhận thu, Kinh doanh xem hoa hồng của chính mình, Nhân sự xem lương để lập bảng. Nếu khách yêu cầu đúng nghĩa đen, bỏ `Thu tiền & công nợ` khỏi Vận hành và `Giao dịch & hoa hồng` khỏi Kinh doanh | Product Owner | **Pending** | Navigation config final, Phụ lục A |
+| D-14 **[v2.4]** | Cổ đông và trưởng phòng xem báo cáo lợi nhuận (Q23) | Khuyến nghị: cấp `reports.hub` [RO] cho `codong` giới hạn dự án được cấp quyền; trưởng phòng = user `ops` có assignment lead khu nhà, thấy báo cáo trong scope. Cần mở rộng `PERMS` có kiểm soát (ngoại lệ 4.3) | Product Owner/Tech Lead | **Pending** | Navigation Cổ đông, PERMS |
+| D-15 **[v2.4]** | Kế toán nhập/duyệt kiểm kê hằng tháng (Q33) | Khuyến nghị: chuyển `Kiểm kê` từ launcher `L [xem]` thành destination trong mục `Dữ liệu & đối soát` của Kế toán; work queue 6.1 áp dụng cho Kế toán | Product Owner | **Pending** | Navigation Kế toán |
+| D-16 **[v2.4]** | Công cụ tự đặt quy tắc gửi thông báo (Q34) | Contract tại 7.7 `Quy tắc gửi tự động`; khuyến nghị triển khai trong Phase 2 sau khi tích hợp ZNS | Product Owner/Sponsor | **Pending** | Route `#/zalo/config?tab=rules`, estimate đợt B |
+| D-17 **[v2.4]** | Đồng bộ hội thoại Zalo về trưởng phòng phụ trách (Q37) | Contract tại 7.7 `Hội thoại Zalo`; phụ thuộc webhook ZNS/OA; khuyến nghị Phase 2/3 | Product Owner/Sponsor | **Pending** | Route `#/zalo/inbox`, tab khách thuê, tích hợp |
+| D-18 **[v2.4]** | Ngữ nghĩa T/S/G (Q2) | T/S/G là tiền tố mã tòa (T2, S1, G1…), không phải loại sở hữu; đổi nhãn thành `Nhóm tòa`, bỏ nhãn giả định, suy ra từ `buildings.code` | Khách hàng (đã trả lời 06/09/2026) | **Approved** | – |
 
-`Approved` ở D-01 đến D-03 ghi nhận các lựa chọn đã được requester xác nhận trong vòng lập kế hoạch. Các dòng `Proposed` vẫn cần ký trên wireframe/spec trước khi code phần liên quan.
+`Approved` ở D-01 đến D-03 ghi nhận các lựa chọn đã được requester xác nhận trong vòng lập kế hoạch. Các dòng `Proposed` vẫn cần ký trên wireframe/spec trước khi code phần liên quan. D-13 đến D-18 phát sinh từ câu trả lời làm rõ nghiệp vụ (Phụ lục E); D-18 được coi là Approved vì là xác nhận trực tiếp của khách.
 
 ### 18.2. Checklist ký trên wireframe giai đoạn 0
 
@@ -980,14 +1052,15 @@ Không xem việc stakeholder không phản hồi là đồng ý. Mọi quyết 
 - [ ] Default Column Matrix tại 6.2 đáp ứng nghiệp vụ và breakpoint.
 - [ ] Một CTA primary cho mỗi task region; secondary action không cạnh tranh thị giác.
 - [ ] Filter nâng cao đặt trong drawer; active filter luôn nhìn thấy.
-- [ ] OCR mặc định chỉ hiện trường cần kiểm tra, đủ 29 trường và có source highlight.
+- [ ] OCR mặc định chỉ hiện trường cần kiểm tra, đủ số trường của template HĐ cho thuê phòng (43) và có source highlight.
 - [ ] Route cũ được giữ; route/query mới tuân thủ Phụ lục B.
 - [ ] `Kỳ báo cáo` là state chung nhưng control chỉ hiện ở page có kỳ.
 - [ ] Mobile Capability Matrix được chấp thuận.
 - [ ] Component contract của Table v2 và Draft guard được Tech Lead chấp thuận.
 - [ ] WCAG 2.2 AA là tiêu chuẩn nghiệm thu reference screens.
 - [ ] Phạm vi/estimate A-B và test evidence được Delivery Owner chấp thuận.
-- [ ] Tất cả decision D-04 đến D-11 đã chuyển thành `Approved` hoặc `Rejected` kèm phương án thay thế.
+- [ ] Tất cả decision D-04 đến D-17 đã chuyển thành `Approved` hoặc `Rejected` kèm phương án thay thế.
+- [ ] **[v2.4]** Các Open Items chờ họp trực tiếp (Phụ lục E.2: Q7, Q16, Q24, Q26, Q28) đã có lịch họp và biên bản trước sign-off metric.
 
 ### 18.3. Chữ ký
 
@@ -1004,6 +1077,7 @@ Không xem việc stakeholder không phản hồi là đồng ý. Mọi quyết 
 - Không implement navigation config final khi D-04, D-05 hoặc D-06 chưa Approved.
 - Không cam kết đợt B khi D-08 chưa Approved và estimate chưa được re-baseline sau reference screens.
 - Không dùng phương án mặc định chỉ vì quá hạn phản hồi; Project Owner phải ghi nhận quyết định trì hoãn hoặc escalation.
+- **[v2.4]** Không implement `Quy tắc gửi tự động` và `Hội thoại Zalo` (7.7) khi D-16/D-17 chưa Approved; không đổi navigation theo Q1/Q23/Q33 khi D-13/D-14/D-15 chưa Approved.
 
 ---
 
@@ -1026,12 +1100,17 @@ Ma trận này là traceability giữa route, template redesign và acceptance. 
 | `/receivables`, `/payments/:id` | List + detail | Rewrite/Major | **Reference list** | Priority sort; record partial payment; period context |
 | `/refunds`, `/refunds/new`, `/refunds/:id` | List + wizard + workflow detail | Major | Detail/wizard pattern | CTA theo role/status; timeline; approval guard |
 | `/expenses` | List + drawer/modal | Major | List pattern | Default columns; allocation/depreciation disclosure |
-| `/zalo/*` | List + wizard + detail/config | Major | Wizard/list pattern | Retry policy; readable provider error; RBAC |
+| `/zalo/*` | List + wizard + detail/config | Major | Wizard/list pattern | Retry policy; readable provider error; RBAC; bước Kiểm tra hiển thị khách chưa liên kết + dự phòng (7.7) |
+| `/zalo/config?tab=rules` **[v2.4]** | Rule list + drawer form | New (tùy chọn) | List/drawer pattern | Chỉ render khi D-16 Approved; ≤7 cột; xem trước đối tượng |
+| `/zalo/inbox`, `/tenants/:id?tab=zalo` **[v2.4]** | Inbox + detail tab | New (tùy chọn) | List/detail pattern | Chỉ render khi D-17 Approved; scope theo trưởng phòng |
+| `/documents` **[v2.4]** | List | Moderate | List pattern | Phạm vi HĐ khách thuê + HĐ chủ nhà; upload theo `documents.manage`; hạn tài liệu |
+| `/landlords?due=1` **[v2.4]** | Filtered list | Moderate | List pattern | Kỳ trả chủ nhà đến hạn; đồng bộ với work queue 6.1 |
 | `/settings/users`, `/settings/catalog` | Admin list/config | Moderate | List/form pattern | Admin-only; no hidden permission action |
 | `/settings/import` | Import wizard/review | Major | Review queue pattern | Upload-map-review-confirm; error evidence |
 | `/settings/jobs`, `/settings/jobs/:id` | List + job detail | Major | Detail pattern | Progress; retry eligibility; audit log |
 | `/settings/tools` | Admin tools | New | Shell settings | `advancedTools`; destructive confirmation; demo label |
 | `/reports`, `/reports/hub`, `/reports/r/:key`, `/reports/cashflow` | Report catalog/report | Moderate/Major | Report pattern | Period/lock state; OI distinction; export |
+| `/reports/new`, `/reports/runs/:id` **[v2.5]** | Report wizard + report record | New | Wizard + Detail pattern | Type runnable; Từ kỳ–Đến kỳ ≤ 12; snapshot immutable; CSV = preview |
 | `/crm` | Role dashboard | Major | Dashboard Kinh doanh | Funnel/next work; no hard-code delta |
 | `/crm/leads*` | List/Kanban + detail | Major | List/Kanban pattern | Shared filter state; contextual stage CTA |
 | `/crm/viewings*`, `/crm/holds*`, `/crm/deals*` | List + wizard/detail | Major | Wizard/detail pattern | Draft; stage guard; role action |
@@ -1113,7 +1192,9 @@ Cột `Cấp 1 / Cấp 2` là vị trí cho Admin; cột `Role khác` ghi vị t
 | `/zalo/batches/new` | Thông báo/Tạo đợt gửi | 1 | zalo.send | (CTA trong `/zalo/history`; quick create) | – | – | – | – | – | – |
 | `/zalo/config` | Thông báo/Cấu hình Zalo; Cấu hình/Thông báo & nhắc việc | 1 | zalo.config | Phân hệ & Quản trị / Thiết lập (secondary action ở `/zalo/history`) | – | – | – | – | – | – |
 | `/reports` | Báo cáo/Báo cáo Phase 1 | 1 | reports.view | Báo cáo / Báo cáo Phase 1 | – | Báo cáo | – | – | – | – |
-| `/reports/hub` | Báo cáo/Trung tâm báo cáo | 2 | reports.hub | Báo cáo / Trung tâm báo cáo | – | Báo cáo | – | – | – | – |
+| `/reports/hub` | Báo cáo/Trung tâm báo cáo (danh sách bản ghi) | 2 | reports.hub | Báo cáo / Trung tâm báo cáo | – | Báo cáo | – | – | – | – |
+| `/reports/new` **[v2.5]** | Báo cáo/Tạo báo cáo | 2 | reports.hub | Từ nút Tạo báo cáo ở `/reports/hub` | – | Báo cáo | – | – | – | – |
+| `/reports/runs/:id` **[v2.5]** | Báo cáo/Bản ghi báo cáo | 2 | reports.hub | Từ danh sách `/reports/hub` | – | Báo cáo | – | – | – | – |
 | `/hr` | Nhân sự/Nhân viên | 3 | hr.view | Phân hệ & Quản trị / Nhân sự | – | – | – | – | Nhân viên | – |
 | `/hr/timesheet` | Nhân sự/Chấm công | 3 | timesheet.view | Phân hệ & Quản trị / Nhân sự | – | – | – | – | Chấm công | – |
 | `/hr/payroll` | Nhân sự/Lương thưởng | 3 | payroll.view | Phân hệ & Quản trị / Nhân sự | – | L (duyệt) | – | – | Lương thưởng | – |
@@ -1154,12 +1235,36 @@ Kiểm tra: 41 mục cũ đều có dòng trong A.1 hoặc A.3; 63 route đều 
 | Query | `/investment/shareholders?tab=contributions\|distributions` | shareholders.view | 3 | Có | Tách Vốn góp / Phân phối |
 | Query | `?filterOpen=1`, `?reviewMode=errors\|all`, `?density=` | – | – | Tùy chọn | Trạng thái UI trên URL |
 | Route | `#/investment/distributions` | shareholders.view | 3 | Tùy chọn | Chỉ khi tab không đủ; dùng dữ liệu `distributions` hiện có |
+| Query **[v2.4]** | `/landlords?due=1` | landlords.view | 1 | Có | Kỳ trả chủ nhà đến hạn (Q8); nguồn cho work queue Admin/Kế toán |
+| Query **[v2.4]** | `/zalo/config?tab=rules` | zalo.config | 2 | Tùy chọn | Quy tắc gửi tự động (Q34); chỉ khi D-16 Approved |
+| Route **[v2.4]** | `#/zalo/inbox` | zalo.view | 2 | Tùy chọn | Hội thoại Zalo theo trưởng phòng (Q37); chỉ khi D-17 Approved |
+| Query **[v2.4]** | `/tenants/:id?tab=zalo` | tenants.view | 2 | Tùy chọn | Tab hội thoại trong detail khách thuê; chỉ khi D-17 Approved |
+| Route **[v2.5]** | `#/reports/new` | reports.hub | 2 | Có | Wizard tạo báo cáo; query `?type=<key>` (bước 2), `?cat=&s=` (lọc bước 1) |
+| Route **[v2.5]** | `#/reports/runs/:id` | reports.hub | 2 | Có | Bản ghi báo cáo (snapshot) – xem trước, tải CSV, tạo lại, xóa |
+| Query **[v2.5]** | `/reports/hub?cat=&type=&per=&createdBy=&s=` | reports.hub | 2 | Tùy chọn | Bộ lọc danh sách bản ghi; `per` là kỳ chứa trong bản ghi (không đồng bộ `meta.period`) |
 
 Launcher `Phân hệ & Quản trị` là popover, không phải route. `Công việc của tôi` dùng `/dashboard`, không tạo route mới.
 
 ---
 
 ## Phụ lục C. Lịch sử thay đổi chi tiết
+
+### C.0. Thay đổi từ v2.3 lên v2.4
+
+1. Đối chiếu 36 câu trả lời làm rõ nghiệp vụ của khách (06/09/2026) vào Phụ lục E; phân loại xác nhận / bác bỏ / bổ sung / chờ họp / ghi nhận.
+2. Sửa ngữ nghĩa T/S/G thành tiền tố mã tòa (`Nhóm tòa`), bỏ nhãn giả định trên cột này (7.2, 13.4, D.1, D.3, D-18).
+3. Xác nhận các rule đã có trong mockup: 35 ngày báo trước (Q9), công nợ sau 5 ngày (Q14), khấu hao 200k/phòng (Q17), hoa hồng % chi sau cọc + ký HĐ và theo cá nhân (Q19/Q20), nhắc bảo dưỡng 7 ngày (Q32), ZNS (Q35), fallback SMS (Q36); ghi rõ không thêm cấu hình cho các hằng số này (7.8).
+4. Work Queue Matrix: thêm `Kỳ trả tiền chủ nhà đến hạn` cho Admin/Kế toán; mở `Kiểm kê cần xử lý` cho Kế toán; đổi `Nghĩa vụ góp vốn` thành `Kỳ đóng tiền nhà` theo % vốn góp; ghi chú phòng chờ dọn sau hoàn cọc.
+5. Hợp đồng: OCR là luồng chính khi tải file (Q10); xe không giới hạn và sinh dòng phí gửi xe (Q12); chuẩn hóa `Giá niêm yết`/`Giá thuê` (Q13); `Phân khúc` nhập tay (Q25).
+6. Hoàn cọc và chi phí: prefill khấu hao cố định, duyệt bởi Admin/Kế toán, hiển thị hai giá trị chi thực tế/khấu hao cho khoản đầu tư (Q6/Q15/Q17).
+7. Zalo (7.7): thêm khối Kênh gửi và dự phòng, Quy tắc gửi tự động (D-16) và Hội thoại Zalo (D-17); bảng so sánh chi phí tại E.3.
+8. Báo cáo: thêm metric `perf.actual`/`perf.provisional` (Q22); ghi nhận người xem báo cáo lợi nhuận (Q23 → D-14); giữ nhãn giả định cho công thức chờ họp.
+9. Phase 3: kiểm kê tháng cho Admin/Kế toán (Q33), khấu hao khoản đầu tư (Q6), ba trạng thái nhân viên (Q27), `Lịch đóng tiền nhà` và tỷ lệ nhập tay có validate (Q29/Q30), thống kê cổ đông liên kết Tòa nhà (Q31).
+10. Decision Log: thêm D-13 đến D-18; cập nhật checklist 18.2 và implementation gate 18.4; navigation 4.2/Phụ lục A giữ nguyên chờ D-13/D-14/D-15.
+11. Route Coverage và Phụ lục B: thêm `/landlords?due=1`, `/zalo/config?tab=rules`, `#/zalo/inbox`, `/tenants/:id?tab=zalo`, bổ sung `/documents` vào ma trận.
+12. Phụ lục D: cập nhật contract `buildingType`, phạm vi và quyền upload Trung tâm Tài liệu (Q3); tham chiếu Decision Pack v1.1.
+13. OCR (8.2): card Kết quả trích xuất theo thực thể, tài liệu cuộn liên tục, OCR = bước tạo khách thuê (khớp SĐT/CCCD, tạo mới từ HĐ), tách mã phòng/tòa và gợi ý phòng; thêm `tenants.address`, `tenants.idPlace` (D.1). Thay mô phỏng 29 trường bằng parser thật theo template HĐ của Linh (43 trường, 7 nhóm, bảng tài sản), đọc PDF text-based qua pdf.js hoặc .txt; prefill wizard hợp đồng gồm xe và đơn giá dịch vụ; file mẫu `mau-hop-dong-ocr.txt` cập nhật theo template.
+14. **[v2.5]** Báo cáo (8.5): Trung tâm báo cáo = danh sách bản ghi + wizard Tạo báo cáo (loại → tham số Từ kỳ–Đến kỳ) → bản ghi snapshot có xem trước và tải CSV; route `/reports/new`, `/reports/runs/:id`; collection `reportRuns`; guide F15.1 đổi sang luồng tạo bản ghi.
 
 ### C.1. Thay đổi từ v2.1 lên v2.2
 
@@ -1199,7 +1304,7 @@ Launcher `Phân hệ & Quản trị` là popover, không phải route. `Công vi
 
 ### D.1. Ngoại lệ schema được phép
 
-Theo D-12, mockup được thêm các collection `areas`, `salesTeams` và các field sau: `buildings.areaId`, `buildings.buildingType`, `buildings.areaM2`, `buildings.condition`, `buildings.operatingSince`, `buildings.licenseExpiry`, `buildings.pccc`, `expenseGroups.parentCode`, `expenses.categoryCode`, `refundDeductions.groupCode`, `services.wbType`, `contracts.vehicles`, `leadSources.kind`, `leads.handoverDate`, `users.teamId`, `documents.expiry`.
+Theo D-12, mockup được thêm các collection `areas`, `salesTeams` và các field sau: `buildings.areaId`, `buildings.buildingType`, `buildings.areaM2`, `buildings.condition`, `buildings.operatingSince`, `buildings.licenseExpiry`, `buildings.pccc`, `expenseGroups.parentCode`, `expenses.categoryCode`, `refundDeductions.groupCode`, `services.wbType`, `contracts.vehicles`, `leadSources.kind`, `leads.handoverDate`, `users.teamId`, `documents.expiry`, **[v2.4]** `tenants.address` (hộ khẩu thường trú), `tenants.idPlace` (nơi cấp CCCD) – điền từ OCR hoặc form khách thuê; **[v2.5]** collection `reportRuns` (`code`, `type`, `name`, `cat`, `params{periodFrom, periodTo, buildingId, …dims}`, `periods[]`, `rowCount`, `snapshot.byPeriod[]{period, kpi, headers, rows}`, `note`, `rerunOf`, `createdBy`) – bản ghi báo cáo, snapshot text thuần.
 
 Ràng buộc:
 
@@ -1207,22 +1312,25 @@ Ràng buộc:
 - `TH.seed.workbook(st)` chạy idempotent trong migration và đặt `meta.wbSeeded=true`.
 - Không tăng hằng `SCHEMA`; state hiện hữu phải load được.
 - Migration production, nếu có, là deliverable riêng và không được suy ra trực tiếp từ seed mockup.
+- **[v2.4]** `buildings.buildingType` giữ giá trị `T|S|G` nhưng ngữ nghĩa là **tiền tố mã tòa** (T2, T3, S1, S2, G1, G2…), không phải loại sở hữu (D-18). Giá trị phải suy ra từ ký tự đầu của `buildings.code`; seed `buildingTypeOf` và fixup `meta.wbFixups.buildingTypeV2` trong `seed-wb.js` cần thay bằng derive-from-code, nhãn `Q.L.buildingType` đổi thành `T`, `S`, `G` (không kèm mô tả sở hữu).
+- **[v2.4]** `contracts.vehicles` không giới hạn số phần tử; mỗi phần tử sinh một dòng phí gửi xe trên hóa đơn theo kỳ (Q12).
 
 ### D.2. Dimension và công thức dùng chung
 
 - `Q.scope(f)` là nguồn sự thật cho kỳ, Khu nhà, tòa, loại nhà, quản lý, trưởng nhóm, vận hành, cổ đông, sale và team.
 - `TH.metrics` là registry bắt buộc cho KPI/báo cáo workbook; mỗi metric có công thức, includes/excludes, trạng thái `approved|assumed` và owner.
 - Công thức `assumed` phải hiện nhãn `Giả định – chờ xác nhận` và không được dùng để tuyên bố số liệu kế toán đã duyệt.
-- Decision Pack chi tiết: `docs/TimeHouse-Workbook-Alignment-Decisions-v1.0.md`.
+- Decision Pack chi tiết: `docs/TimeHouse-Workbook-Alignment-Decisions-v1.0.md` (nội dung v1.1 sau đối chiếu 06/09/2026).
+- **[v2.4]** Trạng thái metric sau câu trả lời của khách: `revenue.newDeposit`, `profit.actual`, `profit.business` chuyển `Approved` (Q15); thêm `perf.actual`, `perf.provisional` `Approved` (Q22); `margin.rent`, `vacancy.days`, `utility.diff`, `ontime.rate`, `roi.asset` giữ `Assumed` đến khi họp trực tiếp (Q7/Q16/Q24). Chi tiết tại Decision Pack mục 4.
 
 ### D.3. Route và query bổ sung
 
 | Loại | Giá trị | Contract |
 |---|---|---|
-| Route | `#/documents` | Index tài liệu dùng chung; quyền xem theo role, quyền upload theo permission |
-| Query | `vac` | `immediate|endOfMonth|waiting` |
+| Route | `#/documents` | Index tài liệu dùng chung. **[v2.4]** Phạm vi theo khách (Q3): hợp đồng thuê của khách thuê và hợp đồng với chủ nhà; quyền xem theo role, quyền tải lên cho nhân viên vận hành, trưởng nhóm, Admin, Kế toán (= `documents.manage` hiện tại); cột `Hạn tài liệu` từ `documents.expiry` |
+| Query | `vac` | `immediate\|endOfMonth\|waiting` |
 | Query | `areaId` | ID Khu nhà |
-| Query | `buildingType` | `T|S|G` |
+| Query | `buildingType` | `T\|S\|G` — **[v2.4]** nhóm tòa theo tiền tố mã tòa, nhãn UI `Nhóm tòa` |
 | Query | `leadId` | Trưởng khu/trưởng nhóm |
 | Query | `opsId` | Nhân sự vận hành hiệu lực |
 | Query | `teamId` | Team kinh doanh |
@@ -1244,3 +1352,89 @@ Ràng buộc:
 4. Thêm metric registry, nhãn giả định và snapshot công thức.
 5. Thêm preset bảng Đối soát và export theo cột hiển thị.
 6. Thêm route Trung tâm Tài liệu và nhóm báo cáo Workbook Alignment.
+
+## Phụ lục E. Đối chiếu câu trả lời làm rõ nghiệp vụ 06/09/2026 **[v2.4]**
+
+Nguồn: `Cau-hoi-lam-ro-nghiep-vu-Timehouse.xlsx` (gửi 06/09/2026, người gửi Trường Nguyễn; khách hàng đã điền cột “Trả lời của khách hàng”). Câu số 4 không tồn tại trong file (STT nhảy từ 3 sang 5). Sheet `ZALO` và `SO SÁNH CP ZALO` tóm tắt tại E.3.
+
+Ký hiệu cột **Kết luận**: `Xác nhận` = rule/nhãn đã có trong mockup, chỉ đổi trạng thái; `Bác bỏ` = giả định hiện tại sai; `Bổ sung` = cần contract UI mới; `Chờ họp` = khách hẹn trao đổi trực tiếp; `Ghi nhận` = không đổi spec.
+
+### E.1. Bảng đối chiếu
+
+| STT | Nhóm | Câu hỏi (rút gọn) | Trả lời của khách | Kết luận | Mục spec | Decision |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Chung | Ai xem/sửa công nợ, lương, hoa hồng | Admin và Kế toán | Bổ sung (phân quyền) | 4.2 ghi chú | D-13 |
+| 2 | Chung | Loại nhà T, S, G là gì | Ký hiệu tiền tố mã tòa: T2, T3, S1, S2, G1, G2 | Bác bỏ giả định “loại sở hữu” | 7.2, 13.4, D.1, D.3 | D-18 Approved |
+| 3 | Chung | Module Tài liệu lưu gì, ai upload | Hợp đồng thuê của khách và chủ nhà; nhân viên, trưởng nhóm, Admin, Kế toán được tải lên | Xác nhận (`documents.manage`) | D.3, mục 19 | – |
+| 5 | Tòa nhà | “Thời gian giữ giá” | Thời gian chủ nhà không được phép tăng giá của TimoHouse | Xác nhận, thêm tooltip | 7.2, 13.4 | – |
+| 6 | Tòa nhà | Khoản đầu tư có khấu hao không | Có | Bổ sung | 7.6, 9.1 | – |
+| 7 | Tòa nhà | Công thức Hiệu suất, Lợi nhuận, Thời gian vận hành tòa | Gặp trực tiếp trao đổi | Chờ họp | 8.5, E.2 | – |
+| 8 | Tòa nhà | Chu kỳ thanh toán chủ nhà, có nhắc không | Cần nhắc; đa số 3 tháng/lần, có nhà 4 và 6 tháng | Bổ sung work queue + query | 6.1, 7.2, Phụ lục B | – |
+| 9 | Khách thuê | Mốc 35 ngày cố định hay theo tòa | Toàn bộ hệ thống | Xác nhận (`Q.contractStatus`) | 7.4, 7.8 | – |
+| 10 | Khách thuê | Upload hợp đồng có đọc tự động không | Nhập dữ liệu tự động từ file | Bổ sung (OCR là luồng chính) | 7.4, 8.2 | – |
+| 11 | Khách thuê | Tab Tài chính trong chi tiết khách cần gì | Chưa có | Ghi nhận, giữ đề xuất + nhãn giả định | 7.3 | – |
+| 12 | Khách thuê | Giới hạn xe, liên kết phí gửi xe | Không giới hạn; có liên kết sang hóa đơn | Bổ sung | 7.4, D.1 | – |
+| 13 | Tài chính | Giá niêm yết vs giá cho thuê | Niêm yết = giá tiêu chuẩn TimoHouse; cho thuê = giá thực tế khách đang thuê | Xác nhận (`listPrice`/`price`) | 7.4, 13.4 | – |
+| 14 | Tài chính | Sau bao nhiêu ngày chuyển sang công nợ | Sau 5 ngày kể từ khi có hóa đơn | Xác nhận (BR-07) | 7.5, 7.8 | – |
+| 15 | Tài chính | Mua sắm thiết bị hạch toán thế nào | Một lần trong báo cáo LN dòng tiền; khấu hao trong báo cáo kinh doanh | Xác nhận metric `profit.actual`/`profit.business` | 7.6, D.2 | – |
+| 16 | Tài chính | Báo cáo kinh doanh của nhà | Gặp trực tiếp trao đổi | Chờ họp | 8.5, E.2 | – |
+| 17 | Tài chính | Công thức hoàn cọc, ai duyệt | Admin, Kế toán; khấu hao cố định 200k/phòng; sửa chữa, vệ sinh theo thực tế | Xác nhận (BR-12) + CTA duyệt cho Admin | 7.6 | – |
+| 18 | Kinh doanh | Kênh nguồn khách | Facebook, tờ rơi, đăng tin, Zalo | Ghi nhận; 4 nguồn mặc định | 7.8 | – |
+| 19 | Kinh doanh | Hoa hồng % hay bậc thang; chi khi nào | Theo %; chi ngay sau khi khách đóng đủ cọc 1 và ký HĐ | Xác nhận (BR-13) | 8.1 | – |
+| 20 | Kinh doanh | Hoa hồng theo cá nhân hay team | Theo cá nhân | Xác nhận | 8.1 | – |
+| 21 | Kinh doanh | Phòng sau hoàn cọc/phá HĐ có cần kiểm tra/dọn không | Có | Xác nhận (`cleaning`) | 6.1 | – |
+| 22 | Báo cáo | Hiệu suất thực tế vs tạm tính | Thực tế = sau khi thu tiền xong; tạm tính = tại thời điểm làm | Bổ sung metric | 8.5, 13.4, D.2 | – |
+| 23 | Báo cáo | Ai xem báo cáo LN dòng tiền / kinh doanh | Cổ đông, Admin, Kế toán, trưởng phòng | Bổ sung (phân quyền) | 8.5 | D-14 |
+| 24 | Báo cáo | Bảng dự kiến LN dòng tiền | Gặp trực tiếp trao đổi | Chờ họp | E.2 | – |
+| 25 | Báo cáo | Phân khúc khách nhập tay hay suy luận | Theo dữ liệu trên hợp đồng | Xác nhận (`tenants.segment` nhập tay) | 7.3 | – |
+| 26 | Nhân sự | Công thức lương từng phòng ban | Gặp trực tiếp trao đổi | Chờ họp | 9.2, E.2 | – |
+| 27 | Nhân sự | Trạng thái nhân viên | Đang làm, nghỉ việc, thử việc | Ghi nhận; 3 tab, `leave` không có tab riêng | 9.2 | – |
+| 28 | Cổ đông | Mẫu Bảng kê chia cổ phần các nhà | Gặp trực tiếp trao đổi | Chờ họp | 9.3, E.2 | – |
+| 29 | Cổ đông | Lịch đóng tiền từng người là gì | Lịch cổ đông đóng tiền nhà định kỳ cho chủ nhà theo tỷ lệ % góp vốn | Bổ sung (đổi nghĩa tab Vốn góp) | 6.1, 9.3 | – |
+| 30 | Cổ đông | Góp nhiều tòa? Tỷ lệ nhập tay? | Được nhiều nhà; tỷ lệ nhập tay | Xác nhận + validate 100% | 9.3 | – |
+| 31 | Cổ đông | Thống kê tài sản/cọc có liên kết Tòa nhà không | Có liên kết | Xác nhận | 9.3 | – |
+| 32 | Bảo trì | Nhắc bảo dưỡng trước bao nhiêu ngày | Cần, trước 7 ngày | Xác nhận (BR-16) | 9.1 | – |
+| 33 | Bảo trì | Chu kỳ kiểm kê, ai nhập/duyệt | Admin và Kế toán; 1 tháng/lần | Xác nhận quyền + bổ sung navigation | 6.1, 9.1 | D-15 |
+| 34 | Zalo | Cấu hình sự kiện cố định hay công cụ tự đặt điều kiện | Công cụ tự đặt điều kiện + thời điểm gửi linh hoạt | Bổ sung (rule builder) | 7.7, Phụ lục B | D-16 |
+| 35 | Zalo | OA Broadcast hay ZNS | Zalo ZNS | Xác nhận | 7.7 | – |
+| 36 | Zalo | Cách liên kết khách; dự phòng | TimoHouse chủ động gửi; nếu chưa liên kết cần dự phòng | Xác nhận (`fallbackSms`) + bước Kiểm tra | 7.7 | – |
+| 37 | Zalo | Ai nhận phản hồi; có đồng bộ hội thoại không | Từng trưởng phòng phụ trách; có đồng bộ | Bổ sung (inbox) | 7.7, Phụ lục B | D-17 |
+
+### E.2. Open Items chờ họp trực tiếp
+
+| Câu | Nội dung cần chốt | Metric/màn bị ảnh hưởng | Nhãn hiện tại | Gate |
+| --- | --- | --- | --- | --- |
+| Q7 | Công thức Hiệu suất, Lợi nhuận, Thời gian vận hành của từng tòa | `occupancy.rate`, `margin.rent`, `vacancy.days`, detail tòa | `Giả định – chờ xác nhận` | Sign-off metric, trước UAT |
+| Q16 | Mục đích và công thức “Báo cáo kinh doanh của nhà” | `wb-building-business`, `utility.diff` | `Giả định – chờ họp trực tiếp` | Sign-off metric |
+| Q24 | “Bảng dự kiến lợi nhuận dòng tiền”: trung bình lịch sử hay giả định nhập tay | Report dự kiến (chưa có route), `profit.actual` | Chưa triển khai | Quyết định scope trước đợt B |
+| Q26 | Công thức lương từng phòng ban (lương cứng, % doanh số, phụ cấp) | `/hr/payroll` cột tính toán | `Giả định` | Trước UAT Phase 3 |
+| Q28 | Mẫu thực tế “Bảng kê chia cổ phần các nhà” | `/investment/shareholders?tab=distributions`, `roi.capital` | `Giả định` | Sign-off metric Phase 3 |
+
+Mỗi item phải có biên bản họp và cập nhật trạng thái trong Decision Pack trước khi bỏ nhãn giả định.
+
+### E.3. Tham khảo kênh Zalo (từ sheet ZALO và SO SÁNH CP ZALO)
+
+Số liệu do khách kiểm tra ngày 06/09/2026, là dự toán tham khảo, chốt theo template thực tế trong tài khoản ZBS; không phải cam kết giá của dự án.
+
+| Tiêu chí | OA Broadcast | ZNS / ZBS Template Message |
+| --- | --- | --- |
+| Người nhận | Chỉ người đã quan tâm OA | Gửi theo số điện thoại/UID, không cần follow |
+| Duyệt mẫu | Dùng bài viết trên OA | Đăng ký và kiểm duyệt template trước khi gửi |
+| Cách gửi | Chọn bài, nhóm, đặt lịch trên OA Manager | Backend gọi API khi phát sinh nghiệp vụ hoặc đến lịch nhắc |
+| Phù hợp | Thông báo chung (bảo trì khu nhà…) | Hóa đơn, nhắc nợ, hết hạn HĐ, hoàn cọc từng khách |
+| Phí | Trong hạn mức gói OA (4 lượt/người quan tâm/tháng) | Gói OA + ~300đ/tin (dự toán; trang giá ghi 200đ) + phụ phí nút/ảnh |
+
+Gói OA: Tiêu chuẩn 1.000.000đ/năm (không có API); Tăng trưởng 2.500.000đ/năm (khởi điểm cho API); Toàn diện 6.000.000đ/năm. Mẫu 1.000 khách × 2 tin/tháng: Broadcast ≈ 2.500.000đ/năm (chỉ phí OA), ZNS ≈ 10.420.000đ/năm gồm VAT giả định 10%; chưa gồm phí lập trình/trung gian. Kết luận của khách: dùng ZNS cho tin cá nhân hóa (Q35).
+
+### E.4. Hạng mục implementation phát sinh cho mockup
+
+Không thuộc phạm vi UX của tài liệu này nhưng cần thực hiện để mockup khớp câu trả lời:
+
+1. `mockup/js/core/selectors-wb.js`: đổi `Q.L.buildingType` thành nhãn `T`/`S`/`G` (bỏ mô tả sở hữu); `mockup/js/pages/buildings.js` bỏ `U.assume()` trên cột/kv Loại nhà và đổi nhãn thành `Nhóm tòa`.
+2. `mockup/js/core/seed-wb.js`: thay `buildingTypeOf` bằng derive từ ký tự đầu `buildings.code`; thêm fixup mới thay `buildingTypeV2`.
+3. Thêm selector `Q.landlordDue(days)` từ `buildings.payCycle`/`payDay` và filter `due=1` cho `/landlords`; nối vào `Q.todo()` cho Admin/Kế toán.
+4. `mockup/js/core/seed-p2.js`: các `leadSources` ngoài FB/FLY/POST/ZL đặt `status: 'inactive'`.
+5. `mockup/js/pages/refunds.js`: khóa sửa số tiền dòng khấu hao 200.000đ, chỉ cho phép bỏ dòng kèm lý do; mở CTA duyệt cho `admin`.
+6. `mockup/js/core/metrics.js`: thêm `perf.actual`, `perf.provisional`; đổi trạng thái `revenue.newDeposit`, `profit.actual`, `profit.business` thành `approved`.
+7. `mockup/js/pages/hr.js`: status tabs còn ba trạng thái, `leave` hiển thị chip phụ dưới `Đang làm`.
+8. `mockup/js/pages/investment.js`: đổi nhãn tab `Vốn góp` → `Lịch đóng tiền nhà`; validate tổng tỷ lệ 100%/tòa.

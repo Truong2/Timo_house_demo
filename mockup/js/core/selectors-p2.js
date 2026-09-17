@@ -61,7 +61,10 @@
   Q.leadMatch = (l, f = {}) => (!f.s || F.norm(l.name + ' ' + l.phone + ' ' + (l.email || '') + ' ' + l.code).includes(F.norm(f.s))) && (!f.sourceId || l.sourceId === f.sourceId) && (!f.saleId || l.saleId === f.saleId) && (!f.buildingId || (l.buildingIds || []).includes(f.buildingId)) && (!f.status || l.status === f.status) && (!f.temp || l.temp === f.temp) && (!f.period || F.period(l.createdAt) === f.period);
   Q.leadsToday = () => St.where('leads', l => Q.leadOnBoard(l) && (l.temp === 'hot' || l.status === 'new' || F.daysBetween(Q.leadLastTouch(l).slice(0, 10), F.today()) >= 3)).sort((a, b) => (a.temp === 'hot' ? 0 : 1) - (b.temp === 'hot' ? 0 : 1)).slice(0, 5);
   Q.suggestRooms = (l, n = 5) => St.where('rooms', r => ['ready', 'held'].includes(r.status) && (!(l.buildingIds || []).length || l.buildingIds.includes(r.buildingId)) && (!l.budgetMax || r.price <= l.budgetMax * 1.15)).sort((a, b) => (a.status === 'ready' ? 0 : 1) - (b.status === 'ready' ? 0 : 1) || ((a.type === l.roomType ? 0 : 1) - (b.type === l.roomType ? 0 : 1)) || Math.abs(a.price - (l.budgetMax || a.price)) - Math.abs(b.price - (l.budgetMax || b.price))).slice(0, n);
-  Q.salesUsers = () => St.where('users', u => u.role === 'sale' && u.status === 'active');
+  Q.salesUsers = () => {
+    const allowed = TH.auth.role() === 'sale' ? TH.auth.allowedSaleIds() : null;
+    return St.where('users', u => u.role === 'sale' && u.status === 'active' && (!allowed || allowed.has(u.id)));
+  };
   Q.crmStats = (f = {}) => {
     const period = f.period === undefined ? St.state.meta.period : f.period; const inP = (iso) => !period || F.period(iso) === period;
     const leads = St.where('leads', l => Q.leadMatch(l, { sourceId: f.sourceId, saleId: f.saleId, buildingId: f.buildingId }));

@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "dev:dist": "node scripts/serve.mjs --dist",
-    "check": "node scripts/build.mjs --check-only",
+    "check": "node scripts/build.mjs --check-only && node scripts/check-rbac.mjs",
+    "check:rbac": "node scripts/check-rbac.mjs",
     "build": "node scripts/build.mjs",
     "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
     "walkthrough:p1": "node scripts/capture_phase1_walkthrough.mjs"

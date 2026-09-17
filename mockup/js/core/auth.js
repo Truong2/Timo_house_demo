@@ -1,7 +1,7 @@
 /* Phiên đăng nhập, RBAC Phase 1 và phạm vi tòa */
 (function (TH) {
   const A = {};
-  const PERMS = {
+  const ROLE_POLICY = {
     'dashboard.view': ['admin', 'accountant', 'ops'],
     'buildings.view': ['admin', 'accountant', 'ops'], 'buildings.manage': ['admin'],
     'landlords.view': ['admin', 'accountant', 'ops'], 'landlords.manage': ['admin'],
@@ -9,6 +9,7 @@
     'tenants.view': ['admin', 'accountant', 'ops'], 'tenants.manage': ['admin', 'ops'],
     'contracts.view': ['admin', 'accountant', 'ops'], 'contracts.manage': ['admin', 'ops'],
     'invoices.view': ['admin', 'accountant', 'ops'], 'invoices.prepare': ['admin', 'accountant'],
+    'meterReadings.manage': ['admin', 'accountant', 'ops'],
     'payments.view': ['admin', 'accountant', 'ops'], 'payments.record': ['admin', 'accountant', 'ops'],
     'payments.adjust': ['admin', 'accountant'], 'payments.reverse': ['admin', 'accountant'],
     'refunds.view': ['admin', 'accountant', 'ops'], 'refunds.prepare': ['admin', 'ops'],
@@ -28,7 +29,7 @@
     adjustPayment: ['admin', 'accountant'], recordPayment: ['admin', 'accountant', 'ops'], manageUsers: ['admin'],
     manageCatalog: ['admin', 'accountant'], zaloConfig: ['admin'], deactivateBuilding: ['admin'],
     // Phase 2 (A=admin, K=accountant, O=ops, S=sale, T=kythuat) – chỉ có hiệu lực khi TH.phase.on(2)
-    'crm.view': ['admin', 'accountant', 'ops', 'sale'], 'crm.manage': ['admin', 'sale'], 'viewings.manage': ['admin', 'ops', 'sale'], 'holds.manage': ['admin', 'ops', 'sale'],
+    'crm.view': ['admin', 'accountant', 'ops', 'sale'], 'crm.manage': ['admin', 'sale'], 'crm.convert': ['admin', 'ops', 'sale'], 'viewings.manage': ['admin', 'ops', 'sale'], 'holds.manage': ['admin', 'ops', 'sale'],
     'deals.view': ['admin', 'accountant', 'sale'], 'deals.manage': ['admin', 'sale'], 'commission.view': ['admin', 'accountant', 'sale'], 'commission.pay': ['admin', 'accountant'],
     'ocr.use': ['admin', 'ops'], 'statement.import': ['admin', 'accountant'], 'openingBalance.manage': ['admin', 'accountant'], 'deposits.view': ['admin', 'accountant', 'ops'],
     'dataJobs.view': ['admin', 'accountant', 'ops'], 'dataJobs.manage': ['admin', 'accountant'],
@@ -40,6 +41,7 @@
     'projects.view': ['admin', 'accountant', 'codong'], 'projects.manage': ['admin'], 'shareholders.view': ['admin', 'accountant', 'codong'], 'shareholders.manage': ['admin', 'accountant'], 'contributions.record': ['admin', 'accountant'], 'distributions.manage': ['admin', 'accountant'], 'distributions.approve': ['admin'], 'roi.view': ['admin', 'accountant', 'codong'],
     'bank.view': ['admin', 'accountant'], 'bank.manage': ['admin', 'accountant'],
   };
+  const PERMS = ROLE_POLICY; // alias tương thích cho các màn hình hiện hữu
   // Vai trò P2 được đọc một số màn P1 (read-only)
   const P2_READ = { sale: ['dashboard.view', 'rooms.view', 'tenants.view', 'contracts.view', 'buildings.view'], kythuat: ['dashboard.view', 'rooms.view', 'buildings.view', 'expenses.view'], hr: ['dashboard.view', 'buildings.view'], codong: ['dashboard.view'] };
   Object.entries(P2_READ).forEach(([role, perms]) => perms.forEach(k => { if (PERMS[k] && !PERMS[k].includes(role)) PERMS[k].push(role); }));
@@ -47,35 +49,61 @@
   const PHASE_ROLES = { 2: ['sale', 'kythuat'], 3: ['hr', 'codong'] };
   const phaseOfRole = (role) => Number(Object.keys(PHASE_ROLES).find(n => PHASE_ROLES[n].includes(role))) || 1;
   const roleAllowed = (role) => P1_ROLES.includes(role) || (phaseOfRole(role) > 1 && TH.phase && TH.phase.on(phaseOfRole(role)));
-  const SCOPED_ROLES = ['ops', 'codong']; // vai trò bị giới hạn theo tòa (ops: tòa được giao; cổ đông: tòa của dự án đã góp – FR-SHR-03)
+  const SCOPED_ROLES = ['ops', 'sale', 'kythuat', 'codong'];
   const isScoped = (role) => SCOPED_ROLES.includes(role);
   const COLLECTION_TYPE = {
     buildings: 'building', rooms: 'room', landlords: 'landlord', landlordContracts: 'landlordContract', landlordPayments: 'landlordPayment',
     tenants: 'tenant', contracts: 'contract', contractMembers: 'contractMember', contractServices: 'contractService', holds: 'hold', roomAssets: 'roomAsset',
     meterReadings: 'meterReading', invoices: 'invoice', invoiceLines: 'invoiceLine', payments: 'payment', paymentAllocations: 'paymentAllocation',
     refunds: 'refund', refundDeductions: 'refundDeduction', expenses: 'expense', expenseAllocations: 'expenseAllocation', documents: 'document',
-    importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage',
+    importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage', ocrExtractions: 'ocrExtraction',
     // Phase 2: record có buildingId/roomId → ops vẫn bị giới hạn theo tòa
-    leads: 'lead', viewings: 'viewing', deals: 'deal', incidents: 'incident', incidentUpdates: 'incidentUpdate', maintenanceSchedules: 'maintenanceSchedule', openingBalances: 'openingBalance',
+    leads: 'lead', leadActivities: 'leadActivity', viewings: 'viewing', deals: 'deal', commissions: 'commission', incidents: 'incident', incidentUpdates: 'incidentUpdate', maintenanceSchedules: 'maintenanceSchedule', openingBalances: 'openingBalance',
     // Phase 3: tài sản/kiểm kê theo tòa; dự án/vốn góp/phân phối theo tòa của dự án
-    assets: 'asset', inventories: 'inventory', inventoryLines: 'inventoryLine', projects: 'project', capitalCommitments: 'capitalCommitment', contributions: 'contribution', distributions: 'distribution',
+    assets: 'asset', inventories: 'inventory', inventoryLines: 'inventoryLine', projects: 'project', shareholders: 'shareholder', capitalCommitments: 'capitalCommitment', contributions: 'contribution', distributions: 'distribution',
   };
-  const SCOPED = new Set(Object.keys(COLLECTION_TYPE));
+  const DATA_SCOPE = {
+    ops: new Set(Object.keys(COLLECTION_TYPE)),
+    sale: new Set(['leads', 'leadActivities', 'viewings', 'holds', 'deals', 'commissions', 'tenants', 'contracts']),
+    kythuat: new Set(['buildings', 'rooms', 'expenses', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'assets', 'inventories', 'inventoryLines']),
+    codong: new Set(['buildings', 'rooms', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions']),
+  };
   const rawAll = c => TH.store.rawAll ? TH.store.rawAll(c) : (TH.store.state[c] || []);
   const rawGet = (c, id) => TH.store.rawGet ? TH.store.rawGet(c, id) : rawAll(c).find(x => x && x.id === id) || null;
   const uniq = rows => [...new Set(rows.filter(Boolean))];
 
   A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Kinh doanh', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
   A.P1_ROLES = P1_ROLES; A.roleAllowed = roleAllowed; A.PHASE_ROLES = PHASE_ROLES; A.phaseOfRole = phaseOfRole;
-  A.PERMISSIONS = PERMS;
+  A.ROLE_POLICY = ROLE_POLICY; A.PERMISSIONS = PERMS; A.DATA_SCOPE = DATA_SCOPE;
   A.session = () => TH.store.state.session;
   A.user = () => { const s = A.session(); return s ? rawGet('users', s.userId) : null; };
   A.role = () => { const s = A.session(); return s ? s.role : null; };
-  A.allowedBuildingIds = () => {
-    if (!isScoped(A.role())) return null;
-    const u = A.user(); return new Set((u && Array.isArray(u.buildingIds) ? u.buildingIds : []).filter(Boolean));
+  A.allowedSaleIds = () => {
+    const u = A.user(); if (!u || A.role() !== 'sale') return null;
+    const team = rawAll('salesTeams').find(t => t && t.leadUserId === u.id && t.status !== 'inactive');
+    return new Set(team ? rawAll('users').filter(x => x && x.role === 'sale' && x.status === 'active' && x.teamId === team.id).map(x => x.id) : [u.id]);
   };
-  A.shouldScopeCollection = c => isScoped(A.role()) && SCOPED.has(c);
+  A.shareholder = () => { const u = A.user(); return u ? rawAll('shareholders').find(s => s && s.userId === u.id) || null : null; };
+  A.allowedProjectIds = () => {
+    if (A.role() !== 'codong') return null;
+    const sh = A.shareholder();
+    return new Set(sh ? rawAll('capitalCommitments').filter(c => c && c.shareholderId === sh.id).map(c => c.projectId).filter(Boolean) : []);
+  };
+  A.allowedBuildingIds = () => {
+    const role = A.role(), u = A.user();
+    if (!isScoped(role) || role === 'sale') return null;
+    if (role === 'ops') return new Set((u && Array.isArray(u.buildingIds) ? u.buildingIds : []).filter(Boolean));
+    if (role === 'kythuat') {
+      const employee = u && rawAll('employees').find(e => e && e.userId === u.id);
+      return new Set(employee ? rawAll('buildingAssignments').filter(a => a && a.employeeId === employee.id && a.status === 'active').map(a => a.buildingId).filter(Boolean) : []);
+    }
+    if (role === 'codong') {
+      const projects = A.allowedProjectIds() || new Set();
+      return new Set(rawAll('projects').filter(p => p && projects.has(p.id)).map(p => p.buildingId).filter(Boolean));
+    }
+    return null;
+  };
+  A.shouldScopeCollection = c => !!(DATA_SCOPE[A.role()] && DATA_SCOPE[A.role()].has(c));
 
   function buildingIds(type, record, seen = new Set()) {
     if (!record) return [];
@@ -110,9 +138,17 @@
       const cols = { building: 'buildings', room: 'rooms', tenant: 'tenants', contract: 'contracts', invoice: 'invoices', payment: 'payments', refund: 'refunds', landlord: 'landlords' };
       return buildingIds(record.entityType, rawGet(cols[record.entityType] || record.entityType, record.entityId), seen);
     }
+    if (type === 'ocrExtraction') {
+      if (record.contractId) return buildingIds('contract', rawGet('contracts', record.contractId), seen);
+      const roomCode = ((record.fields || []).find(f => f && f.key === 'roomCode') || {}).value;
+      const room = roomCode && rawAll('rooms').find(r => r && r.code === roomCode);
+      return room ? [room.buildingId] : [];
+    }
     if (type === 'zaloBatch') return uniq(rawAll('zaloMessages').filter(x => x && x.batchId === record.id).flatMap(x => buildingIds('zaloMessage', x, seen)));
     if (type === 'zaloMessage') return record.buildingId ? [record.buildingId] : buildingIds('invoice', rawGet('invoices', record.invoiceId), seen);
     if (type === 'lead') return record.buildingIds && record.buildingIds.length ? record.buildingIds : [];
+    if (type === 'leadActivity') return buildingIds('lead', rawGet('leads', record.leadId), seen);
+    if (type === 'commission') return buildingIds('deal', rawGet('deals', record.dealId), seen);
     if (type === 'incidentUpdate') return buildingIds('incident', rawGet('incidents', record.incidentId), seen);
     if (type === 'openingBalance') return buildingIds('contract', rawGet('contracts', record.contractId), seen);
     if (type === 'inventoryLine') return buildingIds('asset', rawGet('assets', record.assetId), seen);
@@ -124,27 +160,53 @@
     return [];
   }
 
-  A.inScope = (type, record) => {
+  A.inScope = (type, record, action) => {
     if (!isScoped(A.role())) return true;
-    const allowed = A.allowedBuildingIds(); if (!allowed || !allowed.size) return false;
+    const role = A.role(), user = A.user();
     type = COLLECTION_TYPE[type] || type;
     if (typeof record === 'string') {
       const col = Object.keys(COLLECTION_TYPE).find(k => COLLECTION_TYPE[k] === type) || type;
       record = rawGet(col, record);
     }
     if (!record) return false;
-    if (type === 'tenant' && record.managerId === (A.user() || {}).id) return true;
+    if (role === 'sale') {
+      const saleIds = A.allowedSaleIds() || new Set();
+      if (type === 'lead') return saleIds.has(record.saleId);
+      if (type === 'leadActivity') return A.inScope('lead', rawGet('leads', record.leadId));
+      if (type === 'viewing' || type === 'deal' || type === 'commission') return saleIds.has(record.saleId || (rawGet('deals', record.dealId) || {}).saleId);
+      if (type === 'hold') return record.leadId ? A.inScope('lead', rawGet('leads', record.leadId)) : A.inScope('tenant', rawGet('tenants', record.tenantId));
+      if (type === 'tenant') return rawAll('deals').some(d => d && d.tenantId === record.id && saleIds.has(d.saleId)) || rawAll('leads').some(l => l && l.tenantId === record.id && saleIds.has(l.saleId));
+      if (type === 'contract') return rawAll('deals').some(d => d && d.contractId === record.id && saleIds.has(d.saleId));
+      return false;
+    }
+    if (role === 'codong') {
+      const projectIds = A.allowedProjectIds() || new Set(), sh = A.shareholder();
+      if (type === 'shareholder') return !!sh && record.id === sh.id;
+      if (type === 'project') return projectIds.has(record.id);
+      if (type === 'capitalCommitment' || type === 'contribution') return !!sh && record.shareholderId === sh.id && projectIds.has(record.projectId);
+      if (type === 'distribution') return !!sh && (!record.projectId || projectIds.has(record.projectId)) && (record.lines || []).some(l => l.shareholderId === sh.id);
+    }
+    if (role === 'ops' && type === 'ocrExtraction' && record.createdBy === (user || {}).id) return true;
+    // Ops: khách thuê chưa gắn HĐ/giữ chỗ nào (vừa tạo tay hoặc từ OCR) không thuộc tòa nào → được thấy/dùng để lập HĐ đầu tiên trong tòa của mình
+    if (role === 'ops' && type === 'tenant' && !buildingIds(type, record).length) return true;
+    const allowed = A.allowedBuildingIds(); if (!allowed || !allowed.size) return false;
+    if (role === 'kythuat') {
+      if (type === 'incident') return buildingIds(type, record).some(id => allowed.has(id)) && (!record.assigneeId || record.assigneeId === user.id);
+      if (type === 'incidentUpdate') return A.inScope('incident', rawGet('incidents', record.incidentId));
+      if (type === 'maintenanceSchedule') return buildingIds(type, record).some(id => allowed.has(id)) && (!record.assigneeId || record.assigneeId === user.id);
+    }
     if (type === 'importJob' && record.createdBy === (A.user() || {}).id) return true;
-    if (type === 'expense' && record.createdBy !== (A.user() || {}).id) return false;
+    if (role === 'kythuat' && type === 'expense' && record.createdBy !== (A.user() || {}).id) return false;
     if (type === 'expenseAllocation') { const expense = rawGet('expenses', record.expenseId); return !!expense && A.inScope('expense', expense); }
     return buildingIds(type, record).some(id => allowed.has(id));
   };
-  A.scope = (type, records) => isScoped(A.role()) ? (records || []).filter(r => A.inScope(type, r)) : (records || []);
+  A.filterByScope = (type, records, action) => isScoped(A.role()) ? (records || []).filter(r => A.inScope(type, r, action)) : (records || []);
+  A.scope = A.filterByScope;
   A.can = (permission, context) => {
     const allow = PERMS[permission], role = A.role();
     if (!role || !allow || !allow.includes(role)) return false; // fail closed
     if (!isScoped(role) || !context) return true;
-    if (context.buildingId) return A.allowedBuildingIds().has(context.buildingId);
+    if (context.buildingId) { const ids = A.allowedBuildingIds(); return !ids || ids.has(context.buildingId); }
     if (context.type || context.record) return A.inScope(context.type, context.record || context.id);
     return true;
   };
@@ -163,6 +225,8 @@
   A.canRoute = (meta, params) => {
     if (!meta || !meta.permission || !A.can(meta.permission)) return false;
     if (!meta.resource || !isScoped(A.role())) return true;
+    const collection = Object.keys(COLLECTION_TYPE).find(key => COLLECTION_TYPE[key] === meta.resource.type) || meta.resource.type;
+    if (!A.shouldScopeCollection(collection)) return true;
     const id = params && params[meta.resource.param || 'id'];
     return !!id && A.inScope(meta.resource.type, A.resource(meta.resource.type, id));
   };

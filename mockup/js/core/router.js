@@ -31,12 +31,12 @@
     R.current = { path, query, params: m.params, route: m.route };
     TH.layout.setActive(m.route.meta.menu || path);
     document.body.classList.remove('sb-open');
-    if (m.route.meta.phase && TH.phase && !TH.phase.on(m.route.meta.phase)) {
-      // Route thuộc phase đang tắt → trang coming-soon dùng chung, giữ nguyên URL
-      TH.pages.comingSoon(root, m.route.meta.scopeKey || m.route.meta.menu || 'p2', { phase: m.route.meta.phase, path });
-    } else if (!TH.auth.canRoute(m.route.meta, m.params)) {
+    if (!TH.auth.canRoute(m.route.meta, m.params)) {
       TH.router.crumb([{ label: 'Không có quyền truy cập' }]);
       root.innerHTML = `<div class="card"><div class="card-b">${TH.ui.empty({ icon: 'lock', title: '403 – Không có quyền truy cập', text: TH.auth.role() === 'ops' && !(TH.auth.allowedBuildingIds() || new Set()).size ? 'Tài khoản chưa được phân công tòa. Vui lòng liên hệ Quản trị viên.' : 'Tài khoản của bạn không có quyền truy cập chức năng hoặc dữ liệu này.', action: `<a class="btn btn-primary btn-sm" href="#/dashboard">Về Tổng quan</a>` })}</div></div>`;
+    } else if (m.route.meta.phase && TH.phase && !TH.phase.on(m.route.meta.phase)) {
+      // Chỉ người có quyền mới nhìn thấy teaser của phase chưa bật.
+      TH.pages.comingSoon(root, m.route.meta.scopeKey || m.route.meta.menu || 'p2', { phase: m.route.meta.phase, path });
     } else try { if (TH.phase && TH.phase.on(2) && TH.actions.expireHolds) TH.actions.expireHolds(); m.route.handler(root, m.params, query); TH.auth.enforceUI(root, path); if (TH.ui.enhanceSideCards) TH.ui.enhanceSideCards(root); } catch (e) { console.error(e); root.innerHTML = `<div class="card"><div class="card-b"><div class="note-box danger">${TH.icon('alert-triangle')}<div><b>Lỗi hiển thị trang</b>${TH.esc(e.message)}</div></div></div></div>`; }
     if (TH.auth.role() === 'ops' && TH.auth.allowedBuildingIds() && !TH.auth.allowedBuildingIds().size && TH.auth.canRoute(m.route.meta, m.params)) root.insertAdjacentHTML('afterbegin', `<div class="note-box warn mb16">${TH.icon('alert-triangle')}<div><b>Chưa được phân công tòa</b>Liên hệ Quản trị viên để được gán phạm vi. Dữ liệu nghiệp vụ đang được ẩn.</div></div>`);
     if (window.scrollY > 0 && R._lastPath !== path) window.scrollTo(0, 0); R._lastPath = path;

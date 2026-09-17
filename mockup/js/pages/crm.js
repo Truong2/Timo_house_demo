@@ -167,7 +167,7 @@
       tab: (el) => { TH.router.replaceQuery({ tab: el.dataset.key }); TH.router.refresh(); }, stage: (el) => canManage() ? stageModal(l) : U.toast('err', 'Không có quyền'), edit: () => Fm.lead(l), call: () => activityModal(l), viewing: () => TH.go('#/crm/viewings/new?lead=' + l.id), hold: () => TH.go('#/crm/holds/new?lead=' + l.id), 'hold-room': (el) => TH.go('#/crm/holds/new?lead=' + l.id + '&room=' + el.dataset.id), room: (el) => TH.go('#/rooms/' + el.dataset.id), deal: () => TH.go('#/crm/deals/new?lead=' + l.id), note: () => noteModal(l), more: (el) => leadMenu(el, l),
       'v-result': (el) => Fm.viewingResult(St.get('viewings', el.dataset.id)), 'v-remind': (el) => { const b = X.sendViewingReminders([el.dataset.id]); ok('Đã tạo đợt nhắc lịch ' + b.code); }, upload: () => Fm.upload('lead', l.id), 'rm-doc': (el) => X.removeDocument(el.dataset.id),
     });
-  }, { menu: 'crm', permission: 'crm.view', phase: 2, scopeKey: 'crm' });
+  }, { menu: 'crm', permission: 'crm.view', phase: 2, scopeKey: 'crm', resource: { type: 'lead' } });
 
   /* ================= #/crm/viewings ================= */
   TH.router.register('/crm/viewings', (root, p, q) => {
@@ -347,5 +347,5 @@
       ${U.card({ title: 'Khoản thu cọc', icon: 'wallet', bodyCls: 'tight', body: `<table class="tbl compact"><thead><tr><th>Mã</th><th>Ngày</th><th class="num">Số tiền</th><th>Phương thức</th><th>Tham chiếu</th></tr></thead><tbody>${pays.map(x => `<tr><td>${U.link('#/payments/' + x.id, esc(x.code))}</td><td>${F.date(x.date)}</td><td class="num">${F.vnd(x.amount)}</td><td>${esc(x.method)}</td><td>${esc(x.ref || '-')}</td></tr>`).join('') || `<tr><td colspan="5" class="muted tc">${hold ? 'Phí giữ chỗ ' + F.vnd(hold.fee || hold.deposit) + ' đã tính vào cọc' : 'Chưa thu cọc'}</td></tr>`}</tbody></table>` })}</div>
     <aside class="side-stack">${U.card({ title: 'Tiến trình', icon: 'history', body: U.timeline(tl) })}</aside></div>`;
     U.bind(root, { deposit: () => depositModal(d), pay: () => payCommissionModal(d), contract: () => TH.go('#/contracts/' + c.id), newc: () => TH.go('#/contracts/new?deal=' + d.id), more: (el) => dealMenu(el, d) });
-  }, { menu: 'deals', permission: 'deals.view', phase: 2, scopeKey: 'deals' });
+  }, { menu: 'deals', permission: 'deals.view', phase: 2, scopeKey: 'deals', resource: { type: 'deal' } });
 })(window.TH);

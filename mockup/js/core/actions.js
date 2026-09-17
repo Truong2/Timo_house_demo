@@ -12,6 +12,7 @@
 
   /* ---------- Tòa & phòng ---------- */
   X.saveBuilding = (d) => {
+    Au.need('buildings.manage');
     req(d.name, 'Tên tòa là bắt buộc'); req(d.address, 'Địa chỉ là bắt buộc');
     if (d.code && St.one('buildings', b => b.code === d.code && b.id !== d.id)) err('Mã tòa ' + d.code + ' đã tồn tại');
     if (d.id) {
@@ -33,6 +34,7 @@
   X.deactivateBuilding = (id) => { Au.need('deactivateBuilding'); checkDeactivate(id); St.update('buildings', id, { status: 'inactive' }); let n = 0; Q.roomsOf(id).forEach(r => { if (['ready', 'maintenance'].includes(r.status)) { r.status = 'inactive'; r.physical = 'maintenance'; n++; } }); St.audit('deactivate', 'building', id, 'Ngừng sử dụng tòa' + (n ? ' – ' + n + ' phòng → Ngừng sử dụng' : '')); done(); };
   X.setBuildingStatus = (id, status) => { Au.need('deactivateBuilding'); if (status === 'inactive') checkDeactivate(id); St.update('buildings', id, { status }); St.audit('status', 'building', id, 'Tòa → ' + Q.label('building', status)); done(); };
   X.saveRoom = (d) => {
+    Au.need('rooms.manage', d.id ? { type: 'room', record: St.get('rooms', d.id) } : { buildingId: d.buildingId });
     const code = req(d.code, 'Mã phòng là bắt buộc').trim(); req(d.buildingId, 'Chọn tòa nhà');
     const dup = St.one('rooms', r => r.buildingId === d.buildingId && r.code === code && r.id !== d.id); if (dup) err('Mã phòng ' + code + ' đã tồn tại trong tòa (FR-BLD-03)');
     if (d.id) { const r = St.update('rooms', d.id, d); St.audit('update', 'room', r.id, 'Cập nhật phòng ' + r.code); done(); return r; }
@@ -40,20 +42,23 @@
     St.audit('create', 'room', r.id, 'Tạo phòng ' + r.code); done(); return r;
   };
   X.createRoomsBulk = ({ buildingId, floorFrom, floorTo, perFloor, price, type }) => {
+    Au.need('rooms.manage', { buildingId });
     const b = Q.building(buildingId); const made = []; let skipped = 0;
     for (let f = floorFrom; f <= floorTo; f++) for (let n = 1; n <= perFloor; n++) { const code = b.prefix + '.' + F.pad(f) + '.' + F.pad(n); if (St.one('rooms', r => r.buildingId === buildingId && r.code === code)) { skipped++; continue; } made.push(St.add('rooms', { code, buildingId, floor: f, type: type || 'Phòng đơn', area: 25, price: price || 5000000, physical: 'good', status: 'ready', managerId: b.managerId, direction: '', furniture: 'Cơ bản', defaultServiceIds: [] })); }
     St.audit('bulk_create', 'room', buildingId, 'Tạo nhanh ' + made.length + ' phòng (' + skipped + ' bỏ qua vì trùng mã)'); done(); return { made, skipped };
   };
   X.setRoomStatus = (id, status, note) => {
+    Au.need('rooms.manage', { type: 'room', record: St.get('rooms', id) });
     const r = Q.room(id); const allowed = { ready: ['maintenance', 'inactive'], maintenance: ['ready', 'inactive'], inactive: ['ready'], cleaning: ['ready'], held: [] };
     if (Q.activeContractOfRoom(id)) err('Phòng đang có hợp đồng hiệu lực – hãy kết thúc hợp đồng trước'); if (r.status === 'occupied') { St.update('rooms', id, { status: 'ready' }); r.status = 'ready'; }
     if (!(allowed[r.status] || []).includes(status)) err('Không thể chuyển ' + Q.label('room', r.status) + ' → ' + Q.label('room', status));
     St.update('rooms', id, { status, physical: status === 'maintenance' ? 'maintenance' : 'good' }); St.audit('room_status', 'room', id, r.code + ': ' + Q.label('room', r.status) + ' → ' + Q.label('room', status) + (note ? ' – ' + note : '')); done();
   };
-  X.confirmCleaned = (id) => { const r = Q.room(id); if (r.status !== 'cleaning') err('Phòng không ở trạng thái Chờ dọn'); St.update('rooms', id, { status: 'ready', physical: 'good' }); St.audit('confirmCleaned', 'room', id, 'Xác nhận dọn xong phòng ' + r.code + ' → Sẵn sàng'); done(); };
-  X.holdRoom = ({ roomId, tenantId, until, deposit, note }) => { const r = Q.room(roomId); if (r.status !== 'ready') err('Chỉ giữ chỗ phòng Sẵn sàng'); if (Q.building(r.buildingId).status === 'inactive') err('Tòa đang tạm ngừng – không giữ chỗ'); req(tenantId, 'Chọn khách'); req(until, 'Chọn ngày giữ đến'); if (until < F.today()) err('Ngày giữ đến phải từ hôm nay trở đi'); St.update('rooms', roomId, { status: 'held' }); const h = St.add('holds', { roomId, tenantId, until, deposit: deposit || 0, note: note || '', createdBy: me() }); St.audit('hold', 'room', roomId, 'Giữ chỗ phòng ' + r.code + ' cho ' + Q.tenant(tenantId).name); done(); return h; };
+  X.confirmCleaned = (id) => { const r = Q.room(id); Au.need('rooms.manage', { type: 'room', record: r }); if (r.status !== 'cleaning') err('Phòng không ở trạng thái Chờ dọn'); St.update('rooms', id, { status: 'ready', physical: 'good' }); St.audit('confirmCleaned', 'room', id, 'Xác nhận dọn xong phòng ' + r.code + ' → Sẵn sàng'); done(); };
+  X.holdRoom = ({ roomId, tenantId, until, deposit, note }) => { const r = Q.room(roomId); Au.need('holds.manage', { type: 'room', record: r }); if (r.status !== 'ready') err('Chỉ giữ chỗ phòng Sẵn sàng'); if (Q.building(r.buildingId).status === 'inactive') err('Tòa đang tạm ngừng – không giữ chỗ'); req(tenantId, 'Chọn khách'); req(until, 'Chọn ngày giữ đến'); if (until < F.today()) err('Ngày giữ đến phải từ hôm nay trở đi'); St.update('rooms', roomId, { status: 'held' }); const h = St.add('holds', { roomId, tenantId, until, deposit: deposit || 0, note: note || '', createdBy: me() }); St.audit('hold', 'room', roomId, 'Giữ chỗ phòng ' + r.code + ' cho ' + Q.tenant(tenantId).name); done(); return h; };
   X.releaseHold = (roomId, reason) => {
     const h = Q.roomHold(roomId);
+    Au.need('holds.manage', h ? { type: 'hold', record: h } : { type: 'room', record: Q.room(roomId) });
     if (h) {
       if (h.code || h.leadId) Object.assign(h, { status: 'cancelled', cancelledAt: F.nowISO(), cancelReason: reason || '' }); else St.remove('holds', h.id);
       const lead = h.leadId && St.get('leads', h.leadId);
@@ -64,20 +69,22 @@
     }
     const r = Q.room(roomId); if (r.status === 'held') St.update('rooms', roomId, { status: 'ready' }); St.audit('release_hold', 'room', roomId, 'Hủy giữ chỗ phòng ' + r.code + (h ? ' (' + Q.tenant(h.tenantId).name + ')' : '') + (reason ? ' – ' + reason : '')); done();
   };
-  X.saveRoomServices = (roomId, serviceIds) => { St.update('rooms', roomId, { defaultServiceIds: serviceIds }); done(); };
-  X.saveRoomAsset = (d) => { if (d.id) St.update('roomAssets', d.id, d); else St.add('roomAssets', d); done(); };
-  X.removeRoomAsset = (id) => { St.remove('roomAssets', id); done(); };
+  X.saveRoomServices = (roomId, serviceIds) => { Au.need('rooms.manage', { type: 'room', record: St.get('rooms', roomId) }); St.update('rooms', roomId, { defaultServiceIds: serviceIds }); done(); };
+  X.saveRoomAsset = (d) => { const room = St.get('rooms', d.roomId || (St.get('roomAssets', d.id) || {}).roomId); Au.need('rooms.manage', { type: 'room', record: room }); if (d.id) St.update('roomAssets', d.id, d); else St.add('roomAssets', d); done(); };
+  X.removeRoomAsset = (id) => { const asset = St.get('roomAssets', id); Au.need('rooms.manage', { type: 'roomAsset', record: asset }); St.remove('roomAssets', id); done(); };
 
   /* ---------- Chủ nhà ---------- */
   X.saveLandlord = (d) => {
+    Au.need('landlords.manage');
     req(d.name, 'Tên chủ nhà là bắt buộc'); req(d.phone, 'Số điện thoại là bắt buộc');
     if (d.id) { const old = St.get('landlords', d.id); const prevB = (old.buildingIds || []).slice(); const l = St.update('landlords', d.id, d); prevB.filter(b => !(l.buildingIds || []).includes(b)).forEach(bid => { const b = St.get('buildings', bid); if (b && b.landlordId === l.id) b.landlordId = null; }); (l.buildingIds || []).forEach(bid => St.update('buildings', bid, { landlordId: l.id })); St.audit('update', 'landlord', l.id, 'Cập nhật chủ nhà ' + l.name); done(); return l; }
     const l = St.add('landlords', Object.assign({ code: St.nextCode('landlords', 'CN', 3), type: 'person', buildingIds: [], status: 'active', cycleMonths: 3, managerId: me() }, d));
     (l.buildingIds || []).forEach(bid => St.update('buildings', bid, { landlordId: l.id }));
     St.audit('create', 'landlord', l.id, 'Thêm chủ nhà ' + l.name); done(); return l;
   };
-  X.setLandlordStatus = (id, status) => { St.update('landlords', id, { status }); done(); };
+  X.setLandlordStatus = (id, status) => { Au.need('landlords.manage'); St.update('landlords', id, { status }); done(); };
   X.saveLandlordContract = (d) => {
+    Au.need('landlords.manage');
     req(d.landlordId, 'Thiếu chủ nhà'); req(d.start, 'Ngày bắt đầu'); req(d.end, 'Ngày kết thúc'); if (d.end <= d.start) err('Ngày kết thúc phải sau ngày bắt đầu'); req(d.rent, 'Giá thuê');
     if (![3, 4, 6].includes(Number(d.cycleMonths))) err('Chu kỳ trả phải là 3, 4 hoặc 6 tháng (BR-11)');
     let c;
@@ -86,21 +93,23 @@
     St.audit('save', 'landlordContract', c.id, 'Lưu HĐ đầu vào ' + c.code); done(); return c;
   };
   X.generateLandlordSchedule = (contractId, { from, periods }) => {
+    Au.need('landlordPayments.manage');
     const c = St.get('landlordContracts', contractId); let due = from || c.start; const made = [];
     const existing = St.where('landlordPayments', p => p.landlordContractId === contractId);
     for (let k = 0; k < (periods || 4); k++) { if (!existing.some(p => p.dueDate === due)) made.push(St.add('landlordPayments', { landlordContractId: c.id, landlordId: c.landlordId, buildingId: c.buildingIds[0], periodLabel: 'Kỳ ' + (existing.length + made.length + 1), dueDate: due, amount: c.rent * c.cycleMonths, status: due < F.today() ? 'pending' : 'upcoming', paidDate: null, evidence: null })); due = F.addMonths(due, c.cycleMonths); }
     St.audit('schedule', 'landlordContract', c.id, 'Sinh ' + made.length + ' kỳ thanh toán chủ nhà'); done(); return made;
   };
-  X.addLandlordPayment = (d) => { req(d.dueDate, 'Hạn thanh toán'); req(d.amount, 'Số tiền'); const p = St.add('landlordPayments', Object.assign({ status: 'upcoming', paidDate: null, evidence: null }, d)); done(); return p; };
-  X.markLandlordPaid = (id, { paidDate, evidence, amount }) => { req(paidDate, 'Ngày thanh toán'); const cur = St.get('landlordPayments', id); if (cur.status === 'paid') err('Kỳ này đã được ghi nhận thanh toán'); const patch = { status: 'paid', paidDate, evidence: evidence || 'chung_tu.pdf' }; if (F.num(amount) > 0) patch.amount = F.num(amount); const p = St.update('landlordPayments', id, patch); St.audit('landlord_paid', 'landlordPayment', id, 'Ghi nhận trả chủ nhà ' + F.vnd(p.amount) + ' – ' + p.periodLabel); done(); return p; };
+  X.addLandlordPayment = (d) => { Au.need('landlordPayments.manage'); req(d.dueDate, 'Hạn thanh toán'); req(d.amount, 'Số tiền'); const p = St.add('landlordPayments', Object.assign({ status: 'upcoming', paidDate: null, evidence: null }, d)); done(); return p; };
+  X.markLandlordPaid = (id, { paidDate, evidence, amount }) => { Au.need('landlordPayments.manage'); req(paidDate, 'Ngày thanh toán'); const cur = St.get('landlordPayments', id); if (cur.status === 'paid') err('Kỳ này đã được ghi nhận thanh toán'); const patch = { status: 'paid', paidDate, evidence: evidence || 'chung_tu.pdf' }; if (F.num(amount) > 0) patch.amount = F.num(amount); const p = St.update('landlordPayments', id, patch); St.audit('landlord_paid', 'landlordPayment', id, 'Ghi nhận trả chủ nhà ' + F.vnd(p.amount) + ' – ' + p.periodLabel); done(); return p; };
 
   /* ---------- Khách thuê ---------- */
   X.saveTenant = (d) => {
+    Au.need('tenants.manage', d.id ? { type: 'tenant', record: St.get('tenants', d.id) } : null);
     req(d.name, 'Họ tên là bắt buộc'); req(d.phone, 'Số điện thoại là bắt buộc');
     if (d.idNumber && !/^\d{12}$/.test(String(d.idNumber).replace(/\s/g, ''))) err('CCCD phải đúng 12 số');
     const ph = String(d.phone).replace(/\s/g, ''); const dupT = St.one('tenants', t => t.id !== d.id && String(t.phone || '').replace(/\s/g, '') === ph); if (dupT) err('Số điện thoại đã thuộc khách ' + dupT.name + ' (' + dupT.code + ') – không cho phép trùng SĐT');
     if (d.id) { const t = St.update('tenants', d.id, d); St.audit('update', 'tenant', t.id, 'Cập nhật khách ' + t.name); done(); return t; }
-    const t = St.add('tenants', Object.assign({ code: St.nextCode('tenants', 'KH', 5), zalo: d.phone, email: '', idNumber: '', dob: '', job: '', segment: '', verified: false, managerId: me(), note: '' }, d));
+    const t = St.add('tenants', Object.assign({ code: St.nextCode('tenants', 'KH', 5), zalo: d.phone, email: '', idNumber: '', idPlace: '', dob: '', job: '', segment: '', address: '', verified: false, managerId: me(), note: '' }, d));
     St.audit('create', 'tenant', t.id, 'Tạo khách thuê ' + t.name); done(); return t;
   };
 
@@ -111,6 +120,7 @@
     const clash = St.one('contracts', c => c.roomId === d.roomId && c.id !== d.id && c.status === 'active' && !(d.end < c.start || d.start > c.end)); if (clash) err('Phòng đã có hợp đồng ' + clash.code + ' hiệu lực trùng khoảng thuê (FR-CUS-02)');
   }
   X.saveContractDraft = (d) => {
+    Au.need('contracts.manage', d.id ? { type: 'contract', record: St.get('contracts', d.id) } : { type: 'room', record: St.get('rooms', d.roomId) });
     req(d.tenantId, 'Chọn khách thuê'); req(d.roomId, 'Chọn phòng');
     const room = Q.room(d.roomId); const base = { buildingId: room.buildingId, listPrice: d.listPrice || room.price, cycle: 'monthly', payDay: d.payDay || 5, status: 'draft', managerId: room.managerId, signedDate: null, note: d.note || '', renewedFromId: null, renewedToId: null };
     const svcRows = d.services || [], memRows = d.members || [], vehicles = (d.vehicles || []).filter(v => v && (v.type || v.plate)).map(v => ({ type: v.type || 'Xe máy', plate: String(v.plate || '').trim().toUpperCase() })); d = Object.assign({}, d, { vehicles }); delete d.services; delete d.members;
@@ -120,6 +130,7 @@
     St.audit('save_draft', 'contract', c.id, 'Lưu nháp hợp đồng ' + c.code); done(); return c;
   };
   X.activateContract = (id, key) => idem(key, () => {
+    Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) });
     const c = St.get('contracts', id); if (!c) err('Không tìm thấy hợp đồng'); if (c.status === 'active') return c; if (c.status !== 'draft') err('Chỉ kích hoạt được hợp đồng Dự thảo');
     validateContract(c); const room = Q.room(c.roomId); if (!['ready', 'held'].includes(room.status)) err('Phòng ' + room.code + ' đang ' + Q.label('room', room.status) + ', không thể kích hoạt hợp đồng');
     if (Q.building(room.buildingId).status === 'inactive') err('Tòa ' + Q.building(room.buildingId).name + ' đang tạm ngừng – không thể kích hoạt hợp đồng');
@@ -128,8 +139,9 @@
     St.update('rooms', room.id, { status: 'occupied' });
     St.audit('activate', 'contract', c.id, 'Kích hoạt hợp đồng ' + c.code + ' – phòng ' + room.code + ' → Đang thuê'); done(); return c;
   });
-  X.cancelContract = (id, reason) => { const c = St.get('contracts', id); if (c.status !== 'draft') err('Chỉ hủy được hợp đồng Dự thảo'); c.status = 'cancelled'; c.note = (c.note ? c.note + ' | ' : '') + 'Hủy: ' + (reason || ''); St.audit('cancel', 'contract', id, 'Hủy hợp đồng ' + c.code); done(); };
+  X.cancelContract = (id, reason) => { const c = St.get('contracts', id); Au.need('contracts.manage', { type: 'contract', record: c }); if (c.status !== 'draft') err('Chỉ hủy được hợp đồng Dự thảo'); c.status = 'cancelled'; c.note = (c.note ? c.note + ' | ' : '') + 'Hủy: ' + (reason || ''); St.audit('cancel', 'contract', id, 'Hủy hợp đồng ' + c.code); done(); };
   X.terminateContract = (id, { actualEnd, reason, toCleaning = true, createRefund = true }) => {
+    Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) });
     const c = St.get('contracts', id); if (!c) err('Hợp đồng không tồn tại hoặc đã bị xóa'); if (c.status !== 'active') err('Hợp đồng không còn hiệu lực'); req(actualEnd, 'Ngày kết thúc thực tế');
     if (actualEnd < c.start) err('Ngày kết thúc thực tế không được trước ngày bắt đầu');
     Object.assign(c, { status: 'ended', actualEnd, endReason: reason || '', endedAt: F.nowISO() });
@@ -143,6 +155,7 @@
     St.audit('terminate', 'contract', c.id, 'Kết thúc hợp đồng ' + c.code + ' – phòng ' + room.code + (toCleaning ? ' → Chờ dọn' : ' → Sẵn sàng (không qua dọn)') + (rf ? ' – tạo hồ sơ hoàn cọc ' + rf.code : '')); done(); return { contract: c, refund: rf };
   };
   X.renewContract = (id, { end, price, deposit }) => {
+    Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) });
     const old = St.get('contracts', id); if (old.status !== 'active') err('Chỉ gia hạn hợp đồng hiệu lực'); req(end, 'Ngày kết thúc mới'); if (end <= old.end) err('Ngày kết thúc mới phải sau ' + F.date(old.end));
     const start = F.addDays(old.end, 1);
     const n = St.add('contracts', Object.assign({}, old, { id: undefined, code: St.nextCode('contracts', 'HD-' + yearCode() + '-', 3), start, end, price: price || old.price, deposit: deposit != null ? deposit : old.deposit, status: 'active', signedDate: F.today(), renewedFromId: old.id, renewedToId: null, createdAt: undefined, source: undefined, activatedAt: F.nowISO() }));
@@ -151,7 +164,7 @@
     Object.assign(old, { status: 'ended', actualEnd: old.end, renewedToId: n.id, endReason: 'Gia hạn bằng hợp đồng ' + n.code });
     St.audit('renew', 'contract', old.id, 'Gia hạn ' + old.code + ' → ' + n.code + ' đến ' + F.date(end)); done(); return n;
   };
-  X.updateContractNote = (id, note) => { const c = St.update('contracts', id, { note, noteBy: (St.state.session || {}).name, noteAt: F.nowISO() }); St.audit('note', 'contract', id, 'Cập nhật ghi chú hợp đồng ' + c.code); done(); return c; };
+  X.updateContractNote = (id, note) => { Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) }); const c = St.update('contracts', id, { note, noteBy: (St.state.session || {}).name, noteAt: F.nowISO() }); St.audit('note', 'contract', id, 'Cập nhật ghi chú hợp đồng ' + c.code); done(); return c; };
 
   /* ---------- Danh mục ---------- */
   X.saveService = (d) => {
@@ -167,6 +180,7 @@
 
   /* ---------- Điện nước & hóa đơn ---------- */
   X.saveMeterReadings = (period, rows) => {
+    Au.need('meterReadings.manage');
     let n = 0; const skipped = [];
     rows.forEach(r => { ['electric', 'water'].forEach(type => { const prev = r[type + 'Prev'], curr = r[type + 'Curr']; if (curr == null || curr === '') return; const room = Q.room(r.roomId); if (Number(curr) < Number(prev)) { skipped.push(room.code + ' (' + (type === 'electric' ? 'điện' : 'nước') + ' mới < cũ)'); return; } let m = St.one('meterReadings', x => x.roomId === r.roomId && x.period === period && x.type === type && x.status !== 'used'); if (m) Object.assign(m, { prev: Number(prev), curr: Number(curr), contractId: r.contractId || m.contractId || null }); else St.add('meterReadings', { roomId: r.roomId, period, type, prev: Number(prev), curr: Number(curr), status: 'draft', enteredBy: me(), contractId: r.contractId || null }); n++; }); });
     St.audit('meter', 'meterReadings', period, 'Lưu tạm ' + n + ' chỉ số kỳ ' + F.periodLabel(period) + (skipped.length ? ' (bỏ qua ' + skipped.length + ')' : '')); done(); const res = { saved: n, skipped }; res.valueOf = () => n; res.toString = () => String(n); return res;
@@ -404,8 +418,12 @@
   guard('saveBuilding deactivateBuilding setBuildingStatus', 'buildings.manage', (v) => recordCtx('building', 'buildings', v));
   guard('saveRoom', 'rooms.manage', d => d && d.buildingId ? { buildingId: d.buildingId } : recordCtx('room', 'rooms', d));
   guard('createRoomsBulk', 'rooms.manage', d => ({ buildingId: d && d.buildingId }));
-  guard('setRoomStatus confirmCleaned releaseHold saveRoomServices', 'rooms.manage', id => recordCtx('room', 'rooms', id));
-  guard('holdRoom', 'rooms.manage', d => { if (Au.role() === 'ops' && (!d || !Au.inScope('tenant', raw('tenants', d.tenantId)))) throw new Error('Khách thuê ngoài phạm vi được giao.'); return recordCtx('room', 'rooms', d && d.roomId); });
+  guard('setRoomStatus confirmCleaned saveRoomServices', 'rooms.manage', id => recordCtx('room', 'rooms', id));
+  guard('holdRoom', 'holds.manage', d => { if (Au.role() === 'ops' && (!d || !Au.inScope('tenant', raw('tenants', d.tenantId)))) throw new Error('Khách thuê ngoài phạm vi được giao.'); return recordCtx('room', 'rooms', d && d.roomId); });
+  guard('releaseHold', 'holds.manage', id => {
+    const hold = (St.rawAll ? St.rawAll('holds') : St.state.holds || []).find(h => h && h.roomId === id && !['cancelled', 'expired'].includes(h.status));
+    return hold ? { type: 'hold', record: hold } : recordCtx('room', 'rooms', id);
+  });
   guard('saveRoomAsset', 'rooms.manage', d => d && d.roomId ? recordCtx('room', 'rooms', d.roomId) : recordCtx('roomAsset', 'roomAssets', d));
   guard('removeRoomAsset', 'rooms.manage', id => recordCtx('roomAsset', 'roomAssets', id));
   guard('saveLandlord setLandlordStatus saveLandlordContract generateLandlordSchedule', 'landlords.manage');
@@ -414,7 +432,8 @@
   guard('saveContractDraft', 'contracts.manage', d => { if (Au.role() === 'ops' && (!d || !Au.inScope('tenant', raw('tenants', d.tenantId)))) throw new Error('Khách thuê ngoài phạm vi được giao.'); return d && d.roomId ? recordCtx('room', 'rooms', d.roomId) : recordCtx('contract', 'contracts', d); });
   guard('activateContract cancelContract terminateContract renewContract updateContractNote', 'contracts.manage', id => recordCtx('contract', 'contracts', id));
   guard('saveService deleteService applyPriceList saveCatalogItem removeCatalogItem', 'catalog.manage');
-  guard('saveMeterReadings createInvoiceDrafts cancelDraftInvoice addInvoiceLine updateInvoiceNote', 'invoices.prepare');
+  guard('saveMeterReadings', 'meterReadings.manage');
+  guard('createInvoiceDrafts cancelDraftInvoice addInvoiceLine updateInvoiceNote', 'invoices.prepare');
   guard('issueInvoice issueInvoices', 'invoices.prepare');
   guard('adjustInvoice', 'payments.adjust');
   guard('recordPayment', 'payments.record', d => {

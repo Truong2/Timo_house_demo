@@ -4,7 +4,7 @@
   const SCHEMA = 4;
   const COLLECTIONS = ['users', 'areas', 'salesTeams', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
     // Phase 2
-    'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines',
+    'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines', 'reportRuns',
     // Phase 3
     'assets', 'inventories', 'inventoryLines', 'employees', 'buildingAssignments', 'timesheets', 'payrolls', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions', 'bankAccounts', 'bankTransactions'];
   const S = { state: null, listeners: [], _t: null };

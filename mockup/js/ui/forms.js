@@ -24,7 +24,9 @@
       ${U.field({ label: 'Zalo', input: U.input({ name: 'zalo', value: t.zalo || '', placeholder: 'SĐT Zalo (mặc định = SĐT)' }), help: 'SĐT không phải bằng chứng đã xác minh tài khoản Zalo (FR-CUS-01)' })}
       ${U.field({ label: 'Email', input: U.input({ name: 'email', value: t.email || '', type: 'email', placeholder: 'email@domain.com', icon: 'mail' }) })}
       ${U.field({ label: 'CMND/CCCD', input: U.input({ name: 'idNumber', value: t.idNumber || '', placeholder: '12 số' }), help: 'Tùy chọn – nếu có phải đúng 12 số' })}
+      ${U.field({ label: 'Nơi cấp CCCD', input: U.input({ name: 'idPlace', value: t.idPlace || '', placeholder: 'Cục Cảnh sát QLHC về TTXH' }) })}
       ${U.field({ label: 'Ngày sinh', input: U.date({ name: 'dob', value: t.dob || '' }) })}
+      ${U.field({ label: 'Hộ khẩu thường trú', input: U.input({ name: 'address', value: t.address || '', placeholder: 'Số nhà, đường, phường/xã, tỉnh/thành', icon: 'map-pin' }), cls: 'span2' })}
       ${U.field({ label: 'Nghề nghiệp', input: U.input({ name: 'job', value: t.job || '', placeholder: 'Nhân viên văn phòng…' }) })}
       ${U.field({ label: 'Phân khúc khách', input: U.select({ name: 'segment', value: t.segment || '', all: 'Chưa xác định', options: ['Văn phòng', 'Sinh viên', 'Gia đình', 'Chuyên gia', 'Lao động'] }), help: 'Khai báo trực tiếp, không suy từ nghề nghiệp (BR-18)' })}
       ${U.field({ label: 'Người phụ trách', input: U.select({ name: 'managerId', value: t.managerId || (TH.auth.session() || {}).userId, options: opt.managers() }) })}
