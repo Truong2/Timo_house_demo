@@ -93,7 +93,16 @@
   Q.roomDebt = (roomId) => F.sum(TH.store.where('invoices', i => i.roomId === roomId && i.docStatus !== 'draft' && i.docStatus !== 'cancelled'), i => Q.invRemaining(i));
   Q.roomHold = (roomId) => TH.store.one('holds', h => h.roomId === roomId);
   Q.buildingReady = (bId) => Q.roomsOf(bId).filter(r => r.status === 'ready').length;
-  Q.buildingNextDue = (bId) => { const b = Q.building(bId); const ps = TH.store.where('landlordPayments', p => p.landlordId === b.landlordId && p.status !== 'paid' && p.dueDate >= F.today()).sort((a, b2) => F.cmp(a.dueDate, b2.dueDate)); return ps[0] || null; };
+  /* HĐ đầu vào: trạng thái derive theo ngày (không nhập tay); HĐ phủ tòa; kỳ trả tính theo HĐ của tòa */
+  Q.lcStatus = (c) => !c ? 'ended' : (c.status === 'ended' || c.end < F.today()) ? 'ended' : F.daysUntil(c.end) <= 90 ? 'expiring' : 'active';
+  Q.buildingContracts = (bId) => TH.store.where('landlordContracts', c => (c.buildingIds || []).includes(bId)).sort((a, b) => F.cmp(b.end, a.end));
+  Q.landlordContractOf = (bId, date = F.today()) => Q.buildingContracts(bId).filter(c => c.status !== 'ended' && c.start <= date && c.end >= date)[0] || null;
+  Q.landlordStatus = (l) => { if (!l) return 'paused'; if (l.status === 'paused') return 'paused'; const st = Q.landlordContracts(l.id).map(Q.lcStatus).filter(x => x !== 'ended'); return st.length && st.every(x => x === 'expiring') ? 'expiring' : 'active'; };
+  Q.buildingNextDue = (bId) => { const ids = new Set(Q.buildingContracts(bId).map(c => c.id)); const ps = TH.store.where('landlordPayments', p => ids.has(p.landlordContractId) && p.status !== 'paid' && p.dueDate >= F.today()).sort((a, b2) => F.cmp(a.dueDate, b2.dueDate)); return ps[0] || null; };
+  Q.landlordPeriodLabel = (k, due, cycle) => { const m = Number(String(due).slice(5, 7)); return 'Kỳ ' + k + ' (T' + m + ' - T' + (((m + cycle - 2) % 12) + 1) + '/' + String(due).slice(0, 4) + ')'; };
+  // Lịch trả chủ nhà theo HĐ: số kỳ = ceil(số tháng / chu kỳ), tối đa 24; số tiền = giá thuê × chu kỳ
+  Q.landlordSchedulePreview = ({ start, end, rent, cycleMonths, from, periods }) => { const cycle = [3, 4, 6].includes(Number(cycleMonths)) ? Number(cycleMonths) : 3; let due = from || start; const out = []; for (let k = 1; k <= (periods || 24); k++) { if (!periods && due >= end) break; out.push({ k, dueDate: due, amount: F.num(rent) * cycle, label: Q.landlordPeriodLabel(k, due, cycle) }); due = F.addMonths(due, cycle); } if (!out.length) out.push({ k: 1, dueDate: from || start, amount: F.num(rent) * cycle, label: Q.landlordPeriodLabel(1, from || start, cycle) }); return out; };
+  Q.landlordDue = (days = 7) => Q.upcomingLandlordPayments(days).length;
   Q.landlordContracts = (lId) => TH.store.where('landlordContracts', c => c.landlordId === lId);
   Q.landlordPayments = (lId) => TH.store.where('landlordPayments', p => p.landlordId === lId).sort((a, b) => F.cmp(a.dueDate, b.dueDate));
   Q.upcomingLandlordPayments = (days = 30) => TH.store.where('landlordPayments', p => p.status !== 'paid' && p.dueDate >= F.today() && F.daysUntil(p.dueDate) <= days).sort((a, b) => F.cmp(a.dueDate, b.dueDate));
@@ -131,7 +140,8 @@
     const zaloFailedBatches = [...new Set(TH.store.where('zaloMessages', m => m.status === 'failed' && !m.retried).map(m => m.batchId))].length;
     const refunds = TH.store.where('refunds', r => r.status === 'pending' || r.status === 'approved').length;
     const drafts = TH.store.where('invoices', i => i.docStatus === 'draft').length;
-    return { expiring, overdue, zaloFailed, zaloFailedBatches, refunds, drafts, total: expiring + overdue + zaloFailed + refunds + drafts };
+    const landlordDue = Q.landlordDue(7);
+    return { expiring, overdue, zaloFailed, zaloFailedBatches, refunds, drafts, landlordDue, total: expiring + overdue + zaloFailed + refunds + drafts + landlordDue };
   };
   Q.receivables = (f = {}) => TH.store.where('invoices', i => i.docStatus !== 'draft' && i.docStatus !== 'cancelled' && (!f.period || i.period === f.period) && (!f.buildingId || i.buildingId === f.buildingId)).map(i => ({ inv: i, remaining: Q.invRemaining(i), paid: Q.invPaid(i), overdueDays: Q.invOverdueDays(i), reminded: Q.invReminded(i.id) }));
   Q.byBuilding = (fn) => TH.store.where('buildings', b => !b.stub).map(b => ({ b, v: fn(b) }));

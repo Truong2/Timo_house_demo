@@ -1,4 +1,4 @@
-# TimoHouse UI Redesign Specification v2.6
+# TimoHouse UI Redesign Specification v2.7
 
 **Trạng thái:** Draft for Stakeholder Sign-off  
 **Ngày lập:** 16/09/2026  
@@ -13,7 +13,7 @@
 **Hướng thiết kế:** Enterprise tinh gọn  
 **Chiến lược:** Giữ tương thích nghiệp vụ, dữ liệu và route hiện có; thay đổi kiến trúc thông tin và UX; được phép **thêm additive** collection/field và route được kiểm soát tại Phụ lục D
 
-> Tài liệu này kế thừa v2.3, bổ sung lớp Business Clarification v2.4 từ câu trả lời làm rõ nghiệp vụ của khách hàng (06/09/2026), v2.5 (mô hình bản ghi báo cáo, mục 8.5) và v2.6 (kết quả review sản phẩm/UX 17/09/2026: IA, thuật ngữ, điều hướng, chuỗi tài chính). Thay đổi xem Phụ lục C/D/E.
+> Tài liệu này kế thừa v2.3, bổ sung lớp Business Clarification v2.4 từ câu trả lời làm rõ nghiệp vụ của khách hàng (06/09/2026), v2.5 (mô hình bản ghi báo cáo, mục 8.5), v2.6 (kết quả review sản phẩm/UX 17/09/2026: IA, thuật ngữ, điều hướng, chuỗi tài chính). Thay đổi xem Phụ lục C/D/E.
 
 ### Lịch sử phiên bản
 
@@ -25,7 +25,8 @@
 | v2.3 | 16/09/2026 | Bổ sung dimension, metric, preset đối soát và Trung tâm Tài liệu theo audit workbook | Superseded |
 | v2.4 | 17/09/2026 | Đối chiếu câu trả lời làm rõ nghiệp vụ 06/09/2026: xác nhận rule, sửa ngữ nghĩa T/S/G, thêm contract thông báo/chủ nhà/cổ đông, decision phân quyền D-13..D-18, Phụ lục E | Draft for Review |
 | v2.5 | 17/09/2026 | Trung tâm báo cáo chuyển sang mô hình bản ghi báo cáo: tạo theo loại + tham số (Từ kỳ–Đến kỳ), snapshot lúc tạo, xem trước và tải CSV; route `/reports/new`, `/reports/runs/:id`; collection `reportRuns` | Superseded |
-| v2.6 | 17/09/2026 | Review sản phẩm/UX: breadcrumb khớp nhóm sidebar, glossary chuẩn, cờ `demoNotes` ẩn chú thích nội bộ; vá điều hướng (quick-create mở form, menu theo quyền, stepper trung thực, cột Thao tác cuối, header 1 primary); chuỗi tài chính (kích hoạt HĐ sinh phiếu cọc + hóa đơn kỳ đầu, trả chủ nhà → chi phí Thuê nhà, khóa kỳ chặn đủ, gia hạn qua nháp/review, KPI delta tính thật, pill Kỳ topbar) | Current |
+| v2.6 | 17/09/2026 | Review sản phẩm/UX: breadcrumb khớp nhóm sidebar, glossary chuẩn, cờ `demoNotes` ẩn chú thích nội bộ; vá điều hướng (quick-create mở form, menu theo quyền, stepper trung thực, cột Thao tác cuối, header 1 primary); chuỗi tài chính (kích hoạt HĐ sinh phiếu cọc + hóa đơn kỳ đầu, trả chủ nhà → chi phí Thuê nhà, khóa kỳ chặn đủ, gia hạn qua nháp/review, KPI delta tính thật, pill Kỳ topbar) | Superseded |
+| v2.7 | 18/09/2026 | Chuẩn hóa chuỗi **Chủ nhà → HĐ đầu vào → Tòa nhà → Phòng**: onboarding 4 bước (Chủ nhà → Hợp đồng & tòa → Phòng → Xác nhận) sinh phòng theo lưới và tự sinh lịch trả chủ nhà; có tòa ⇒ bắt buộc HĐ đầu vào; tòa mới luôn đi qua onboarding; trạng thái HĐ đầu vào/chủ nhà derive theo ngày; giữ chỗ và kích hoạt HĐ khách thuê yêu cầu HĐ đầu vào hiệu lực (cảnh báo khi HĐ khách kết thúc sau HĐ chủ nhà); tab HĐ ở tòa lọc đúng tòa; phòng có card Chủ nhà & HĐ; work queue `Kỳ trả chủ nhà đến hạn`; guide F00 | Current |
 
 ---
 
@@ -352,7 +353,7 @@ Thứ tự chung: `Critical` → `High` → `Medium` → hạn gần nhất → 
 | Admin | Tin Zalo lỗi | Message failed chưa retry và chưa có retry record | High | `/zalo/history?status=failed` | Xem lỗi |
 | Admin | Bảo dưỡng đến hạn | `Q.schedulesDue()` khi P2 bật | Medium | `/maintenance/schedules?status=due_soon` | Xem lịch |
 | Admin, Kế toán **[v2.4]** | Kiểm kê cần xử lý | `Q.latestInventory()` đang thực hiện và `needsAction > 0`; kiểm kê chu kỳ 1 tháng/lần, Admin và Kế toán nhập/duyệt (Q33; dòng Kế toán phụ thuộc D-15) | High | `/assets/inventory/:id?status=needs_action` | Tiếp tục kiểm kê |
-| Admin, Kế toán **[v2.4]** | Kỳ trả tiền chủ nhà đến hạn | `buildings.payCycle` (3/4/6 tháng) + `payDay`; cùng nguồn với event `landlord_due` (nhắc trước 5 ngày) (Q8) | High nếu ≤5 ngày; Medium nếu ≤15 ngày | `/landlords?due=1` | Xem lịch thanh toán |
+| Admin, Kế toán **[v2.4]** | Kỳ trả tiền chủ nhà đến hạn | **[v2.7]** `landlordPayments` chưa trả có hạn trong 7 ngày (`Q.landlordDue`, từ lịch trả sinh theo HĐ đầu vào); cùng nguồn với event `landlord_due` (Q8); hiển thị ở hàng đợi Admin và menu chuông (`landlordPayments.manage`) | High nếu ≤5 ngày; Medium nếu ≤15 ngày | `/landlords?upcoming=1` | Xem lịch thanh toán |
 | Vận hành | Phòng chờ dọn | `room.status === cleaning` trong scope | High | `/rooms?status=cleaning` | Xác nhận dọn xong |
 | Vận hành | Hợp đồng sắp hết hạn | `Q.contractStatus(c) === expiring` trong scope | High/Medium theo số ngày | `/contracts?status=expiring` | Gia hạn |
 | Vận hành | Hoàn cọc cần lập/sửa | `refund.status in draft,needs_edit` trong scope | High | `/refunds` theo status | Hoàn thiện hồ sơ |
@@ -478,6 +479,20 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - **[v2.4]** Filter và chip `Loại nhà` đổi nhãn thành `Nhóm tòa (T/S/G)`; giá trị suy ra từ ký tự đầu của `buildings.code` (T2, T3, S1, S2, G1, G2…). Bỏ các nhãn `Thuê lại chủ nhà / Sở hữu công ty / Góp vốn cổ đông` và bỏ chip giả định `U.assume()` trên cột này vì khách đã xác nhận (Q2, D-18).
 - **[v2.4]** Tab Chủ nhà trong detail tòa hiển thị `Thời gian giữ giá` với tooltip “Khoảng thời gian chủ nhà không được tăng giá thuê đối với TimoHouse” (Q5) và `Kỳ thanh toán chủ nhà` (3/4/6 tháng, `buildings.payCycle`) kèm ngày đến hạn kế tiếp; ngày đến hạn là nguồn cho work queue `Kỳ trả tiền chủ nhà đến hạn` và event `landlord_due` (Q8).
 
+#### Chuỗi Chủ nhà → HĐ đầu vào → Tòa nhà → Phòng **[v2.7]**
+
+Nghiệp vụ: TimoHouse ký hợp đồng thuê với chủ nhà và nhận về tòa nhà kèm các phòng để khai thác. **HĐ đầu vào là mỏ neo**: mọi tòa phải thuộc đúng một chủ nhà và nằm trong phạm vi (`landlordContracts.buildingIds`) của ít nhất một HĐ đầu vào; phòng chỉ được giữ chỗ / kích hoạt HĐ khách thuê khi tòa có HĐ đầu vào còn hiệu lực.
+
+- **Onboarding chủ nhà** (`/landlords/new`, wizard 4 bước – cũng là luồng duy nhất để tạo tòa mới):
+  1. `Chủ nhà` – hồ sơ liên hệ; trạng thái chỉ còn `Đang hợp tác | Tạm ngừng` (`Sắp hết hạn` derive từ HĐ).
+  2. `Hợp đồng & tòa nhà` – điều khoản HĐ (ngày ký, thời hạn, giá thuê/tháng, cọc, giữ giá, chu kỳ 3/4/6) rồi `Tòa thuộc hợp đồng`: chọn tòa đã có (chỉ tòa chưa có chủ; tòa của chủ khác bị khóa) hoặc khai báo tòa mới (tên, địa chỉ, Khu nhà quản lý, tiền tố mã phòng, số tầng, số phòng/tầng). Checkbox `Chưa ký hợp đồng – chỉ lưu hồ sơ chủ nhà` bỏ qua tòa và phòng. Với chủ nhà có sẵn (`?landlordId=`), chọn `Gắn tòa vào HĐ đang hiệu lực` hoặc `Tạo hợp đồng mới`.
+  3. `Phòng` – mỗi tòa trong HĐ một card lưới: từ tầng – đến tầng × số phòng/tầng, loại, diện tích, giá tham chiếu; preview số phòng và dải mã `<tiền tố>.<tầng>.<số>` realtime; có thể `Nhập phòng sau`. Tòa có sẵn đã có phòng được giữ nguyên.
+  4. `Xác nhận` – tóm tắt chủ nhà, HĐ, bảng tòa & số phòng sinh, và preview `Lịch trả chủ nhà` (kỳ 1..N, hạn = ngày bắt đầu + k×chu kỳ, số tiền = giá thuê × chu kỳ, N = số kỳ có hạn trước ngày kết thúc, tối đa 24).
+  Lưu là một giao dịch (`X.createLandlordOnboarding`): tạo Khu nhà mới, chủ nhà, tòa (`landlordId`, `payCycle` = chu kỳ HĐ), phòng (`Sẵn sàng`), HĐ đầu vào và lịch trả; lỗi bất kỳ → rollback toàn bộ.
+- **Tòa nhà**: `Thêm tòa` ở danh sách mở modal chọn chủ nhà (hoặc `Chủ nhà mới`) rồi vào onboarding bước 2; drawer sửa tòa hiển thị chủ nhà chỉ đọc (đổi chủ nhà đi qua HĐ đầu vào). `Import tòa` bỏ, thay bằng `Import phòng`. Cột mới `Chủ nhà / HĐ đầu vào` (chip đỏ `Chưa có HĐ đầu vào`). Tab `Chủ nhà & HĐ đầu vào` chỉ liệt kê HĐ có phạm vi gồm tòa này, kèm trạng thái derive, `Kỳ trả tới`, `Thời gian giữ giá` (tooltip, ngày hết giữ giá) và cảnh báo khi tòa không có HĐ hiệu lực. `Tạo nhiều phòng` mặc định tầng 1 → số tầng của tòa và cập nhật `floors/perFloor/roomCount`.
+- **Phòng**: danh sách có `Thêm phòng`; detail phòng có card `Chủ nhà & HĐ đầu vào` (chủ nhà, mã HĐ, hiệu lực, chu kỳ) để truy ngược chuỗi pháp lý.
+- **HĐ đầu vào** (`Fm.landlordContract`): chỉ chọn được tòa của chủ nhà này hoặc chưa có chủ; chặn tòa đã thuộc chủ khác và HĐ trùng thời gian trên cùng tòa; lưu HĐ mới tự sinh lịch trả; `Tạo lịch thanh toán` chỉ bổ sung kỳ còn thiếu. Trạng thái `Đang hiệu lực | Sắp hết hạn (≤ 90 ngày) | Đã kết thúc` derive theo ngày (`Q.lcStatus`), không nhập tay.
+
 ### 7.3. Khách thuê
 
 - Identity column gộp tên, điện thoại và mã khách.
@@ -498,6 +513,7 @@ Checkbox và Action luôn cố định ở hai đầu khi có horizontal scroll.
 - **[v2.4]** Section `Xe` trong wizard là repeater không giới hạn số dòng (`contracts.vehicles`, Q12); mỗi xe sinh một dòng phí gửi xe trên hóa đơn theo kỳ; summary header hợp đồng hiển thị badge `N xe` và detail hóa đơn cho phép mở danh sách biển số từ dòng phí gửi xe.
 - **[v2.6]** Wizard hợp đồng hiển thị đúng số màn: 3 bước `Khách & phòng` → `Giá, dịch vụ & thành viên` → `Kiểm tra & kích hoạt`; card `Chọn cách tạo hợp đồng` chỉ hiện khi tạo mới (không hiện với nháp/OCR/giao dịch).
 - **[v2.6]** Bước Kiểm tra có card `Chứng từ khi kích hoạt`: (1) `Ghi nhận thu tiền cọc ngay` (phương thức, ngày; mặc định bật khi chưa thu cọc qua giao dịch/HĐ cũ và có `payments.record`) → tạo `payments.kind = deposit` gắn `contractId`, HĐ lưu `depositPaymentId/depositPaidAt`; (2) `Tạo hóa đơn nháp kỳ đầu` (mặc định bật) → `createInvoiceDrafts` kỳ bắt đầu với tiền phòng **tính theo ngày** nếu vào giữa kỳ + dịch vụ cố định (điện nước nhập ở Tạo hóa đơn theo kỳ). Toast sau kích hoạt liệt kê phiếu thu/hóa đơn đã sinh; KPI `Tiền cọc` ghi `Đã thu dd/mm · đang giữ` hoặc `chưa ghi nhận thu`; sổ cọc (`/finance/deposits`) đánh dấu cọc chưa ghi nhận thu.
+- **[v2.7]** Bước Kiểm tra có dòng `HĐ đầu vào <mã> hiệu lực đến dd/mm/yyyy`; nếu tòa không có HĐ đầu vào hiệu lực tại ngày bắt đầu → dòng đỏ kèm link `Bổ sung HĐ với chủ nhà` và nút kích hoạt bị khóa (`X.activateContract`, `X.holdRoom` cùng chặn). Nếu HĐ khách kết thúc sau HĐ chủ nhà → dòng cảnh báo vàng và ghi chú trong toast kích hoạt (`cần gia hạn HĐ đầu vào`), không chặn.
 - **[v2.6]** `Gia hạn` lập hợp đồng mới ở trạng thái **Nháp** (sao chép dịch vụ/thành viên, `renewedFromId`) và mở bước Kiểm tra; hợp đồng cũ chỉ chuyển `Đã kết thúc` (ngày trước ngày bắt đầu mới) khi hợp đồng mới được kích hoạt; phòng giữ `Đang thuê`, cọc chuyển tiếp (`depositCarriedFrom`).
 - **[v2.4]** Thuật ngữ giá: `Giá niêm yết` (`listPrice`, giá tiêu chuẩn của TimoHouse) và `Giá thuê` (`price`, giá thực tế khách đang thuê) (Q13); không dùng `Giá chốt` ngoài preset Đối soát.
 
@@ -1250,7 +1266,9 @@ Kiểm tra: 41 mục cũ đều có dòng trong A.1 hoặc A.3; 63 route đều 
 | Query | `/investment/shareholders?tab=contributions\|distributions` | shareholders.view | 3 | Có | Tách Vốn góp / Phân phối |
 | Query | `?filterOpen=1`, `?reviewMode=errors\|all`, `?density=` | – | – | Tùy chọn | Trạng thái UI trên URL |
 | Route | `#/investment/distributions` | shareholders.view | 3 | Tùy chọn | Chỉ khi tab không đủ; dùng dữ liệu `distributions` hiện có |
-| Query **[v2.4]** | `/landlords?due=1` | landlords.view | 1 | Có | Kỳ trả chủ nhà đến hạn (Q8); nguồn cho work queue Admin/Kế toán |
+| Query **[v2.4]** | `/landlords?upcoming=1` (đã triển khai thay `?due=1`) | landlords.view | 1 | Có | Kỳ trả chủ nhà đến hạn (Q8); nguồn cho work queue Admin/Kế toán |
+| Query **[v2.7]** | `/landlords/new?landlordId=<id>` | landlords.manage | 1 | Có | Onboarding bắt đầu từ bước 2 để bổ sung tòa/HĐ cho chủ nhà có sẵn (từ `Thêm tòa` ở danh sách tòa hoặc `Thêm tòa` ở chi tiết chủ nhà) |
+| Query **[v2.7]** | `/buildings/:id?tab=landlord` | buildings.view | 1 | Có | Tab Chủ nhà & HĐ đầu vào; deep link từ review HĐ khách thuê và detail phòng |
 | Query **[v2.4]** | `/zalo/config?tab=rules` | zalo.config | 2 | Tùy chọn | Quy tắc gửi tự động (Q34); chỉ khi D-16 Approved |
 | Route **[v2.4]** | `#/zalo/inbox` | zalo.view | 2 | Tùy chọn | Hội thoại Zalo theo trưởng phòng (Q37); chỉ khi D-17 Approved |
 | Query **[v2.4]** | `/tenants/:id?tab=zalo` | tenants.view | 2 | Tùy chọn | Tab hội thoại trong detail khách thuê; chỉ khi D-17 Approved |
@@ -1283,6 +1301,7 @@ Launcher `Phân hệ & Quản trị` là popover, không phải route. `Công vi
 12. Phụ lục D: cập nhật contract `buildingType`, phạm vi và quyền upload Trung tâm Tài liệu (Q3); tham chiếu Decision Pack v1.1.
 13. OCR (8.2): card Kết quả trích xuất theo thực thể, tài liệu cuộn liên tục, OCR = bước tạo khách thuê (khớp SĐT/CCCD, tạo mới từ HĐ), tách mã phòng/tòa và gợi ý phòng; thêm `tenants.address`, `tenants.idPlace` (D.1). Thay mô phỏng 29 trường bằng parser thật theo template HĐ của Linh (43 trường, 7 nhóm, bảng tài sản), đọc PDF text-based qua pdf.js hoặc .txt; prefill wizard hợp đồng gồm xe và đơn giá dịch vụ; file mẫu `mau-hop-dong-ocr.txt` cập nhật theo template.
 14. **[v2.5]** Báo cáo (8.5): Trung tâm báo cáo = danh sách bản ghi + wizard Tạo báo cáo (loại → tham số Từ kỳ–Đến kỳ) → bản ghi snapshot có xem trước và tải CSV; route `/reports/new`, `/reports/runs/:id`; collection `reportRuns`; guide F15.1 đổi sang luồng tạo bản ghi.
+16. **[v2.7]** Chuỗi Chủ nhà → HĐ đầu vào → Tòa → Phòng (7.2 khối mới, 7.4, 6.1, Phụ lục B, D.1): onboarding 4 bước sinh phòng + lịch trả, HĐ bắt buộc khi có tòa, tòa mới chỉ qua onboarding, trạng thái HĐ/chủ nhà derive, ràng buộc giữ chỗ/kích hoạt theo HĐ đầu vào, tab HĐ ở tòa lọc đúng tòa, card Chủ nhà & HĐ ở phòng, work queue `landlordDue`, guide F00.
 15. **[v2.6]** Review sản phẩm/UX: 4.2 (sidebar theo quyền, breadcrumb theo nhóm), 4.4 (pill Kỳ topbar), 7.4 (wizard 3 bước, chứng từ khi kích hoạt, gia hạn qua nháp), 7.5 (header/KPI/cột, quick create, khóa kỳ, chủ nhà → chi phí, hoàn cọc), 13.4 (glossary, chú thích nội bộ `demoNotes`), Phụ lục B (query mới); D.1 thêm field `contracts.depositPaymentId/depositPaidAt/depositCarriedFrom`, `expenses.landlordPaymentId`, `landlordPayments.expenseId`, `meta.uiPrefs.demoNotes`.
 
 ### C.1. Thay đổi từ v2.1 lên v2.2
@@ -1333,6 +1352,7 @@ Ràng buộc:
 - Migration production, nếu có, là deliverable riêng và không được suy ra trực tiếp từ seed mockup.
 - **[v2.4]** `buildings.buildingType` giữ giá trị `T|S|G` nhưng ngữ nghĩa là **tiền tố mã tòa** (T2, T3, S1, S2, G1, G2…), không phải loại sở hữu (D-18). Giá trị phải suy ra từ ký tự đầu của `buildings.code`; seed `buildingTypeOf` và fixup `meta.wbFixups.buildingTypeV2` trong `seed-wb.js` cần thay bằng derive-from-code, nhãn `Q.L.buildingType` đổi thành `T`, `S`, `G` (không kèm mô tả sở hữu).
 - **[v2.4]** `contracts.vehicles` không giới hạn số phần tử; mỗi phần tử sinh một dòng phí gửi xe trên hóa đơn theo kỳ (Q12).
+- **[v2.7]** `landlordContracts.status` chỉ còn giá trị lưu `active|ended`; UI dùng `Q.lcStatus(c)` (ended nếu `end < today`, expiring nếu còn ≤ 90 ngày). `landlords.status` chỉ `active|paused`; `Q.landlordStatus(l)` derive `expiring`. `buildings.roomCount`/`floors`/`perFloor` được cập nhật theo phòng thực khi sinh phòng; `buildings.landlordId` bắt buộc khi tạo mới. `Q.landlordContractOf(buildingId, date)` là HĐ có phạm vi gồm tòa và hiệu lực tại ngày; `Q.buildingNextDue` tính theo HĐ của tòa (không theo chủ nhà). Bản ghi tạo từ onboarding mang `source: 'user'` (guide F00).
 
 ### D.2. Dimension và công thức dùng chung
 
@@ -1451,7 +1471,7 @@ Không thuộc phạm vi UX của tài liệu này nhưng cần thực hiện đ
 
 1. `mockup/js/core/selectors-wb.js`: đổi `Q.L.buildingType` thành nhãn `T`/`S`/`G` (bỏ mô tả sở hữu); `mockup/js/pages/buildings.js` bỏ `U.assume()` trên cột/kv Loại nhà và đổi nhãn thành `Nhóm tòa`.
 2. `mockup/js/core/seed-wb.js`: thay `buildingTypeOf` bằng derive từ ký tự đầu `buildings.code`; thêm fixup mới thay `buildingTypeV2`.
-3. Thêm selector `Q.landlordDue(days)` từ `buildings.payCycle`/`payDay` và filter `due=1` cho `/landlords`; nối vào `Q.todo()` cho Admin/Kế toán.
+3. ~~Thêm selector `Q.landlordDue(days)` từ `buildings.payCycle`/`payDay` và filter `due=1` cho `/landlords`; nối vào `Q.todo()` cho Admin/Kế toán.~~ **[v2.7] Đã làm** – `Q.landlordDue(7)` từ `landlordPayments` (lịch trả sinh theo HĐ đầu vào), filter `?upcoming=1`, nối vào `Q.todo()`/menu chuông/hàng đợi Admin.
 4. `mockup/js/core/seed-p2.js`: các `leadSources` ngoài FB/FLY/POST/ZL đặt `status: 'inactive'`.
 5. `mockup/js/pages/refunds.js`: khóa sửa số tiền dòng khấu hao 200.000đ, chỉ cho phép bỏ dòng kèm lý do; mở CTA duyệt cho `admin`.
 6. `mockup/js/core/metrics.js`: thêm `perf.actual`, `perf.provisional`; đổi trạng thái `revenue.newDeposit`, `profit.actual`, `profit.business` thành `approved`.
