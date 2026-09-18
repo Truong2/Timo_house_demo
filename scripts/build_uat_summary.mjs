@@ -66,7 +66,7 @@ const children = [
   new Paragraph({ spacing: { before: 500, after: 120 }, children: [new TextRun({ text: 'UAT 3 PHASE · SUMMARY', bold: true, size: 34, color: '16324F' })] }),
   p(`Kết quả: ${summary.status} · ${summary.pass}/${summary.total} mốc · develop ${SHORT_SHA}`, { size: 24, color: summary.status === 'PASS' ? '15803D' : 'B91C1C', bold: true, after: 260 }),
   table([['Thông tin', 'Giá trị'], ['Baseline', summary.baseline], ['Ngày/kỳ nghiệp vụ', `${TODAY} · ${PERIOD}`], ['Viewport', '1440×1080'], ['Nhánh UAT', summary.branch], ['Phạm vi', summary.phases.map(item => `${item.phase}: ${item.expected}`).join(' · ') + ` · tổng ${EXPECTED} (F08.5.1–3 regression ngoài bộ đếm)`]], [2300, 6700]),
-  h('Mục lục'), new TableOfContents('Mục lục', { hyperlink: true, headingStyleRange: '1-3' }),
+  h('Mục lục'), p('Mục lục tự cập nhật khi mở bằng Microsoft Word (chọn Cập nhật trường / F9).', { size: 17, color: '64748B' }), new TableOfContents('Mục lục', { hyperlink: true, headingStyleRange: '1-3' }),
   h('Kết quả theo phase'), table(phaseRows, [1300, 2800, 1200, 1200, 1800]),
   h('Traceability liên phase'), table(traceRows, [900, 2400, 4400, 1300]),
   h('Regression bổ sung (ngoài bộ đếm)'), table([['Phase', 'Flow', 'Mốc', 'Tiêu đề', 'Kết quả'], ...regressions.map(item => [item.phase, item.flow, item.milestone, item.title || '', item.status])], [900, 1200, 1400, 4200, 1300]),

@@ -454,7 +454,7 @@ function qaAssertions(final, steps) {
   add('payment-partial', final.paid === 3000000 && final.remaining > 0 && final.invoice && final.paid + final.remaining === final.invoice.total, `paid=${final.paid}; remaining=${final.remaining}; total=${final.invoice?.total || 0}`);
   add('meter-nonnegative', (final.meter || []).every((x) => Number(x.curr) >= Number(x.prev || 0)), (final.meter || []).map((x) => `${x.type}:${x.prev}->${x.curr}`).join(', '));
   add('refund-math', final.refund?.status === 'refunded' && final.refund.deductionsTotal === 400000 && final.refund.refundAmount === final.refund.deposit - 400000 && final.refund.offsetDebt === false, `status=${final.refund?.status}; deposit=${final.refund?.deposit}; ded=${final.refund?.deductionsTotal}; refund=${final.refund?.refundAmount}`);
-  add('expense-allocation', final.expense?.amount === 350000 && Array.isArray(final.expenseAllocations) && final.expenseAllocations.reduce((n, x) => n + Number(x.pct || 0), 0) === 100, `amount=${final.expense?.amount}; allocations=${JSON.stringify(final.expenseAllocations || [])}`);
+  add('expense-allocation', final.expense?.amount === 350000 && Array.isArray(final.expenseAllocations) && final.expenseAllocations.reduce((n, x) => n + Number(x.pct || 0), 0) === 100, `amount=${final.expense?.amount}; allocations=${(final.expenseAllocations || []).map((x) => x.pct + '%').join('/')} (=${(final.expenseAllocations || []).reduce((n, x) => n + Number(x.pct || 0), 0)}%)`);
   add('import-job', final.importJob?.status === 'done', `import=${final.importJob?.status || '-'}`);
   add('user-role', final.user?.role === 'ops', `role=${final.user?.role || '-'}`);
   return { status: checks.every((x) => x.status === 'PASS') ? 'PASS' : 'FAIL', checks };
@@ -504,7 +504,7 @@ async function buildDoc(manifest, diagramPng) {
     heading('Sơ đồ tổng thể', HeadingLevel.HEADING_1),
     new Paragraph({ children: [new ImageRun({ data: fs.readFileSync(diagramPng), transformation: { width: 650, height: 216 }, type: 'png' })] }),
     heading('Cách đọc tài liệu', HeadingLevel.HEADING_1), bullet('Mỗi mốc có route, vai trò, dữ liệu nhập, action, expected result và actual result.'), bullet('Ảnh có hậu tố -input là trạng thái trước khi submit; -action là form/điểm thao tác bổ sung; -result là kết quả sau submit; -error chỉ xuất hiện nếu mốc lỗi.'), bullet('Mã record động (KH…, HD…, PAY…, ZL…, RC…) được lấy từ manifest của cùng một lần chạy.'),
-    heading('Mục lục', HeadingLevel.HEADING_1), new TableOfContents('Mục lục', { hyperlink: true, headingStyleRange: '1-3' }),
+    heading('Mục lục', HeadingLevel.HEADING_1), p('Mục lục tự cập nhật khi mở bằng Microsoft Word (chọn Cập nhật trường / F9).', { size: 17, color: '64748B' }), new TableOfContents('Mục lục', { hyperlink: true, headingStyleRange: '1-3' }),
   ];
   sections.push({ properties: portrait, headers: header, footers: footer, children: cover });
 
@@ -516,7 +516,7 @@ async function buildDoc(manifest, diagramPng) {
     ])];
     for (const def of STEPS.filter((s) => s.flow === flow.key)) {
       const r = manifest.milestones.find((x) => x.id === def.id) || def;
-      children.push(heading(`${def.id} · ${def.title}`, HeadingLevel.HEADING_2));
+      children.push(new Paragraph({ heading: HeadingLevel.HEADING_2, pageBreakBefore: true, children: [new TextRun({ text: `${def.id} · ${def.title}`, bold: true })] }));
       const recordLabel = Object.entries(r.recordIds || {}).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join('\n') || '-';
       children.push(table([['Trường', 'Chi tiết'], ['Vai trò', `${roleLabel[def.role] || def.role}`], ['Màn hình/route', `${def.screen}\n${def.route}`], ['Dữ liệu nhập', def.inputs], ['Mã record', recordLabel], ['Action', def.action], ['Kết quả mong đợi', def.expected], ['Kết quả thực tế', r.actual || '-'], ['Assertions', (r.assertions || []).map((a) => `${a.id}: ${a.status}${a.detail ? ' – ' + a.detail : ''}`).join('\n') || '-'], ['File tải xuống', (r.downloads || []).map((d) => `${d.name} · ${d.bytes} B · ${d.rows != null ? d.rows + ' dòng · ' : ''}sha256 ${String(d.sha256 || '').slice(0, 16)}…`).join('\n') || '-'], ['Thời gian', r.timestamps ? `${r.timestamps.startedAt} → ${r.timestamps.finishedAt}` : '-'], ['Trạng thái', (r.status || 'NOT RUN') + (r.error ? '\n' + String(r.error).split('\n')[0] : '')]], [25, 75]));
       children.push(p('Ảnh minh chứng', { bold: true, color: '16324F', after: 40 }));
@@ -525,9 +525,8 @@ async function buildDoc(manifest, diagramPng) {
       for (let i = 0; i < shots.length; i += 2) {
         const cells = shots.slice(i, i + 2).map((f) => new TableCell({ width: { size: 7050, type: WidthType.DXA }, borders: noBorder, children: [new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 20 }, children: [new ImageRun({ data: fs.readFileSync(f), transformation: { width: 460, height: 345 }, type: 'png' })] }), p(path.basename(f), { align: AlignmentType.CENTER, size: 15, color: '64748B', after: 40 })] }));
         if (cells.length === 1) cells.push(new TableCell({ width: { size: 7050, type: WidthType.DXA }, borders: noBorder, children: [new Paragraph('')] }));
-        children.push(new Table({ width: { size: 14100, type: WidthType.DXA }, columnWidths: [7050, 7050], borders: noBorder, rows: [new TableRow({ children: cells })] }));
+        children.push(new Table({ width: { size: 14100, type: WidthType.DXA }, columnWidths: [7050, 7050], borders: noBorder, rows: [new TableRow({ cantSplit: true, children: cells })] }));
       }
-      children.push(new Paragraph({ children: [new PageBreak()] }));
     }
     sections.push({ properties: landscape, headers: header, footers: footer, children });
   }
