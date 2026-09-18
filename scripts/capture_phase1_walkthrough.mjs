@@ -22,6 +22,7 @@ import {
   ImageRun,
   PageBreak,
   PageNumber,
+  PageOrientation,
   Packer,
   Paragraph,
   SectionType,
@@ -33,6 +34,7 @@ import {
   TextRun,
   WidthType,
 } from 'docx';
+import { saveDownload, writeSwimlane, FLOW_TRACE, BRANCH } from './uat/runtime.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RUN_ROOT = process.env.TIMEHOUSE_UAT_ROOT ? path.resolve(process.env.TIMEHOUSE_UAT_ROOT) : null;
@@ -43,11 +45,13 @@ const MANIFEST_PATH = path.join(OUT, 'manifest.json');
 const DOCX_PATH = RUN_ROOT ? path.join(RUN_ROOT, '01_TimeHouse_Phase1_UAT_Evidence.docx') : path.join(OUT, 'TimeHouse_Phase1_Walkthrough_UAT_v1.0.docx');
 const WIDTH = 1440;
 const HEIGHT = 1080;
-const BASE_URL = process.env.TIMEHOUSE_BASE_URL || 'http://127.0.0.1:8765';
+const BASE_URL = process.env.TIMEHOUSE_BASE_URL || ''; // chỉ dùng server có sẵn khi được chỉ định rõ (tránh chạy nhầm workspace khác)
 const CHROME = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const COMMIT = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 
-const roleLabel = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành' };
+const roleLabel = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Kinh doanh', kythuat: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
+const ROLE_MENU = { admin: /Quay lại Admin|Quản trị viên/, accountant: /Kế toán/, ops: /Vận hành/, sale: /Kinh doanh|Sale/, kythuat: /Kỹ thuật/, hr: /Nhân sự/, codong: /Cổ đông/ };
+const EXPECTED = 40; // S0 (4) + F00 (4) + F01–F10 (32)
 const route = (x) => `#${x}`;
 
 const FLOWS = [
@@ -57,6 +61,14 @@ const FLOWS = [
       ['S0.2', 'Xem Tổng quan', 'admin', '/dashboard', 'Dashboard gồm bộ lọc kỳ/khu vực/tòa, 4 KPI, tài chính, biểu đồ và Top khoản quá hạn.', 'Kỳ 10/2026', 'Quan sát KPI, biểu đồ và bảng quá hạn.', 'KPI phòng, tiến độ thu và nút Nhắc thu hiển thị.', '[data-guide="dash-kpi"]'],
       ['S0.3', 'Kiểm tra danh mục dịch vụ & bảng giá', 'admin', '/settings/catalog', 'Danh sách dịch vụ, đơn vị, giá mặc định, phạm vi và lịch sử giá.', 'Không nhập; dùng seed catalog.', 'Mở Cấu hình → Danh mục dùng chung và mở một dịch vụ.', '7 dịch vụ đang hoạt động, gồm Điện 3.500/kWh và Nước 20.000/m³.', '[data-guide="catalog-table"]'],
       ['S0.4', 'Xem phòng sẵn sàng cho thuê', 'ops', '/rooms?status=ready', 'Danh sách phòng có tab trạng thái, giá, tòa và action trên từng dòng.', 'Lọc Sẵn sàng.', 'Chuyển Vận hành, mở Phòng và chọn tab Sẵn sàng.', 'Có dòng phòng với Giữ chỗ/Tạo hợp đồng.', '[data-guide="rooms-table"]'],
+    ],
+  },
+  {
+    key: 'F00', title: 'Thiết lập chủ nhà, tòa & phòng', golive: '', core: true, steps: [
+      ['F00.1', 'Onboarding chủ nhà → HĐ đầu vào → tòa', 'admin', '/landlords/new', 'Wizard 4 bước: Chủ nhà → Hợp đồng & tòa nhà → Phòng → Xác nhận.', 'Nguyễn Demo Chủ Nhà; 0909 000 111; HĐ 90.000.000đ/tháng, cọc 180.000.000đ, chu kỳ 3 tháng; tòa mới "Tòa Demo Onboard", Khu nhà đầu tiên, tiền tố Z, 5 tầng × 4 phòng.', 'Nhập chủ nhà, bấm Tiếp tục; nhập HĐ đầu vào; Thêm tòa mới và điền thông tin; bấm Tiếp tục khai báo phòng.', 'Có tòa ⇒ bắt buộc HĐ đầu vào; tòa của chủ nhà khác bị khóa; sang bước 3 Phòng với lưới 5 tầng × 4 phòng.', '#content'],
+      ['F00.2', 'Sinh phòng theo lưới & hoàn tất', 'admin', '/landlords/new', 'Bước Phòng: từ tầng – đến tầng × phòng/tầng, loại, diện tích, giá; preview số phòng; bước Xác nhận có lịch trả chủ nhà.', 'Giá tham chiếu 6.500.000đ; giữ 5 tầng × 4 phòng.', 'Nhập giá, Kiểm tra hồ sơ → xem preview lịch trả 12 kỳ → Hoàn tất onboarding.', 'Toast "1 tòa · 20 phòng · HD-… · 12 kỳ trả"; chuyển tới chi tiết chủ nhà tab Tòa nhà với tòa mới có 20 phòng.', '#content'],
+      ['F00.3', 'Lịch trả chủ nhà sinh tự động', 'admin', '/landlords/:id?tab=contracts', 'Tab Hợp đồng đầu vào: điều khoản HĐ và bảng lịch thanh toán.', 'HĐ đầu vào vừa tạo.', 'Mở chi tiết chủ nhà → tab Hợp đồng đầu vào.', '12 kỳ theo chu kỳ 3 tháng, số tiền 270.000.000đ/kỳ, trạng thái Chưa đến hạn/Chờ thanh toán.', '#content'],
+      ['F00.4', 'Tòa liên kết HĐ đầu vào', 'admin', '/buildings/:id?tab=landlord', 'Tab Chủ nhà & HĐ đầu vào của tòa: HĐ phủ tòa, kỳ trả tới, thời gian giữ giá.', 'Tòa Demo Onboard.', 'Mở chi tiết tòa → tab Chủ nhà & HĐ đầu vào; tab Phòng liệt kê 20 phòng Sẵn sàng.', 'HĐ đầu vào Đang hiệu lực, kỳ trả tới 28/10/2026 · 270.000.000đ; phòng chỉ cho thuê khi tòa có HĐ đầu vào hiệu lực.', '#content'],
     ],
   },
   {
@@ -70,7 +82,7 @@ const FLOWS = [
       ['F02.1', 'Chọn phòng sẵn sàng → Tạo hợp đồng', 'ops', '/rooms?status=ready', 'Bảng phòng Sẵn sàng với action Tạo hợp đồng.', 'Phòng Sẵn sàng đầu tiên sau reset.', 'Bấm Tạo hợp đồng trên dòng phòng đã chọn.', 'Form Tạo hợp đồng nạp sẵn phòng, giá tham chiếu và dịch vụ mặc định.', '[data-guide="rooms-table"]'],
       ['F02.2', 'Chọn khách, thời hạn, chu kỳ thanh toán', 'ops', '/contracts/new', 'Wizard hợp đồng với khách, phòng, thời hạn và chu kỳ thanh toán.', 'Khách vừa tạo; 01/10/2026–30/09/2027; ngày thu 05.', 'Chọn khách, giữ phòng, nhập ngày và ngày thanh toán.', 'Tóm tắt cập nhật và checklist chuyển sang hợp lệ.', '[data-guide="contract-save"]'],
       ['F02.3', 'Thiết lập giá thuê, cọc, dịch vụ', 'ops', '/contracts/new', 'Khu Giá thuê, cọc và phụ phí; bảng dịch vụ; thành viên ở.', 'Giữ giá phòng tự nạp; cọc = 2 × giá thuê; giữ dịch vụ mặc định; thành viên = khách chính.', 'Kiểm tra/điền giá, cọc, dịch vụ rồi bấm Lưu hợp đồng →.', 'HĐ được lưu ở Dự thảo và mở bước Review.', '[data-guide="price"]'],
-      ['F02.4', 'Xác nhận & kích hoạt hợp đồng', 'ops', '/contracts/new', 'Review hợp đồng, checklist và nút kích hoạt.', 'HĐ Dự thảo của khách demo.', 'Bấm Xác nhận & kích hoạt hợp đồng và xác nhận modal.', 'HĐ Hiệu lực; phòng chuyển Đang thuê; cọc được ghi nhận đang giữ.', '[data-guide="contract-activate"]'],
+      ['F02.4', 'Xác nhận & kích hoạt hợp đồng', 'ops', '/contracts/new', 'Review hợp đồng, checklist (gồm dòng HĐ đầu vào của tòa) và card Chứng từ khi kích hoạt.', 'HĐ Dự thảo của khách demo; giữ "Ghi nhận thu tiền cọc ngay", bỏ chọn "Tạo hóa đơn nháp kỳ đầu" (hóa đơn lập theo kỳ ở F03).', 'Bỏ chọn tạo hóa đơn kỳ đầu, bấm Xác nhận & kích hoạt hợp đồng và xác nhận modal.', 'HĐ Hiệu lực; phòng chuyển Đang thuê; phiếu thu cọc PAY… được tạo và cọc đang giữ; checklist HĐ đầu vào xanh.', '[data-guide="contract-activate"]'],
     ],
   },
   {
@@ -91,7 +103,7 @@ const FLOWS = [
   {
     key: 'F05', title: 'Công nợ & thu tiền một phần', golive: '8, 9, 10', core: true, steps: [
       ['F05.1', 'Xem công nợ', 'accountant', '/receivables', 'Bảng công nợ với tổng, đã thu, còn lại, quá hạn và trạng thái nhắc.', 'Tìm theo mã phòng demo.', 'Mở Thu tiền & công nợ và tìm phòng demo.', 'Dòng hóa đơn có Đã thu 0, Còn lại = tổng và trạng thái đã nhắc.', '[data-guide="receivables-table"]'],
-      ['F05.2', 'Ghi nhận thu tiền một phần', 'accountant', '/receivables', 'Drawer Thu tiền thủ công với khách, số tiền, phương thức, tham chiếu và phân bổ.', '3.000.000đ; Chuyển khoản; CK289104; ghi chú thanh toán một phần.', 'Chọn khách demo, nhập dữ liệu, Tự động phân bổ và Xác nhận ghi nhận.', 'Tạo PAY…; hóa đơn chuyển Thu một phần.', '[data-guide="receivable-pay"]'],
+      ['F05.2', 'Ghi nhận thu tiền một phần', 'accountant', '/receivables', 'Drawer Ghi nhận thu tiền với khách, số tiền, phương thức, tham chiếu và phân bổ.', '3.000.000đ; Chuyển khoản; CK289104; ghi chú thanh toán một phần.', 'Chọn khách demo, nhập dữ liệu, Tự động phân bổ và Xác nhận ghi nhận.', 'Tạo PAY…; hóa đơn chuyển Thu một phần.', '[data-guide="receivable-pay"]'],
       ['F05.3', 'Xem chi tiết khoản thu', 'accountant', '/payments/:id', 'Chi tiết khoản thu, phân bổ công nợ và lịch sử xử lý.', 'PAY… vừa tạo.', 'Mở liên kết chi tiết khoản thu từ toast hoặc route.', 'Đã phân bổ = 3.000.000đ; còn lại sau phân bổ đúng.', '[data-guide="pay-form"]'],
       ['F05.4', 'Theo dõi số còn nợ', 'accountant', '/receivables', 'Bảng công nợ/hóa đơn sau khi đã phân bổ.', 'Hóa đơn và khoản thu demo.', 'Quay lại công nợ hoặc mở hóa đơn, kiểm tra Còn lại.', 'Đã thu = 3.000.000đ, Còn lại > 0, chip Thu một phần.', '[data-guide="receivables-table"]'],
     ],
@@ -150,7 +162,7 @@ async function freePort() {
 }
 
 async function ensureServer() {
-  try { const r = await fetch(`${BASE_URL}/index.html`); if (r.ok) return { url: BASE_URL, child: null }; } catch { /* start below */ }
+  if (BASE_URL) { const r = await fetch(`${BASE_URL}/index.html`); if (!r.ok) throw new Error(`TIMEHOUSE_BASE_URL trả HTTP ${r.status}`); return { url: BASE_URL, child: null }; }
   const port = await freePort();
   const child = spawn(process.execPath, ['scripts/serve.mjs'], { cwd: ROOT, env: { ...process.env, PORT: String(port) }, stdio: 'ignore', windowsHide: true });
   const url = `http://127.0.0.1:${port}`;
@@ -196,12 +208,13 @@ async function select(page, name, value, scope = page) {
 }
 
 async function switchRole(page, role) {
-  const current = await page.locator('#tb-role').textContent().catch(() => '');
-  if (norm(current).includes(roleLabel[role] || role)) return;
+  const current = await page.evaluate(() => window.TH?.auth?.role?.() || '').catch(() => '');
+  if (current === role) return;
   await page.locator('.tb-user').click();
-  const wanted = role === 'admin' ? /Quay lại Admin|Quản trị viên/ : new RegExp(roleLabel[role] || role);
-  const item = page.locator('div[role="menu"] button[role="menuitem"]').filter({ hasText: wanted }).first();
-  await item.waitFor({ state: 'visible' }); await item.click({ force: true }); await page.waitForTimeout(100);
+  const item = page.locator('div[role="menu"] button[role="menuitem"]').filter({ hasText: ROLE_MENU[role] || new RegExp(roleLabel[role] || role) }).first();
+  await item.waitFor({ state: 'visible' }); await item.click({ force: true }); await page.waitForTimeout(120);
+  const actual = await page.evaluate(() => window.TH?.auth?.role?.() || '');
+  if (actual !== role) throw new Error(`Chuyển vai trò thất bại: cần ${role}, thực tế ${actual}`);
 }
 
 async function stateSnapshot(page) {
@@ -228,14 +241,19 @@ async function stateSnapshot(page) {
      const user = users.filter((x) => x.source === 'user').slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] || null;
      const meter = room ? raw('meterReadings').filter((x) => x.roomId === room.id && x.period === s.meta.period).slice(-2) : [];
      const paid = invoice ? T.q.invPaid(invoice) : 0; const remaining = invoice ? T.q.invRemaining(invoice) : 0;
-     return { session, today: s.meta.today, period: s.meta.period, tenant, contract, room, invoice, payment, batch, refund, expense, expenseAllocations, importJob, user, meter, paid, remaining, guide: s.guide, url: location.hash };
+     const landlord = raw('landlords').filter((x) => x.source === 'user').slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] || null;
+     const building = landlord ? raw('buildings').find((x) => x.source === 'user' && x.landlordId === landlord.id) || null : null;
+     const landlordContract = building ? (T.q.landlordContractOf ? T.q.landlordContractOf(building.id) : null) : null;
+     const landlordPayments = landlordContract ? raw('landlordPayments').filter((x) => x.landlordContractId === landlordContract.id) : [];
+     const landlordRooms = building ? raw('rooms').filter((x) => x.buildingId === building.id) : [];
+     return { session, today: s.meta.today, period: s.meta.period, tenant, contract, room, invoice, payment, batch, refund, expense, expenseAllocations, importJob, user, meter, paid, remaining, landlord, building, landlordContract, landlordPayments: landlordPayments.length, landlordRooms: landlordRooms.length, landlordRoomsReady: landlordRooms.filter((x) => x.status === 'ready').length, guide: s.guide, url: location.hash };
   });
 }
 
 async function annotate(page, id, role, selector) {
   await page.evaluate(({ id, role, selector, labels }) => {
     document.querySelectorAll('[data-evidence-callout]').forEach((x) => x.remove());
-    let target = selector && document.querySelector(selector);
+    let target = null; try { target = selector && document.querySelector(selector); } catch (e) { target = null; }
     if (target) { const box = target.getBoundingClientRect(); const style = getComputedStyle(target); if (box.width === 0 || box.height === 0 || style.visibility === 'hidden' || style.display === 'none') target = null; }
     const modal = [...document.querySelectorAll('.overlay .drawer, .overlay .modal')].reverse().find((x) => { const b = x.getBoundingClientRect(); const st = getComputedStyle(x); return b.width > 0 && b.height > 0 && st.visibility !== 'hidden' && st.display !== 'none'; });
     if (modal) target = modal;
@@ -267,16 +285,19 @@ async function waitForModal(page) { await page.locator('.overlay').last().waitFo
 async function closeModal(page) { const m = page.locator('.overlay').last(); if (await m.count()) { const close = m.locator('button').filter({ hasText: /Hủy|Đóng|×/ }).first(); if (await close.count()) await close.click().catch(() => {}); } }
 async function clickAction(page, act) { const loc = page.locator(`[data-act="${act}"]`).first(); await loc.waitFor({ state: 'visible' }); await loc.click(); return loc; }
 
+const RESULTS = [];
 async function runScenario(page, base) {
   const actual = {};
-  const results = [];
+  const results = RESULTS;
   const run = async (id, fn, options = {}) => {
     const def = STEP.get(id); const started = new Date().toISOString(); let before = [];
     try {
       if (options.before) before.push(await screenshot(page, id, 'input', def.role, def.selector));
       const out = await fn(); await page.waitForTimeout(options.wait || 160);
+      await page.evaluate(() => { try { window.TH.guide.evaluate('uat'); } catch (e) { /* guide optional */ } });
       const snap = await stateSnapshot(page); Object.assign(actual, snap);
-      const after = await screenshot(page, id, 'result', def.role, def.selector);
+      const failedAssertion = (out?.assertions || []).find((x) => x.status === 'FAIL'); if (failedAssertion) throw new Error(`${id} assertion ${failedAssertion.id} FAIL: ${failedAssertion.detail || ''}`);
+      const after = await screenshot(page, id, 'result', def.role, out?.scrollTo || def.selector);
       const extra = Array.isArray(out?.screenshots) ? out.screenshots : [];
       const finished = new Date().toISOString();
       const record = { ...def, phase: 'P1', milestone: id, route: snap.url || def.route, phaseFlags: { p1: true, p2: false, p3: false }, timestamps: { startedAt: started, finishedAt: finished }, startedAt: started, finishedAt: finished, status: 'PASS', actual: out?.actual || describeActual(id, snap), assertions: out?.assertions || [], screenshots: [...before, ...extra, after], downloads: out?.downloads || [], recordIds: idsOf(snap), commit: COMMIT, error: '' };
@@ -298,6 +319,32 @@ async function runScenario(page, base) {
   await run('S0.3', async () => { await goto(page, base, route('/settings/catalog')); return { actual: norm((await page.locator('#content').innerText()).slice(0, 500)) }; });
   await switchRole(page, 'ops');
   await run('S0.4', async () => { await goto(page, base, route('/rooms?status=ready')); return { actual: norm((await page.locator('#content').innerText()).slice(0, 500)) }; });
+
+  // F00 – landlord → lease → building → rooms (admin).
+  await switchRole(page, 'admin');
+  await run('F00.1', async () => {
+    await goto(page, base, route('/landlords/new')); await page.waitForTimeout(500); await page.evaluate(() => { if (window.TH?._wz) delete window.TH._wz.landlordOnboarding; window.TH.router.refresh(); }); await page.waitForTimeout(400); await page.locator('#onboard-landlord input[name=name]').waitFor({ state: 'visible' });
+    const f1 = page.locator('#onboard-landlord'); await fill(page, 'name', 'Nguyễn Demo Chủ Nhà', f1); await fill(page, 'phone', '0909 000 111', f1); await fill(page, 'email', 'demo.chunha@gmail.com', f1);
+    await clickText(page, 'Tiếp tục hợp đồng & tòa →'); await page.waitForTimeout(250);
+    const cf = page.locator('#onboard-contract'); await fill(page, 'rent', 90000000, cf); await fill(page, 'deposit', 180000000, cf);
+    await clickText(page, 'Thêm tòa mới'); await page.waitForTimeout(250);
+    const card = page.locator('[data-new-building]').first(); await fill(page, 'name', 'Tòa Demo Onboard', card); await fill(page, 'address', '99 Đường Demo, Cầu Giấy, Hà Nội', card); await card.locator('select[name=areaRef]').selectOption({ index: 1 }); await fill(page, 'prefix', 'Z', card); await fill(page, 'floors', 5, card); await fill(page, 'perFloor', 4, card);
+    const locked = await page.locator('[data-existing-building]:disabled, [data-linked-building]').count();
+    await clickText(page, 'Tiếp tục khai báo phòng →'); await page.waitForTimeout(300);
+    const preview = norm(await page.locator('[data-room-preview]').first().innerText());
+    return { actual: `Bước 3 Phòng mở; preview "${preview}"; ${locked} tòa của chủ nhà khác bị khóa ở bước 2.`, assertions: [{ id: 'room-grid-preview', status: /20/.test(preview) ? 'PASS' : 'FAIL', detail: preview }] };
+  }, { before: true });
+  await run('F00.2', async () => {
+    const spec = page.locator('[data-room-spec]').first(); await fill(page, 'price', 6500000, spec);
+    await clickText(page, 'Kiểm tra hồ sơ →'); await page.waitForTimeout(300);
+    const schedule = norm(await page.locator('#content .card').filter({ hasText: 'Lịch trả chủ nhà' }).first().innerText());
+    await clickText(page, 'Hoàn tất onboarding'); await page.waitForURL(/#\/landlords\/[^?]+\?tab=buildings/); await page.waitForTimeout(350);
+    const toast = norm(await page.locator('.toast').last().innerText().catch(() => ''));
+    const s = await stateSnapshot(page);
+    return { actual: `${toast || 'Đã hoàn tất onboarding'} · tòa ${s.building?.code || ''} có ${s.landlordRooms} phòng (${s.landlordRoomsReady} Sẵn sàng); HĐ ${s.landlordContract?.code || ''} sinh ${s.landlordPayments} kỳ trả.`, assertions: [{ id: 'rooms-generated', status: s.landlordRooms === 20 ? 'PASS' : 'FAIL', detail: `rooms=${s.landlordRooms}` }, { id: 'schedule-generated', status: s.landlordPayments === 12 ? 'PASS' : 'FAIL', detail: `payments=${s.landlordPayments}; preview="${schedule.slice(0, 80)}"` }] };
+  }, { before: true });
+  await run('F00.3', async () => { const s = await stateSnapshot(page); await goto(page, base, route(`/landlords/${s.landlord.id}?tab=contracts`)); const rows = await page.locator('#pay-card tbody tr').count(); const amountOk = (await page.locator('#pay-card tbody tr').first().innerText()).includes('270,000,000'); return { actual: `Tab Hợp đồng đầu vào hiển thị ${s.landlordContract?.code || ''} và lịch thanh toán ${s.landlordPayments} kỳ (bảng phân trang ${rows} dòng/trang, 270.000.000đ/kỳ).`, assertions: [{ id: 'schedule-rows', status: rows >= 10 && s.landlordPayments === 12 && amountOk ? 'PASS' : 'FAIL', detail: `rows=${rows}; payments=${s.landlordPayments}; amount270m=${amountOk}` }], scrollTo: '#pay-card' }; }, { before: true });
+  await run('F00.4', async () => { const s = await stateSnapshot(page); await goto(page, base, route(`/buildings/${s.building.id}?tab=landlord`)); const text = norm(await page.locator('#tab-body').innerText()); const ok = text.includes(s.landlordContract?.code || '@@') && /Kỳ trả tới/.test(text); return { actual: `Tab Chủ nhà & HĐ đầu vào của ${s.building?.code}: ${text.slice(0, 260)}`, assertions: [{ id: 'building-has-lease', status: ok ? 'PASS' : 'FAIL', detail: ok ? `${s.landlordContract?.code} phủ tòa` : text.slice(0, 120) }], scrollTo: '#tab-body' }; }, { before: true });
 
   // F01 – tenant.
   await run('F01.1', async () => { await goto(page, base, route('/tenants')); await clickText(page, 'Thêm khách thuê'); await waitForModal(page); return { actual: 'Drawer Thêm khách thuê đã mở.' }; }, { before: true });
@@ -326,7 +373,7 @@ async function runScenario(page, base) {
     const member = form.locator('input[name^=mb_name_]').first(); if (await member.count() && !(await member.inputValue())) await member.fill('Nguyễn Demo Khách');
     await clickText(page, 'Lưu hợp đồng →'); await page.waitForURL(/#\/contracts\/new\?id=.*step=5/); return { actual: 'Hợp đồng đã được lưu Dự thảo và chuyển sang Review.' };
   }, { before: true });
-  await run('F02.4', async () => { await clickText(page, 'Xác nhận & kích hoạt hợp đồng'); await clickText(page, 'Kích hoạt', { exact: true }); await page.waitForTimeout(300); return { actual: 'HĐ Hiệu lực; phòng Đang thuê; cọc đang giữ.' }; }, { before: true });
+  await run('F02.4', async () => { const checks = norm(await page.locator('.check-list').first().innerText()); const first = page.locator('#act-opts input[name=firstInvoice]'); if (await first.count() && await first.isChecked()) await first.uncheck(); await clickText(page, 'Xác nhận & kích hoạt hợp đồng'); await clickText(page, 'Kích hoạt', { exact: true }); await page.waitForTimeout(350); const s = await stateSnapshot(page); const dep = await page.evaluate((id) => { const c = window.TH.store.state.contracts.find((x) => x.id === id); const p = c && c.depositPaymentId ? window.TH.store.state.payments.find((x) => x.id === c.depositPaymentId) : null; return p ? p.code + ' ' + p.amount : ''; }, s.contract?.id); return { actual: `HĐ ${s.contract?.code} Hiệu lực; phòng ${s.room?.code} Đang thuê; phiếu thu cọc ${dep || '(không)'}; checklist: ${checks.slice(0, 200)}`, assertions: [{ id: 'lease-check-visible', status: /HĐ đầu vào/.test(checks) ? 'PASS' : 'FAIL', detail: checks.slice(0, 120) }, { id: 'deposit-receipt', status: dep ? 'PASS' : 'FAIL', detail: dep || 'no deposit payment' }] }; }, { before: true });
 
   // F03 – meters/invoice.
   await switchRole(page, 'accountant');
@@ -350,9 +397,9 @@ async function runScenario(page, base) {
   // F05 – partial payment.
   await switchRole(page, 'accountant');
   await run('F05.1', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/receivables')); const search = page.locator('input[name=s]').first(); if (await search.count()) { await search.fill(s.room?.code || ''); await search.press('Enter'); } return { actual: 'Dòng công nợ khách demo hiển thị tổng, đã thu 0 và còn lại.' }; }, { before: true });
-  await run('F05.2', async () => { await clickText(page, 'Thu tiền thủ công'); const m = await waitForModal(page); const s = await stateSnapshot(page); await select(page, 'tenantId', s.tenant.id, m); await fill(page, 'amount', 3000000, m); await select(page, 'method', 'Chuyển khoản', m); await fill(page, 'ref', 'CK289104', m); await fill(page, 'note', 'Khách thanh toán một phần tiền nhà tháng 10', m); await clickText(page, 'Tự động phân bổ', { exact: true, scope: m }); await clickText(page, 'Xác nhận ghi nhận', { exact: true, scope: m }); await page.waitForTimeout(500); return { actual: 'Đã ghi nhận khoản thu PAY… 3.000.000đ và tự động phân bổ.' }; }, { before: true });
+  await run('F05.2', async () => { await clickAction(page, 'pay'); const m = await waitForModal(page); const s = await stateSnapshot(page); await select(page, 'tenantId', s.tenant.id, m); await fill(page, 'amount', 3000000, m); await select(page, 'method', 'Chuyển khoản', m); await fill(page, 'ref', 'CK289104', m); await fill(page, 'note', 'Khách thanh toán một phần tiền nhà tháng 10', m); await clickText(page, 'Tự động phân bổ', { exact: true, scope: m }); await clickText(page, 'Xác nhận ghi nhận', { exact: true, scope: m }); await page.waitForTimeout(500); return { actual: 'Đã ghi nhận khoản thu PAY… 3.000.000đ và tự động phân bổ.' }; }, { before: true });
   await run('F05.3', async () => { const s = await stateSnapshot(page); if (!s.payment) throw new Error('Không có khoản thu user'); await goto(page, base, route(`/payments/${s.payment.id}`)); return { actual: `Khoản thu ${s.payment.code}; đã phân bổ ${s.payment.amount}đ.` }; });
-  await run('F05.4', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/receivables')); const search = page.locator('input[name=s]').first(); if (await search.count()) { await search.fill(s.invoice?.code || s.room?.code || ''); await search.press('Enter'); await page.waitForTimeout(150); } const row = page.locator('tr').filter({ hasText: s.invoice?.code || s.room?.code || '' }).first(); await row.scrollIntoViewIfNeeded(); const text = norm(await row.innerText()); if (!text.includes((s.remaining || 0).toLocaleString('vi-VN'))) throw new Error(`Dòng công nợ không hiển thị số dư ${s.remaining}`); return { actual: `Dòng ${s.invoice?.code} hiển thị Đã thu ${s.paid.toLocaleString('vi-VN')}đ; Còn lại ${s.remaining.toLocaleString('vi-VN')}đ; Thu một phần.`, assertions: [{ id: 'demo-receivable-row', status: 'PASS', detail: text }] }; });
+  await run('F05.4', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/receivables')); const search = page.locator('input[name=s]').first(); if (await search.count()) { await search.fill(s.invoice?.code || s.room?.code || ''); await search.press('Enter'); await page.waitForTimeout(150); } const row = page.locator('tr').filter({ hasText: s.invoice?.code || s.room?.code || '' }).first(); await row.scrollIntoViewIfNeeded(); const text = norm(await row.innerText()); await row.evaluate((el) => { document.querySelectorAll('[data-uat-row]').forEach((x) => x.removeAttribute('data-uat-row')); el.setAttribute('data-uat-row', '1'); }); const digits = text.replace(/[.,]/g, ''); const okRow = digits.includes(String(s.remaining || 0)) && digits.includes(String(s.paid || 0)); if (!okRow) throw new Error(`Dòng công nợ không hiển thị đã thu ${s.paid} / còn lại ${s.remaining}: ${text}`); return { actual: `Dòng ${s.invoice?.code} hiển thị Đã thu ${s.paid.toLocaleString('vi-VN')}đ; Còn lại ${s.remaining.toLocaleString('vi-VN')}đ; Thu một phần.`, assertions: [{ id: 'demo-receivable-row', status: 'PASS', detail: text }], scrollTo: '[data-uat-row]' }; });
 
   // F06 – debt reminder/retry.
   await switchRole(page, 'admin');
@@ -368,20 +415,24 @@ async function runScenario(page, base) {
 
   // F07/F08/F09 – terminate, refund, clean.
   await switchRole(page, 'ops');
-  await run('F07.1', async () => { const s = await stateSnapshot(page); await goto(page, base, route(`/contracts/${s.contract.id}`)); return { actual: `Mở HĐ ${s.contract.code}; nút Kết thúc hợp đồng và KPI công nợ hiển thị.` }; }, { before: true });
+  await run('F07.1', async () => { const s = await stateSnapshot(page); await goto(page, base, route(`/contracts/${s.contract.id}`)); await clickAction(page, 'more'); const [download] = await Promise.all([page.waitForEvent('download'), page.locator('div[role="menu"] button[role="menuitem"]').filter({ hasText: 'Tải PDF' }).first().click()]); const artifact = await saveDownload(download, { downloads: DOWNLOADS, out: OUT }, { expectValues: [{ row: 'any', value: s.contract.code }] }); await page.keyboard.press('Escape').catch(() => {}); return { actual: `Mở HĐ ${s.contract.code}; nút Kết thúc hợp đồng và KPI công nợ hiển thị; tải bản in ${artifact.name} (${artifact.bytes} B, mô phỏng .txt) có mã HĐ.`, downloads: [artifact] }; }, { before: true });
   await run('F07.2', async () => { await clickAction(page, 'terminate'); const m = await waitForModal(page); if (await m.locator('input[name=actualEnd]').count()) await fill(page, 'actualEnd', '2026-10-28', m); if (await m.locator('select[name=reason]').count()) await select(page, 'reason', 'Khách trả phòng sớm', m); const checks = m.locator('input[type=checkbox]'); for (let i = 0; i < await checks.count(); i++) if (!(await checks.nth(i).isChecked())) await checks.nth(i).check(); await clickText(page, 'Xác nhận kết thúc', { exact: true, scope: m }); await page.waitForTimeout(350); return { actual: 'HĐ Đã kết thúc; phòng Chờ dọn; hồ sơ hoàn cọc Nháp được tạo.' }; }, { before: true });
-  await run('F08.1', async () => { const s = await stateSnapshot(page); await goto(page, base, route(`/refunds/new?id=${s.refund.id}&step=3`)); const add = page.locator('[data-act="add-ded"]').first(); if (await add.count()) { await add.click(); const idx = await page.locator('input[name^="d_"]').count() - 1; await select(page, `g_${idx}`, 'Dịch vụ'); await fill(page, `d_${idx}`, 'Vệ sinh phòng'); await fill(page, `a_${idx}`, 200000); const ev = page.locator(`[data-act="add-ev"][data-i="${idx}"]`); if (await ev.count()) await ev.click(); } return { actual: 'Phương án có khấu hao 200.000đ + vệ sinh 200.000đ; không bù trừ công nợ.' }; }, { before: true });
+  await run('F08.1', async () => { const s = await stateSnapshot(page); await goto(page, base, route(`/refunds/new?id=${s.refund.id}&step=3`)); const descs = await page.locator('input[name^="d_"]').evaluateAll((xs) => xs.map((x) => x.value)); let idx = descs.findIndex((d) => /vệ sinh/i.test(d));
+    if (idx < 0) { await clickAction(page, 'add-ded'); idx = await page.locator('input[name^="d_"]').count() - 1; await select(page, `g_${idx}`, 'Dịch vụ'); await fill(page, `d_${idx}`, 'Vệ sinh phòng'); }
+    await fill(page, `a_${idx}`, 200000); const ev = page.locator(`[data-act="add-ev"][data-i="${idx}"]`); if (await ev.count()) await ev.click();
+    const lines = await page.locator('input[name^="d_"]').evaluateAll((xs) => xs.map((x, i) => x.value + ' = ' + ((document.querySelector('input[name="a_' + i + '"]') || {}).value || '0')));
+    return { actual: `Phương án: ${lines.join('; ')} – khấu hao 200.000đ + vệ sinh 200.000đ (mặc định theo Q.refundDefaults), sửa chữa 0đ; không bù trừ công nợ (OI-07).` }; }, { before: true });
   await run('F08.2', async () => { await clickAction(page, 'to4'); await page.waitForFunction(() => location.hash.includes('step=4')); await clickAction(page, 'submit'); const m = await waitForModal(page); await clickText(page, 'Gửi duyệt', { exact: true, scope: m }); await page.waitForTimeout(300); return { actual: 'Hồ sơ chuyển Chờ duyệt; vai trò Vận hành không thấy action Duyệt.' }; }, { before: true });
   await switchRole(page, 'accountant');
   await run('F08.3', async () => { const s = await stateSnapshot(page); await goto(page, base, route(`/refunds/${s.refund.id}`)); await clickText(page, 'Duyệt hoàn cọc'); await clickText(page, 'Duyệt', { exact: true }).catch(() => {}); await page.waitForTimeout(300); return { actual: 'Hồ sơ Đã duyệt; Duyệt không đồng nghĩa đã chuyển tiền.' }; }, { before: true });
-  await run('F08.4', async () => { await clickText(page, 'Ghi nhận đã hoàn'); const m = await waitForModal(page); await fill(page, 'paidDate', '2026-10-28', m); await select(page, 'paidMethod', 'Chuyển khoản', m); await fill(page, 'paidRef', 'UNC289104', m); const demo = m.locator('[data-act="demo-ev"], [data-act="use-sample"]').first(); if (await demo.count()) await demo.click(); else { const dz = m.locator('[data-dz]').first(); if (await dz.count()) await dz.evaluate((x) => { x._files = [{ name: 'uy_nhiem_chi_hoan_coc.pdf', size: 120000 }]; x._render?.(); }); } await clickText(page, 'Xác nhận đã hoàn'); await page.waitForTimeout(350); return { actual: 'Hồ sơ Đã hoàn; bằng chứng UNC lưu; phòng vẫn Chờ dọn.' }; }, { before: true });
+  await run('F08.4', async () => { await clickText(page, 'Ghi nhận đã hoàn'); const m = await waitForModal(page); await fill(page, 'paidDate', '2026-10-28', m); await select(page, 'paidMethod', 'Chuyển khoản', m); await fill(page, 'paidRef', 'UNC289104', m); const demo = m.locator('[data-act="demo-ev"], [data-act="use-sample"]').first(); if (await demo.count()) await demo.click(); else { const dz = m.locator('[data-dz]').first(); if (await dz.count()) await dz.evaluate((x) => { x._files = [{ name: 'uy_nhiem_chi_hoan_coc.pdf', size: 120000 }]; x._render?.(); }); } await clickText(page, 'Xác nhận đã hoàn'); await page.waitForTimeout(350); const s = await stateSnapshot(page); const dedStatus = await page.evaluate((id) => (window.TH.store.state.refundDeductions || []).filter((d) => d.refundId === id).map((d) => d.status || '-'), s.refund?.id); const [download] = await Promise.all([page.waitForEvent('download'), clickAction(page, 'dl')]); const artifact = await saveDownload(download, { downloads: DOWNLOADS, out: OUT }, { expectValues: [{ row: 'any', value: s.refund?.code || '' }] }); return { actual: `Hồ sơ ${s.refund?.code} Đã hoàn; bằng chứng UNC lưu; dòng khấu trừ đồng bộ trạng thái [${dedStatus.join(', ')}]; tải hồ sơ ${artifact.name} (${artifact.bytes} B).`, downloads: [artifact], assertions: [{ id: 'deduction-status-sync', status: dedStatus.length && dedStatus.every((x) => x === 'refunded') ? 'PASS' : 'FAIL', detail: dedStatus.join(', ') || 'no deductions' }] }; }, { before: true });
   await switchRole(page, 'ops');
   await run('F09.1', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/rooms?status=cleaning')); const row = page.locator('tr').filter({ hasText: s.room?.code || '' }).first(); const btn = row.locator('[data-act="clean"]').first(); if (await btn.count()) { await btn.click(); const m = await waitForModal(page); await clickText(page, 'Xác nhận dọn xong', { exact: true, scope: m }); } else await clickText(page, 'Xác nhận dọn xong'); await page.waitForTimeout(300); return { actual: `Phòng ${s.room?.code || ''} đã xác nhận dọn xong.` }; }, { before: true });
   await run('F09.2', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/rooms?status=ready')); return { actual: `Phòng ${s.room?.code || ''} hiển thị Sẵn sàng với action cho thuê lại.` }; });
 
   // F10 – optional supporting steps, still UI-only.
   await switchRole(page, 'accountant');
-  await run('F10.1', async () => { await goto(page, base, route('/expenses')); await clickText(page, 'Thêm chi phí'); const m = await waitForModal(page); await fill(page, 'date', '2026-10-28', m); await select(page, 'group', 'Sửa chữa', m); await fill(page, 'desc', 'Sửa khóa cửa phòng demo', m); await m.locator('input[name=mode][value=common]').check(); await fill(page, 'amount', 350000, m); await m.locator('input[name=ap_0]').fill('40'); await m.locator('input[name=ap_1]').fill('30'); await m.locator('input[name=ap_2]').fill('20'); await m.locator('input[name=ap_3]').fill('10'); await clickText(page, 'Lưu chi phí'); await page.waitForTimeout(350); return { actual: 'Chi phí chung 350.000đ đã lưu với phân bổ 40/30/20/10.' }; }, { before: true });
+  await run('F10.1', async () => { await goto(page, base, route('/expenses')); await clickText(page, 'Thêm chi phí'); const m = await waitForModal(page); await fill(page, 'date', '2026-10-28', m); await select(page, 'categoryCode', 'BH-SC', m); await fill(page, 'desc', 'Sửa khóa cửa phòng demo', m); await m.locator('input[name=mode][value=common]').check(); await fill(page, 'amount', 350000, m); await m.locator('input[name=ap_0]').fill('40'); await m.locator('input[name=ap_1]').fill('30'); await m.locator('input[name=ap_2]').fill('20'); await m.locator('input[name=ap_3]').fill('10'); await clickText(page, 'Lưu chi phí'); await page.waitForTimeout(350); return { actual: 'Chi phí chung 350.000đ đã lưu với phân bổ 40/30/20/10.' }; }, { before: true });
   await switchRole(page, 'admin');
   await run('F10.2', async () => { await goto(page, base, route('/settings/import?type=tenant')); await clickText(page, /Dùng file mẫu/); await page.waitForFunction(() => location.hash.includes('step=2')); const phoneMap = page.locator('select[name="m_1"]'); if (await phoneMap.count() && (await phoneMap.inputValue()) !== 'phone') await phoneMap.selectOption('phone'); await clickAction(page, 'to3'); await page.waitForFunction(() => location.hash.includes('step=3')); await clickAction(page, 'to4'); await page.waitForFunction(() => location.hash.includes('step=4')); const actionShot = await screenshot(page, 'F10.2', 'action', 'admin', '[data-act="commit"]'); const commit = page.locator('[data-act="commit"]').first(); await commit.click(); const m = await waitForModal(page); await clickText(page, 'Import', { exact: true, scope: m }); await page.waitForTimeout(500); return { actual: 'File mẫu đã mapping/kiểm tra/commit; KPI lỗi và dòng hợp lệ được ghi nhận trong import job.', screenshots: [actionShot] }; }, { before: true });
   await run('F10.3', async () => { await goto(page, base, route('/settings/users')); await clickText(page, 'Tạo tài khoản'); const m = await waitForModal(page); await fill(page, 'name', 'Lê Demo Vận Hành', m); await fill(page, 'email', 'demo.vanhanh@timohouse.vn', m); await fill(page, 'phone', '0913 222 333', m); await select(page, 'role', 'ops', m); await fill(page, 'effectiveDate', '2026-10-28', m); const b = m.locator('input[name^=b_]').first(); if (await b.count()) await b.check(); await clickText(page, 'Lưu tài khoản'); await page.waitForTimeout(350); return { actual: 'Tài khoản Lê Demo Vận Hành đã lưu với vai trò Vận hành.' }; }, { before: true });
@@ -391,11 +442,12 @@ async function runScenario(page, base) {
   return { results, final: await stateSnapshot(page) };
 }
 
-function idsOf(s) { return { tenant: s.tenant?.id || '', tenantCode: s.tenant?.code || '', room: s.room?.id || '', roomCode: s.room?.code || '', contract: s.contract?.id || '', contractCode: s.contract?.code || '', invoice: s.invoice?.id || '', invoiceCode: s.invoice?.code || '', payment: s.payment?.id || '', paymentCode: s.payment?.code || '', batch: s.batch?.id || '', batchCode: s.batch?.code || '', refund: s.refund?.id || '', refundCode: s.refund?.code || '', expense: s.expense?.id || '', expenseCode: s.expense?.code || '', importJob: s.importJob?.id || '', user: s.user?.id || '' }; }
+function idsOf(s) { return { landlord: s.landlord?.id || '', landlordCode: s.landlord?.code || '', building: s.building?.id || '', buildingCode: s.building?.code || '', landlordContract: s.landlordContract?.id || '', landlordContractCode: s.landlordContract?.code || '', tenant: s.tenant?.id || '', tenantCode: s.tenant?.code || '', room: s.room?.id || '', roomCode: s.room?.code || '', contract: s.contract?.id || '', contractCode: s.contract?.code || '', invoice: s.invoice?.id || '', invoiceCode: s.invoice?.code || '', payment: s.payment?.id || '', paymentCode: s.payment?.code || '', batch: s.batch?.id || '', batchCode: s.batch?.code || '', refund: s.refund?.id || '', refundCode: s.refund?.code || '', expense: s.expense?.id || '', expenseCode: s.expense?.code || '', importJob: s.importJob?.id || '', user: s.user?.id || '' }; }
 function qaAssertions(final, steps) {
   const checks = [];
   const add = (id, ok, detail) => checks.push({ id, status: ok ? 'PASS' : 'FAIL', detail });
-  add('milestones', steps.length === 36 && steps.every((x) => x.status === 'PASS'), `${steps.filter((x) => x.status === 'PASS').length}/${steps.length} PASS`);
+  add('milestones', steps.length === EXPECTED && steps.every((x) => x.status === 'PASS'), `${steps.filter((x) => x.status === 'PASS').length}/${steps.length} PASS (kỳ vọng ${EXPECTED})`);
+  add('landlord-chain', !!final.building?.landlordId && final.landlordRooms === 20 && final.landlordPayments === 12 && !!final.landlordContract, `building=${final.building?.code || '-'}; landlord=${final.building?.landlordId ? 'linked' : '-'}; rooms=${final.landlordRooms}; payments=${final.landlordPayments}; lease=${final.landlordContract?.code || '-'}`);
   add('room-lifecycle', final.room?.status === 'ready', `room=${final.room?.status || '-'}`);
   add('contract-lifecycle', final.contract?.status === 'ended', `contract=${final.contract?.status || '-'}`);
   add('invoice-issued', final.invoice?.docStatus === 'issued', `invoice=${final.invoice?.docStatus || '-'}`);
@@ -422,17 +474,17 @@ function diagramSvg() {
   const colors = { admin: '#2563EB', ops: '#0F766E', accountant: '#C2410C' };
   const lanes = [['admin', 'Admin / Quản trị viên', 92], ['ops', 'Vận hành', 226], ['accountant', 'Kế toán', 360]];
   const nodes = [
-    ['S0', 'Khởi động', 'admin', 240], ['F01', 'Khách thuê', 'ops', 358], ['F02', 'Hợp đồng', 'ops', 476], ['F03', 'Hóa đơn', 'accountant', 594], ['F04', 'Zalo HĐ', 'admin', 712], ['F05', 'Thu một phần', 'accountant', 830], ['F06', 'Nhắc nợ', 'admin', 948], ['F07', 'Kết thúc HĐ', 'ops', 1066], ['F08', 'Hoàn cọc', 'accountant', 1184], ['F09', 'Dọn phòng', 'ops', 1302], ['F10', 'Bổ trợ', 'accountant', 1420],
+    ['S0', 'Khởi động', 'admin', 240], ['F00', 'Chủ nhà, tòa', 'admin', 348], ['F01', 'Khách thuê', 'ops', 456], ['F02', 'Hợp đồng', 'ops', 564], ['F03', 'Hóa đơn', 'accountant', 672], ['F04', 'Zalo HĐ', 'admin', 780], ['F05', 'Thu một phần', 'accountant', 888], ['F06', 'Nhắc nợ', 'admin', 996], ['F07', 'Kết thúc HĐ', 'ops', 1104], ['F08', 'Hoàn cọc', 'accountant', 1212], ['F09', 'Dọn phòng', 'ops', 1320], ['F10', 'Bổ trợ', 'accountant', 1428],
   ];
-  const laneMarkup = lanes.map(([key, label, y]) => `<rect x="20" y="${y}" width="1495" height="112" rx="10" fill="#fff" stroke="#D7E0EA"/><rect x="20" y="${y}" width="205" height="112" rx="10" fill="${colors[key]}" opacity=".1"/><text x="38" y="${y + 42}" font-family="Arial" font-size="16" font-weight="700" fill="${colors[key]}">${label}</text><text x="38" y="${y + 67}" font-family="Arial" font-size="12" fill="#64748B">Các mốc được thực thi qua UI</text>`).join('');
+  const laneMarkup = lanes.map(([key, label, y]) => `<rect x="20" y="${y}" width="1525" height="112" rx="10" fill="#fff" stroke="#D7E0EA"/><rect x="20" y="${y}" width="205" height="112" rx="10" fill="${colors[key]}" opacity=".1"/><text x="38" y="${y + 42}" font-family="Arial" font-size="16" font-weight="700" fill="${colors[key]}">${label}</text><text x="38" y="${y + 67}" font-family="Arial" font-size="12" fill="#64748B">Các mốc được thực thi qua UI</text>`).join('');
   const centers = Object.fromEntries(lanes.map(([key, , y]) => [key, y + 56]));
   const box = nodes.map(([id, title, role, x], i) => { const y = centers[role] - 38; const next = nodes[i + 1]; const arrow = next ? (() => { const ny = centers[next[2]]; return `<path d="M${x + 108} ${centers[role]} C${x + 122} ${centers[role]}, ${next[3] - 16} ${ny}, ${next[3] - 8} ${ny}" fill="none" stroke="#94A3B8" stroke-width="2.5" marker-end="url(#a)"/>`; })() : ''; return `<g><rect x="${x}" y="${y}" width="108" height="76" rx="10" fill="#fff" stroke="${colors[role]}" stroke-width="2"/><rect x="${x}" y="${y}" width="108" height="7" rx="4" fill="${colors[role]}"/><text x="${x + 54}" y="${y + 30}" text-anchor="middle" font-family="Arial" font-size="18" font-weight="700" fill="#0F2A5F">${id}</text><text x="${x + 54}" y="${y + 51}" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155">${title}</text></g>${arrow}`; }).join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1535" height="510" viewBox="0 0 1535 510"><defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94A3B8"/></marker></defs><rect width="1535" height="510" fill="#F8FAFC"/><text x="28" y="34" font-family="Arial" font-size="21" font-weight="700" fill="#16324F">Phase 1 · Swimlane theo vai trò</text><text x="28" y="60" font-family="Arial" font-size="13" fill="#64748B">Chuỗi S0 → F10; mũi tên nối theo thứ tự chạy, màu viền thể hiện vai trò thực hiện chính.</text>${laneMarkup}${box}<text x="28" y="497" font-family="Arial" font-size="12" fill="#64748B">Evidence runtime 1440×1080 · manifest.json lưu route, dữ liệu nhập, action, expected/actual và trạng thái từng mốc.</text></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1565" height="510" viewBox="0 0 1565 510"><defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94A3B8"/></marker></defs><rect width="1565" height="510" fill="#F8FAFC"/><text x="28" y="34" font-family="Arial" font-size="21" font-weight="700" fill="#16324F">Phase 1 · Swimlane theo vai trò</text><text x="28" y="60" font-family="Arial" font-size="13" fill="#64748B">Chuỗi S0 → F00 → F10; mũi tên nối theo thứ tự chạy, màu viền thể hiện vai trò thực hiện chính.</text>${laneMarkup}${box}<text x="28" y="497" font-family="Arial" font-size="12" fill="#64748B">Evidence runtime 1440×1080 · manifest.json lưu route, dữ liệu nhập, action, expected/actual và trạng thái từng mốc.</text></svg>`;
 }
 
 async function writeDiagramPng() {
   const svg = path.join(OUT, 'phase1-flow.svg'); fs.writeFileSync(svg, diagramSvg(), 'utf8');
-  const browser = await chromium.launch({ headless: true, executablePath: CHROME, args: ['--no-sandbox'] }); const page = await browser.newPage({ viewport: { width: 1535, height: 510 } });
+  const browser = await chromium.launch({ headless: true, executablePath: CHROME, args: ['--no-sandbox'] }); const page = await browser.newPage({ viewport: { width: 1565, height: 510 } });
   await page.goto(`file:///${svg.replaceAll('\\', '/')}`); const png = path.join(OUT, 'phase1-flow.png'); await page.screenshot({ path: png }); await browser.close(); return png;
 }
 
@@ -440,14 +492,14 @@ async function buildDoc(manifest, diagramPng) {
   const header = new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'TIMEHOUSE  |  Phase 1 Walkthrough/UAT', bold: true, color: '1769AA', size: 16 })] })] });
   const footer = new Footer({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: 'Tài liệu evidence runtime · Trang ', size: 16 }), PageNumber.CURRENT] })] });
   const portrait = { page: { margin: { top: 900, bottom: 850, left: 1000, right: 1000 } } };
-  const landscape = { page: { margin: { top: 700, bottom: 700, left: 700, right: 700 }, orientation: 'landscape', width: 15840, height: 12240 } };
+  const landscape = { page: { size: { orientation: PageOrientation.LANDSCAPE, width: 12240, height: 15840 }, margin: { top: 700, bottom: 700, left: 700, right: 700 } } };
   const sections = [];
   const cover = [
     new Paragraph({ spacing: { before: 900 }, children: [new TextRun({ text: 'TIMEHOUSE', bold: true, size: 28, color: '1769AA' })] }),
     new Paragraph({ spacing: { before: 850, after: 140 }, children: [new TextRun({ text: 'WALKTHROUGH / UAT', bold: true, size: 34, color: '16324F' })] }),
     new Paragraph({ children: [new TextRun({ text: 'Phase 1 · Core Rental / Go-live', bold: true, size: 27, color: '1769AA' })] }),
     p('Tài liệu hướng dẫn nghiệp vụ và bằng chứng chạy runtime trên mockup TimoHouse.', { size: 22, after: 260 }),
-    table([['Thông tin', 'Giá trị'], ['Phạm vi', '36 mốc · 10 luồng core + F10 bổ trợ'], ['Đối tượng', 'Nghiệp vụ + UAT'], ['Môi trường', 'Chrome 1440×1080 · Phase 1 only'], ['Ngày/kỳ demo', '28/10/2026 · 10/2026'], ['Phiên bản', 'v1.0 · Evidence runtime']], [30, 70]),
+    table([['Thông tin', 'Giá trị'], ['Phạm vi', `${EXPECTED} mốc · S0 + F00 thiết lập + 10 luồng core + F10 bổ trợ`], ['Commit / nhánh', `${manifest.commit} · ${manifest.branch || ''}`], ['Đối tượng', 'Nghiệp vụ + UAT'], ['Môi trường', 'Chrome 1440×1080 · Phase 1 only'], ['Ngày/kỳ demo', '28/10/2026 · 10/2026'], ['Kết quả', `${manifest.qa.status} · ${manifest.summary.pass}/${manifest.summary.total}`]], [30, 70]),
     p('Lưu ý dữ liệu: hợp đồng dùng ngày bắt đầu 01/10/2026 để đủ điều kiện lập hóa đơn kỳ 10/2026. PNG gốc chỉ là tham chiếu UI, không phải bằng chứng thực thi.', { size: 18, color: '64748B', after: 220 }),
     heading('Sơ đồ tổng thể', HeadingLevel.HEADING_1),
     new Paragraph({ children: [new ImageRun({ data: fs.readFileSync(diagramPng), transformation: { width: 650, height: 216 }, type: 'png' })] }),
@@ -463,15 +515,17 @@ async function buildDoc(manifest, diagramPng) {
       [flowDefs.map((d) => `${d.id}: ${d.route}`).join('\n'), flowDefs.map((d) => `${d.id}: ${d.inputs}`).join('\n'), flowDefs.map((d) => `${d.id}: ${d.action}`).join('\n'), flowDefs.map((d) => `${d.id}: ${d.expected}`).join('\n')],
     ])];
     for (const def of STEPS.filter((s) => s.flow === flow.key)) {
-      const r = manifest.steps.find((x) => x.id === def.id) || def;
+      const r = manifest.milestones.find((x) => x.id === def.id) || def;
       children.push(heading(`${def.id} · ${def.title}`, HeadingLevel.HEADING_2));
       const recordLabel = Object.entries(r.recordIds || {}).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join('\n') || '-';
-      children.push(table([['Trường', 'Chi tiết'], ['Vai trò', `${roleLabel[def.role] || def.role}`], ['Màn hình/route', `${def.screen}\n${def.route}`], ['Dữ liệu nhập', def.inputs], ['Mã record', recordLabel], ['Action', def.action], ['Kết quả mong đợi', def.expected], ['Kết quả thực tế', r.actual || '-'], ['Trạng thái', r.status || 'NOT RUN']], [25, 75]));
+      children.push(table([['Trường', 'Chi tiết'], ['Vai trò', `${roleLabel[def.role] || def.role}`], ['Màn hình/route', `${def.screen}\n${def.route}`], ['Dữ liệu nhập', def.inputs], ['Mã record', recordLabel], ['Action', def.action], ['Kết quả mong đợi', def.expected], ['Kết quả thực tế', r.actual || '-'], ['Assertions', (r.assertions || []).map((a) => `${a.id}: ${a.status}${a.detail ? ' – ' + a.detail : ''}`).join('\n') || '-'], ['File tải xuống', (r.downloads || []).map((d) => `${d.name} · ${d.bytes} B · ${d.rows != null ? d.rows + ' dòng · ' : ''}sha256 ${String(d.sha256 || '').slice(0, 16)}…`).join('\n') || '-'], ['Thời gian', r.timestamps ? `${r.timestamps.startedAt} → ${r.timestamps.finishedAt}` : '-'], ['Trạng thái', (r.status || 'NOT RUN') + (r.error ? '\n' + String(r.error).split('\n')[0] : '')]], [25, 75]));
       children.push(p('Ảnh minh chứng', { bold: true, color: '16324F', after: 40 }));
-      for (const img of (r.screenshots || []).filter((x) => x.endsWith('.png'))) {
-        const imgPath = path.join(OUT, img); if (!fs.existsSync(imgPath)) continue;
-        children.push(new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ data: fs.readFileSync(imgPath), transformation: { width: 650, height: 488 }, type: 'png' })] }));
-        children.push(p(path.basename(img), { align: AlignmentType.CENTER, size: 16, color: '64748B', after: 80 }));
+      const shots = (r.screenshots || []).filter((x) => x.endsWith('.png')).map((img) => path.join(OUT, img)).filter((f) => fs.existsSync(f));
+      const noBorder = { top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, insideH: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }, insideV: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' } };
+      for (let i = 0; i < shots.length; i += 2) {
+        const cells = shots.slice(i, i + 2).map((f) => new TableCell({ width: { size: 7050, type: WidthType.DXA }, borders: noBorder, children: [new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80, after: 20 }, children: [new ImageRun({ data: fs.readFileSync(f), transformation: { width: 460, height: 345 }, type: 'png' })] }), p(path.basename(f), { align: AlignmentType.CENTER, size: 15, color: '64748B', after: 40 })] }));
+        if (cells.length === 1) cells.push(new TableCell({ width: { size: 7050, type: WidthType.DXA }, borders: noBorder, children: [new Paragraph('')] }));
+        children.push(new Table({ width: { size: 14100, type: WidthType.DXA }, columnWidths: [7050, 7050], borders: noBorder, rows: [new TableRow({ children: cells })] }));
       }
       children.push(new Paragraph({ children: [new PageBreak()] }));
     }
@@ -480,20 +534,30 @@ async function buildDoc(manifest, diagramPng) {
 
   const trace = [heading('Ma trận truy vết 16 điều kiện Go-live', HeadingLevel.HEADING_1), p('Các điều kiện được kiểm chứng qua các mốc core S0–F09; F10 là phần bổ trợ và không làm thay đổi số Go-live core.')];
   const traceRows = [['#', 'Điều kiện', 'Milestone', 'Evidence', 'Kết quả']];
+  const traceFlows = [['Flow', 'Yêu cầu / phạm vi SRS', 'Mốc', 'Kết quả'], ...FLOWS.map((f) => { const items = manifest.milestones.filter((x) => x.flow === f.key); return [f.key, FLOW_TRACE[f.key] || '-', items.map((x) => x.id).join(', '), `${items.filter((x) => x.status === 'PASS').length}/${items.length} PASS`]; })];
   const map = [['1', 'Tạo khách thuê', 'F01.2'], ['2', 'Chọn phòng', 'F02.1'], ['3', 'Tạo HĐ', 'F02.2–F02.3'], ['4', 'Kích hoạt HĐ', 'F02.4'], ['5', 'Nhập điện nước', 'F03.2'], ['6', 'Lập/phát hành HĐơn', 'F03.3–F03.4'], ['7', 'Gửi HĐơn Zalo', 'F04.1–F04.3'], ['8', 'Xem công nợ', 'F05.1'], ['9', 'Thu một phần', 'F05.2–F05.3'], ['10', 'Theo dõi dư nợ', 'F05.4'], ['11', 'Nhắc công nợ', 'F06.1–F06.3'], ['12', 'Kết thúc HĐ', 'F07.1–F07.2'], ['13', 'Hoàn cọc', 'F08.1–F08.4'], ['14', 'Tạo hồ sơ hoàn cọc', 'F07.2'], ['15', 'Xác nhận dọn', 'F09.1'], ['16', 'Phòng sẵn sàng', 'F09.2']];
-  for (const [n, label, ms] of map) { const first = ms.split('–')[0].trim(); const hit = manifest.steps.find((x) => x.id === first); traceRows.push([n, label, ms, hit?.screenshots?.join('\n') || '-', hit?.status || 'NOT RUN']); }
-  trace.push(table(traceRows)); trace.push(heading('Kết luận chạy', HeadingLevel.HEADING_1)); trace.push(p(`PASS: ${manifest.steps.filter((x) => x.status === 'PASS').length}/${manifest.steps.length} milestone. Ảnh và actual result lấy từ cùng một lần chạy sạch; xem manifest.json để kiểm tra route, mã record và thời gian chụp.`));
+  for (const [n, label, ms] of map) { const first = ms.split('–')[0].trim(); const hit = manifest.milestones.find((x) => x.id === first); traceRows.push([n, label, ms, hit?.screenshots?.join('\n') || '-', hit?.status || 'NOT RUN']); }
+  trace.push(table(traceRows)); trace.push(heading('Ma trận truy vết theo flow', HeadingLevel.HEADING_1)); trace.push(table(traceFlows));
+  trace.push(heading('QA state assertions', HeadingLevel.HEADING_1)); trace.push(table([['Kiểm tra', 'Kết quả', 'Chi tiết'], ...(manifest.qa.checks || []).map((c) => [c.id, c.status, c.detail || ''])]));
+  const issues = [...manifest.milestones.filter((x) => x.status !== 'PASS').map((x) => `${x.id} FAIL – ${String(x.error || '').split('\n')[0]}`), ...(manifest.qa.checks || []).filter((c) => c.status !== 'PASS').map((c) => `QA ${c.id} FAIL – ${c.detail || ''}`), 'OI-07 – NEEDS BUSINESS CONFIRMATION: không tự bù trừ công nợ vào tiền cọc; kết quả là “PASS theo mockup hiện tại”.', 'Giới hạn mô phỏng: Zalo gửi/retry là mô phỏng – PASS không chứng nhận tích hợp production.'];
+  trace.push(heading('Danh sách vấn đề & giới hạn', HeadingLevel.HEADING_1)); issues.forEach((text) => trace.push(bullet(text)));
+  trace.push(heading('Kết luận chạy', HeadingLevel.HEADING_1)); trace.push(p(`PASS: ${manifest.milestones.filter((x) => x.status === 'PASS').length}/${manifest.milestones.length} milestone. Ảnh và actual result lấy từ cùng một lần chạy sạch; xem manifest.json để kiểm tra route, mã record và thời gian chụp.`));
   sections.push({ properties: portrait, headers: header, footers: footer, children: trace });
   const doc = new Document({ sections });
   const buffer = await Packer.toBuffer(doc); fs.writeFileSync(DOCX_PATH, buffer);
 }
 
 async function main() {
+  // --docs-only: dựng lại DOCX từ manifest đã có (sửa layout không cần chạy lại UAT)
+  if (process.argv.includes('--docs-only')) {
+    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')); const diagram = await writeDiagramPng(); await buildDoc(manifest, diagram);
+    console.log(JSON.stringify({ docx: DOCX_PATH, manifest: MANIFEST_PATH, rebuilt: true })); return;
+  }
   fs.mkdirSync(EVIDENCE, { recursive: true });
   fs.mkdirSync(DOWNLOADS, { recursive: true });
   // Remove only prior runner-generated milestone PNGs; preserve any unrelated customer assets.
   for (const name of fs.readdirSync(EVIDENCE)) {
-    if (/^(?:S0|F\d{2})\.\d-(?:input|result|error|action)\.png$/i.test(name)) fs.unlinkSync(path.join(EVIDENCE, name));
+    if (/^(?:S0|F\d{2})(?:\.\d)+-(?:input|result|error|action)\.png$/i.test(name)) fs.unlinkSync(path.join(EVIDENCE, name));
   }
   const server = await ensureServer();
   let browser;
@@ -504,13 +568,15 @@ async function main() {
     // Clear only this temporary browser context; the user's normal profile/state is untouched.
     await page.goto(`${server.url}/#/login`, { waitUntil: 'networkidle' }); await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }); await page.reload({ waitUntil: 'networkidle' });
     await page.evaluate(() => { if (window.TH?.phase) { window.TH.phase.set(2, false); window.TH.phase.set(3, false); } if (window.TH?.store) { window.TH.store.state.meta.today = '2026-10-28'; window.TH.store.state.meta.period = '2026-10'; window.TH.store.saveNow(); } });
-     const run = await runScenario(page, server.url); const qa = qaAssertions(run.final, run.results);
-     const manifest = { generatedAt: new Date().toISOString(), commit: COMMIT, baseUrl: server.url, viewport: { width: WIDTH, height: HEIGHT }, today: '2026-10-28', period: '2026-10', phase: 'P1', phaseFlags: { p1: true, p2: false, p3: false }, scope: '10 luồng core + F10 bổ trợ / 36 mốc', milestones: run.results, steps: run.results, simulationLabels: ['Zalo'], final: run.final, qa: { ...qa, status: qa.status }, summary: { total: run.results.length, pass: run.results.filter((x) => x.status === 'PASS').length, fail: run.results.filter((x) => x.status !== 'PASS').length, evidencePng: fs.existsSync(EVIDENCE) ? fs.readdirSync(EVIDENCE).filter((x) => x.endsWith('.png')).length : 0, qa: qa.status } };
+     let run; let aborted = '';
+     try { run = await runScenario(page, server.url); } catch (e) { aborted = e.stack || e.message; run = { results: RESULTS, final: await stateSnapshot(page).catch(() => ({})) }; }
+     const qa = qaAssertions(run.final, run.results); if (aborted) { qa.checks.unshift({ id: 'aborted', status: 'FAIL', detail: aborted.split('\n')[0] }); qa.status = 'FAIL'; }
+     const manifest = { generatedAt: new Date().toISOString(), commit: COMMIT, baseUrl: server.url, viewport: { width: WIDTH, height: HEIGHT }, today: '2026-10-28', period: '2026-10', phase: 'P1', phaseFlags: { p1: true, p2: false, p3: false }, branch: BRANCH, scope: `S0 + F00 thiết lập + 10 luồng core + F10 bổ trợ / ${EXPECTED} mốc`, milestones: run.results, simulationLabels: ['Zalo (gửi/retry mô phỏng)'], final: run.final, qa: { ...qa, status: qa.status, expectedMilestones: EXPECTED, actualMilestones: run.results.length, passMilestones: run.results.filter((x) => x.status === 'PASS').length }, summary: { total: run.results.length, pass: run.results.filter((x) => x.status === 'PASS').length, fail: run.results.filter((x) => x.status !== 'PASS').length, evidencePng: fs.existsSync(EVIDENCE) ? fs.readdirSync(EVIDENCE).filter((x) => x.endsWith('.png')).length : 0, qa: qa.status } };
     fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2), 'utf8');
     const diagram = await writeDiagramPng(); await buildDoc(manifest, diagram);
-    const failed = manifest.steps.filter((x) => x.status !== 'PASS');
+    const failed = manifest.milestones.filter((x) => x.status !== 'PASS');
     console.log(JSON.stringify({ docx: DOCX_PATH, manifest: MANIFEST_PATH, evidence: EVIDENCE, summary: manifest.summary, failed: failed.map((x) => ({ id: x.id, error: x.error })) }, null, 2));
-     if (failed.length || qa.status !== 'PASS') process.exitCode = 1;
+     if (failed.length || qa.status !== 'PASS' || aborted) process.exitCode = 1;
   } finally { if (browser) await browser.close(); if (server.child) server.child.kill(); }
 }
 

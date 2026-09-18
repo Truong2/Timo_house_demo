@@ -7,7 +7,7 @@
     return U.chip('Chờ xác nhận', 'amber');
   };
   const rfMenu = (btn, rf) => { const items = [{ label: 'Xem', icon: 'eye', onClick: () => TH.go('#/refunds/' + rf.id) }];
-    if (TH.auth.can('refunds.prepare') && ['draft', 'rejected'].includes(rf.status)) items.push({ label: 'Sửa phương án', icon: 'pencil', onClick: () => TH.go('#/refunds/new?id=' + rf.id + '&step=3') }, { label: 'Gửi duyệt', icon: 'send', onClick: () => { X.submitRefund(rf.id); U.toast('ok', 'Đã gửi duyệt ' + rf.code); } });
+    if (TH.auth.can('refunds.prepare') && ['draft', 'rejected', 'needs_edit'].includes(rf.status)) items.push({ label: 'Sửa phương án', icon: 'pencil', onClick: () => TH.go('#/refunds/new?id=' + rf.id + '&step=3') }, { label: 'Gửi duyệt', icon: 'send', onClick: () => { X.submitRefund(rf.id); U.toast('ok', 'Đã gửi duyệt ' + rf.code); } });
     if (rf.status === 'pending' && canApprove()) items.push({ label: 'Duyệt', icon: 'check-circle', onClick: () => Fm.refundApprove(rf) }, { label: 'Từ chối', icon: 'x-circle', danger: true, onClick: () => Fm.refundReject(rf) });
     if (rf.status === 'approved' && TH.auth.can('refunds.pay')) items.push({ label: 'Ghi nhận đã hoàn', icon: 'banknote', onClick: () => Fm.refundPaid(rf) });
     if (rf.status === 'refunded' && TH.auth.can('zalo.send')) items.push({ label: 'Gửi Zalo "Đã hoàn cọc"', icon: 'send', onClick: () => sendRefundZalo(rf) });
@@ -95,7 +95,7 @@
     const t = Q.tenant(rf.tenantId), room = Q.room(rf.roomId), c = Q.contract(rf.contractId), dd = Q.refundDeductions(rf.id), k = Q.refundCompute(rf);
     TH.router.crumb([{ label: 'Tài chính' }, { label: 'Hoàn cọc', href: '#/refunds' }, { label: rf.code }]);
     const acts = [];
-    if (['draft', 'rejected'].includes(rf.status)) acts.push(U.btn({ label: 'Sửa phương án', icon: 'pencil', cls: 'btn-outline', act: 'edit' }), U.btn({ label: 'Gửi duyệt', icon: 'send', cls: 'btn-primary', act: 'submit' }));
+    if (['draft', 'rejected', 'needs_edit'].includes(rf.status)) acts.push(U.btn({ label: 'Sửa phương án', icon: 'pencil', cls: 'btn-outline', act: 'edit' }), U.btn({ label: 'Gửi duyệt', icon: 'send', cls: 'btn-primary', act: 'submit' }));
     if (rf.status === 'pending') acts.push(U.btn({ label: 'Từ chối', icon: 'x-circle', cls: 'btn-danger', act: 'reject', disabled: !canApprove(), title: canApprove() ? '' : 'Chỉ Admin/Kế toán được từ chối (FR-FIN-07)' }), U.btn({ label: 'Duyệt hoàn cọc', icon: 'check-circle', cls: 'btn-primary', act: 'approve', disabled: !canApprove(), title: canApprove() ? '' : 'Chỉ Admin/Kế toán được duyệt (FR-FIN-07)', attrs: { 'data-guide': 'refund-approve' } }));
     if (rf.status === 'approved') acts.push(U.btn({ label: 'Ghi nhận đã hoàn', icon: 'banknote', cls: 'btn-primary', act: 'paid', disabled: !TH.auth.can('recordRefundPaid'), attrs: { 'data-guide': 'refund-paid' } }));
     if (rf.status === 'refunded') acts.push(U.btn({ label: 'Gửi Zalo "Đã hoàn cọc"', icon: 'send', cls: 'btn-outline', act: 'zalo' }), room.status === 'cleaning' ? U.btn({ label: 'Xác nhận dọn xong phòng', icon: 'check', cls: 'btn-primary', act: 'clean' }) : '');

@@ -18,7 +18,9 @@
     "walkthrough:p2": "node scripts/capture_phase2_walkthrough.mjs",
     "walkthrough:p3": "node scripts/capture_phase3_walkthrough.mjs",
     "walkthrough:all": "node scripts/capture_all_walkthroughs.mjs",
-    "walkthrough:render": "node scripts/render_uat_docs.mjs"
+    "walkthrough:render": "node scripts/render_uat_docs.mjs",
+    "walkthrough:summary": "node scripts/build_uat_summary.mjs",
+    "walkthrough:docs": "node scripts/build_uat_docs.mjs"
   },
   "devDependencies": {
     "docx": "^9.7.1",

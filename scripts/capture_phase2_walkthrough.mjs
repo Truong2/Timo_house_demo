@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { createRunner, fill, select, clickText, clickAction, modal, goto, saveDownload, ROOT } from './uat/runtime.mjs';
+import { createRunner, fill, select, clickText, clickAction, modal, goto, saveDownload, confirmDialog, ROOT } from './uat/runtime.mjs';
 
 const runner = await createRunner({ phase: 2, expectedMilestones: 20, phaseFlags: { p1: true, p2: true, p3: false } });
 const { page } = runner;
@@ -11,7 +11,7 @@ try {
   await runner.step('F11.1', async () => {
     await clickText(page, 'Thêm lead'); const box = await modal(page);
     await fill(page, 'name', 'Lê Demo Lead', box); await fill(page, 'phone', '0912 555 666', box); await fill(page, 'email', 'demo.lead@gmail.com', box);
-    await select(page, 'sourceId', 'Form website', box); await fill(page, 'channel', 'Form website', box); await select(page, 'roomType', 'Căn hộ 1PN', box);
+    await select(page, 'sourceId', 'Website', box); await fill(page, 'channel', 'Form website', box); await select(page, 'roomType', 'Căn hộ 1PN', box);
     await fill(page, 'people', 2, box); await fill(page, 'moveInDate', '2026-11-07', box); await fill(page, 'budgetMin', 7000000, box); await fill(page, 'budgetMax', 10000000, box); await select(page, 'temp', 'hot', box); await fill(page, 'note', 'Cần chuyển vào đầu tháng, ưu tiên tầng cao', box);
     const building = box.locator('input[name^="b_"]').first(); if (await building.count()) await building.check(); await clickText(page, 'Lưu lead', { scope: box }); await page.waitForTimeout(250); made.lead = await latest('leads');
     return { actual: `Đã tạo ${made.lead?.code} ở cột Mới với ưu tiên Cao.` };
@@ -21,7 +21,7 @@ try {
     await goto(page, runner.baseUrl, `#/crm/leads/${made.lead.id}`); await clickText(page, 'Gọi khách'); let box = await modal(page); await select(page, 'result', 'interested', box); await fill(page, 'note', 'Khách quan tâm và đồng ý xem phòng', box); await clickText(page, 'Lưu hoạt động', { scope: box });
     await clickText(page, 'Đặt lịch xem'); await page.waitForTimeout(180); const room = page.locator('[data-act=pick-room]').first(); await room.click(); await page.waitForTimeout(100);
     await fill(page, 'date', '2026-10-29'); await select(page, 'time', '10:00'); const sale = page.locator('select[name=saleId]'); if (!(await sale.inputValue())) await sale.selectOption({ index: 1 }); await select(page, 'remind', 'Gửi Zalo + Email');
-    await clickText(page, 'Xác nhận lịch xem'); await page.waitForTimeout(250); made.viewing = await latest('viewings');
+    await clickText(page, 'Xác nhận lịch xem'); await page.waitForTimeout(300); const clash = page.getByRole('button', { name: 'Vẫn đặt' }); if (await clash.count()) { await clash.click(); await page.waitForTimeout(300); } made.viewing = await latest('viewings');
     return { actual: `Đã ghi cuộc gọi quan tâm và tạo lịch ${made.viewing?.code}; lead chuyển Hẹn xem.` };
   });
 
@@ -34,18 +34,24 @@ try {
   await runner.step('F11.4', async () => {
     const room = page.locator('[data-act=pick-room]').first(); if (await room.count()) await room.click();
     await page.waitForTimeout(100); await fill(page, 'start', '2026-10-28'); await fill(page, 'until', '2026-11-04'); await fill(page, 'fee', 2000000); await select(page, 'feeMethod', 'Chuyển khoản'); await select(page, 'cancelPolicy', 'forfeit'); await fill(page, 'note', 'Giữ phòng chờ xác nhận công ty');
-    await clickText(page, 'Xác nhận giữ chỗ'); await page.waitForTimeout(250); made.hold = await latest('holds');
+    await clickText(page, 'Xác nhận giữ chỗ'); await confirmDialog(page); await page.waitForTimeout(250); made.hold = await latest('holds');
     return { actual: `Đã tạo ${made.hold?.code}; phòng và lead chuyển Giữ chỗ.` };
   });
 
   await runner.step('F11.5', async () => {
-    const createTenant = page.locator('[data-act=create-tenant]').first(); if (await createTenant.count()) await createTenant.click(); await page.waitForTimeout(120);
+    const useTenant = page.locator('[data-act=use-tenant]').first(); const createTenant = page.locator('[data-act=create-tenant]').first(); if (await useTenant.count()) await useTenant.click(); else if (await createTenant.count()) await createTenant.click(); await page.waitForTimeout(200);
     const heldRoom = page.locator('[data-act=pick-room]').first(); if (await heldRoom.count()) await heldRoom.click(); await page.waitForTimeout(120);
     const form = page.locator('form').last(); for (const [name, value] of [['moveIn', '2026-11-05'], ['months', 12], ['people', 2]]) if (await form.locator(`[name=${name}]`).count()) await fill(page, name, value, form);
-    await clickText(page, /Xác nhận chốt thuê/); await page.waitForTimeout(250); made.deal = await latest('deals');
-    if ((await page.url()).includes('#/contracts/new')) { const cf = page.locator('#cf'); await clickText(page, 'Lưu hợp đồng →'); await page.waitForURL(/step=5/); await runner.switchRole('ops'); await clickText(page, 'Xác nhận & kích hoạt hợp đồng'); const confirm = await modal(page); await clickText(page, 'Kích hoạt', { scope: confirm, exact: true }); }
-    await page.waitForTimeout(300); made.deal = await latest('deals');
-    return { actual: `Giao dịch ${made.deal?.code} tạo hợp đồng lõi P1, kích hoạt phòng Đang thuê; hold Đã chuyển đổi; lead Chốt thuê.` };
+    await clickText(page, /Xác nhận chốt thuê/); await confirmDialog(page, /Xác nhận chốt thuê/); await page.waitForTimeout(300); made.deal = await latest('deals');
+    if (!made.deal) throw new Error('Không tạo được giao dịch');
+    // Kinh doanh không có quyền tạo HĐ → hệ thống đưa về chi tiết giao dịch (Chờ ký HĐ); Vận hành tạo & kích hoạt HĐ từ giao dịch
+    await runner.switchRole('ops'); await goto(page, runner.baseUrl, `#/contracts/new?deal=${made.deal.id}`); await page.locator('#cf').waitFor({ state: 'visible' });
+    const member = page.locator('#cf input[name^=mb_name_]').first(); if (await member.count() && !(await member.inputValue())) await member.fill('Lê Demo Lead');
+    await clickText(page, 'Lưu hợp đồng →'); await page.waitForURL(/step=5/); await page.waitForTimeout(250);
+    for (const name of ['firstInvoice', 'depositNow']) { const cb = page.locator(`#act-opts input[name=${name}]`); if (await cb.count() && await cb.isEnabled() && await cb.isChecked()) await cb.uncheck(); } // cọc thu qua giao dịch CRM (F11.6), hóa đơn lập theo kỳ
+    await clickText(page, 'Xác nhận & kích hoạt hợp đồng'); const confirm = await modal(page); await clickText(page, 'Kích hoạt', { scope: confirm, exact: true });
+    await page.waitForTimeout(350); made.deal = await latest('deals'); const contract = made.deal?.contractId ? await page.evaluate(id => (window.TH.store.state.contracts.find(x => x.id === id) || {}), made.deal.contractId) : null;
+    return { actual: `Giao dịch ${made.deal?.code} (${made.deal?.status}) → hợp đồng lõi P1 ${contract?.code || ''} ${contract?.status || ''}; phòng Đang thuê; hold Đã chuyển đổi; lead Chốt thuê. Kinh doanh không tạo HĐ (không có contracts.manage) – Vận hành tạo từ giao dịch.`, assertions: [{ id: 'deal-contract-active', status: contract?.status === 'active' ? 'PASS' : 'FAIL', detail: `contract=${contract?.code}/${contract?.status}` }] };
   });
 
   await runner.step('F11.6', async () => {
@@ -55,14 +61,29 @@ try {
   });
 
   await runner.step('F12.1', async () => {
-    await clickText(page, 'Dùng file mẫu'); await page.waitForTimeout(2600); made.ocr = await latest('ocrExtractions');
+    await clickAction(page, 'sample'); await page.waitForURL(/#\/contracts\/ocr\?id=/); await page.waitForTimeout(2600); made.ocr = await latest('ocrExtractions');
     return { actual: `OCR MÔ PHỎNG ${made.ocr?.code || ''}: đọc 4 trang, hiển thị 5 trường Cần kiểm tra và bảng tài sản bàn giao.` };
   });
 
   await runner.step('F12.2', async () => {
-    const buttons = page.locator('[data-act=confirm]'); while (await buttons.count()) { await buttons.first().click(); await page.waitForTimeout(30); }
-    const pending = await page.getByText(/Cần kiểm tra \(0\)/).count();
-    return { actual: 'Đã xác nhận/sửa toàn bộ trường rủi ro OCR; số trường Cần kiểm tra về 0.', assertions: [{ id: 'ocr-reviewed', status: pending ? 'PASS' : 'FAIL', detail: `pending badge count=${pending}` }] };
+    // Xem "Tất cả trường" để sửa/xác nhận từng trường Cần kiểm tra qua UI (select/input → data-on=field, hoặc nút ✓)
+    await clickAction(page, 'view-all').catch(() => {}); await page.waitForTimeout(200);
+    const fixed = [];
+    for (let round = 0; round < 3; round += 1) {
+      const pendingKeys = await page.evaluate(id => ((window.TH.store.state.ocrExtractions.find(x => x.id === id) || {}).fields || []).filter(f => !f.confirmed).map(f => ({ key: f.key, value: f.value })), made.ocr.id);
+      if (!pendingKeys.length) break;
+      for (const f of pendingKeys) {
+        const control = page.locator(`[data-ocr-field="${f.key}"] [name="${f.key}"]`).first(); const tick = page.locator(`[data-ocr-field="${f.key}"] [data-act=confirm]`).first();
+        if (await control.count()) {
+          const tag = await control.evaluate(node => node.tagName.toLowerCase());
+          if (tag === 'select') { const current = await control.inputValue(); if (!current) { const first = await control.locator('option:not([value=""])').first().getAttribute('value'); if (first) await control.selectOption(first); } else await control.selectOption(current); }
+          else { const value = await control.inputValue(); await control.fill(value); await control.dispatchEvent('change'); }
+          fixed.push(f.key); await page.waitForTimeout(80);
+        } else if (await tick.count()) { await tick.click(); fixed.push(f.key); await page.waitForTimeout(80); }
+      }
+    }
+    const remaining = await page.evaluate(id => ((window.TH.store.state.ocrExtractions.find(x => x.id === id) || {}).fields || []).filter(f => !f.confirmed).map(f => f.key), made.ocr.id);
+    return { actual: `Đã sửa/xác nhận ${fixed.length} trường Cần kiểm tra (${[...new Set(fixed)].join(', ')}); còn ${remaining.length} trường chưa xác nhận. OCR MÔ PHỎNG.`, assertions: [{ id: 'ocr-reviewed', status: remaining.length ? 'FAIL' : 'PASS', detail: remaining.length ? 'pending=' + remaining.join(', ') : 'all fields confirmed' }] };
   });
 
   await runner.step('F12.3', async () => {
@@ -82,8 +103,17 @@ try {
   });
 
   await runner.step('F13.3', async () => {
-    const recheck = page.getByRole('button', { name: /Kiểm tra lại/ }); if (await recheck.isEnabled().catch(() => false)) await recheck.click(); const retry = page.getByRole('button', { name: /Thử lại/ }); if (await retry.isEnabled().catch(() => false)) await retry.click(); await page.waitForTimeout(300);
-    return { actual: 'Data Job đã Kiểm tra lại và Thử lại; lịch sử có attempt #2, không tạo khoản thu trùng.' };
+    // Dòng "Cần kiểm tra" do hóa đơn nháp → phát hành hóa đơn đó qua UI → quay lại job → Kiểm tra lại → Thử lại phần đủ điều kiện
+    const jobHash = await page.evaluate(() => location.hash);
+    const drafts = await page.evaluate(id => { const S = window.TH.store.state; const j = S.importJobs.find(x => x.id === id); const ids = new Set(); (j.lines || []).forEach(l => { if (!['check', 'failed'].includes(l.status)) return; const codes = String(l.reason || '').match(/HD-\d{6}-\d{3}/g) || []; const inv = (l.invoiceId && S.invoices.find(x => x.id === l.invoiceId)) || S.invoices.find(x => codes.includes(x.code)); if (inv && inv.docStatus === 'draft') ids.add(inv.id); }); return [...ids].map(x => ({ id: x, code: S.invoices.find(y => y.id === x).code })); }, made.statementJob.id);
+    const paysBefore = await page.evaluate(() => window.TH.store.state.payments.length);
+    for (const inv of drafts) { await goto(page, runner.baseUrl, `#/invoices/${inv.id}`); await clickText(page, 'Phát hành'); const box = await modal(page); await clickText(page, 'Phát hành', { scope: box, exact: true }); await page.waitForTimeout(250); }
+    await goto(page, runner.baseUrl, jobHash);
+    await clickAction(page, 'recheck'); await page.waitForTimeout(250);
+    const readyLines = await page.evaluate(id => (window.TH.store.state.importJobs.find(x => x.id === id).lines || []).filter(l => l.status === 'ready').length, made.statementJob.id);
+    await clickAction(page, 'retry'); await confirmDialog(page, /Thử lại/); await page.waitForTimeout(300);
+    const after = await page.evaluate(id => { const j = window.TH.store.state.importJobs.find(x => x.id === id); return { attempts: (j.attempts || []).length, ok: (j.lines || []).filter(l => l.status === 'ok').length, check: (j.lines || []).filter(l => l.status === 'check').length, payments: window.TH.store.state.payments.length }; }, made.statementJob.id);
+    return { actual: `Phát hành ${drafts.length} hóa đơn nháp (${drafts.map(x => x.code).join(', ') || '-'}) → Kiểm tra lại: ${readyLines} dòng Đủ điều kiện thử lại → Thử lại: lịch sử ${after.attempts} lần thử, ${after.ok} dòng thành công, ${after.check} dòng cần kiểm tra; khoản thu ${paysBefore} → ${after.payments} (không trùng).`, assertions: [{ id: 'job-attempts', status: after.attempts >= 2 ? 'PASS' : 'FAIL', detail: `attempts=${after.attempts}` }, { id: 'retry-idempotent', status: after.payments - paysBefore === readyLines ? 'PASS' : 'FAIL', detail: `newPayments=${after.payments - paysBefore} ready=${readyLines}` }] };
   });
 
   await runner.step('F13.4', async () => {
@@ -93,8 +123,8 @@ try {
   });
 
   await runner.step('F14.1', async () => {
-    const row = page.locator('tr').first(); const view = row.getByRole('button', { name: 'Xem' }); if (await view.count()) await view.click(); await page.waitForTimeout(120); await clickText(page, 'Tạo sự cố'); const box = await modal(page);
-    await select(page, 'category', 'Điều hòa', box); await select(page, 'priority', 'high', box); await fill(page, 'desc', 'Máy lạnh không lạnh, có tiếng kêu lạ khi khởi động', box); await fill(page, 'dueDate', '2026-10-30', box); const assignee = box.locator('select[name=assigneeId]'); if (await assignee.count()) await assignee.selectOption({ index: 1 }); await clickText(page, /Lưu|Tạo sự cố/, { scope: box }); await page.waitForTimeout(250); made.incident = await latest('incidents');
+    const roomId = await page.evaluate(id => { const d = window.TH.store.state.deals.find(x => x.id === id); return d && d.roomId; }, made.deal.id); await goto(page, runner.baseUrl, `#/rooms/${roomId}`); await clickAction(page, 'new-inc'); const box = await modal(page);
+    await select(page, 'category', 'Điều hòa', box); await select(page, 'priority', 'high', box); await fill(page, 'desc', 'Máy lạnh không lạnh, có tiếng kêu lạ khi khởi động', box); await fill(page, 'dueDate', '2026-10-30', box); const tech = await page.evaluate(() => { const us = window.TH.store.state.users || []; const u = us.find(x => x.username === 'kythuat') || us.find(x => x.role === 'kythuat' && x.status !== 'locked'); return u ? { id: u.id, name: u.name } : null; }); const options = await box.locator('select[name=assigneeId] option').evaluateAll(nodes => nodes.map(n => n.value)); if (tech && options.includes(tech.id)) await box.locator('select[name=assigneeId]').selectOption(tech.id); else if (tech) await select(page, 'assigneeId', tech.name, box); else await box.locator('select[name=assigneeId]').selectOption({ index: 1 }); await clickAction(page, 'save', { scope: box }); await page.waitForTimeout(250); made.incident = await latest('incidents');
     return { actual: `Đã tạo sự cố ${made.incident?.code}, gắn đúng tòa/phòng và kỹ thuật phụ trách.` };
   });
 
@@ -108,18 +138,24 @@ try {
   });
 
   await runner.step('F14.4', async () => {
-    await clickText(page, 'Tạo lịch bảo dưỡng'); const box = await modal(page); await select(page, 'equipType', 'Thang máy', box); await fill(page, 'item', 'Bảo dưỡng thang máy - UAT', box); await select(page, 'cycle', 'monthly', box); await fill(page, 'date', '2026-10-31', box); await fill(page, 'note', 'Kiểm tra cáp, phanh, chạy thử', box); for (const name of ['buildingId', 'vendorId', 'assigneeId']) { const field = box.locator(`select[name=${name}]`); if (await field.count()) await field.selectOption({ index: 1 }); } await clickText(page, /Lưu|Tạo lịch bảo dưỡng/, { scope: box }); await page.waitForTimeout(250);
+    await clickText(page, 'Tạo lịch bảo dưỡng'); const box = await modal(page); await select(page, 'equipType', 'Thang máy', box); await fill(page, 'item', 'Bảo dưỡng thang máy - UAT', box); await select(page, 'cycle', 'monthly', box); await fill(page, 'date', '2026-10-31', box); await fill(page, 'note', 'Kiểm tra cáp, phanh, chạy thử', box); for (const name of ['buildingId', 'vendorId', 'assigneeId']) { const field = box.locator(`select[name=${name}]`); if (await field.count()) await field.selectOption({ index: 1 }); } await clickAction(page, 'save', { scope: box }); await page.waitForTimeout(250);
     return { actual: 'Lịch bảo dưỡng trong 7 ngày được tạo; KPI Sắp đến hạn và chuông thông báo cập nhật.' };
   });
 
   await runner.step('F15.1', async ({ paths }) => {
-    const occupancy = page.locator('[data-act=pick][data-k=occupancy], [data-act=pick]').filter({ hasText: /Tỷ lệ lấp đầy/ }).first(); await occupancy.click(); await fill(page, 'fromPeriod', '2026-09').catch(() => {}); await fill(page, 'toPeriod', '2026-10').catch(() => {}); await clickText(page, 'Tạo báo cáo'); await page.waitForURL(/#\/reports\/runs\//); const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Tải CSV' }).click()]); const artifact = await saveDownload(download, paths, { headers: ['Kỳ'], minRows: 2 });
+    await page.locator('[data-act=pick][data-k=occupancy]').first().click(); await page.waitForTimeout(250); const form = page.locator('#rpf'); await form.waitFor({ state: 'visible' }); await select(page, 'periodFrom', '2026-09', form); await select(page, 'periodTo', '2026-10', form); await clickAction(page, 'create'); await page.waitForURL(/#\/reports\/runs\//); await page.waitForTimeout(250); const [download] = await Promise.all([page.waitForEvent('download'), clickAction(page, 'dl')]); const artifact = await saveDownload(download, paths, { headers: ['Kỳ'], minRows: 2, expectValues: [{ row: 'data', value: '10/2026' }, { row: 'data', value: '09/2026' }] });
     return { actual: `Bản ghi báo cáo snapshot đã tạo; CSV có cột Kỳ và ${artifact.rows} dòng, SHA-256 ${artifact.sha256.slice(0, 12)}…`, downloads: [artifact] };
   });
 
   await runner.step('F15.2', async () => {
-    const unchecked = page.locator('[data-act=check] input[type=checkbox]:not(:checked), [data-act=check].pending'); for (let i = 0; i < await unchecked.count(); i += 1) await unchecked.nth(i).click(); const lock = page.getByRole('button', { name: 'Khóa kỳ' }); await lock.click(); const box = await modal(page); await clickText(page, 'Khóa kỳ', { scope: box }); await page.waitForTimeout(250);
-    return { actual: 'Kỳ 10/2026 đã khóa và snapshot số liệu; thao tác tài chính trong kỳ bị chặn theo FR-FIN-08.' };
+    // Tick tay các mục chưa đạt (icon minus-circle) cho tới khi nút Khóa kỳ mở
+    let ticked = 0;
+    for (let round = 0; round < 12; round += 1) { const pending = page.locator('.check-list .it[data-act=check]').filter({ has: page.locator('svg.muted') }); if (!(await pending.count())) break; await pending.first().click(); ticked += 1; await page.waitForTimeout(200); }
+    const lock = page.locator('[data-act=lock]'); await lock.waitFor({ state: 'visible' }); if (!(await lock.isEnabled())) throw new Error('Nút Khóa kỳ vẫn bị khóa sau khi tick checklist');
+    await lock.click(); await confirmDialog(page, /Khóa kỳ/); await page.waitForTimeout(300);
+    const status = await page.evaluate(() => (window.TH.q.periodOf('2026-10') || {}).status);
+    made.ticked = ticked;
+    return { actual: `Tick tay ${made.ticked} mục checklist → Khóa kỳ 10/2026 (trạng thái ${status || 'locked'}) và snapshot số liệu; thao tác tài chính trong kỳ bị chặn theo FR-FIN-08.` };
   });
 
   await runner.step('F15.3', async () => {
@@ -127,22 +163,41 @@ try {
     return { actual: 'Chỉ tin lỗi 403/408 được retry; mã 300 và tin đã giao không gửi lại. ZALO MÔ PHỎNG.' };
   });
 
-  // F08.5 is a required Phase-2 regression flow but is not counted in the approved 20-milestone/71 total.
-  const regStarted = new Date().toISOString();
-  try {
-    await runner.switchRole('accountant'); await goto(page, runner.baseUrl, '#/refunds?status=pending'); const refundRow = page.locator('tbody tr').first(); await refundRow.getByRole('button', { name: 'Xem' }).click(); await clickText(page, 'Yêu cầu chỉnh sửa'); let box = await modal(page); await fill(page, 'reason', 'Bổ sung báo giá và ảnh hạng mục sửa chữa', box); await clickText(page, 'Gửi yêu cầu', { scope: box });
-    await runner.switchRole('ops'); const current = await page.evaluate(() => location.hash); await goto(page, runner.baseUrl, current); await clickText(page, 'Thêm hạng mục'); box = await modal(page); await fill(page, 'desc', 'Sơn lại tường phòng ngủ', box); await fill(page, 'qty', 1, box); await fill(page, 'unitPrice', 350000, box); await clickText(page, 'Lưu', { scope: box }); await clickText(page, 'Gửi duyệt'); box = await modal(page); await clickText(page, 'Gửi duyệt', { scope: box });
-    await runner.switchRole('accountant'); await goto(page, runner.baseUrl, current); await clickText(page, 'Duyệt'); box = await modal(page); await clickText(page, 'Duyệt', { scope: box, exact: true });
-    runner.regression.push({ flow: 'F08.5', milestones: ['F08.5.1', 'F08.5.2', 'F08.5.3'], status: 'PASS', startedAt: regStarted, finishedAt: new Date().toISOString(), detail: 'Yêu cầu sửa → Vận hành sửa khấu trừ → gửi lại → Kế toán duyệt qua UI.' });
-  } catch (error) {
-    runner.regression.push({ flow: 'F08.5', milestones: ['F08.5.1', 'F08.5.2', 'F08.5.3'], status: 'FAIL', startedAt: regStarted, finishedAt: new Date().toISOString(), error: error.stack || error.message });
-  }
+  // F08.5: regression bắt buộc ngoài bộ đếm 20 (vẫn chạy qua step() để có evidence + guide-check)
+  await runner.step('F08.5.1', async () => {
+    // Chọn hồ sơ Chờ duyệt thuộc tòa trong phạm vi của Vận hành demo (vanhanh) để bước F08.5.2 sửa được
+    const target = await page.evaluate(() => { const S = window.TH.store.state; const ops = (S.users || []).find(x => x.username === 'vanhanh') || {}; const allowed = new Set(ops.buildingIds || []); const pending = (S.refunds || []).filter(r => r.status === 'pending'); return (pending.find(r => allowed.has(r.buildingId)) || pending[0] || {}).id; });
+    if (!target) throw new Error('Không có hồ sơ hoàn cọc Chờ duyệt');
+    const row = page.locator('tbody tr').filter({ has: page.locator(`[data-id="${target}"]`) }).first(); if (await row.count()) { const view = row.getByRole('button', { name: /Xem/ }).first(); if (await view.count()) await view.click(); else await goto(page, runner.baseUrl, `#/refunds/${target}`); } else await goto(page, runner.baseUrl, `#/refunds/${target}`);
+    await page.waitForURL(/#\/refunds\/[^?]+/); made.refundHash = await page.evaluate(() => location.hash);
+    await clickText(page, 'Yêu cầu chỉnh sửa'); const box = await modal(page); await fill(page, 'reason', 'Bổ sung hạng mục vệ sinh và ảnh hiện trạng trước khi duyệt', box); await clickText(page, /Yêu cầu chỉnh sửa|Gửi yêu cầu/, { scope: box }); await page.waitForTimeout(250);
+    return { actual: 'Kế toán yêu cầu chỉnh sửa; hồ sơ chuyển Cần chỉnh sửa và có lý do trong lịch sử.' };
+  }, { counted: false, route: '#/refunds?status=pending' });
+  await runner.step('F08.5.2', async () => {
+    await clickText(page, /Sửa phương án/); await page.waitForURL(/#\/refunds\/new/);
+    await clickAction(page, 'add-ded'); const idx = await page.locator('input[name^="d_"]').count() - 1; await select(page, `g_${idx}`, 'Dịch vụ'); await fill(page, `d_${idx}`, 'Vệ sinh bổ sung (UAT)'); await fill(page, `a_${idx}`, 150000); const ev = page.locator(`[data-act="add-ev"][data-i="${idx}"]`); if (await ev.count()) { await ev.click(); await page.waitForTimeout(150); }
+    await clickAction(page, 'to4'); await page.waitForFunction(() => location.hash.includes('step=4')); await clickAction(page, 'submit'); const box = await modal(page); await clickText(page, 'Gửi duyệt', { scope: box, exact: true }); await page.waitForTimeout(300);
+    return { actual: 'Vận hành bổ sung hạng mục khấu trừ và gửi duyệt lại; lịch sử có ≥ 2 lần Chờ duyệt.' };
+  }, { counted: false, route: () => made.refundHash });
+  await runner.step('F08.5.3', async () => {
+    const approve = page.getByRole('button', { name: /^Duyệt( hoàn cọc)?$/ }).first(); await approve.click(); const box = await modal(page); await clickText(page, /^Duyệt/, { scope: box }); await page.waitForTimeout(300);
+    return { actual: 'Kế toán duyệt hồ sơ sau chỉnh sửa; trạng thái Đã duyệt.' };
+  }, { counted: false, route: () => made.refundHash });
 
-  runner.smoke.push(
-    { id: 'crm-creates-p1-contract-room', status: 'PASS', detail: 'F11.5 tạo hợp đồng và đổi vòng đời phòng lõi P1.' },
-    { id: 'maintenance-creates-expense', status: 'PASS', detail: 'F14.3 tạo chi phí Sửa chữa liên kết sự cố.' },
-  );
-  const result = await runner.finish({ countPolicy: '20 mốc F11–F15; F08.5 là regression bắt buộc ngoài bộ đếm 71.' });
+  // Smoke liên phase – assertion trên state thật
+  runner.smoke.push(await runner.smokeCheck('crm-creates-p1-contract-room', () => {
+    const S = window.TH.store.state; const deal = (S.deals || []).filter(x => x.source === 'user').slice(-1)[0]; if (!deal) return { ok: false, detail: 'không có deal user' };
+    const c = (S.contracts || []).find(x => x.id === deal.contractId); const room = c && (S.rooms || []).find(x => x.id === c.roomId); const hold = deal.holdId ? (S.holds || []).find(x => x.id === deal.holdId) : null;
+    const ok = !!c && c.status === 'active' && !!room && room.status === 'occupied' && (!hold || hold.status === 'converted');
+    return { ok, detail: `deal=${deal.code} contract=${c ? c.code + '/' + c.status : '-'} room=${room ? room.code + '/' + room.status : '-'} hold=${hold ? hold.code + '/' + hold.status : 'n/a'}` };
+  }));
+  runner.smoke.push(await runner.smokeCheck('maintenance-creates-expense', () => {
+    const S = window.TH.store.state; const inc = (S.incidents || []).filter(x => x.source === 'user').slice(-1)[0]; if (!inc) return { ok: false, detail: 'không có sự cố user' };
+    const ex = inc.expenseId ? (S.expenses || []).find(x => x.id === inc.expenseId) : null;
+    const ok = !!ex && ex.buildingId === inc.buildingId && Number(ex.amount) === Number(inc.cost || inc.actualCost) && ex.group === 'Sửa chữa';
+    return { ok, detail: `incident=${inc.code}/${inc.status} cost=${inc.cost ?? inc.actualCost} expense=${ex ? ex.code + ' ' + ex.amount + ' ' + ex.group + ' building=' + (ex.buildingId === inc.buildingId) : '-'}` };
+  }));
+  const result = await runner.finish({ countPolicy: '20 mốc F11–F15; F08.5.1–3 là regression bắt buộc ngoài bộ đếm 75 (vẫn có evidence).' });
   console.log(JSON.stringify({ manifest: result.paths.manifest, docx: result.paths.docx, qa: result.manifest.qa }, null, 2));
   if (result.manifest.qa.status !== 'PASS') process.exitCode = 1;
 } finally {
