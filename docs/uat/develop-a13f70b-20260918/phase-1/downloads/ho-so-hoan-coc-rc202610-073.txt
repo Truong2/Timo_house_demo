@@ -1,0 +1,11 @@
+﻿TIMOHOUSE – Ho so hoan coc RC202610-073
+================================================
+Khách: Nguyễn Demo Khách
+Phòng: A.01.03
+Cọc: 13,000,000
+- Khấu hao: Khấu hao cố định theo phòng (BR-12) 200,000
+- Dịch vụ: Vệ sinh phòng 200,000
+- Sửa chữa: Sửa chữa hư hỏng (nếu có) 0
+Hoàn: 12,600,000
+
+Tài liệu mô phỏng cho mục đích demo.
