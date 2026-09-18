@@ -14,7 +14,11 @@
     "check:rbac": "node scripts/check-rbac.mjs",
     "build": "node scripts/build.mjs",
     "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
-    "walkthrough:p1": "node scripts/capture_phase1_walkthrough.mjs"
+    "walkthrough:p1": "node scripts/capture_phase1_walkthrough.mjs",
+    "walkthrough:p2": "node scripts/capture_phase2_walkthrough.mjs",
+    "walkthrough:p3": "node scripts/capture_phase3_walkthrough.mjs",
+    "walkthrough:all": "node scripts/capture_all_walkthroughs.mjs",
+    "walkthrough:render": "node scripts/render_uat_docs.mjs"
   },
   "devDependencies": {
     "docx": "^9.7.1",

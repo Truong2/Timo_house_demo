@@ -7,8 +7,9 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import net from 'node:net';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 import {
@@ -34,14 +35,17 @@ import {
 } from 'docx';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = path.join(ROOT, 'docs', 'phase1-walkthrough');
+const RUN_ROOT = process.env.TIMEHOUSE_UAT_ROOT ? path.resolve(process.env.TIMEHOUSE_UAT_ROOT) : null;
+const OUT = RUN_ROOT ? path.join(RUN_ROOT, 'phase-1') : path.join(ROOT, 'docs', 'phase1-walkthrough');
 const EVIDENCE = path.join(OUT, 'evidence');
+const DOWNLOADS = path.join(OUT, 'downloads');
 const MANIFEST_PATH = path.join(OUT, 'manifest.json');
-const DOCX_PATH = path.join(OUT, 'TimeHouse_Phase1_Walkthrough_UAT_v1.0.docx');
+const DOCX_PATH = RUN_ROOT ? path.join(RUN_ROOT, '01_TimeHouse_Phase1_UAT_Evidence.docx') : path.join(OUT, 'TimeHouse_Phase1_Walkthrough_UAT_v1.0.docx');
 const WIDTH = 1440;
 const HEIGHT = 1080;
 const BASE_URL = process.env.TIMEHOUSE_BASE_URL || 'http://127.0.0.1:8765';
 const CHROME = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+const COMMIT = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
 
 const roleLabel = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành' };
 const route = (x) => `#${x}`;
@@ -274,12 +278,14 @@ async function runScenario(page, base) {
       const snap = await stateSnapshot(page); Object.assign(actual, snap);
       const after = await screenshot(page, id, 'result', def.role, def.selector);
       const extra = Array.isArray(out?.screenshots) ? out.screenshots : [];
-      const record = { ...def, startedAt: started, finishedAt: new Date().toISOString(), status: 'PASS', actual: out?.actual || describeActual(id, snap), screenshots: [...before, ...extra, after], recordIds: idsOf(snap), error: '' };
+      const finished = new Date().toISOString();
+      const record = { ...def, phase: 'P1', milestone: id, route: snap.url || def.route, phaseFlags: { p1: true, p2: false, p3: false }, timestamps: { startedAt: started, finishedAt: finished }, startedAt: started, finishedAt: finished, status: 'PASS', actual: out?.actual || describeActual(id, snap), assertions: out?.assertions || [], screenshots: [...before, ...extra, after], downloads: out?.downloads || [], recordIds: idsOf(snap), commit: COMMIT, error: '' };
       results.push(record); return record;
     } catch (e) {
       const snap = await stateSnapshot(page).catch(() => ({})); Object.assign(actual, snap);
       const images = [...before]; try { images.push(await screenshot(page, id, 'error', def.role, def.selector)); } catch { /* keep original error */ }
-      results.push({ ...def, startedAt: started, finishedAt: new Date().toISOString(), status: 'FAIL', actual: describeActual(id, snap), screenshots: images, recordIds: idsOf(snap), error: e.stack || e.message });
+      const finished = new Date().toISOString();
+      results.push({ ...def, phase: 'P1', milestone: id, route: snap.url || def.route, phaseFlags: { p1: true, p2: false, p3: false }, timestamps: { startedAt: started, finishedAt: finished }, startedAt: started, finishedAt: finished, status: 'FAIL', actual: describeActual(id, snap), assertions: [], screenshots: images, downloads: [], recordIds: idsOf(snap), commit: COMMIT, error: e.stack || e.message });
       throw e;
     }
   };
@@ -346,7 +352,7 @@ async function runScenario(page, base) {
   await run('F05.1', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/receivables')); const search = page.locator('input[name=s]').first(); if (await search.count()) { await search.fill(s.room?.code || ''); await search.press('Enter'); } return { actual: 'Dòng công nợ khách demo hiển thị tổng, đã thu 0 và còn lại.' }; }, { before: true });
   await run('F05.2', async () => { await clickText(page, 'Thu tiền thủ công'); const m = await waitForModal(page); const s = await stateSnapshot(page); await select(page, 'tenantId', s.tenant.id, m); await fill(page, 'amount', 3000000, m); await select(page, 'method', 'Chuyển khoản', m); await fill(page, 'ref', 'CK289104', m); await fill(page, 'note', 'Khách thanh toán một phần tiền nhà tháng 10', m); await clickText(page, 'Tự động phân bổ', { exact: true, scope: m }); await clickText(page, 'Xác nhận ghi nhận', { exact: true, scope: m }); await page.waitForTimeout(500); return { actual: 'Đã ghi nhận khoản thu PAY… 3.000.000đ và tự động phân bổ.' }; }, { before: true });
   await run('F05.3', async () => { const s = await stateSnapshot(page); if (!s.payment) throw new Error('Không có khoản thu user'); await goto(page, base, route(`/payments/${s.payment.id}`)); return { actual: `Khoản thu ${s.payment.code}; đã phân bổ ${s.payment.amount}đ.` }; });
-  await run('F05.4', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/receivables')); return { actual: `Đã thu ${s.paid.toLocaleString('vi-VN')}đ; còn lại ${s.remaining.toLocaleString('vi-VN')}đ; trạng thái Thu một phần.` }; });
+  await run('F05.4', async () => { const s = await stateSnapshot(page); await goto(page, base, route('/receivables')); const search = page.locator('input[name=s]').first(); if (await search.count()) { await search.fill(s.invoice?.code || s.room?.code || ''); await search.press('Enter'); await page.waitForTimeout(150); } const row = page.locator('tr').filter({ hasText: s.invoice?.code || s.room?.code || '' }).first(); await row.scrollIntoViewIfNeeded(); const text = norm(await row.innerText()); if (!text.includes((s.remaining || 0).toLocaleString('vi-VN'))) throw new Error(`Dòng công nợ không hiển thị số dư ${s.remaining}`); return { actual: `Dòng ${s.invoice?.code} hiển thị Đã thu ${s.paid.toLocaleString('vi-VN')}đ; Còn lại ${s.remaining.toLocaleString('vi-VN')}đ; Thu một phần.`, assertions: [{ id: 'demo-receivable-row', status: 'PASS', detail: text }] }; });
 
   // F06 – debt reminder/retry.
   await switchRole(page, 'admin');
@@ -380,7 +386,7 @@ async function runScenario(page, base) {
   await run('F10.2', async () => { await goto(page, base, route('/settings/import?type=tenant')); await clickText(page, /Dùng file mẫu/); await page.waitForFunction(() => location.hash.includes('step=2')); const phoneMap = page.locator('select[name="m_1"]'); if (await phoneMap.count() && (await phoneMap.inputValue()) !== 'phone') await phoneMap.selectOption('phone'); await clickAction(page, 'to3'); await page.waitForFunction(() => location.hash.includes('step=3')); await clickAction(page, 'to4'); await page.waitForFunction(() => location.hash.includes('step=4')); const actionShot = await screenshot(page, 'F10.2', 'action', 'admin', '[data-act="commit"]'); const commit = page.locator('[data-act="commit"]').first(); await commit.click(); const m = await waitForModal(page); await clickText(page, 'Import', { exact: true, scope: m }); await page.waitForTimeout(500); return { actual: 'File mẫu đã mapping/kiểm tra/commit; KPI lỗi và dòng hợp lệ được ghi nhận trong import job.', screenshots: [actionShot] }; }, { before: true });
   await run('F10.3', async () => { await goto(page, base, route('/settings/users')); await clickText(page, 'Tạo tài khoản'); const m = await waitForModal(page); await fill(page, 'name', 'Lê Demo Vận Hành', m); await fill(page, 'email', 'demo.vanhanh@timohouse.vn', m); await fill(page, 'phone', '0913 222 333', m); await select(page, 'role', 'ops', m); await fill(page, 'effectiveDate', '2026-10-28', m); const b = m.locator('input[name^=b_]').first(); if (await b.count()) await b.check(); await clickText(page, 'Lưu tài khoản'); await page.waitForTimeout(350); return { actual: 'Tài khoản Lê Demo Vận Hành đã lưu với vai trò Vận hành.' }; }, { before: true });
   await switchRole(page, 'accountant');
-  await run('F10.4', async () => { await goto(page, base, route('/reports?tab=debt')); const exp = page.locator('#content button[data-act="export"]').first(); if (await exp.count()) await exp.click(); await page.waitForTimeout(150); return { actual: 'Báo cáo công nợ đã xuất CSV theo tòa.' }; }, { before: true });
+  await run('F10.4', async () => { await goto(page, base, route('/reports?tab=debt')); const exp = page.locator('#content button[data-act="export"]').first(); if (!(await exp.count())) throw new Error('Không tìm thấy nút Xuất CSV báo cáo công nợ'); const [download] = await Promise.all([page.waitForEvent('download'), exp.click()]); const suggested = download.suggestedFilename(); const saved = path.join(DOWNLOADS, suggested); await download.saveAs(saved); const bytes = fs.readFileSync(saved); const content = bytes.toString('utf8').replace(/^\uFEFF/, ''); const lines = content.split(/\r?\n/).filter(Boolean); const header = lines[0] || ''; const required = ['Phải thu', 'Đã thu', 'Còn nợ']; const missing = required.filter(x => !header.includes(x)); if (missing.length || lines.length < 2) throw new Error(`CSV không hợp lệ: thiếu ${missing.join(', ') || 'dòng dữ liệu'}`); const artifact = { file: path.relative(OUT, saved).replaceAll('\\', '/'), name: suggested, bytes: bytes.length, rows: lines.length - 1, header, sha256: crypto.createHash('sha256').update(bytes).digest('hex') }; return { actual: `Đã kiểm tra CSV ${suggested}: ${artifact.rows} dòng, đủ cột Phải thu/Đã thu/Còn nợ, SHA-256 ${artifact.sha256.slice(0, 12)}…`, downloads: [artifact], assertions: [{ id: 'csv-content', status: 'PASS', detail: artifact }] }; }, { before: true });
 
   return { results, final: await stateSnapshot(page) };
 }
@@ -484,6 +490,7 @@ async function buildDoc(manifest, diagramPng) {
 
 async function main() {
   fs.mkdirSync(EVIDENCE, { recursive: true });
+  fs.mkdirSync(DOWNLOADS, { recursive: true });
   // Remove only prior runner-generated milestone PNGs; preserve any unrelated customer assets.
   for (const name of fs.readdirSync(EVIDENCE)) {
     if (/^(?:S0|F\d{2})\.\d-(?:input|result|error|action)\.png$/i.test(name)) fs.unlinkSync(path.join(EVIDENCE, name));
@@ -498,7 +505,7 @@ async function main() {
     await page.goto(`${server.url}/#/login`, { waitUntil: 'networkidle' }); await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }); await page.reload({ waitUntil: 'networkidle' });
     await page.evaluate(() => { if (window.TH?.phase) { window.TH.phase.set(2, false); window.TH.phase.set(3, false); } if (window.TH?.store) { window.TH.store.state.meta.today = '2026-10-28'; window.TH.store.state.meta.period = '2026-10'; window.TH.store.saveNow(); } });
      const run = await runScenario(page, server.url); const qa = qaAssertions(run.final, run.results);
-     const manifest = { generatedAt: new Date().toISOString(), baseUrl: server.url, viewport: { width: WIDTH, height: HEIGHT }, today: '2026-10-28', period: '2026-10', phase: 'P1', scope: '10 luồng core + F10 bổ trợ / 36 mốc', steps: run.results, final: run.final, qa, summary: { total: run.results.length, pass: run.results.filter((x) => x.status === 'PASS').length, fail: run.results.filter((x) => x.status !== 'PASS').length, evidencePng: fs.existsSync(EVIDENCE) ? fs.readdirSync(EVIDENCE).filter((x) => x.endsWith('.png')).length : 0, qa: qa.status } };
+     const manifest = { generatedAt: new Date().toISOString(), commit: COMMIT, baseUrl: server.url, viewport: { width: WIDTH, height: HEIGHT }, today: '2026-10-28', period: '2026-10', phase: 'P1', phaseFlags: { p1: true, p2: false, p3: false }, scope: '10 luồng core + F10 bổ trợ / 36 mốc', milestones: run.results, steps: run.results, simulationLabels: ['Zalo'], final: run.final, qa: { ...qa, status: qa.status }, summary: { total: run.results.length, pass: run.results.filter((x) => x.status === 'PASS').length, fail: run.results.filter((x) => x.status !== 'PASS').length, evidencePng: fs.existsSync(EVIDENCE) ? fs.readdirSync(EVIDENCE).filter((x) => x.endsWith('.png')).length : 0, qa: qa.status } };
     fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2), 'utf8');
     const diagram = await writeDiagramPng(); await buildDoc(manifest, diagram);
     const failed = manifest.steps.filter((x) => x.status !== 'PASS');
