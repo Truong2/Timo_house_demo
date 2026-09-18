@@ -36,8 +36,16 @@
     return m;
   };
   /* ---- Tòa ---- */
+  // Tòa mới luôn đi qua onboarding chủ nhà (Chủ nhà → HĐ đầu vào → Tòa → Phòng); drawer chỉ dùng để sửa
   Fm.building = (b = {}) => {
-    const m = U.drawer({ title: b.id ? 'Sửa tòa nhà' : 'Thêm tòa nhà', sub: 'Thông tin tòa, chủ nhà và chu kỳ trả chủ nhà (3/4/6 tháng – BR-11)', body: `<div class="form-grid">
+    if (!b.id) {
+      const lls = St.where('landlords', l => l.status !== 'paused').sort((a, c) => a.name.localeCompare(c.name, 'vi'));
+      const m = U.modal({ title: 'Thêm tòa nhà', size: 'sm', sub: 'Tòa nhà phải thuộc một chủ nhà và có hợp đồng đầu vào. Chọn chủ nhà để tiếp tục khai báo HĐ, tòa và phòng.', body: U.field({ label: 'Chủ nhà', req: true, input: U.select({ name: 'landlordId', value: '', options: [['', 'Chủ nhà mới – tạo hồ sơ'], ...lls.map(l => [l.id, l.name + ' (' + l.code + ')'])] }) }), footer: U.btn({ label: 'Hủy', act: 'cancel' }) + U.btn({ label: 'Tiếp tục', icon: 'arrow-right', cls: 'btn-primary', act: 'go' }) });
+      U.bind(m.el, { cancel: () => m.close(), go: () => { const d = m.data(); m.close(); TH._wz = TH._wz || {}; delete TH._wz.landlordOnboarding; TH.go('#/landlords/new' + (d.landlordId ? '?landlordId=' + encodeURIComponent(d.landlordId) : '')); } });
+      return;
+    }
+    const ll = St.get('landlords', b.landlordId);
+    const m = U.drawer({ title: 'Sửa tòa nhà', sub: 'Thông tin tòa và chu kỳ trả chủ nhà (3/4/6 tháng – BR-11). Chủ nhà thay đổi qua hợp đồng đầu vào.', body: `<div class="form-grid">
       ${U.field({ label: 'Mã tòa', input: U.input({ name: 'code', value: b.code || '', placeholder: 'TH-XXX-11 (để trống tự sinh)' }) })}
       ${U.field({ label: 'Tên tòa', req: true, name: 'name', input: U.input({ name: 'name', value: b.name || '', placeholder: 'Tòa …' }) })}
       ${U.field({ label: 'Địa chỉ', req: true, name: 'address', input: U.input({ name: 'address', value: b.address || '', icon: 'map-pin' }), cls: 'span2' })}
@@ -50,7 +58,7 @@
       ${U.field({ label: 'Diện tích tòa (m²)', input: U.input({ name: 'areaM2', type: 'number', value: b.areaM2 || 0 }) })}
       ${U.field({ label: 'Tình trạng tòa', input: U.select({ name: 'condition', value: b.condition || 'medium', options: [['new', 'Mới'], ['medium', 'Trung bình'], ['old', 'Cũ'] ] }) })}
       ${U.field({ label: 'Vận hành từ', input: U.date({ name: 'operatingSince', value: b.operatingSince || F.today() }) })}
-      ${U.field({ label: 'Chủ nhà', input: U.select({ name: 'landlordId', value: b.landlordId || '', all: 'Chưa gán', options: opt.landlords() }) })}
+      ${U.field({ label: 'Chủ nhà', input: `<div class="static-val">${ll ? U.link('#/landlords/' + ll.id, esc(ll.name)) + ' <span class="muted small">(' + esc(ll.code) + ')</span>' : '<span class="red">Chưa gán – bổ sung qua Onboarding chủ nhà</span>'}</div>`, help: 'Đổi chủ nhà bằng cách tạo HĐ đầu vào mới cho tòa.' })}
       ${U.field({ label: 'Người phụ trách', input: U.select({ name: 'managerId', value: b.managerId || '', options: opt.managers() }) })}
       ${U.field({ label: 'Chu kỳ trả chủ nhà', input: U.select({ name: 'payCycle', value: b.payCycle || 3, options: [[3, '3 tháng/lần'], [4, '4 tháng/lần'], [6, '6 tháng/lần']] }) })}
       ${U.field({ label: 'Ngày trả trong kỳ', input: U.input({ name: 'payDay', type: 'number', value: b.payDay || 5 }) })}
@@ -58,8 +66,8 @@
       ${U.field({ label: 'Trạng thái ĐKKD', input: U.select({ name: 'license', value: b.license || 'Đã đăng ký', options: ['Đã đăng ký', 'Đang làm hồ sơ', 'Chưa đăng ký'] }) })}
       ${U.field({ label: 'ĐKKD hết hạn', input: U.date({ name: 'licenseExpiry', value: b.licenseExpiry || '' }) })}
       ${U.field({ label: 'PCCC', input: U.select({ name: 'pcccStatus', value: (b.pccc || {}).status || 'valid', options: [['valid', 'Còn hiệu lực'], ['missing', 'Thiếu hồ sơ'], ['expired', 'Hết hạn']] }) })}
-      ${U.field({ label: 'PCCC hết hạn', input: U.date({ name: 'pcccExpiry', value: (b.pccc || {}).expiry || '' }) })}</div>`, footer: footer(b.id ? 'Lưu thay đổi' : 'Lưu tòa nhà') });
-    U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); if (b.id) d.id = b.id; d.floors = Number(d.floors) || 1; d.perFloor = Number(d.perFloor) || 0; d.areaM2 = Number(d.areaM2) || 0; d.payCycle = Number(d.payCycle); d.payDay = Number(d.payDay) || 5; d.pccc = { status: d.pcccStatus, expiry: d.pcccExpiry }; delete d.pcccStatus; delete d.pcccExpiry; run(m, () => X.saveBuilding(d), r => 'Đã lưu tòa ' + r.name); } });
+      ${U.field({ label: 'PCCC hết hạn', input: U.date({ name: 'pcccExpiry', value: (b.pccc || {}).expiry || '' }) })}</div>`, footer: footer('Lưu thay đổi') });
+    U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); d.id = b.id; d.floors = Number(d.floors) || 1; d.perFloor = Number(d.perFloor) || 0; d.areaM2 = Number(d.areaM2) || 0; d.payCycle = Number(d.payCycle); d.payDay = Number(d.payDay) || 5; d.pccc = { status: d.pcccStatus, expiry: d.pcccExpiry }; delete d.pcccStatus; delete d.pcccExpiry; run(m, () => X.saveBuilding(d), r => 'Đã lưu tòa ' + r.name); } });
   };
   /* ---- Phòng ---- */
   Fm.room = (r = {}, buildingId) => {
@@ -80,8 +88,8 @@
   };
   Fm.roomsBulk = (buildingId) => {
     const b = Q.building(buildingId);
-    const m = U.modal({ title: 'Tạo nhiều phòng', sub: 'Sinh mã theo mẫu ' + b.prefix + '.<tầng>.<số>, bỏ qua mã đã tồn tại', body: `<div class="form-grid">${U.field({ label: 'Từ tầng', input: U.input({ name: 'floorFrom', type: 'number', value: (b.floors || 0) + 1 }) })}${U.field({ label: 'Đến tầng', input: U.input({ name: 'floorTo', type: 'number', value: (b.floors || 0) + 1 }) })}${U.field({ label: 'Số phòng mỗi tầng', input: U.input({ name: 'perFloor', type: 'number', value: b.perFloor || 4 }) })}${U.field({ label: 'Giá tham chiếu', input: U.money({ name: 'price', value: 5000000 }) })}${U.field({ label: 'Loại phòng', input: U.select({ name: 'type', value: 'Phòng đơn', options: ['Căn hộ Studio', 'Căn hộ 1PN', 'Căn hộ 2PN', 'Phòng đơn', 'Phòng đôi'] }), cls: 'span2' })}</div>`, footer: footer('Tạo phòng', 'grid') });
-    U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); run(m, () => X.createRoomsBulk({ buildingId, floorFrom: Number(d.floorFrom), floorTo: Number(d.floorTo), perFloor: Number(d.perFloor), price: d.price, type: d.type }), r => 'Đã tạo ' + r.made.length + ' phòng' + (r.skipped ? ', bỏ qua ' + r.skipped + ' trùng mã' : '')); } });
+    const m = U.modal({ title: 'Tạo nhiều phòng', sub: 'Sinh mã theo mẫu ' + b.prefix + '.<tầng>.<số>, bỏ qua mã đã tồn tại; số tầng / phòng mỗi tầng của tòa được cập nhật theo', body: `<div class="form-grid">${U.field({ label: 'Từ tầng', input: U.input({ name: 'floorFrom', type: 'number', value: 1, attrs: { min: 1 } }) })}${U.field({ label: 'Đến tầng', input: U.input({ name: 'floorTo', type: 'number', value: b.floors || 1, attrs: { min: 1 } }) })}${U.field({ label: 'Số phòng mỗi tầng', input: U.input({ name: 'perFloor', type: 'number', value: b.perFloor || 4, attrs: { min: 1, max: 20 } }) })}${U.field({ label: 'Diện tích (m²)', input: U.input({ name: 'area', type: 'number', value: 25 }) })}${U.field({ label: 'Giá tham chiếu', input: U.money({ name: 'price', value: 5000000 }) })}${U.field({ label: 'Loại phòng', input: U.select({ name: 'type', value: 'Phòng đơn', options: ['Căn hộ Studio', 'Căn hộ 1PN', 'Căn hộ 2PN', 'Phòng đơn', 'Phòng đôi'] }), cls: 'span2' })}</div>`, footer: footer('Tạo phòng', 'grid') });
+    U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); run(m, () => X.createRoomsBulk({ buildingId, floorFrom: Number(d.floorFrom), floorTo: Number(d.floorTo), perFloor: Number(d.perFloor), price: d.price, type: d.type, area: Number(d.area) }), r => 'Đã tạo ' + r.made.length + ' phòng' + (r.skipped ? ', bỏ qua ' + r.skipped + ' trùng mã' : '')); } });
   };
   Fm.roomStatus = (room) => {
     const m = U.modal({ title: 'Đổi trạng thái phòng ' + room.code, size: 'sm', body: U.field({ label: 'Trạng thái mới', input: U.select({ name: 'status', value: room.status === 'maintenance' ? 'ready' : 'maintenance', options: [['ready', 'Sẵn sàng'], ['maintenance', 'Bảo trì'], ['inactive', 'Ngừng sử dụng']].filter(([k]) => k !== room.status) }) }) + U.field({ label: 'Ghi chú', input: U.textarea({ name: 'note', placeholder: 'Lý do…' }), cls: 'mt12' }), footer: footer('Cập nhật') });
@@ -104,7 +112,7 @@
       ${U.field({ label: 'Tài khoản nhận tiền', input: U.input({ name: 'bankAccount', value: l.bankAccount || '', placeholder: 'Ngân hàng – số TK' }) })}
       ${U.field({ label: 'Địa chỉ', input: U.input({ name: 'address', value: l.address || '' }), cls: 'span2' })}
       ${U.field({ label: 'Chu kỳ trả mặc định', input: U.select({ name: 'cycleMonths', value: l.cycleMonths || 3, options: [[3, '3 tháng'], [4, '4 tháng'], [6, '6 tháng']] }) })}
-      ${U.field({ label: 'Trạng thái', input: U.select({ name: 'status', value: l.status || 'active', options: [['active', 'Đang hợp tác'], ['expiring', 'Sắp hết hạn'], ['paused', 'Tạm ngừng']] }) })}
+      ${U.field({ label: 'Trạng thái hợp tác', input: U.select({ name: 'status', value: l.status === 'paused' ? 'paused' : 'active', options: [['active', 'Đang hợp tác'], ['paused', 'Tạm ngừng']] }), help: 'Sắp hết hạn được tính tự động theo HĐ đầu vào.' })}
       <div class="field span2"><label>Tòa liên kết</label><div class="row wrap gap12">${opt.buildings(true).map(([id, nm]) => U.check({ name: 'b_' + id, label: nm, checked: (l.buildingIds || []).includes(id) })).join('')}</div></div></div>`, footer: footer(l.id ? 'Lưu thay đổi' : 'Lưu chủ nhà') });
     U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); d.buildingIds = opt.buildings(true).filter(([id]) => d['b_' + id]).map(([id]) => id); Object.keys(d).forEach(k => k.startsWith('b_') && delete d[k]); d.cycleMonths = Number(d.cycleMonths); if (l.id) d.id = l.id; run(m, () => X.saveLandlord(d), r => 'Đã lưu chủ nhà ' + r.name); } });
   };
@@ -112,15 +120,15 @@
     const l = St.get('landlords', landlordId);
     const m = U.drawer({ title: c.id ? 'Sửa hợp đồng đầu vào' : 'Thêm hợp đồng đầu vào', sub: l.name + ' – chu kỳ trả 3/4/6 tháng theo thỏa thuận (BR-11)', body: `<div class="form-grid">
       ${U.field({ label: 'Ngày ký', input: U.date({ name: 'signedDate', value: c.signedDate || F.today() }) })}${U.field({ label: 'Loại hợp đồng', input: U.select({ name: 'type', value: c.type || 'Hợp đồng thuê tòa nhà', options: ['Hợp đồng thuê tòa nhà', 'Hợp đồng hợp tác kinh doanh'] }) })}
-      ${U.field({ label: 'Ngày bắt đầu', req: true, input: U.date({ name: 'start', value: c.start || F.today() }) })}${U.field({ label: 'Ngày kết thúc', req: true, input: U.date({ name: 'end', value: c.end || F.addMonths(F.today(), 36) }) })}
+      ${U.field({ label: 'Ngày bắt đầu', req: true, input: U.date({ name: 'start', value: c.start || F.today() }) })}${U.field({ label: 'Ngày kết thúc', req: true, input: U.date({ name: 'end', value: c.end || F.addDays(F.addMonths(F.today(), 36), -1) }) })}
       ${U.field({ label: 'Giá thuê / tháng', req: true, input: U.money({ name: 'rent', value: c.rent || '' }) })}${U.field({ label: 'Tiền cọc', input: U.money({ name: 'deposit', value: c.deposit || '' }) })}
       ${U.field({ label: 'Thời gian giữ giá (tháng)', input: U.input({ name: 'priceHoldMonths', type: 'number', value: c.priceHoldMonths || 24 }), help: 'Chủ nhà không tăng giá trong thời gian giữ giá (Q05)' })}${U.field({ label: 'Chu kỳ trả', req: true, input: U.select({ name: 'cycleMonths', value: c.cycleMonths || l.cycleMonths || 3, options: [[3, '3 tháng/lần'], [4, '4 tháng/lần'], [6, '6 tháng/lần']] }) })}
-      <div class="field span2"><label>Tòa liên kết<span class="req">*</span></label><div class="row wrap gap12">${opt.buildings(true).map(([id, nm]) => U.check({ name: 'b_' + id, label: nm, checked: (c.buildingIds || l.buildingIds || []).includes(id) })).join('')}</div></div>
+      <div class="field span2"><label>Tòa thuộc hợp đồng<span class="req">*</span></label><div class="row wrap gap12">${St.all('buildings').map(b => { const other = b.landlordId && b.landlordId !== landlordId; return U.check({ name: 'b_' + b.id, label: esc(b.name) + ' (' + esc(b.code) + ')' + (other ? ' <span class="chip gray">Thuộc ' + esc((St.get('landlords', b.landlordId) || {}).name || '') + '</span>' : ''), checked: !other && (c.buildingIds || l.buildingIds || []).includes(b.id), attrs: other ? { disabled: true } : {} }); }).join('')}</div><div class="help">Chỉ tòa của chủ nhà này hoặc chưa có chủ nhà. Lưu HĐ mới sẽ tự sinh lịch trả theo chu kỳ.</div></div>
       ${U.field({ label: 'Ghi chú', input: U.textarea({ name: 'note', value: c.note || '' }), cls: 'span2' })}</div>`, footer: footer('Lưu hợp đồng') });
-    U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); d.buildingIds = opt.buildings(true).filter(([id]) => d['b_' + id]).map(([id]) => id); Object.keys(d).forEach(k => k.startsWith('b_') && delete d[k]); if (!d.buildingIds.length) throw new Error('Chọn ít nhất một tòa'); d.landlordId = landlordId; d.cycleMonths = Number(d.cycleMonths); d.priceHoldMonths = Number(d.priceHoldMonths); if (c.id) d.id = c.id; run(m, () => X.saveLandlordContract(d), 'Đã lưu hợp đồng đầu vào'); } });
+    U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); d.buildingIds = St.all('buildings').filter(b => d['b_' + b.id]).map(b => b.id); Object.keys(d).forEach(k => k.startsWith('b_') && delete d[k]); if (!d.buildingIds.length) return U.toast('warn', 'Chọn ít nhất một tòa'); d.landlordId = landlordId; d.cycleMonths = Number(d.cycleMonths); d.priceHoldMonths = Number(d.priceHoldMonths); if (c.id) d.id = c.id; run(m, () => X.saveLandlordContract(d), r => 'Đã lưu hợp đồng đầu vào ' + r.code + (c.id ? '' : ' – lịch trả đã sinh tự động')); } });
   };
   Fm.landlordSchedule = (lc) => {
-    const m = U.modal({ title: 'Tạo lịch thanh toán', size: 'sm', sub: 'Sinh các kỳ theo chu kỳ ' + lc.cycleMonths + ' tháng, số tiền = giá thuê × chu kỳ', body: `<div class="form-grid">${U.field({ label: 'Kỳ đầu từ ngày', input: U.date({ name: 'from', value: lc.start }) })}${U.field({ label: 'Số kỳ', input: U.input({ name: 'periods', type: 'number', value: 4 }) })}</div>`, footer: footer('Tạo lịch', 'calendar') });
+    const m = U.modal({ title: 'Tạo lịch thanh toán', size: 'sm', sub: 'Bổ sung kỳ còn thiếu theo chu kỳ ' + lc.cycleMonths + ' tháng, số tiền = giá thuê × chu kỳ (kỳ đã có được giữ nguyên)', body: `<div class="form-grid">${U.field({ label: 'Kỳ đầu từ ngày', input: U.date({ name: 'from', value: lc.start }) })}${U.field({ label: 'Số kỳ', input: U.input({ name: 'periods', type: 'number', value: Q.landlordSchedulePreview(lc).length }) })}</div>`, footer: footer('Tạo lịch', 'calendar') });
     U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); run(m, () => X.generateLandlordSchedule(lc.id, { from: d.from, periods: Number(d.periods) }), r => 'Đã tạo ' + r.length + ' kỳ thanh toán'); } });
   };
   Fm.landlordPayment = (lc) => {

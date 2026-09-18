@@ -1,117 +1,83 @@
-# Chuẩn hóa Sidebar và phân quyền cho bản Demo dùng Mock Data
+# Kế hoạch chạy lại UAT và lập minh chứng UI cho Phase 1–3 trên `develop`
 
-## Tóm tắt
+## 1. Chuẩn bị baseline và bộ chạy
 
-Giai đoạn hiện tại chỉ xử lý frontend demo:
+- Cập nhật `origin/develop`, ghi nhận commit SHA, rồi tạo worktree/nhánh UAT biệt lập từ commit đó để không ảnh hưởng 12 file chưa commit trong workspace hiện tại.
+- Kiểm tra Node, Chrome/Browser, LibreOffice và công cụ render DOCX; nếu thiếu thì xin phê duyệt cài/bật trước khi chạy chính thức.
+- Mở rộng runner hiện có thành bộ chạy theo phase:
+  - `walkthrough:p1`: 36 mốc S0–F10.
+  - `walkthrough:p2`: 20 mốc F11–F15 và F08.5.
+  - `walkthrough:p3`: 15 mốc F16–F19.
+  - `walkthrough:all`: chạy tuần tự cả 71 mốc và tổng hợp kết quả.
+- Mỗi phase dùng browser context và dữ liệu sạch riêng:
+  - P1: chỉ bật Phase 1.
+  - P2: bật P2, dùng seed P1 làm dữ liệu nền.
+  - P3: bật cả P2 và P3 vì ngân hàng/đối soát phụ thuộc quy tắc P2.
+- Cố định ngày nghiệp vụ `28/10/2026`, kỳ `10/2026`; thời gian chụp và commit SHA lấy theo lần chạy thực tế.
 
-- Tiếp tục dùng dữ liệu seed/local store.
-- Chưa tích hợp API, database, JWT hoặc backend authorization.
-- Sidebar thay đổi theo tài khoản demo.
-- Router, dữ liệu hiển thị và action đều kiểm tra quyền phía frontend.
-- Cấu trúc đủ gọn để sau này thay nguồn mock bằng API mà không phải thiết kế lại sidebar.
+## 2. Cách chạy và thu thập bằng chứng
 
-## Thay đổi chính
+- Mọi mốc phải được thao tác qua UI: đăng nhập/chuyển vai trò, nhập form, xác nhận modal, điều hướng route và quan sát kết quả; không dùng `runAllP2/runAllP3` để tạo kết quả thay cho thao tác UI.
+- Với mỗi mốc lưu:
+  - Vai trò, route, phase flags và dữ liệu nhập.
+  - Hành động thực hiện.
+  - Kết quả mong đợi theo guide/SRS.
+  - Kết quả thực tế đọc từ UI và state assertion.
+  - Record ID động, timestamp, commit SHA và trạng thái PASS/FAIL.
+  - Ảnh `input`, `action` khi cần và `result`; ảnh lỗi có console/stack tương ứng.
+- Ảnh chụp ở 1440×1080, cuộn đúng bản ghi cần chứng minh và làm nổi vùng thao tác; không chấp nhận ảnh chỉ có toast nhưng không thấy dữ liệu kết quả.
+- Kiểm tra thực nội dung file tải xuống cho CSV/PDF: tồn tại, tên file, header, số dòng, giá trị chính và checksum.
+- Zalo, OCR và dịch vụ ngoài phải gắn nhãn “mô phỏng”; không diễn giải trạng thái mô phỏng thành tích hợp production.
+- Thêm smoke test liên phase:
+  - CRM P2 tạo hợp đồng/phòng thuộc dữ liệu lõi P1.
+  - Bảo trì P2 tạo chi phí tài chính.
+  - Kiểm kê P3 đồng bộ tình trạng tài sản.
+  - Lương P3 tạo chi phí đúng kỳ.
+  - Đối soát ngân hàng P3 tạo khoản thu và giảm công nợ.
+  - Cổ đông chỉ xem dữ liệu thuộc phạm vi của mình.
 
-### 1. Kiến trúc navigation
+## 3. Sửa lỗi và tiêu chí nghiệm thu
 
-Không duy trì 7 sidebar độc lập chứa route và permission bị lặp. Tách thành:
+- Chạy `npm run check` trước UAT; yêu cầu syntax và toàn bộ ma trận RBAC PASS.
+- Nếu một mốc FAIL:
+  - Lưu evidence lỗi và nguyên nhân.
+  - Sửa mã trên nhánh UAT xuất phát từ `origin/develop`.
+  - Chạy lại phase bị ảnh hưởng từ dữ liệu sạch.
+  - Sau khi sửa hết, chạy lại toàn bộ 71 mốc để loại trừ regression.
+- Xử lý rõ các điểm đã phát hiện:
+  - Đồng bộ trạng thái dòng khấu trừ với trạng thái hồ sơ hoàn cọc.
+  - Chụp đúng dòng công nợ demo và số dư sau thu một phần.
+  - Kiểm tra nội dung CSV thay vì chỉ xác nhận nút xuất.
+  - Giữ quy tắc “không tự bù trừ công nợ vào cọc” theo OI-07 nhưng đánh dấu `NEEDS BUSINESS CONFIRMATION`, không tự thay đổi quy tắc nghiệp vụ.
+- Điều kiện hoàn tất:
+  - 71/71 mốc PASS; các smoke test liên phase PASS.
+  - Không còn screenshot thiếu, hỏng hoặc không chứng minh được kết quả.
+  - Manifest từng phase có `qa.status = PASS`.
+  - Phân quyền, phép tính tiền, vòng đời phòng/hợp đồng/hóa đơn và tính idempotent đều đạt.
+  - Nếu có vấn đề nghiệp vụ chưa được chốt, tài liệu ghi rõ “PASS theo mockup hiện tại” và không kết luận production-ready.
 
-- `NAV_ITEMS`: định nghĩa chức năng dùng chung gồm `key`, `label`, `icon`, `href`, `permission`, `phase`.
-- `ROLE_NAV_LAYOUT`: định nghĩa nhóm và thứ tự menu cho từng role bằng `key`.
-- `ROLE_POLICY`: danh sách permission của từng role.
-- `DATA_SCOPE`: cách lọc mock data theo tài khoản đang đăng nhập.
+## 4. Bộ tài liệu và giao diện đầu ra
 
-Luồng render:
+- Không ghi đè evidence cũ; tạo thư mục phiên bản:
+  `docs/uat/develop-<short-sha>-<YYYYMMDD>/`.
+- Tạo bốn tài liệu:
+  - `00_TimeHouse_UAT_3_Phase_Summary.docx`
+  - `01_TimeHouse_Phase1_UAT_Evidence.docx`
+  - `02_TimeHouse_Phase2_UAT_Evidence.docx`
+  - `03_TimeHouse_Phase3_UAT_Evidence.docx`
+- Mỗi DOCX phase gồm: metadata lần chạy, sơ đồ swimlane, ma trận traceability, mô tả từng flow/mốc, dữ liệu nhập, action, expected/actual, ảnh minh chứng, mã record, kết luận và danh sách vấn đề.
+- DOCX tổng hợp gồm: trạng thái 3 phase, 71 mốc, liên kết liên phase, lỗi đã sửa, vấn đề cần khách hàng xác nhận và kết luận mức sẵn sàng.
+- Kèm artifact máy đọc:
+  - `manifest.json` riêng từng phase.
+  - `summary.json` toàn bộ đợt chạy.
+  - Thư mục `evidence/` và `downloads/`.
+  - `issues.md` ghi lỗi, quyết định và giới hạn mô phỏng.
+- Render toàn bộ DOCX thành PNG, kiểm tra 100% số trang, sửa mọi lỗi tràn chữ/bảng/ảnh trước khi bàn giao. Chỉ DOCX và manifest/evidence gốc được xem là deliverable; ảnh render trang chỉ phục vụ QA nội bộ.
 
-```text
-Mock session
-→ Xác định role
-→ Lấy layout của role
-→ Ghép NAV_ITEMS
-→ Lọc permission
-→ Lọc phase
-→ Bỏ nhóm rỗng
-→ Render sidebar
-```
+## 5. Thay đổi interface và giả định
 
-Launcher và Quick Create dùng cùng `ROLE_POLICY`, không khai báo quyền riêng.
-
-### 2. Sidebar theo từng role
-
-- **Admin — 6 mục cấp một:** Tổng quan; Quản lý cho thuê; Kinh doanh; Tài chính; Vận hành; Báo cáo. Công cụ quản trị đặt trong Launcher.
-- **Ops — 6 mục:** Công việc của tôi; Phòng & tòa nhà; Khách thuê & hợp đồng; Tài chính vận hành; Bảo trì & tài sản; Hỗ trợ kinh doanh. Bổ sung Lead và Inventory.
-- **Accountant — 5 mục:** Công việc của tôi; Tài chính; Dữ liệu & đối soát; Báo cáo; Tra cứu. Bổ sung Maintenance và Inventory.
-- **Sale — 3 mục:** Công việc của tôi; Kinh doanh; Tra cứu.
-- **Kỹ thuật — 3 mục:** Công việc của tôi; Công việc kỹ thuật; Tra cứu.
-- **HR — 3 mục:** Công việc của tôi; Nhân sự; Tra cứu.
-- **Cổ đông — 2 mục:** Tổng quan đầu tư; Đầu tư.
-
-Mỗi chức năng có một entry point chính trong sidebar hoặc Launcher, không xuất hiện trùng ở cả hai.
-
-### 3. Scope dữ liệu mock
-
-Sử dụng trực tiếp dữ liệu hiện có:
-
-- Ops: lọc theo `users.buildingIds`.
-- Sale thường: lọc theo `saleId === session.userId`.
-- Trưởng Sale: xác định qua `salesTeams.leadUserId`, được xem dữ liệu người dùng cùng `teamId`.
-- Kỹ thuật: nối `employees.userId` với `buildingAssignments` để lấy tòa phụ trách; chỉ cập nhật sự cố giao cho mình hoặc nhận sự cố chưa phân công thuộc tòa đó.
-- Cổ đông: nối `shareholders.userId` với cam kết vốn và dự án để xác định phạm vi.
-- Admin và Accountant: không giới hạn tòa đối với nghiệp vụ được cấp quyền.
-- HR: chỉ truy cập nghiệp vụ nhân sự và dữ liệu tòa phục vụ phân công.
-
-Mọi KPI, bộ đếm, dashboard, dropdown và bảng phải lọc dữ liệu trước khi tính toán.
-
-### 4. Router và action frontend
-
-Thứ tự guard:
-
-```text
-Login → Permission → Data scope → Phase → Render
-```
-
-- Chưa đăng nhập: về trang login.
-- Sai quyền hoặc ngoài scope: trang 403.
-- Có quyền nhưng phase chưa bật: trang “Sắp ra mắt”.
-- Đủ điều kiện: render trang.
-
-Chuẩn hóa internal interface:
-
-```javascript
-can(permission, resourceContext?)
-need(permission, resourceContext?)
-filterByScope(collection, records, action?)
-```
-
-Tất cả action thay đổi mock data phải gọi `need()` trước khi gọi `store.add`, `store.update` hoặc `store.remove`. Việc ẩn nút không được xem là kiểm soát quyền.
-
-Sửa các lỗi điều hướng hiện tại:
-
-- Kỹ thuật phải thực sự lọc “Sự cố được giao”; không chỉ thêm `?assignee=me`.
-- Sale chỉ nhìn thấy dữ liệu cá nhân/team.
-- KPI Cổ đông chỉ tính trên dự án được phép xem.
-- Sửa `menuKey` của OCR, Inventory và Shareholders.
-- Liên kết ROI của Cổ đông trỏ đúng `/investment/roi`.
-- Router kiểm tra permission trước khi hiển thị thông báo phase.
-
-## Kiểm thử demo
-
-- Kiểm thử `7 role × 65 route × trạng thái phase`.
-- Đăng nhập lần lượt từng tài khoản demo và đối chiếu sidebar.
-- Truy cập URL trực tiếp để xác nhận route trái quyền trả 403.
-- Gọi trực tiếp action trái quyền và xác nhận mock state không thay đổi.
-- Kiểm tra dữ liệu chéo:
-  - Ops không thấy tòa ngoài phân công.
-  - Sale không thấy lead và hoa hồng của người khác.
-  - Kỹ thuật không xử lý sự cố của kỹ thuật viên khác.
-  - Cổ đông không thấy thông tin cá nhân và phần vốn của người khác.
-- Kiểm tra dashboard, badge, bộ lọc, tìm kiếm và dropdown không làm lộ dữ liệu ngoài scope.
-- Chạy `npm run check` sau khi hoàn tất.
-
-## Giả định
-
-- Giữ cơ chế đăng nhập demo và local storage hiện tại.
-- Không tạo hoặc kết nối API.
-- Không triển khai database, token, middleware backend hay migration.
-- Reset demo sẽ phục hồi seed data và tài khoản mẫu.
-- Phân quyền frontend nhằm mô phỏng đúng nghiệp vụ và UX; chưa được xem là bảo mật production.
+- Thêm các lệnh npm `walkthrough:p2`, `walkthrough:p3`, `walkthrough:all`; giữ tương thích `walkthrough:p1`.
+- Chuẩn hóa manifest với các trường: `phase`, `flow`, `milestone`, `role`, `route`, `inputs`, `expected`, `actual`, `assertions`, `screenshots`, `downloads`, `recordIds`, `commit`, `timestamps`, `status`, `error`.
+- Không thay đổi API nghiệp vụ công khai; thay đổi chỉ nằm ở runner, assertion, sửa lỗi phát hiện trong UAT và tài liệu.
+- Dùng dữ liệu demo, không dùng PII thật.
+- Nhánh UAT được tạo từ `origin/develop`; không tự push hoặc merge vào `develop`. Cuối đợt sẽ bàn giao commit/patch để review và tích hợp mà không làm mất các thay đổi chưa commit hiện tại.

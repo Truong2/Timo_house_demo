@@ -12,16 +12,24 @@
     const msgs = mainC ? St.where('zaloMessages', m => m.source === 'user' && (m.tenantId === mainC.tenantId)) : []; const batches = [...new Set(msgs.map(m => m.batchId))].map(id => St.get('zaloBatches', id)).filter(Boolean).sort((a, b) => F.cmp(a.createdAt, b.createdAt));
     const b1 = batches.find(b => ['issued', 'reminder', 'manual', 'due_soon'].includes(b.sourceKey) || b.eventKey === 'reminder') || batches[0] || null; const b2 = pay ? (batches.find(b => b !== b1 && b.createdAt >= pay.createdAt && (b.eventKey === 'debt' || ['overdue', 'debt', 'due_soon'].includes(b.sourceKey))) || null) : null;
     const rf = mainC ? ((pin.refundId && St.get('refunds', pin.refundId)) || St.one('refunds', r => r.contractId === mainC.id)) : null; const cleaned = room ? St.one('auditLog', l => l.action === 'confirmCleaned' && l.entityId === room.id) : null;
-    return { uT, uC, mainC, room, uInv, inv, pay, msgs, batches, b1, b2, rf, cleaned, visited: St.state.guide.visited || {} };
+    // F00: chủ nhà / tòa / HĐ đầu vào do người dùng tạo qua onboarding
+    const uL = St.where('landlords', l => l.source === 'user'); const uB = St.where('buildings', b => b.source === 'user'); const uLc = St.where('landlordContracts', c => c.source === 'user');
+    return { uT, uC, mainC, room, uInv, inv, pay, msgs, batches, b1, b2, rf, cleaned, uL, uB, uLc, visited: St.state.guide.visited || {} };
   };
   const v = (c, path) => Object.keys(c.visited).some(k => k === path || k.startsWith(path + '?') || (path.endsWith('/') && k.startsWith(path)));
-  /* ---- 10 luồng / 36 mốc ---- */
+  /* ---- 11 luồng / 40 mốc (F00 thiết lập + 10 luồng vận hành / 36 mốc) ---- */
   G.FLOWS = [
     { key: 'S0', title: 'Khởi động', golive: '', ms: [
       { id: 'S0.1', title: 'Đăng nhập hệ thống', route: '#/login', role: 'admin', how: 'Đăng nhập bằng tài khoản admin (mật khẩu bất kỳ). Có thể bấm chip "admin – Quản trị viên".', expect: 'Vào Tổng quan, topbar hiện tên Nguyễn Văn Minh – Quản trị viên.', check: () => !!St.state.session, hl: 'login-card' },
       { id: 'S0.2', title: 'Xem Tổng quan', route: '#/dashboard', role: 'any', how: 'Quan sát 4 KPI phòng, Tổng quan tài chính, 2 biểu đồ và bảng Top khoản quá hạn.', expect: 'Số phòng Sẵn sàng, Giữ chỗ và Tiến độ thu hiển thị; nút "Nhắc thu" trên từng dòng quá hạn.', check: c => v(c, '/dashboard'), hl: 'dash-kpi' },
       { id: 'S0.3', title: 'Kiểm tra danh mục dịch vụ & bảng giá', route: '#/settings/catalog', role: 'admin', how: 'Mở Cấu hình → Danh mục dùng chung. Chọn 1 dịch vụ để xem giá, phạm vi và lịch sử áp dụng.', expect: '7 dịch vụ (Điện 3.500/kWh, Nước 20.000/m³, Internet, Thang máy, Phí quản lý, Sạc xe điện, Gửi xe) đang hoạt động.', check: c => v(c, '/settings/catalog') && St.where('services', s => s.status === 'active').length > 0, hl: 'catalog-table' },
       { id: 'S0.4', title: 'Xem phòng sẵn sàng cho thuê', route: '#/rooms?status=ready', role: 'ops', how: 'Mở Vận hành → Phòng, lọc tab "Sẵn sàng". Ghi nhớ một mã phòng để tạo hợp đồng.', expect: 'Danh sách phòng Sẵn sàng có nút "Giữ chỗ" và "Tạo hợp đồng" trên mỗi dòng.', check: c => v(c, '/rooms') && St.where('rooms', r => r.status === 'ready').length > 0, hl: 'rooms-table' },
+    ] },
+    { key: 'F00', title: 'Thiết lập chủ nhà, tòa & phòng', golive: '', ms: [
+      { id: 'F00.1', title: 'Onboarding chủ nhà → HĐ đầu vào → tòa', route: '#/landlords/new', role: 'admin', how: 'Quản lý cho thuê → Chủ nhà & đối tác → "+ Thêm chủ nhà". Nhập chủ nhà; ở bước 2 nhập HĐ đầu vào (thời hạn, giá thuê, chu kỳ 3/4/6 tháng) và khai báo tòa mới (tên, địa chỉ, Khu nhà, tiền tố, số tầng, phòng/tầng).', expect: 'Có tòa ⇒ bắt buộc có HĐ đầu vào; tòa đã thuộc chủ nhà khác bị khóa.', check: c => v(c, '/landlords/new') || c.uL.length > 0, hl: 'landlord-add' },
+      { id: 'F00.2', title: 'Sinh phòng theo lưới & hoàn tất', route: '#/landlords/new', role: 'admin', how: 'Bước 3 kiểm tra lưới phòng (từ tầng – đến tầng × phòng/tầng, giá tham chiếu) rồi "Kiểm tra hồ sơ" → "Hoàn tất onboarding".', expect: 'Toast "N tòa · M phòng · HD-… · K kỳ trả"; chuyển tới chi tiết chủ nhà tab Tòa nhà.', check: c => c.uB.length > 0 && c.uB.some(b => Q.roomsOf(b.id).length > 0), hl: 'landlord-add' },
+      { id: 'F00.3', title: 'Lịch trả chủ nhà sinh tự động', route: c => c.uL[0] ? '#/landlords/' + c.uL[0].id + '?tab=contracts' : '#/landlords', role: 'admin', how: 'Mở chi tiết chủ nhà → tab Hợp đồng đầu vào: lịch thanh toán đã có các kỳ theo chu kỳ, số tiền = giá thuê × chu kỳ.', expect: 'Danh sách kỳ với trạng thái Chưa đến hạn/Chờ thanh toán; "Ghi nhận đã trả" tạo chi phí Thuê nhà.', check: c => c.uLc.some(lc => St.where('landlordPayments', p => p.landlordContractId === lc.id).length > 0) },
+      { id: 'F00.4', title: 'Tòa liên kết HĐ đầu vào', route: c => c.uB[0] ? '#/buildings/' + c.uB[0].id + '?tab=landlord' : '#/buildings', role: 'admin', how: 'Mở chi tiết tòa → tab "Chủ nhà & HĐ đầu vào" – HĐ phủ tòa, kỳ trả tới, thời gian giữ giá; tab Phòng liệt kê phòng đã sinh.', expect: 'Phòng chỉ cho thuê khi tòa có HĐ đầu vào hiệu lực (review HĐ khách thuê có dòng kiểm tra tương ứng).', check: c => c.uB.some(b => Object.keys(c.visited).some(k => k.startsWith('/buildings/' + b.id))) },
     ] },
     { key: 'F01', title: 'Tạo khách thuê', golive: '1', ms: [
       { id: 'F01.1', title: 'Mở form Thêm khách thuê', route: '#/tenants', role: 'ops', how: 'Vào Vận hành → Khách thuê, bấm "+ Thêm khách thuê". Drawer form mở bên phải.', expect: 'Form có Họ tên*, SĐT*, Zalo, Email, CCCD, Nghề nghiệp, Phân khúc (nhập tay – BR-18).', check: c => v(c, '/tenants'), hl: 'tenant-add' },
@@ -76,7 +84,7 @@
       { id: 'F10.4', title: 'Xuất báo cáo công nợ', route: '#/reports?tab=debt', role: 'accountant', how: 'Báo cáo → Báo cáo công nợ → "Xuất CSV".', expect: 'File CSV tải về với phải thu/đã thu/còn nợ theo tòa.', check: c => v(c, '/reports') },
     ] },
   ];
-  // Phase 2: luồng có phase:2 chỉ hiện khi TH.phase.on(2) (tắt P2 → panel y hệt bản P1: 10 luồng / 36 mốc)
+  // Phase 2: luồng có phase:2 chỉ hiện khi TH.phase.on(2) (tắt P2 → panel y hệt bản P1: F00 + 10 luồng / 36 mốc)
   G.flows = () => G.FLOWS.filter(f => !f.phase || (TH.phase && TH.phase.on(f.phase)));
   G.all = () => G.flows().flatMap(f => f.ms.map(m => Object.assign({ flow: f.key, phase: f.phase }, m)));
   /* ---- đánh giá ---- */

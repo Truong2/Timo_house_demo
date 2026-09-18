@@ -40,7 +40,8 @@
     }
     const code = d.code || St.nextCode('buildings', 'TH-', 2);
     if (St.byCode('buildings', code)) err('Mã tòa ' + code + ' đã tồn tại');
-    const b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, prefix: (d.prefix || code.split('-')[1] || 'X').slice(0, 1).toUpperCase(), status: 'active', payCycle: 3, payDay: 5, roomCount: 0, amenities: [] }, d, { code }));
+    req(d.landlordId, 'Tòa nhà phải thuộc một chủ nhà – tạo qua Onboarding chủ nhà (Chủ nhà → HĐ đầu vào → Tòa → Phòng)');
+    const b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, status: 'active', payCycle: 3, payDay: 5, roomCount: 0, amenities: [] }, d, { code, prefix: autoPrefix(d, code) }));
     assignBuildingLandlord(b, d.landlordId);
     St.audit('create', 'building', b.id, 'Tạo tòa ' + b.name); done(); return b;
   };
@@ -60,11 +61,20 @@
     const r = St.add('rooms', Object.assign({ floor: 1, type: 'Phòng đơn', area: 20, price: 0, physical: 'good', status: 'ready', managerId: Q.building(d.buildingId).managerId, direction: '', furniture: 'Cơ bản', defaultServiceIds: [] }, d, { code }));
     St.audit('create', 'room', r.id, 'Tạo phòng ' + r.code); done(); return r;
   };
-  X.createRoomsBulk = ({ buildingId, floorFrom, floorTo, perFloor, price, type }) => {
+  // Tiền tố mã phòng: nhập tay → chữ cái đầu của mã (TH-HBT → H) → chữ cái đầu tên tòa (bỏ 'Tòa') → X
+  const autoPrefix = (d, code) => { const p = String(d.prefix || '').trim(); if (/^[A-Za-z]/.test(p)) return p.slice(0, 1).toUpperCase(); const seg = String(code || '').split('-')[1] || ''; if (/^[A-Za-z]/.test(seg)) return seg[0].toUpperCase(); const n = F.norm(String(d.name || '').replace(/^tòa\s+/i, '')).replace(/[^a-z]/g, ''); return (n[0] || 'x').toUpperCase(); };
+  // Sinh phòng theo lưới tầng × số phòng/tầng (mã <prefix>.<tầng>.<số>), bỏ qua mã trùng; cập nhật floors/perFloor/roomCount của tòa
+  const makeRooms = (b, { floorFrom = 1, floorTo, perFloor, price, type, area }) => {
+    const made = []; let skipped = 0; const f0 = Math.max(1, Number(floorFrom) || 1), f1 = Math.max(f0, Number(floorTo) || f0), n1 = Math.max(0, Number(perFloor) || 0);
+    const prefix = autoPrefix(b, b.code);
+    for (let f = f0; f <= f1; f++) for (let n = 1; n <= n1; n++) { const code = prefix + '.' + F.pad(f) + '.' + F.pad(n); if (St.one('rooms', r => r.buildingId === b.id && r.code === code)) { skipped++; continue; } made.push(St.add('rooms', { code, buildingId: b.id, floor: f, type: type || 'Phòng đơn', area: Number(area) || 25, price: F.num(price) || 5000000, physical: 'good', status: 'ready', managerId: b.managerId, direction: '', furniture: 'Cơ bản', defaultServiceIds: [], source: 'user' })); }
+    if (made.length) { b.prefix = prefix; b.floors = Math.max(Number(b.floors) || 1, f1); b.perFloor = Math.max(Number(b.perFloor) || 0, n1); b.roomCount = Q.roomsOf(b.id).length; b.stub = false; }
+    return { made, skipped };
+  };
+  X.createRoomsBulk = ({ buildingId, floorFrom, floorTo, perFloor, price, type, area }) => {
     Au.need('rooms.manage', { buildingId });
-    const b = Q.building(buildingId); const made = []; let skipped = 0;
-    for (let f = floorFrom; f <= floorTo; f++) for (let n = 1; n <= perFloor; n++) { const code = b.prefix + '.' + F.pad(f) + '.' + F.pad(n); if (St.one('rooms', r => r.buildingId === buildingId && r.code === code)) { skipped++; continue; } made.push(St.add('rooms', { code, buildingId, floor: f, type: type || 'Phòng đơn', area: 25, price: price || 5000000, physical: 'good', status: 'ready', managerId: b.managerId, direction: '', furniture: 'Cơ bản', defaultServiceIds: [] })); }
-    St.audit('bulk_create', 'room', buildingId, 'Tạo nhanh ' + made.length + ' phòng (' + skipped + ' bỏ qua vì trùng mã)'); done(); return { made, skipped };
+    const b = Q.building(buildingId); if (!b || !b.id) err('Không tìm thấy tòa'); const r = makeRooms(b, { floorFrom, floorTo, perFloor, price, type, area });
+    St.audit('bulk_create', 'room', buildingId, 'Tạo nhanh ' + r.made.length + ' phòng (' + r.skipped + ' bỏ qua vì trùng mã)'); done(); return r;
   };
   X.setRoomStatus = (id, status, note) => {
     Au.need('rooms.manage', { type: 'room', record: St.get('rooms', id) });
@@ -74,7 +84,7 @@
     St.update('rooms', id, { status, physical: status === 'maintenance' ? 'maintenance' : 'good' }); St.audit('room_status', 'room', id, r.code + ': ' + Q.label('room', r.status) + ' → ' + Q.label('room', status) + (note ? ' – ' + note : '')); done();
   };
   X.confirmCleaned = (id) => { const r = Q.room(id); Au.need('rooms.manage', { type: 'room', record: r }); if (r.status !== 'cleaning') err('Phòng không ở trạng thái Chờ dọn'); St.update('rooms', id, { status: 'ready', physical: 'good' }); St.audit('confirmCleaned', 'room', id, 'Xác nhận dọn xong phòng ' + r.code + ' → Sẵn sàng'); done(); };
-  X.holdRoom = ({ roomId, tenantId, until, deposit, note }) => { const r = Q.room(roomId); Au.need('holds.manage', { type: 'room', record: r }); if (r.status !== 'ready') err('Chỉ giữ chỗ phòng Sẵn sàng'); if (Q.building(r.buildingId).status === 'inactive') err('Tòa đang tạm ngừng – không giữ chỗ'); req(tenantId, 'Chọn khách'); req(until, 'Chọn ngày giữ đến'); if (until < F.today()) err('Ngày giữ đến phải từ hôm nay trở đi'); St.update('rooms', roomId, { status: 'held' }); const h = St.add('holds', { roomId, tenantId, until, deposit: deposit || 0, note: note || '', createdBy: me() }); St.audit('hold', 'room', roomId, 'Giữ chỗ phòng ' + r.code + ' cho ' + Q.tenant(tenantId).name); done(); return h; };
+  X.holdRoom = ({ roomId, tenantId, until, deposit, note }) => { const r = Q.room(roomId); Au.need('holds.manage', { type: 'room', record: r }); if (r.status !== 'ready') err('Chỉ giữ chỗ phòng Sẵn sàng'); if (Q.building(r.buildingId).status === 'inactive') err('Tòa đang tạm ngừng – không giữ chỗ'); if (!Q.landlordContractOf(r.buildingId)) err(Q.building(r.buildingId).name + ' chưa có HĐ đầu vào hiệu lực – bổ sung hợp đồng với chủ nhà trước khi khai thác'); req(tenantId, 'Chọn khách'); req(until, 'Chọn ngày giữ đến'); if (until < F.today()) err('Ngày giữ đến phải từ hôm nay trở đi'); St.update('rooms', roomId, { status: 'held' }); const h = St.add('holds', { roomId, tenantId, until, deposit: deposit || 0, note: note || '', createdBy: me() }); St.audit('hold', 'room', roomId, 'Giữ chỗ phòng ' + r.code + ' cho ' + Q.tenant(tenantId).name); done(); return h; };
   X.releaseHold = (roomId, reason) => {
     const h = Q.roomHold(roomId);
     Au.need('holds.manage', h ? { type: 'hold', record: h } : { type: 'room', record: Q.room(roomId) });
@@ -110,13 +120,22 @@
     St.audit('create', 'landlord', l.id, 'Thêm chủ nhà ' + l.name); done(); return l;
   };
 
-  /* Tạo/cập nhật hồ sơ chủ nhà cùng Khu nhà, Tòa nhà và HĐ đầu vào trong một lần xác nhận. */
+  /* Lịch trả chủ nhà theo HĐ (dùng chung cho onboarding, tạo HĐ và nút "Tạo lịch"): bỏ qua kỳ đã có cùng hạn */
+  const buildSchedule = (c, { from, periods } = {}) => {
+    const existing = St.where('landlordPayments', p => p.landlordContractId === c.id); const made = [];
+    Q.landlordSchedulePreview({ start: c.start, end: c.end, rent: c.rent, cycleMonths: c.cycleMonths, from, periods }).forEach(x => { if (existing.some(p => p.dueDate === x.dueDate)) return; made.push(St.add('landlordPayments', { landlordContractId: c.id, landlordId: c.landlordId, buildingId: (c.buildingIds || [])[0] || null, periodLabel: Q.landlordPeriodLabel(existing.length + made.length + 1, x.dueDate, Number(c.cycleMonths)), dueDate: x.dueDate, amount: x.amount, status: x.dueDate < F.today() ? 'pending' : 'upcoming', paidDate: null, evidence: null })); });
+    if (made.length) St.audit('schedule', 'landlordContract', c.id, 'Sinh ' + made.length + ' kỳ thanh toán chủ nhà');
+    return made;
+  };
+  /* Onboarding: Chủ nhà → HĐ đầu vào → Tòa nhà → Phòng trong một lần xác nhận (transactional).
+     Quy tắc: có tòa ⇒ phải có HĐ đầu vào (tạo mới hoặc gắn vào HĐ đang hiệu lực); phòng sinh theo lưới; lịch trả chủ nhà sinh tự động. */
   X.createLandlordOnboarding = (payload = {}) => {
     Au.need('landlords.manage'); Au.need('buildings.manage'); Au.need('catalog.manage');
     const landlordData = Object.assign({}, payload.landlord || {});
     const areaDrafts = (payload.areas || []).map(x => Object.assign({}, x));
     const buildingDrafts = (payload.buildings || []).map(x => Object.assign({}, x, { data: x.data ? Object.assign({}, x.data) : null }));
     const contractData = payload.contract ? Object.assign({}, payload.contract) : null;
+    const roomSpecs = (payload.rooms || []).map(x => Object.assign({}, x));
     const existingLandlord = landlordData.id ? St.get('landlords', landlordData.id) : null;
 
     req(landlordData.name, 'Tên chủ nhà là bắt buộc'); req(landlordData.phone, 'Số điện thoại là bắt buộc');
@@ -149,17 +168,32 @@
         d.code = code; buildingCodes.add(code);
       }
     });
+    // Có tòa ⇒ bắt buộc có HĐ đầu vào
+    if (buildingDrafts.length && !contractData) err('Tòa nhà phải đi kèm hợp đồng đầu vào với chủ nhà');
+    let existingContract = null;
     if (contractData) {
-      req(contractData.start, 'Ngày bắt đầu hợp đồng là bắt buộc'); req(contractData.end, 'Ngày kết thúc hợp đồng là bắt buộc');
-      if (contractData.end <= contractData.start) err('Ngày kết thúc hợp đồng phải sau ngày bắt đầu');
-      if (!(F.num(contractData.rent) > 0)) err('Giá thuê hợp đồng phải lớn hơn 0');
-      if (![3, 4, 6].includes(Number(contractData.cycleMonths))) err('Chu kỳ trả phải là 3, 4 hoặc 6 tháng');
-      if (!(contractData.buildingRefs || []).length) err('Hợp đồng cần liên kết ít nhất một tòa');
-      (contractData.buildingRefs || []).forEach(ref => { if (!buildingRefs.has(ref)) err('Hợp đồng chứa tòa không thuộc hồ sơ onboarding'); });
+      if (!buildingDrafts.length) err('Hợp đồng đầu vào cần ít nhất một tòa');
+      contractData.buildingRefs = (contractData.buildingRefs || []).length ? contractData.buildingRefs : [...buildingRefs];
+      contractData.buildingRefs.forEach(ref => { if (!buildingRefs.has(ref)) err('Hợp đồng chứa tòa không thuộc hồ sơ onboarding'); });
+      if (String(contractData.mode || '').startsWith('existing:')) {
+        existingContract = St.get('landlordContracts', String(contractData.mode).slice(9));
+        if (!existingContract || !existingLandlord || existingContract.landlordId !== existingLandlord.id) err('Hợp đồng đầu vào cần gắn không thuộc chủ nhà này');
+        if (Q.lcStatus(existingContract) === 'ended') err('Hợp đồng ' + existingContract.code + ' đã kết thúc – tạo hợp đồng mới');
+      } else {
+        req(contractData.start, 'Ngày bắt đầu hợp đồng là bắt buộc'); req(contractData.end, 'Ngày kết thúc hợp đồng là bắt buộc');
+        if (contractData.end <= contractData.start) err('Ngày kết thúc hợp đồng phải sau ngày bắt đầu');
+        if (!(F.num(contractData.rent) > 0)) err('Giá thuê hợp đồng phải lớn hơn 0');
+        if (![3, 4, 6].includes(Number(contractData.cycleMonths))) err('Chu kỳ trả phải là 3, 4 hoặc 6 tháng');
+      }
     }
+    roomSpecs.forEach(sp => {
+      if (!buildingRefs.has(sp.ref)) err('Khai báo phòng cho tòa không thuộc hồ sơ');
+      const item = buildingDrafts.find(x => x.ref === sp.ref); if (item.mode === 'existing' && Q.roomsOf(item.id).length) err('Tòa đã có phòng – không sinh lại danh sách phòng');
+      if (!(Number(sp.floorFrom) >= 1)) err('Từ tầng phải ≥ 1'); if (!(Number(sp.floorTo) >= Number(sp.floorFrom))) err('Đến tầng phải ≥ từ tầng'); if (!(Number(sp.perFloor) >= 1 && Number(sp.perFloor) <= 20)) err('Số phòng mỗi tầng 1–20'); if (!(F.num(sp.price) > 0)) err('Giá tham chiếu phòng phải lớn hơn 0');
+    });
 
     const snapshot = {};
-    ['areas', 'landlords', 'buildings', 'landlordContracts', 'auditLog'].forEach(k => snapshot[k] = JSON.parse(JSON.stringify(St.state[k] || [])));
+    ['areas', 'landlords', 'buildings', 'rooms', 'landlordContracts', 'landlordPayments', 'auditLog'].forEach(k => snapshot[k] = JSON.parse(JSON.stringify(St.state[k] || [])));
     try {
       const areaMap = new Map(); const createdAreas = [];
       areaDrafts.forEach(a => {
@@ -168,31 +202,41 @@
       });
       const landlord = existingLandlord
         ? St.update('landlords', existingLandlord.id, Object.assign({}, landlordData, { cycleMonths: Number(landlordData.cycleMonths) || 3 }))
-        : St.add('landlords', Object.assign({ code: St.nextCode('landlords', 'CN', 3), type: 'person', buildingIds: [], status: 'active', cycleMonths: 3, managerId: me() }, landlordData, { buildingIds: [] }));
+        : St.add('landlords', Object.assign({ code: St.nextCode('landlords', 'CN', 3), type: 'person', buildingIds: [], status: 'active', cycleMonths: 3, managerId: me(), source: 'user' }, landlordData, { buildingIds: [] }));
       landlord.buildingIds = Array.isArray(landlord.buildingIds) ? landlord.buildingIds : [];
       St.audit(existingLandlord ? 'update' : 'create', 'landlord', landlord.id, (existingLandlord ? 'Cập nhật' : 'Thêm') + ' chủ nhà ' + landlord.name + ' qua onboarding');
 
+      const cycle = contractData ? Number(existingContract ? existingContract.cycleMonths : contractData.cycleMonths) : Number(landlord.cycleMonths) || 3;
       const buildingMap = new Map(); const buildings = [];
       buildingDrafts.forEach(item => {
         let b;
         if (item.mode === 'existing') b = St.get('buildings', item.id);
         else {
           const d = item.data || {}; const area = areaMap.get(d.areaRef) || St.get('areas', d.areaRef); const code = d.code || St.nextCode('buildings', 'TH-', 2);
-          b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, prefix: (d.prefix || code.split('-')[1] || 'X').slice(0, 1).toUpperCase(), status: 'active', payCycle: Number(d.payCycle) || Number(landlord.cycleMonths) || 3, payDay: 5, roomCount: 0, amenities: [], buildingType: 'T', condition: 'medium', operatingSince: F.today() }, d, { code, areaId: area.id, landlordId: landlord.id }));
+          b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, status: 'active', payDay: 5, roomCount: 0, amenities: [], buildingType: 'T', condition: 'medium', operatingSince: F.today(), source: 'user' }, d, { code, prefix: autoPrefix(d, code), floors: Number(d.floors) || 1, perFloor: Number(d.perFloor) || 0, payCycle: cycle, areaId: area.id, landlordId: landlord.id }));
           delete b.areaRef; delete b.ref; St.audit('create', 'building', b.id, 'Tạo tòa ' + b.name + ' từ onboarding ' + landlord.name);
         }
-        assignBuildingLandlord(b, landlord.id); buildingMap.set(item.ref, b); buildings.push(b);
+        b.payCycle = cycle; assignBuildingLandlord(b, landlord.id); buildingMap.set(item.ref, b); buildings.push(b);
       });
 
-      let contract = null;
+      const rooms = [];
+      roomSpecs.forEach(sp => { const b = buildingMap.get(sp.ref); const r = makeRooms(b, sp); rooms.push(...r.made); St.audit('bulk_create', 'room', b.id, 'Sinh ' + r.made.length + ' phòng cho tòa ' + b.name + ' từ onboarding'); });
+
+      let contract = null; let payments = [];
       if (contractData) {
-        const ids = contractData.buildingRefs.map(ref => buildingMap.get(ref).id); const first = St.get('buildings', ids[0]);
-        contract = St.add('landlordContracts', Object.assign({ code: 'HD-' + first.code + '-' + F.pad(Q.landlordContracts(landlord.id).length + 1, 3), landlordId: landlord.id, status: 'active', type: 'Hợp đồng thuê tòa nhà', managerId: me(), deposit: 0, priceHoldMonths: 0 }, contractData, { landlordId: landlord.id, buildingIds: ids, cycleMonths: Number(contractData.cycleMonths), rent: F.num(contractData.rent), deposit: F.num(contractData.deposit), priceHoldMonths: Number(contractData.priceHoldMonths) || 0 }));
-        delete contract.buildingRefs; delete contract.enabled; delete contract.contractEnabled;
-        ids.forEach(id => { const b = St.get('buildings', id); b.payCycle = contract.cycleMonths; assignBuildingLandlord(b, landlord.id); });
-        St.audit('create', 'landlordContract', contract.id, 'Tạo HĐ đầu vào ' + contract.code + ' từ onboarding');
+        const ids = contractData.buildingRefs.map(ref => buildingMap.get(ref).id);
+        if (existingContract) {
+          contract = existingContract; contract.buildingIds = [...new Set([...(contract.buildingIds || []), ...ids])];
+          St.audit('update', 'landlordContract', contract.id, 'Bổ sung ' + ids.length + ' tòa vào HĐ đầu vào ' + contract.code);
+        } else {
+          const first = St.get('buildings', ids[0]);
+          contract = St.add('landlordContracts', Object.assign({ code: 'HD-' + first.code + '-' + F.pad(Q.landlordContracts(landlord.id).length + 1, 3), landlordId: landlord.id, status: 'active', type: 'Hợp đồng thuê tòa nhà', managerId: me(), deposit: 0, priceHoldMonths: 0, source: 'user' }, contractData, { landlordId: landlord.id, buildingIds: ids, cycleMonths: Number(contractData.cycleMonths), rent: F.num(contractData.rent), deposit: F.num(contractData.deposit), priceHoldMonths: Number(contractData.priceHoldMonths) || 0 }));
+          delete contract.buildingRefs; delete contract.mode; delete contract.enabled; delete contract.contractEnabled;
+          St.audit('create', 'landlordContract', contract.id, 'Tạo HĐ đầu vào ' + contract.code + ' từ onboarding');
+          payments = buildSchedule(contract);
+        }
       }
-      done(); return { landlord, areas: createdAreas, buildings, contract };
+      done(); return { landlord, areas: createdAreas, buildings, rooms, contract, payments };
     } catch (e) {
       Object.keys(snapshot).forEach(k => { St.state[k] = snapshot[k]; }); St.saveNow(); throw e;
     }
@@ -202,17 +246,22 @@
     Au.need('landlords.manage');
     req(d.landlordId, 'Thiếu chủ nhà'); req(d.start, 'Ngày bắt đầu'); req(d.end, 'Ngày kết thúc'); if (d.end <= d.start) err('Ngày kết thúc phải sau ngày bắt đầu'); req(d.rent, 'Giá thuê');
     if (![3, 4, 6].includes(Number(d.cycleMonths))) err('Chu kỳ trả phải là 3, 4 hoặc 6 tháng (BR-11)');
+    const ids = (d.buildingIds && d.buildingIds.length) ? d.buildingIds : ((d.id && St.get('landlordContracts', d.id)) || {}).buildingIds || []; if (!ids.length) err('Hợp đồng cần liên kết ít nhất một tòa');
+    ids.forEach(bid => {
+      const b = Q.building(bid); if (!b || !b.id) err('Tòa không tồn tại');
+      if (b.landlordId && b.landlordId !== d.landlordId) err(b.name + ' đã thuộc chủ nhà khác – không thể đưa vào hợp đồng');
+      const clash = St.one('landlordContracts', c => c.id !== d.id && (c.buildingIds || []).includes(bid) && Q.lcStatus(c) !== 'ended' && c.start <= d.end && c.end >= d.start); if (clash) err(b.name + ' đã có HĐ ' + clash.code + ' trùng thời gian (' + F.date(clash.start) + ' – ' + F.date(clash.end) + ')');
+    });
     let c;
-    if (d.id) c = St.update('landlordContracts', d.id, d); else c = St.add('landlordContracts', Object.assign({ code: 'HD-' + Q.building(d.buildingIds && d.buildingIds[0]).code + '-' + F.pad(Q.landlordContracts(d.landlordId).length + 1, 3), status: 'active', type: 'Hợp đồng thuê tòa nhà', managerId: me(), deposit: 0, priceHoldMonths: 0 }, d));
-    (c.buildingIds || []).forEach(bid => St.update('buildings', bid, { payCycle: Number(c.cycleMonths), landlordId: c.landlordId }));
-    St.audit('save', 'landlordContract', c.id, 'Lưu HĐ đầu vào ' + c.code); done(); return c;
+    if (d.id) c = St.update('landlordContracts', d.id, Object.assign({}, d, { buildingIds: ids })); else c = St.add('landlordContracts', Object.assign({ code: 'HD-' + Q.building(ids[0]).code + '-' + F.pad(Q.landlordContracts(d.landlordId).length + 1, 3), status: 'active', type: 'Hợp đồng thuê tòa nhà', managerId: me(), deposit: 0, priceHoldMonths: 0, source: 'user' }, d, { buildingIds: ids }));
+    ids.forEach(bid => { const b = Q.building(bid); b.payCycle = Number(c.cycleMonths); assignBuildingLandlord(b, c.landlordId); });
+    const made = d.id ? [] : buildSchedule(c);
+    St.audit('save', 'landlordContract', c.id, 'Lưu HĐ đầu vào ' + c.code + (made.length ? ' – sinh ' + made.length + ' kỳ trả' : '')); done(); return c;
   };
-  X.generateLandlordSchedule = (contractId, { from, periods }) => {
+  X.generateLandlordSchedule = (contractId, { from, periods } = {}) => {
     Au.need('landlordPayments.manage');
-    const c = St.get('landlordContracts', contractId); let due = from || c.start; const made = [];
-    const existing = St.where('landlordPayments', p => p.landlordContractId === contractId);
-    for (let k = 0; k < (periods || 4); k++) { if (!existing.some(p => p.dueDate === due)) made.push(St.add('landlordPayments', { landlordContractId: c.id, landlordId: c.landlordId, buildingId: c.buildingIds[0], periodLabel: 'Kỳ ' + (existing.length + made.length + 1), dueDate: due, amount: c.rent * c.cycleMonths, status: due < F.today() ? 'pending' : 'upcoming', paidDate: null, evidence: null })); due = F.addMonths(due, c.cycleMonths); }
-    St.audit('schedule', 'landlordContract', c.id, 'Sinh ' + made.length + ' kỳ thanh toán chủ nhà'); done(); return made;
+    const c = St.get('landlordContracts', contractId); if (!c) err('Không tìm thấy hợp đồng đầu vào');
+    const made = buildSchedule(c, { from, periods }); done(); return made;
   };
   X.addLandlordPayment = (d) => { Au.need('landlordPayments.manage'); req(d.dueDate, 'Hạn thanh toán'); req(d.amount, 'Số tiền'); const p = St.add('landlordPayments', Object.assign({ status: 'upcoming', paidDate: null, evidence: null }, d)); done(); return p; };
   X.markLandlordPaid = (id, { paidDate, evidence, amount }) => { Au.need('landlordPayments.manage'); req(paidDate, 'Ngày thanh toán'); const cur = St.get('landlordPayments', id); if (cur.status === 'paid') err('Kỳ này đã được ghi nhận thanh toán'); const patch = { status: 'paid', paidDate, evidence: evidence || 'chung_tu.pdf' }; if (F.num(amount) > 0) patch.amount = F.num(amount); const p = St.update('landlordPayments', id, patch);
@@ -258,12 +307,15 @@
     const prev = c.renewedFromId ? St.get('contracts', c.renewedFromId) : null; const renewing = !!(prev && prev.status === 'active' && prev.roomId === c.roomId);
     if (!renewing && !['ready', 'held'].includes(room.status)) err('Phòng ' + room.code + ' đang ' + Q.label('room', room.status) + ', không thể kích hoạt hợp đồng');
     if (Q.building(room.buildingId).status === 'inactive') err('Tòa ' + Q.building(room.buildingId).name + ' đang tạm ngừng – không thể kích hoạt hợp đồng');
+    // Chuỗi pháp lý: phòng chỉ cho thuê khi tòa có HĐ đầu vào hiệu lực tại ngày bắt đầu; HĐ khách kết thúc sau HĐ chủ nhà → cảnh báo
+    const lc = Q.landlordContractOf(room.buildingId, c.start) || Q.landlordContractOf(room.buildingId); if (!lc) err(Q.building(room.buildingId).name + ' chưa có HĐ đầu vào hiệu lực – bổ sung hợp đồng với chủ nhà trước khi cho thuê');
     const hold = renewing ? null : Q.roomHold(room.id); if (hold && hold.tenantId !== c.tenantId) err('Phòng ' + room.code + ' đang giữ chỗ cho khách ' + Q.tenant(hold.tenantId).name + ' – hủy giữ chỗ trước'); if (hold) { if (hold.code || hold.leadId) Object.assign(hold, { status: 'converted', convertedAt: F.nowISO(), contractId: c.id }); else St.remove('holds', hold.id); St.audit('release_hold', 'room', room.id, 'Giữ chỗ chuyển thành hợp đồng ' + c.code); }
     Object.assign(c, { status: 'active', signedDate: c.signedDate || F.today(), activatedAt: F.nowISO() });
     if (renewing) { Object.assign(prev, { status: 'ended', actualEnd: F.addDays(c.start, -1), renewedToId: c.id, endReason: 'Gia hạn bằng hợp đồng ' + c.code }); if (!c.depositPaymentId && prev.depositPaymentId) { c.depositPaymentId = prev.depositPaymentId; c.depositPaidAt = prev.depositPaidAt; c.depositCarriedFrom = prev.code; } St.audit('renew', 'contract', prev.id, 'Gia hạn ' + prev.code + ' → ' + c.code + ' (kích hoạt)'); }
     St.update('rooms', room.id, { status: 'occupied' });
     St.audit('activate', 'contract', c.id, 'Kích hoạt hợp đồng ' + c.code + ' – phòng ' + room.code + ' → Đang thuê');
     const extras = X.lastActivation = { contractId: c.id, payment: null, invoice: null, notes: [] };
+    if (c.end > lc.end) extras.notes.push('HĐ kết thúc sau HĐ chủ nhà ' + lc.code + ' (' + F.date(lc.end) + ') – cần gia hạn HĐ đầu vào');
     if (opts.depositNow && c.deposit > 0 && !c.depositPaymentId) {
       try { Au.need('payments.record'); const date = opts.depositDate || F.today(); if (Q.periodLocked && Q.periodLocked(F.period(date))) err('Kỳ ' + F.periodLabel(F.period(date)) + ' đã khóa');
         const pay = St.add('payments', { code: St.nextCode('payments', 'PAY-' + date.slice(0, 7).replace('-', '') + '-', 3), kind: 'deposit', contractId: c.id, tenantId: c.tenantId, roomId: c.roomId, buildingId: c.buildingId, date, amount: c.deposit, method: opts.depositMethod || 'Tiền mặt', ref: opts.depositRef || '', evidence: '', note: 'Thu tiền cọc hợp đồng ' + c.code, status: 'recorded', createdBy: me(), unallocated: 0, history: [{ at: F.nowISO(), who: (St.state.session || {}).name, what: 'Thu tiền cọc khi kích hoạt HĐ' }] });
