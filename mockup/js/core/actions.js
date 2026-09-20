@@ -26,6 +26,12 @@
       landlord.buildingIds = [...new Set([...(landlord.buildingIds || []), building.id])];
     }
   };
+  const grantBuildingToManager = (building) => {
+    if (!building || !building.managerId) return;
+    const user = (St.state.users || []).find(u => u && u.id === building.managerId);
+    if (!user || user.role !== 'ops') return;
+    user.buildingIds = [...new Set([...(user.buildingIds || []), building.id])];
+  };
 
   /* ---------- Tòa & phòng ---------- */
   X.saveBuilding = (d) => {
@@ -36,13 +42,13 @@
       const old = St.get('buildings', d.id);
       if (d.status === 'inactive' && old.status !== 'inactive') { Au.need('deactivateBuilding'); checkDeactivate(d.id); }
       const nextLandlordId = d.landlordId === undefined ? old.landlordId : d.landlordId;
-      const b = St.update('buildings', d.id, d); assignBuildingLandlord(b, nextLandlordId); St.audit('update', 'building', b.id, 'Cập nhật tòa ' + b.name); done(); return b;
+      const b = St.update('buildings', d.id, d); assignBuildingLandlord(b, nextLandlordId); grantBuildingToManager(b); St.audit('update', 'building', b.id, 'Cập nhật tòa ' + b.name); done(); return b;
     }
     const code = d.code || St.nextCode('buildings', 'TH-', 2);
     if (St.byCode('buildings', code)) err('Mã tòa ' + code + ' đã tồn tại');
     req(d.landlordId, 'Tòa nhà phải thuộc một chủ nhà – tạo qua Onboarding chủ nhà (Chủ nhà → HĐ đầu vào → Tòa → Phòng)');
     const b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, status: 'active', payCycle: 3, payDay: 5, roomCount: 0, amenities: [] }, d, { code, prefix: autoPrefix(d, code) }));
-    assignBuildingLandlord(b, d.landlordId);
+    assignBuildingLandlord(b, d.landlordId); grantBuildingToManager(b);
     St.audit('create', 'building', b.id, 'Tạo tòa ' + b.name); done(); return b;
   };
   // FR-BLD-02: không ngừng tòa còn HĐ hiệu lực / giữ chỗ / HĐ dự thảo
@@ -193,7 +199,7 @@
     });
 
     const snapshot = {};
-    ['areas', 'landlords', 'buildings', 'rooms', 'landlordContracts', 'landlordPayments', 'auditLog'].forEach(k => snapshot[k] = JSON.parse(JSON.stringify(St.state[k] || [])));
+    ['areas', 'landlords', 'buildings', 'rooms', 'landlordContracts', 'landlordPayments', 'users', 'auditLog'].forEach(k => snapshot[k] = JSON.parse(JSON.stringify(St.state[k] || [])));
     try {
       const areaMap = new Map(); const createdAreas = [];
       areaDrafts.forEach(a => {
@@ -216,7 +222,7 @@
           b = St.add('buildings', Object.assign({ code, floors: 1, perFloor: 0, status: 'active', payDay: 5, roomCount: 0, amenities: [], buildingType: 'T', condition: 'medium', operatingSince: F.today(), source: 'user' }, d, { code, prefix: autoPrefix(d, code), floors: Number(d.floors) || 1, perFloor: Number(d.perFloor) || 0, payCycle: cycle, areaId: area.id, landlordId: landlord.id }));
           delete b.areaRef; delete b.ref; St.audit('create', 'building', b.id, 'Tạo tòa ' + b.name + ' từ onboarding ' + landlord.name);
         }
-        b.payCycle = cycle; assignBuildingLandlord(b, landlord.id); buildingMap.set(item.ref, b); buildings.push(b);
+        b.payCycle = cycle; assignBuildingLandlord(b, landlord.id); grantBuildingToManager(b); buildingMap.set(item.ref, b); buildings.push(b);
       });
 
       const rooms = [];
