@@ -169,24 +169,9 @@
   wrap('activateContract', (c) => { if (!c || !c.id) return; const d = St.one('deals', x => x.contractId === c.id) || (c.dealId ? St.get('deals', c.dealId) : null); if (d && d.status === 'pending_contract') { d.status = 'active'; St.save(); } });
   wrap('cancelContract', (r, args) => { const c = St.get('contracts', args[0]); const d = c && c.dealId ? St.get('deals', c.dealId) : null; if (d) { d.status = 'ended'; d.contractId = null; St.save(); } });
   wrap('terminateContract', (r) => { const c = r && r.contract; const d = c && c.dealId ? St.get('deals', c.dealId) : null; if (d) { d.status = 'ended'; St.save(); } });
-  wrap('saveContractDraft', (c, args) => { const d0 = args[0] || {}; if (d0.dealId && c) X.linkDealContract(d0.dealId, c.id); if (d0.ocrId && c) { const o = St.get('ocrExtractions', d0.ocrId); if (o) { o.contractId = c.id; o.status = 'created'; c.source = 'ocr'; c.ocrId = o.id; if (!c.tenantId && o.tenantId) c.tenantId = o.tenantId; St.save(); } } });
+  wrap('saveContractDraft', (c, args) => { const d0 = args[0] || {}; if (d0.dealId && c) X.linkDealContract(d0.dealId, c.id);  });
 
-  /* ================= OCR hợp đồng ================= */
-  X.ocrUpload = ({ fileName, size, sample, text, pages }) => { needP1(); Au.need('ocr.use'); req(fileName, 'Chọn file'); if (size && size > 20 * 1024 * 1024) err('File tối đa 20MB (FR-DOC-01)'); if (!/\.(pdf|txt)$/i.test(fileName)) err('Chỉ nhận PDF điền trên máy hoặc .txt (ảnh scan chưa hỗ trợ)'); if (!sample && !(text && text.trim())) err('Không đọc được nội dung văn bản của file'); const o = St.add('ocrExtractions', { code: St.nextCode('ocrExtractions', 'OCR-' + yearCode() + '-', 3), fileName, size: size ? (size / 1024 / 1024).toFixed(1) + ' MB' : '0.3 MB', pages: pages || 4, sample: !!sample, text: sample ? '' : String(text || ''), status: 'uploaded', fields: [], assets: [], contractId: null, createdBy: me() }); St.audit('upload', 'ocr', o.id, 'Tải file trích xuất ' + fileName); done(); return o; };
-  /* Trích xuất thật bằng TH.ocrParser (template HĐ cho thuê phòng): file mẫu cố tình sai 5 trường (tên, SĐT, mã phòng, cọc, ngày kết thúc) → confidence < 0.8 = Cần kiểm tra */
-  X.ocrExtract = (id) => { needP1(); const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); o.status = 'extracting'; St.save(); St.emit('change', { source: 'timer' }); return o; };
-  X.ocrFinish = (id) => {
-    const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); if (!TH.ocrParser) err('Thiếu module trích xuất');
-    const r = TH.ocrParser.parse(o.sample && TH.ocr ? TH.ocr.sampleText() : (o.text || ''));
-    o.fields = r.fields; o.assets = r.assets; o.buildingHint = r.buildingHint || ''; o.status = 'review'; o.extractedAt = F.nowISO(); St.audit('extract', 'ocr', id, 'Trích xuất ' + r.meta.found + '/' + r.meta.total + ' trường (' + r.meta.pending + ' cần kiểm tra, ' + r.assets.length + ' tài sản)'); done(); return o;
-  };
-  X.ocrSetField = (id, key, value, confirm = true) => { needP1(); const o = St.get('ocrExtractions', id); const fl = (o.fields || []).find(x => x.key === key); if (!fl) err('Trường không tồn tại'); fl.value = value; fl.confirmed = !!confirm || (fl.value !== '' && fl.value !== fl.raw); fl.editedAt = F.nowISO(); St.save(); return fl; };
-  X.ocrConfirmField = (id, key) => { const o = St.get('ocrExtractions', id); const fl = (o.fields || []).find(x => x.key === key); if (fl) { fl.confirmed = true; St.save(); } return fl; };
-  /* OCR = bước tạo khách thuê: gán khách có sẵn hoặc tạo mới từ dữ liệu HĐ (khớp SĐT → dùng khách trùng thay vì báo lỗi) */
-  X.ocrSetTenant = (id, tenantId) => { needP1(); const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); const t = St.get('tenants', tenantId); if (!t) err('Không tìm thấy khách thuê'); o.tenantId = t.id; St.audit('link', 'ocr', id, 'Gán khách thuê ' + t.name + ' (' + t.code + ') cho trích xuất'); done(); return t; };
-  X.ocrCreateTenant = (id, override = {}) => { needP1(); const o = St.get('ocrExtractions', id); if (!o) err('Không tìm thấy'); const e = TH.ocrParser.entities(o); const d = e.tenant.data; const ph = String(d.phone || '').replace(/\D/g, ''); const dup = ph ? St.one('tenants', t => String(t.phone || '').replace(/\D/g, '') === ph) : null; if (dup && !override.force) { o.tenantId = dup.id; St.save(); return dup; } const t = X.saveTenant(Object.assign({ name: d.name, phone: ph || d.phone, idNumber: String(d.idNumber || '').replace(/\D/g, ''), idPlace: d.idPlace || '', dob: F.fromVN(d.dob) || '', address: d.address || '', note: 'Tạo từ trích xuất hợp đồng ' + o.code + (e.contract.contractNo ? ' (HĐ ' + e.contract.contractNo + ')' : '') }, override)); o.tenantId = t.id; St.audit('create', 'ocr', id, 'Tạo khách thuê ' + t.name + ' từ trích xuất'); done(); return t; };
-  X.ocrRerun = (id) => { needP1(); const o = St.get('ocrExtractions', id); o.fields.forEach(x => { x.value = x.raw; x.confirmed = x.confidence >= 0.8; delete x.editedAt; }); o.rerunAt = F.nowISO(); St.audit('rerun', 'ocr', id, 'Chạy lại trích xuất'); done(); return o; };
-  X.ocrReadyToCreate = (o) => { const rc = (o.fields || []).find(x => x.key === 'roomCode'); if (rc && !St.one('rooms', r => r.code === rc.value)) err('Mã phòng "' + (rc.value || '') + '" không tồn tại – chọn lại phòng trước khi tạo hợp đồng'); const fv = (k) => ((o.fields || []).find(x => x.key === k) || {}).value || ''; const st = F.fromVN(fv('start')), en = F.fromVN(fv('end')); if (st && en && en <= st) err('Ngày kết thúc phải sau ngày bắt đầu (' + fv('start') + ' → ' + fv('end') + ')'); const pending = (o.fields || []).filter(x => !x.confirmed); const money = pending.filter(x => x.money); if (money.length) err('Trường ảnh hưởng tiền phải được xác nhận trước khi tạo hợp đồng (BR-03): ' + money.map(x => x.label).join(', ')); if (pending.length) err('Còn ' + pending.length + ' trường Cần kiểm tra chưa xác nhận'); return true; };
+  /* OCR hợp đồng: chuyển sang core/actions-ocr.js (spec v1.8 §12.8 – Phase 1) */
 
   /* ================= Bảng kê thu tiền ================= */
   X.matchStatement = (rows) => {
@@ -406,7 +391,6 @@
   authorize('linkDealContract', 'contracts.manage');
   authorize('recordDealDeposit', 'payments.record');
   authorize('payCommission', 'commission.pay');
-  authorize('ocrUpload ocrExtract ocrFinish ocrSetField ocrConfirmField ocrSetTenant ocrCreateTenant ocrRerun', 'ocr.use');
   authorize('commitStatement', 'statement.import');
   authorize('commitOpening', 'openingBalance.manage');
   authorize('retryBatch', 'zalo.send');

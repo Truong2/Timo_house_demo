@@ -537,3 +537,9 @@ td.c-P .att-btn{background:var(--green-bg);color:var(--green);border-color:trans
 .demo-sample-badge{flex:none;padding:3px 7px;border-radius:999px;background:var(--primary);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
 .demo-sample-actions{display:flex;align-items:center;gap:7px;flex:none}.demo-sample-actions .btn{min-height:34px}
 @media(max-width:760px){.demo-sample-bar{align-items:stretch;flex-direction:column}.demo-sample-actions{display:grid;grid-template-columns:1fr 1fr}.demo-sample-actions .btn{justify-content:center;min-height:44px}.demo-sample-copy b{white-space:normal}}
+
+/* ---------- Spec v1.8 W2: OCR review theo nhóm entity ---------- */
+.ocr-secs{display:grid;gap:10px}details.ocr-sec>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}details.ocr-sec>summary::-webkit-details-marker{display:none}details.ocr-sec>summary>span:first-child{display:flex;align-items:center;gap:8px;flex-wrap:wrap}details.ocr-sec>summary b{display:flex;align-items:center;gap:6px;font-size:14px}details.ocr-sec[open]>summary{border-bottom:1px solid var(--border);margin-bottom:10px}
+.seg.sm{height:30px;border-radius:7px}.seg.sm button{padding:0 10px;font-size:12px}.seg button:disabled{opacity:.45;cursor:not-allowed}
+.ocr-fields td{vertical-align:middle}.ocr-fields tr.is-pending td:first-child{box-shadow:inset 3px 0 0 var(--amber)}.ocr-fields tr.ocr-pair-active td{background:var(--blue-50)}.dp-page mark.ocr-pair-active{outline:2px solid var(--blue)}
+.note-box.sm{padding:8px 10px;font-size:12px;margin-bottom:8px}.tbl tr.row-warn td{background:var(--amber-50)}pre.code{background:var(--bg-2,#f6f7f9);border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}

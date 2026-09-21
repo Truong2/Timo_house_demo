@@ -29,6 +29,8 @@ const fixture = {
   employees: [{ id: 'e-tech', userId: 'u-tech' }, { id: 'e-tpvh', userId: 'u-tpvh' }],
   buildingAssignments: [{ id: 'ba1', employeeId: 'e-tech', buildingId: 'b1', status: 'active', start: '2026-01-01', end: null, role: 'tech' }],
   orgUnits: [], positions: [], employmentAssignments: [], buildingTypeHistory: [], masterData: [],
+  servicePrices: [], meters: [], depositLedger: [], contractTenants: [], contractHandoverAssets: [], contractPaymentTerms: [], contractRenewalClauses: [],
+  ocrJobs: [{ id: 'job-mine', uploadedBy: 'u-ops', status: 'READY_FOR_REVIEW', fields: [], decisions: {} }, { id: 'job-b2', uploadedBy: 'u-admin', status: 'READY_FOR_REVIEW', fields: [{ key: 'roomCode', value: 'R2' }], decisions: {} }],
   leads: [
     { id: 'l-lead', saleId: 'u-sale-lead', buildingIds: ['b1'] },
     { id: 'l-member', saleId: 'u-sale-member', buildingIds: ['b1'] },
@@ -104,6 +106,7 @@ const ids = rows => rows.map(row => row.id).sort();
 login('ops', 'u-ops');
 assert.deepEqual(ids(TH.auth.filterByScope('buildings', state.buildings)), ['b1']);
 assert.deepEqual(ids(TH.auth.filterByScope('ocrExtractions', state.ocrExtractions)), ['ocr-mine']);
+assert.deepEqual(ids(TH.auth.filterByScope('ocrJobs', state.ocrJobs)), ['job-mine']);
 assert.equal(TH.auth.can('rooms.manage', { buildingId: 'b1' }), true);
 assert.equal(TH.auth.can('rooms.manage', { buildingId: 'b2' }), false);
 
@@ -268,10 +271,13 @@ assert.throws(() => TH.actions.saveRoom({ buildingId: 'b2', code: 'B.01' }), /qu
 assert.equal(JSON.stringify(state.rooms), roomsBefore, 'Out-of-scope action changed mock state');
 
 run('mockup/js/core/actions-p2.js');
+run('mockup/js/core/ocr-onboarding.js');
+run('mockup/js/core/actions-ocr.js');
 login('sale', 'u-sale-member');
-const ocrBefore = JSON.stringify(state.ocrExtractions);
-assert.throws(() => TH.actions.ocrSetField('ocr-mine', 'roomCode', 'R1'), /quyền|cấp/i);
-assert.equal(JSON.stringify(state.ocrExtractions), ocrBefore, 'Denied Phase 2 action changed mock state');
+const ocrBefore = JSON.stringify(state.ocrJobs);
+assert.throws(() => TH.actions.ocrSetField('job-mine', 'roomCode', 'R1'), /quyền|cấp/i);
+assert.equal(JSON.stringify(state.ocrJobs), ocrBefore, 'Denied OCR action changed mock state');
+assert.throws(() => TH.actions.saveServicePrice({ serviceId: 's1', scope: 'GLOBAL', price: 1, effectiveFrom: '2026-01-01' }), /quyền|cấp/i);
 
 run('mockup/js/core/actions-p3.js');
 login('codong', 'u-investor');

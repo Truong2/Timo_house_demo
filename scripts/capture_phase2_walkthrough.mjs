@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { createRunner, fill, select, clickText, clickAction, modal, goto, saveDownload, confirmDialog, ROOT } from './uat/runtime.mjs';
 
-const runner = await createRunner({ phase: 2, expectedMilestones: 20, phaseFlags: { p1: true, p2: true, p3: false } });
+const runner = await createRunner({ phase: 2, expectedMilestones: 17, phaseFlags: { p1: true, p2: true, p3: false } });
 const { page } = runner;
 const made = {};
 
@@ -60,37 +60,7 @@ try {
     await page.waitForTimeout(250); return { actual: 'Cọc đã thu đủ; hoa hồng chuyển Đã chi và chỉ tạo một chi phí Hoa hồng (idempotent).' };
   });
 
-  await runner.step('F12.1', async () => {
-    await clickAction(page, 'sample'); await page.waitForURL(/#\/contracts\/ocr\?id=/); await page.waitForTimeout(2600); made.ocr = await latest('ocrExtractions');
-    return { actual: `OCR MÔ PHỎNG ${made.ocr?.code || ''}: đọc 4 trang, hiển thị 5 trường Cần kiểm tra và bảng tài sản bàn giao.` };
-  });
-
-  await runner.step('F12.2', async () => {
-    // Xem "Tất cả trường" để sửa/xác nhận từng trường Cần kiểm tra qua UI (select/input → data-on=field, hoặc nút ✓)
-    await clickAction(page, 'view-all').catch(() => {}); await page.waitForTimeout(200);
-    const fixed = [];
-    for (let round = 0; round < 3; round += 1) {
-      const pendingKeys = await page.evaluate(id => ((window.TH.store.state.ocrExtractions.find(x => x.id === id) || {}).fields || []).filter(f => !f.confirmed).map(f => ({ key: f.key, value: f.value })), made.ocr.id);
-      if (!pendingKeys.length) break;
-      for (const f of pendingKeys) {
-        const control = page.locator(`[data-ocr-field="${f.key}"] [name="${f.key}"]`).first(); const tick = page.locator(`[data-ocr-field="${f.key}"] [data-act=confirm]`).first();
-        if (await control.count()) {
-          const tag = await control.evaluate(node => node.tagName.toLowerCase());
-          if (tag === 'select') { const current = await control.inputValue(); if (!current) { const first = await control.locator('option:not([value=""])').first().getAttribute('value'); if (first) await control.selectOption(first); } else await control.selectOption(current); }
-          else { const value = await control.inputValue(); await control.fill(value); await control.dispatchEvent('change'); }
-          fixed.push(f.key); await page.waitForTimeout(80);
-        } else if (await tick.count()) { await tick.click(); fixed.push(f.key); await page.waitForTimeout(80); }
-      }
-    }
-    const remaining = await page.evaluate(id => ((window.TH.store.state.ocrExtractions.find(x => x.id === id) || {}).fields || []).filter(f => !f.confirmed).map(f => f.key), made.ocr.id);
-    return { actual: `Đã sửa/xác nhận ${fixed.length} trường Cần kiểm tra (${[...new Set(fixed)].join(', ')}); còn ${remaining.length} trường chưa xác nhận. OCR MÔ PHỎNG.`, assertions: [{ id: 'ocr-reviewed', status: remaining.length ? 'FAIL' : 'PASS', detail: remaining.length ? 'pending=' + remaining.join(', ') : 'all fields confirmed' }] };
-  });
-
-  await runner.step('F12.3', async () => {
-    await clickText(page, 'Tạo hợp đồng'); const confirm = await modal(page); await clickText(page, 'Tạo hợp đồng', { scope: confirm, exact: true }); await page.waitForURL(/#\/contracts\/new\?ocr=/); const form = page.locator('#cf'); await clickText(page, 'Lưu hợp đồng →'); await page.waitForTimeout(300); made.ocr = await latest('ocrExtractions');
-    return { actual: `Đã tạo hợp đồng Dự thảo nguồn OCR; extraction ${made.ocr?.code || ''} chuyển Đã tạo HĐ. OCR MÔ PHỎNG.` };
-  });
-
+  // F12 OCR hợp đồng chuyển sang Phase 1 (spec v1.8 §12.8) – xem capture_phase1_walkthrough.mjs
   await runner.step('F13.1', async () => {
     await clickText(page, /Dùng file mẫu/); await page.waitForTimeout(150); await clickText(page, /Tiếp tục review & ghép/); await page.waitForTimeout(250);
     return { actual: 'Preview bảng kê 20 dòng hiển thị đủ KPI Tổng/Đã ghép/Cần kiểm tra/Trùng/Chưa phân bổ và bốn quy tắc ghép.' };

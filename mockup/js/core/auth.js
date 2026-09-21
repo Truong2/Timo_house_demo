@@ -67,7 +67,9 @@
     tenants: 'tenant', contracts: 'contract', contractMembers: 'contractMember', contractServices: 'contractService', holds: 'hold', roomAssets: 'roomAsset',
     meterReadings: 'meterReading', invoices: 'invoice', invoiceLines: 'invoiceLine', payments: 'payment', paymentAllocations: 'paymentAllocation',
     refunds: 'refund', refundDeductions: 'refundDeduction', expenses: 'expense', expenseAllocations: 'expenseAllocation', documents: 'document',
-    importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage', ocrExtractions: 'ocrExtraction', reportRuns: 'reportRun',
+    importJobs: 'importJob', auditLog: 'auditLog', zaloBatches: 'zaloBatch', zaloMessages: 'zaloMessage', ocrExtractions: 'ocrExtraction', ocrJobs: 'ocrJob', reportRuns: 'reportRun',
+    // Spec v1.8 W2: dữ liệu theo HĐ/phòng/tòa
+    contractTenants: 'contractTenant', depositLedger: 'depositEntry', meters: 'meter', contractHandoverAssets: 'contractHandoverAsset', contractPaymentTerms: 'contractPaymentTerm', contractRenewalClauses: 'contractRenewalClause',
     // Phase 2: record có buildingId/roomId → ops vẫn bị giới hạn theo tòa
     leads: 'lead', leadActivities: 'leadActivity', viewings: 'viewing', deals: 'deal', commissions: 'commission', incidents: 'incident', incidentUpdates: 'incidentUpdate', maintenanceSchedules: 'maintenanceSchedule', openingBalances: 'openingBalance',
     // Phase 3: tài sản/kiểm kê theo tòa; dự án/vốn góp/phân phối theo tòa của dự án
@@ -163,6 +165,14 @@
       const cols = { building: 'buildings', room: 'rooms', tenant: 'tenants', contract: 'contracts', invoice: 'invoices', payment: 'payments', refund: 'refunds', landlord: 'landlords' };
       return buildingIds(record.entityType, rawGet(cols[record.entityType] || record.entityType, record.entityId), seen);
     }
+    if (type === 'contractTenant' || type === 'depositEntry' || type === 'contractHandoverAsset' || type === 'contractPaymentTerm' || type === 'contractRenewalClause') return record.buildingId ? [record.buildingId] : buildingIds('contract', rawGet('contracts', record.contractId), seen);
+    if (type === 'meter') return record.buildingId ? [record.buildingId] : buildingIds('room', rawGet('rooms', record.roomId), seen);
+    if (type === 'ocrJob') {
+      const cid = record.contractId || (record.result && record.result.contractId); if (cid) return buildingIds('contract', rawGet('contracts', cid), seen);
+      const rd = (record.decisions || {}).ROOM; if (rd && rd.candidateId) return buildingIds('room', rawGet('rooms', rd.candidateId), seen);
+      const bd = (record.decisions || {}).BUILDING; if (bd && bd.candidateId) return [bd.candidateId];
+      const roomCode = ((record.fields || []).find(f => f && f.key === 'roomCode') || {}).value; const room = roomCode && rawAll('rooms').find(r => r && r.code === roomCode); return room ? [room.buildingId] : [];
+    }
     if (type === 'ocrExtraction') {
       if (record.contractId) return buildingIds('contract', rawGet('contracts', record.contractId), seen);
       const roomCode = ((record.fields || []).find(f => f && f.key === 'roomCode') || {}).value;
@@ -212,7 +222,7 @@
       if (type === 'capitalCommitment' || type === 'contribution') return !!sh && record.shareholderId === sh.id && projectIds.has(record.projectId);
       if (type === 'distribution') return !!sh && (!record.projectId || projectIds.has(record.projectId)) && (record.lines || []).some(l => l.shareholderId === sh.id);
     }
-    if (['ops', 'tpvh'].includes(role) && type === 'ocrExtraction' && record.createdBy === (user || {}).id) return true;
+    if (['ops', 'tpvh'].includes(role) && (type === 'ocrExtraction' || type === 'ocrJob') && (record.createdBy === (user || {}).id || record.uploadedBy === (user || {}).id)) return true;
     // Ops: khách thuê chưa gắn HĐ/giữ chỗ nào (vừa tạo tay hoặc từ OCR) không thuộc tòa nào → được thấy/dùng để lập HĐ đầu tiên trong tòa của mình
     if (['ops', 'tpvh'].includes(role) && type === 'tenant' && !buildingIds(type, record).length) return true;
     const allowed = A.allowedBuildingIds(); if (!allowed || !allowed.size) return false;

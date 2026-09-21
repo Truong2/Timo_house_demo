@@ -18,7 +18,9 @@
 
   /* ---- Khách thuê ---- */
   Fm.tenant = (t = {}, cb) => {
+    const dupWarn = (root) => { const d = U.formData(root); const r = Q.tenantMatch ? Q.tenantMatch({ name: d.name, phone: d.phone, idNumber: d.idNumber, dob: d.dob }, t.id) : { match: null }; const box = root.querySelector('#tenant-dup'); if (!box) return; if (r.match) box.innerHTML = U.note('warn', 'Có thể trùng hồ sơ', 'Khớp theo ' + esc(r.matchBy) + ': <strong>' + esc(r.match.name) + '</strong> (' + esc(r.match.code) + ' · ' + esc(r.match.phone || '') + (r.match.idNumber ? ' · CCCD ' + esc(r.match.idNumber) : '') + ')' + (r.conflicts.length ? ' – ' + r.conflicts.map(x => esc(x.msg)).join('; ') : '') + '. ' + U.link('#/tenants/' + r.match.id, 'Mở hồ sơ') + ' thay vì tạo mới (§12.8.6).'); else if (r.weak) box.innerHTML = U.note('info', 'Trùng tên', 'Đã có khách <strong>' + esc(r.weak.name) + '</strong> (' + esc(r.weak.code) + ') nhưng khác SĐT/CCCD/ngày sinh – kiểm tra trước khi tạo.'); else box.innerHTML = ''; };
     const m = U.drawer({ title: t.id ? 'Sửa khách thuê' : 'Thêm khách thuê', sub: t.id ? t.code : 'Tạo hồ sơ khách thuê mới. Trạng thái thuê được suy ra từ hợp đồng.', body: `<div class="form-grid">
+      <div id="tenant-dup" class="span2"></div>
       ${U.field({ label: 'Họ tên', req: true, name: 'name', input: U.input({ name: 'name', value: t.name || '', placeholder: 'Nhập họ và tên' }), cls: 'span2' })}
       ${U.field({ label: 'Số điện thoại', req: true, name: 'phone', input: U.input({ name: 'phone', value: t.phone || '', placeholder: '09xx xxx xxx', icon: 'phone' }) })}
       ${U.field({ label: 'Zalo', input: U.input({ name: 'zalo', value: t.zalo || '', placeholder: 'SĐT Zalo (mặc định = SĐT)' }), help: 'SĐT không phải bằng chứng đã xác minh tài khoản Zalo (FR-CUS-01)' })}
@@ -33,10 +35,18 @@
       ${U.field({ label: 'Ghi chú', input: U.textarea({ name: 'note', value: t.note || '', placeholder: 'Phương tiện, yêu cầu đặc biệt…' }), cls: 'span2' })}
       ${U.check({ name: 'verified', label: 'Đã xác minh Zalo (đánh dấu thủ công)', checked: !!t.verified })}</div>`, footer: footer(t.id ? 'Lưu thay đổi' : 'Lưu khách thuê', 'user-plus') });
     U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); if (t.id) d.id = t.id; const r = run(m, () => X.saveTenant(d), (r) => 'Đã lưu khách ' + r.name + ' (' + r.code + ')'); if (r && cb) cb(r); } });
+    m.el.addEventListener('change', (e) => { if (['name', 'phone', 'idNumber', 'dob'].includes(e.target.name)) dupWarn(m.el); }); if (t.name || t.phone || t.idNumber) dupWarn(m.el);
     return m;
   };
   /* ---- Tòa ---- */
   // Tòa mới luôn đi qua onboarding chủ nhà (Chủ nhà → HĐ đầu vào → Tòa → Phòng); drawer chỉ dùng để sửa
+  /* §12.9 Bảng giá 2 lớp: override giá theo tòa / đổi giá mặc định – có ngày hiệu lực, không ghi đè lịch sử */
+  Fm.servicePrice = ({ serviceId = '', buildingId = '', scope = 'BUILDING' } = {}, cb) => {
+    const svcs = St.where('services', x => x.status === 'active'); const bs = St.where('buildings', x => !x.stub);
+    const cur = serviceId ? Q.servicePriceRecord(serviceId, buildingId || null) : null;
+    const m = U.modal({ title: scope === 'GLOBAL' ? 'Đổi giá mặc định' : 'Override giá theo tòa', sub: 'Tạo Service Price record mới có hiệu lực; dòng cũ tự đóng ngày hiệu lực − 1; hóa đơn đã phát hành không đổi (§12.9.5)', body: `<div class="form-grid">${U.field({ label: 'Dịch vụ', req: true, input: U.select({ name: 'serviceId', value: serviceId, placeholder: 'Chọn dịch vụ', options: svcs.map(x => [x.id, x.name + ' (' + x.unit + ')']) }), cls: scope === 'GLOBAL' ? 'span2' : '' })}${scope === 'GLOBAL' ? '' : U.field({ label: 'Tòa nhà', req: true, input: U.select({ name: 'buildingId', value: buildingId, placeholder: 'Chọn tòa', options: bs.map(x => [x.id, x.name]) }) })}${U.field({ label: 'Giá mới (VND)', req: true, input: U.money({ name: 'price', value: cur ? cur.price : '' }), help: cur ? 'Đang áp dụng ' + F.vnd(cur.price) + ' (' + (cur.scope === 'BUILDING' ? 'giá riêng tòa' : 'giá mặc định') + ' từ ' + F.date(cur.effectiveFrom) + ')' : '' })}${U.field({ label: 'Ngày hiệu lực', req: true, input: U.date({ name: 'effectiveFrom', value: F.today() }) })}${U.field({ label: 'Lý do', input: U.input({ name: 'reason', placeholder: 'VD: HĐ đầu vào mới, điều chỉnh theo EVN…' }), cls: 'span2' })}</div>`, footer: U.btn({ label: 'Hủy', act: 'cancel', cls: 'btn-ghost' }) + U.btn({ label: 'Lưu bảng giá', icon: 'save', act: 'save', cls: 'btn-primary' }) });
+    U.bind(m.el, { cancel: () => m.close(), save: () => { try { const d = m.data(); const rec = X.saveServicePrice({ serviceId: d.serviceId, scope, buildingId: d.buildingId || null, price: F.num(d.price), effectiveFrom: d.effectiveFrom, reason: d.reason }); m.close(); U.toast('ok', 'Đã lưu bảng giá', 'Hiệu lực từ ' + F.date(d.effectiveFrom)); cb && cb(rec); TH.router.refresh(); } catch (e) { U.toast('err', 'Không lưu được', e.message); } } });
+  };
   /* §4.6 Ký hiệu/loại tòa: sửa phải nhập ngày hiệu lực, lưu lịch sử, không ghi đè quá khứ */
   Fm.buildingType = (b) => {
     const cur = Q.buildingTypeAt(b.id);

@@ -11,7 +11,7 @@
   const METHODS = ['Chuyển khoản', 'Tiền mặt', 'Chuyển khoản', 'Chuyển khoản', 'Ví điện tử'];
 
   const seed = {};
-  seed.catalogOnly = (st) => { addUsers(st); addCatalog(st); addZaloConfig(st); if (seed.catalogP2) seed.catalogP2(st); if (seed.catalogP3) seed.catalogP3(st); if (seed.catalogOrg) { seed.catalogOrg(st); seed.usersOrg(st); } st.meta.seededAt = F.nowISO(); };
+  seed.catalogOnly = (st) => { addUsers(st); addCatalog(st); addZaloConfig(st); if (seed.catalogP2) seed.catalogP2(st); if (seed.catalogP3) seed.catalogP3(st); if (seed.catalogOrg) { seed.catalogOrg(st); seed.usersOrg(st); } if (seed.catalogServicesW2) seed.catalogServicesW2(st); st.meta.seededAt = F.nowISO(); };
   seed.helpers = { rng, HO, DEM, TEN, JOBS, SEG, ROOM_TYPES, METHODS };
 
   seed.run = (st) => {
