@@ -15,7 +15,8 @@
     // Spec v1.8 – Wave 3: lịch sử phòng (§12.5), sự kiện & follow-up HĐ (§12.7, §12.15), kỳ hóa đơn (§12.11.1)
     'roomStatusHistory', 'roomPriceHistory', 'contractEvents', 'contractFollowUps', 'billingPeriods',
     // Spec v1.8 – Wave 4: Payroll Rule/Snapshot/Result, chi lương, phân bổ chi phí lương & Allocation Rule (§4.26, §4.27, §12.20, §12.21)
-    'payrollRuleVersions', 'payrollAssignmentSnapshots', 'payrollResults', 'salaryPayments', 'payrollCostAllocations', 'allocationRules'];
+    'payrollRuleVersions', 'payrollAssignmentSnapshots', 'payrollResults', 'salaryPayments', 'payrollCostAllocations', 'allocationRules',
+    'metricDefinitions', 'reportPeriods', 'reportSnapshots', 'reportMetricValues', 'goldenDatasets', 'buildingShares', 'capitalCalls', 'capitalPayments', 'profitDistributions'];
   const S = { state: null, listeners: [], _t: null };
   S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
   S.migrate = (st) => {
@@ -43,6 +44,8 @@
     if (TH.seed && TH.seed.migrateW2 && st.buildings.length) { try { TH.seed.migrateW2(st); } catch (e) { console.warn('migrate w2', e); } }
     if (TH.seed && TH.seed.migrateW3 && st.buildings.length) { try { TH.seed.migrateW3(st); } catch (e) { console.warn('migrate w3', e); } }
     if (TH.seed && TH.seed.migrateW4 && st.buildings.length) { try { TH.seed.migrateW4(st); } catch (e) { console.warn('migrate w4', e); } }
+    // Spec v1.8 – W5: cổ phần theo tòa / góp vốn / golden G1 / metric registry; additive & idempotent (meta.w5Migrated)
+    if (TH.seed && TH.seed.migrateW5 && st.buildings.length) { try { TH.seed.migrateW5(st); } catch (e) { console.warn('migrate w5', e); } }
     // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
     // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
     const leadGroups = {};

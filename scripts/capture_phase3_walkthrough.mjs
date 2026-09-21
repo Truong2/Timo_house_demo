@@ -13,7 +13,7 @@ async function latest(collection, predicate = () => true) {
 }
 
 try {
-  await runner.step('F16.1', async () => {
+  await runner.step('F20.1', async () => {
     await clickText(page, 'Bắt đầu kiểm kê'); const box = await modal(page);
     const period = box.locator('select[name=period]'); const options = await period.locator('option').evaluateAll(nodes => nodes.map(node => node.value));
     const target = options.includes('2026-11') ? '2026-11' : options.at(-1); await period.selectOption(target);
@@ -22,7 +22,7 @@ try {
     return { inputs: { period: target, buildings: 'Tất cả tòa đang vận hành' }, actual: `Đã tạo ${created.inventory?.code} cho kỳ ${target}.` };
   });
 
-  await runner.step('F16.2', async () => {
+  await runner.step('F20.2', async () => {
     const button = page.locator('[data-act="record"]').first(); await button.click(); const box = await modal(page);
     await select(page, 'condition', 'minor', box); await fill(page, 'note', 'Cửa tủ lạnh bị lệch bản lề, còn hoạt động – đề xuất bảo dưỡng', box);
     const input = box.locator('input[type=file]').first();
@@ -32,14 +32,14 @@ try {
     return { actual: 'Một dòng kiểm kê chuyển Cần xử lý; tình trạng tài sản được đồng bộ và lưu người/thời điểm kiểm kê.' };
   });
 
-  await runner.step('F16.3', async () => {
+  await runner.step('F20.3', async () => {
     const checks = page.locator('#it tbody input[type=checkbox]:not(:disabled)'); const count = await checks.count();
     for (let index = 0; index < Math.min(3, count); index += 1) await checks.nth(index).check();
     await clickText(page, /Đánh dấu Bình thường/); await page.waitForTimeout(250);
     return { actual: `Đã đánh dấu hàng loạt ${Math.min(3, count)} tài sản Bình thường.` };
   });
 
-  await runner.step('F16.4', async ({ paths }) => {
+  await runner.step('F20.4', async ({ paths }) => {
     await clickText(page, 'Hoàn tất kiểm kê'); const confirm = await modal(page); await clickText(page, 'Hoàn tất', { scope: confirm, exact: true });
     await page.waitForTimeout(250);
     const exportButton = page.getByRole('button', { name: 'Xuất biên bản' }).first();
@@ -48,7 +48,7 @@ try {
     return { actual: `Kiểm kê đã hoàn tất; CSV ${artifact.name} có ${artifact.rows} dòng. Không tự tạo chi phí/giảm tài sản.`, downloads: [artifact] };
   });
 
-  await runner.step('F17.1', async () => {
+  await runner.step('F21.1', async () => {
     await clickText(page, 'Thêm nhân viên'); const box = await modal(page);
     await fill(page, 'name', 'Lê Demo Nhân Sự', box); await select(page, 'dept', 'vanhanh', box); await select(page, 'title', 'Nhân viên', box);
     await fill(page, 'phone', '0912 000 777', box); await fill(page, 'email', 'demo.ns@timohouse.vn', box); await fill(page, 'address', 'Quận 7, TP.HCM', box);
@@ -58,7 +58,7 @@ try {
     return { actual: `Đã tạo ${created.employee?.code} – Lê Demo Nhân Sự, trạng thái Thử việc.` };
   });
 
-  await runner.step('F17.2', async () => {
+  await runner.step('F21.2', async () => {
     await goto(page, runner.baseUrl, `#/hr/${created.employee.id}`); await clickText(page, 'Phân công tòa nhà'); const box = await modal(page);
     const firstBuilding = await box.locator('select[name=buildingId] option:not([value=""])').first().getAttribute('value');
     await select(page, 'buildingId', firstBuilding, box); await select(page, 'role', 'ops', box);
@@ -67,13 +67,13 @@ try {
     return { actual: 'Nhân viên được phân công một tòa chính; lịch sử phân công và phụ cấp số nhà được cập nhật.' };
   });
 
-  await runner.step('F17.3', async () => {
+  await runner.step('F21.3', async () => {
     const fillDefault = page.getByRole('button', { name: 'Điền mặc định' }); if (await fillDefault.isEnabled().catch(() => false)) await fillDefault.click();
     const confirmButton = page.getByRole('button', { name: 'Xác nhận bảng công' }); if (await confirmButton.isEnabled().catch(() => false)) { await confirmButton.click(); const box = await modal(page); await clickText(page, 'Xác nhận', { scope: box, exact: true }); }
     await page.waitForTimeout(250); return { actual: 'Bảng công kỳ 10/2026 đã xác nhận và khóa chỉnh sửa.' };
   });
 
-  await runner.step('F18.1', async () => {
+  await runner.step('F22.1', async () => {
     // Seed đã cam kết 100% mọi dự án → giảm 2% của cổ đông lớn nhất (qua UI "Sửa / cam kết vốn") để còn dư tỷ lệ, rồi thêm cổ đông mới 2%
     const room = await page.evaluate(() => { const S = window.TH.store.state; const projects = S.projects.map(p => ({ p, used: (S.capitalCommitments || []).filter(c => c.projectId === p.id).reduce((n, c) => n + Number(c.ratio || 0), 0) })).sort((a, b) => a.used - b.used); const pick = projects[0]; const remaining = Math.round((100 - pick.used) * 100) / 100; const big = (S.capitalCommitments || []).filter(c => c.projectId === pick.p.id).sort((a, b) => b.ratio - a.ratio)[0]; const sh = big && S.shareholders.find(x => x.id === big.shareholderId); return { projectId: pick.p.id, projectName: pick.p.name, remaining, bigShareholder: sh ? { id: sh.id, name: sh.name, ratio: big.ratio } : null }; });
     let freed = 0;
@@ -91,14 +91,14 @@ try {
     return { inputs: { name: 'Lê Demo Cổ Đông', project: room.projectName, ratio: ratio + '%', freedFrom: room.bigShareholder ? `${room.bigShareholder.name} −${freed}%` : 'không cần' }, actual: `${room.bigShareholder && freed ? 'Giảm ' + freed + '% của ' + room.bigShareholder.name + ' trên ' + room.projectName + ' qua Sửa / cam kết vốn; ' : ''}đã tạo ${created.shareholder?.code} với tỷ lệ nhập tay ${ratio}% trên ${room.projectName}; tổng tỷ lệ dự án = ${Math.round(total * 100) / 100}% (≤ 100%).`, assertions: [{ id: 'ratio-cap', status: total <= 100.0001 ? 'PASS' : 'FAIL', detail: `total=${total}` }] };
   });
 
-  await runner.step('F18.2', async () => {
+  await runner.step('F22.2', async () => {
     await clickText(page, 'Tạo khoản góp vốn'); const box = await modal(page);
     await select(page, 'projectId', created.projectId, box); await fill(page, 'round', 'Đợt góp vốn bổ sung 11/2026', box); await fill(page, 'dueDate', '2026-11-07', box); await fill(page, 'total', 500000000, box); await fill(page, 'note', 'Bổ sung vốn sửa chữa thang máy', box);
     await clickText(page, 'Tạo đợt góp vốn', { scope: box }); await page.waitForTimeout(250);
     return { actual: 'Đã tạo nghĩa vụ góp vốn theo đúng tỷ lệ từng cổ đông của dự án.' };
   });
 
-  await runner.step('F18.3', async () => {
+  await runner.step('F22.3', async () => {
     // Lọc theo tên cổ đông demo để dòng nghĩa vụ mới hiện trên trang đầu, rồi "Ghi nhận"
     const contrib = await page.evaluate(id => { const S = window.TH.store.state; return (S.contributions || []).filter(c => c.shareholderId === id && c.status !== 'paid').sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)))[0] || null; }, created.shareholder.id);
     if (!contrib) throw new Error('Cổ đông demo chưa có nghĩa vụ góp vốn');
@@ -113,7 +113,7 @@ try {
     return { actual: `Nghĩa vụ ${after?.code} → ${paidTwice.status}, đã góp ${paidTwice.paid}/${paidTwice.amount} (UNC-UAT-GV-001); ghi nhận lại cùng chứng từ: ${dup}.`, assertions: [{ id: 'contribution-paid', status: paidTwice.paid > 0 && paidTwice.paid <= paidTwice.amount ? 'PASS' : 'FAIL', detail: JSON.stringify(paidTwice) }], scrollTo: `[data-id="${contrib.id}"]` };
   });
 
-  await runner.step('F18.4', async () => {
+  await runner.step('F22.4', async () => {
     await clickText(page, 'Tạo phân phối'); const box = await modal(page); await fill(page, 'label', 'Q4/2026 (UAT)', box); await select(page, 'projectId', created.projectId, box); await fill(page, 'profit', 900000000, box); await fill(page, 'date', '2026-11-27', box);
     await clickAction(page, 's', { scope: box }); await page.waitForTimeout(300);
     const dist = await page.evaluate(() => (window.TH.store.state.distributions || []).find(x => x.label === 'Q4/2026 (UAT)'));
@@ -129,20 +129,20 @@ try {
     return { actual: `Bảng phân phối ${dist.code} (${lines} dòng theo tỷ lệ vốn) → Admin duyệt → Kế toán ghi nhận đã chi (UNC-UAT-PP-001): trạng thái ${after.status}; không tạo chi phí vận hành (expenses liên kết = ${after.expenses}).`, assertions: [{ id: 'distribution-paid', status: after.status === 'paid' ? 'PASS' : 'FAIL', detail: JSON.stringify(after) }], scrollTo: `[data-id="${dist.id}"]` };
   });
 
-  await runner.step('F18.5', async () => {
+  await runner.step('F22.5', async () => {
     const forbidden = await page.locator('[data-act=add]:visible, [data-act=add-round]:visible, [data-act=add-dist]:visible').evaluateAll(nodes => nodes.filter(node => !node.disabled).length);
     const content = await page.locator('#content').innerText();
     if (forbidden) throw new Error('Vai trò Cổ đông vẫn có action ghi dữ liệu');
     return { actual: 'Cổ đông chỉ xem dữ liệu thuộc phạm vi góp vốn; không có action Thêm/Ghi nhận/Duyệt.', assertions: [{ id: 'shareholder-readonly', status: 'PASS', detail: `enabled mutations=${forbidden}; content=${content.slice(0, 180)}` }] };
   });
 
-  await runner.step('F19.1', async () => {
+  await runner.step('F23.1', async () => {
     await clickText(page, 'Nhập sao kê'); const box = await modal(page); await clickText(page, 'Dùng file mẫu', { scope: box }); await page.waitForTimeout(250);
     await clickText(page, 'Đối soát tự động'); await page.waitForTimeout(300);
     return { actual: 'Đã nhập sao kê mẫu và đối soát tự động: dòng khớp tạo khoản thu, dòng mơ hồ cần kiểm tra, mã trùng không tạo trùng. TÍCH HỢP MÔ PHỎNG.' };
   });
 
-  await runner.step('F19.2', async () => {
+  await runner.step('F23.2', async () => {
     const row = page.locator('tr').filter({ has: page.getByRole('button', { name: 'Khớp' }) }).first(); await row.getByRole('button', { name: 'Khớp' }).click(); const box = await modal(page);
     const option = await box.locator('select[name=invoiceId] option:not([value=""])').first().getAttribute('value'); await select(page, 'invoiceId', option, box); await clickText(page, 'Khớp & ghi nhận thu', { scope: box }); await page.waitForTimeout(250);
     return { actual: 'Giao dịch chưa khớp đã được khớp thủ công, tạo PAY và giảm công nợ hóa đơn tương ứng.' };

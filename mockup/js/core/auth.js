@@ -44,6 +44,8 @@
     'org.view': ['admin', 'accountant', 'ops', 'hr', 'qltong', 'tpvh'], 'org.manage': ['admin', 'hr', 'qltong'],
     'assignments.view': ['admin', 'accountant', 'ops', 'hr', 'qltong', 'tpvh'], 'assignments.manage': ['admin', 'hr', 'qltong', 'tpvh'], 'assignments.approve': ['admin', 'qltong'],
     'masterData.view': ['admin', 'accountant', 'hr'], 'masterData.manage': ['admin'],
+    // Spec v1.8 Wave 5 – Phase 1: kỳ báo cáo / metric registry / cổ phần theo tòa
+    'reports.lock': ['admin', 'accountant'], 'reports.reopen': ['admin'], 'metrics.manage': ['admin'], 'shares.view': ['admin', 'accountant', 'codong', 'qltong'], 'shares.manage': ['admin', 'accountant'],
   };
   // Vai trò tổ chức (§16): Quản lý Tổng xem toàn cây + duyệt; TPVH thao tác vận hành trong scope đơn vị + descendants
   const QLTONG_PERMS = ['dashboard.view', 'buildings.view', 'landlords.view', 'rooms.view', 'tenants.view', 'contracts.view', 'invoices.view', 'payments.view', 'refunds.view', 'refunds.approve', 'expenses.view', 'reports.view', 'reports.export', 'reports.hub', 'documents.view', 'hr.view', 'payroll.view', 'payroll.approve', 'performance.view', 'salary.view', 'shareholders.view', 'projects.view', 'roi.view', 'catalog.view', 'zalo.view', 'import.view', 'ocr.use', 'deposits.view', 'maintenance.view', 'crm.view', 'deals.view', 'assets.view', 'inventory.view'];
@@ -74,13 +76,15 @@
     leads: 'lead', leadActivities: 'leadActivity', viewings: 'viewing', deals: 'deal', commissions: 'commission', incidents: 'incident', incidentUpdates: 'incidentUpdate', maintenanceSchedules: 'maintenanceSchedule', openingBalances: 'openingBalance',
     // Phase 3: tài sản/kiểm kê theo tòa; dự án/vốn góp/phân phối theo tòa của dự án
     assets: 'asset', inventories: 'inventory', inventoryLines: 'inventoryLine', projects: 'project', shareholders: 'shareholder', capitalCommitments: 'capitalCommitment', contributions: 'contribution', distributions: 'distribution',
+    // Spec v1.8 W5: cổ phần/góp vốn/phân phối theo tòa
+    buildingShares: 'buildingShare', capitalCalls: 'capitalCall', capitalPayments: 'capitalPayment', profitDistributions: 'profitDistribution',
   };
   const DATA_SCOPE = {
     ops: new Set(Object.keys(COLLECTION_TYPE)),
     tpvh: new Set(Object.keys(COLLECTION_TYPE)),
     sale: new Set(['leads', 'leadActivities', 'viewings', 'holds', 'deals', 'commissions', 'tenants', 'contracts', 'reportRuns']),
     kythuat: new Set(['buildings', 'rooms', 'expenses', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'assets', 'inventories', 'inventoryLines']),
-    codong: new Set(['buildings', 'rooms', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions']),
+    codong: new Set(['buildings', 'rooms', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions', 'buildingShares', 'capitalCalls', 'capitalPayments', 'profitDistributions']),
   };
   const rawAll = c => TH.store.rawAll ? TH.store.rawAll(c) : (TH.store.state[c] || []);
   const rawGet = (c, id) => TH.store.rawGet ? TH.store.rawGet(c, id) : rawAll(c).find(x => x && x.id === id) || null;
@@ -125,8 +129,9 @@
       return new Set(employee ? rawAll('buildingAssignments').filter(a => a && a.employeeId === employee.id && a.status === 'active').map(a => a.buildingId).filter(Boolean) : []);
     }
     if (role === 'codong') {
-      const projects = A.allowedProjectIds() || new Set();
-      return new Set(rawAll('projects').filter(p => p && projects.has(p.id)).map(p => p.buildingId).filter(Boolean));
+      const projects = A.allowedProjectIds() || new Set(); const sh = A.shareholder();
+      // §4.30: tòa cổ đông tham gia = Building Share (mọi record, kể cả đã hết hiệu lực) ∪ dự án P3
+      return new Set(rawAll('projects').filter(p => p && projects.has(p.id)).map(p => p.buildingId).concat(sh ? rawAll('buildingShares').filter(x => x && x.shareholderId === sh.id && x.status !== 'cancelled').map(x => x.buildingId) : []).filter(Boolean));
     }
     return null;
   };
@@ -188,6 +193,8 @@
     if (type === 'openingBalance') return buildingIds('contract', rawGet('contracts', record.contractId), seen);
     if (type === 'inventoryLine') return buildingIds('asset', rawGet('assets', record.assetId), seen);
     if (type === 'capitalCommitment' || type === 'contribution' || type === 'distribution') return record.projectId ? buildingIds('project', rawGet('projects', record.projectId), seen) : uniq(rawAll('projects').map(p => p && p.buildingId));
+    if (type === 'buildingShare' || type === 'capitalCall' || type === 'profitDistribution') return record.buildingId ? [record.buildingId] : [];
+    if (type === 'capitalPayment') return buildingIds('capitalCall', rawGet('capitalCalls', record.capitalCallId), seen);
     if (type === 'auditLog') {
       const cols = { building: 'buildings', room: 'rooms', tenant: 'tenants', contract: 'contracts', invoice: 'invoices', payment: 'payments', refund: 'refunds', expense: 'expenses', landlord: 'landlords', landlordContract: 'landlordContracts' };
       return buildingIds(record.entityType, rawGet(cols[record.entityType] || record.entityType, record.entityId), seen);
@@ -221,6 +228,9 @@
       if (type === 'project') return projectIds.has(record.id);
       if (type === 'capitalCommitment' || type === 'contribution') return !!sh && record.shareholderId === sh.id && projectIds.has(record.projectId);
       if (type === 'distribution') return !!sh && (!record.projectId || projectIds.has(record.projectId)) && (record.lines || []).some(l => l.shareholderId === sh.id);
+      if (type === 'buildingShare' || type === 'capitalPayment') return !!sh && record.shareholderId === sh.id;
+      if (type === 'capitalCall') return !!sh && rawAll('capitalPayments').some(l => l && l.capitalCallId === record.id && l.shareholderId === sh.id);
+      if (type === 'profitDistribution') return !!sh && (record.lines || []).some(l => l.shareholderId === sh.id);
     }
     if (['ops', 'tpvh'].includes(role) && (type === 'ocrExtraction' || type === 'ocrJob') && (record.createdBy === (user || {}).id || record.uploadedBy === (user || {}).id)) return true;
     // Ops: khách thuê chưa gắn HĐ/giữ chỗ nào (vừa tạo tay hoặc từ OCR) không thuộc tòa nào → được thấy/dùng để lập HĐ đầu tiên trong tòa của mình
@@ -317,6 +327,12 @@
     if (path.startsWith('/assets') && !A.can('inventory.manage')) hide('start finish export-report');
     if (path.startsWith('/assets') && !A.can('assets.manage')) hide('add edit dispose');
     if (path.startsWith('/investment') && !A.can('shareholders.manage')) hide('add edit add-round record add-dist add-project');
+    if (path.startsWith('/investment') && !A.can('shares.manage')) hide('config shares-save');
+    if (path.startsWith('/investment') && !A.can('contributions.record')) hide('add-call pay');
+    if (path.startsWith('/investment') && !A.can('distributions.manage')) hide('gen-dist gen submit cancel');
+    if (path.startsWith('/reports') && !A.can('reports.lock')) hide('lock');
+    if (path.startsWith('/reports') && !A.can('reports.reopen')) hide('reopen');
+    if (path.startsWith('/reports') && !A.can('metrics.manage')) hide('confirm revert');
     if (path.startsWith('/investment') && !A.can('distributions.approve')) hide('approve');
     if (path.startsWith('/finance/bank') && !A.can('bank.manage')) hide('import reconcile qr match ignore add-acc');
   };

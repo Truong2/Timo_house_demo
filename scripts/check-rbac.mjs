@@ -32,6 +32,7 @@ const fixture = {
   servicePrices: [], meters: [], depositLedger: [], contractTenants: [], contractHandoverAssets: [], contractPaymentTerms: [], contractRenewalClauses: [],
   roomStatusHistory: [], roomPriceHistory: [], contractEvents: [], contractFollowUps: [], billingPeriods: [],
   payrollRuleVersions: [], payrollAssignmentSnapshots: [], payrollResults: [], salaryPayments: [], payrollCostAllocations: [], allocationRules: [],
+  metricDefinitions: [], reportPeriods: [], reportSnapshots: [], reportMetricValues: [], goldenDatasets: [], buildingShares: [{ id: 'bs-me', buildingId: 'b1', shareholderId: 'sh-me', percentage: 40, effectiveFrom: '2026-01-01', effectiveTo: '', status: 'active' }, { id: 'bs-other', buildingId: 'b2', shareholderId: 'sh-other', percentage: 100, effectiveFrom: '2026-01-01', effectiveTo: '', status: 'active' }], capitalCalls: [{ id: 'cc1', buildingId: 'b1' }], capitalPayments: [{ id: 'cp-me', capitalCallId: 'cc1', shareholderId: 'sh-me' }, { id: 'cp-other', capitalCallId: 'cc1', shareholderId: 'sh-other' }], profitDistributions: [{ id: 'pd1', buildingId: 'b1', period: '2026-06', lines: [{ shareholderId: 'sh-me', netShare: 1 }] }],
   ocrJobs: [{ id: 'job-mine', uploadedBy: 'u-ops', status: 'READY_FOR_REVIEW', fields: [], decisions: {} }, { id: 'job-b2', uploadedBy: 'u-admin', status: 'READY_FOR_REVIEW', fields: [{ key: 'roomCode', value: 'R2' }], decisions: {} }],
   leads: [
     { id: 'l-lead', saleId: 'u-sale-lead', buildingIds: ['b1'] },
@@ -202,8 +203,8 @@ function registrations(source, file) {
 
 const pagesDir = path.join(root, 'mockup/js/pages');
 const routes = fs.readdirSync(pagesDir).filter(file => file.endsWith('.js')).flatMap(file => registrations(read(`mockup/js/pages/${file}`), file));
-assert.equal(routes.length, 76, 'Expected the demo route inventory to contain 76 routes');
-assert.equal(new Set(routes.map(route => route.path)).size, 76, 'Route paths must be unique');
+assert.equal(routes.length, 82, 'Expected the demo route inventory to contain 82 routes');
+assert.equal(new Set(routes.map(route => route.path)).size, 82, 'Route paths must be unique');
 for (const route of routes) assert.ok(TH.auth.ROLE_POLICY[route.permission], `${route.path} uses unknown permission ${route.permission}`);
 const routeAt = pathName => routes.find(route => route.path === pathName);
 assert.equal(routeAt('/crm/leads/:id').resource.type, 'lead');
@@ -247,7 +248,7 @@ for (const [role, userId] of Object.entries(accounts)) {
     }
   }
 }
-assert.equal(matrixCases, 9 * 76 * 2);
+assert.equal(matrixCases, 9 * 82 * 2);
 state.session = null;
 for (const route of routes) assert.equal(state.session ? 'continue' : 'login', 'login', `Logged-out access to ${route.path} must stop at Login`);
 
