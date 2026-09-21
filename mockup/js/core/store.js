@@ -13,7 +13,9 @@
     // Spec v1.8 – Wave 2: OCR Data Onboarding (§12.8), bảng giá 2 lớp (§12.9), công tơ (§12.10), Deposit Ledger (§10.11), người thuê/điều khoản theo HĐ
     'servicePrices', 'meters', 'depositLedger', 'contractTenants', 'contractHandoverAssets', 'contractPaymentTerms', 'contractRenewalClauses', 'ocrJobs',
     // Spec v1.8 – Wave 3: lịch sử phòng (§12.5), sự kiện & follow-up HĐ (§12.7, §12.15), kỳ hóa đơn (§12.11.1)
-    'roomStatusHistory', 'roomPriceHistory', 'contractEvents', 'contractFollowUps', 'billingPeriods'];
+    'roomStatusHistory', 'roomPriceHistory', 'contractEvents', 'contractFollowUps', 'billingPeriods',
+    // Spec v1.8 – Wave 4: Payroll Rule/Snapshot/Result, chi lương, phân bổ chi phí lương & Allocation Rule (§4.26, §4.27, §12.20, §12.21)
+    'payrollRuleVersions', 'payrollAssignmentSnapshots', 'payrollResults', 'salaryPayments', 'payrollCostAllocations', 'allocationRules'];
   const S = { state: null, listeners: [], _t: null };
   S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
   S.migrate = (st) => {
@@ -40,6 +42,7 @@
     // Spec v1.8 – W2: OCR job/servicePrices/meters/depositLedger/contractTenants; additive & idempotent (meta.w2Migrated)
     if (TH.seed && TH.seed.migrateW2 && st.buildings.length) { try { TH.seed.migrateW2(st); } catch (e) { console.warn('migrate w2', e); } }
     if (TH.seed && TH.seed.migrateW3 && st.buildings.length) { try { TH.seed.migrateW3(st); } catch (e) { console.warn('migrate w3', e); } }
+    if (TH.seed && TH.seed.migrateW4 && st.buildings.length) { try { TH.seed.migrateW4(st); } catch (e) { console.warn('migrate w4', e); } }
     // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
     // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
     const leadGroups = {};

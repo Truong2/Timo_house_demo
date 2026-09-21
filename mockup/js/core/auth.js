@@ -37,7 +37,7 @@
     'reports.hub': ['admin', 'accountant', 'sale'], 'period.close': ['admin', 'accountant'], 'zalo.log': ['admin'], 'refunds.requestEdit': ['admin', 'accountant'], 'expenses.depreciation': ['admin', 'accountant'],
     // Phase 3 (H=hr, C=codong) – chỉ có hiệu lực khi TH.phase.on(3)
     'assets.view': ['admin', 'accountant', 'ops', 'kythuat'], 'assets.manage': ['admin', 'ops'], 'inventory.view': ['admin', 'accountant', 'ops', 'kythuat'], 'inventory.manage': ['admin', 'accountant'], 'inventory.record': ['admin', 'accountant', 'ops'],
-    'hr.view': ['admin', 'hr'], 'hr.manage': ['admin', 'hr'], 'timesheet.view': ['admin', 'hr'], 'timesheet.manage': ['admin', 'hr'], 'payroll.view': ['admin', 'hr', 'accountant'], 'payroll.manage': ['admin', 'hr'], 'payroll.approve': ['admin', 'accountant'],
+    'hr.view': ['admin', 'hr'], 'hr.manage': ['admin', 'hr'], 'timesheet.view': ['admin', 'hr'], 'timesheet.manage': ['admin', 'hr'], 'payroll.view': ['admin', 'hr', 'accountant'], 'payroll.manage': ['admin', 'hr'], 'payroll.approve': ['admin', 'accountant'], 'payroll.lock': ['admin', 'accountant'], 'payroll.reopen': ['admin'], 'performance.view': ['admin', 'hr', 'accountant'], 'salary.view': ['admin', 'hr', 'accountant'], 'salary.pay': ['admin', 'accountant'], 'expenses.import': ['admin', 'accountant'],
     'projects.view': ['admin', 'accountant', 'codong'], 'projects.manage': ['admin'], 'shareholders.view': ['admin', 'accountant', 'codong'], 'shareholders.manage': ['admin', 'accountant'], 'contributions.record': ['admin', 'accountant'], 'distributions.manage': ['admin', 'accountant'], 'distributions.approve': ['admin'], 'roi.view': ['admin', 'accountant', 'codong'],
     'bank.view': ['admin', 'accountant'], 'bank.manage': ['admin', 'accountant'],
     // Spec v1.8 Wave 1 – Phase 1: cơ cấu tổ chức, phân công tòa (single source of truth), master data, vai trò Quản lý Tổng / TPVH (§16)
@@ -46,8 +46,8 @@
     'masterData.view': ['admin', 'accountant', 'hr'], 'masterData.manage': ['admin'],
   };
   // Vai trò tổ chức (§16): Quản lý Tổng xem toàn cây + duyệt; TPVH thao tác vận hành trong scope đơn vị + descendants
-  const QLTONG_PERMS = ['dashboard.view', 'buildings.view', 'landlords.view', 'rooms.view', 'tenants.view', 'contracts.view', 'invoices.view', 'payments.view', 'refunds.view', 'refunds.approve', 'expenses.view', 'reports.view', 'reports.export', 'reports.hub', 'documents.view', 'hr.view', 'payroll.view', 'payroll.approve', 'shareholders.view', 'projects.view', 'roi.view', 'catalog.view', 'zalo.view', 'import.view', 'ocr.use', 'deposits.view', 'maintenance.view', 'crm.view', 'deals.view', 'assets.view', 'inventory.view'];
-  const TPVH_PERMS = ['dashboard.view', 'buildings.view', 'landlords.view', 'rooms.view', 'rooms.manage', 'tenants.view', 'tenants.manage', 'contracts.view', 'contracts.manage', 'invoices.view', 'meterReadings.manage', 'payments.view', 'payments.record', 'recordPayment', 'refunds.view', 'refunds.prepare', 'expenses.view', 'expenses.manage', 'documents.view', 'documents.manage', 'hr.view', 'ocr.use', 'deposits.view', 'import.view', 'import.operations', 'maintenance.view', 'maintenance.manage'];
+  const QLTONG_PERMS = ['dashboard.view', 'buildings.view', 'landlords.view', 'rooms.view', 'tenants.view', 'contracts.view', 'invoices.view', 'payments.view', 'refunds.view', 'refunds.approve', 'expenses.view', 'reports.view', 'reports.export', 'reports.hub', 'documents.view', 'hr.view', 'payroll.view', 'payroll.approve', 'performance.view', 'salary.view', 'shareholders.view', 'projects.view', 'roi.view', 'catalog.view', 'zalo.view', 'import.view', 'ocr.use', 'deposits.view', 'maintenance.view', 'crm.view', 'deals.view', 'assets.view', 'inventory.view'];
+  const TPVH_PERMS = ['dashboard.view', 'buildings.view', 'landlords.view', 'rooms.view', 'rooms.manage', 'tenants.view', 'tenants.manage', 'contracts.view', 'contracts.manage', 'invoices.view', 'meterReadings.manage', 'payments.view', 'payments.record', 'recordPayment', 'refunds.view', 'refunds.prepare', 'expenses.view', 'expenses.manage', 'documents.view', 'documents.manage', 'hr.view', 'performance.view', 'ocr.use', 'deposits.view', 'import.view', 'import.operations', 'maintenance.view', 'maintenance.manage'];
   QLTONG_PERMS.forEach(k => { if (ROLE_POLICY[k] && !ROLE_POLICY[k].includes('qltong')) ROLE_POLICY[k].push('qltong'); });
   TPVH_PERMS.forEach(k => { if (ROLE_POLICY[k] && !ROLE_POLICY[k].includes('tpvh')) ROLE_POLICY[k].push('tpvh'); });
   // HR là vai trò Phase 1 (§4.23–4.26): mở quyền đọc vận hành cơ bản để đối chiếu phân công
@@ -266,7 +266,7 @@
     const id = params && params[meta.resource.param || 'id'];
     return !!id && A.inScope(meta.resource.type, A.resource(meta.resource.type, id));
   };
-  A.importTypes = () => A.role() === 'admin' ? ['room', 'tenant', 'contract', 'meter', 'invoice'] : A.role() === 'accountant' ? ['meter', 'invoice'] : ['ops', 'tpvh'].includes(A.role()) ? ['room', 'tenant', 'contract'] : [];
+  A.importTypes = () => A.role() === 'admin' ? ['room', 'tenant', 'contract', 'meter', 'invoice', 'expense', 'salaryResult'] : A.role() === 'accountant' ? ['meter', 'invoice', 'expense', 'salaryResult'] : ['ops', 'tpvh'].includes(A.role()) ? ['room', 'tenant', 'contract'] : [];
   A.validateSession = () => {
     const s = A.session(); if (!s) return false;
     const u = rawGet('users', s.userId);
@@ -309,8 +309,11 @@
     if (path.startsWith('/hr/assignments') && !A.can('assignments.approve')) hide('approve reject');
     if (path.startsWith('/buildings') && !A.can('assignments.manage')) hide('change-manager');
     if (path.startsWith('/settings/catalog') && !A.can('masterData.manage')) hide('md-add md-edit md-toggle');
-    if (path.startsWith('/hr/payroll') && !A.can('payroll.approve')) hide('approve pay');
-    if (path.startsWith('/hr/payroll') && !A.can('payroll.manage')) hide('build submit');
+    if (path.startsWith('/hr/payroll') && !A.can('payroll.approve')) hide('approve pay return');
+    if (path.startsWith('/hr/payroll') && !A.can('payroll.manage')) hide('build submit open refresh adjust deduction');
+    if (path.startsWith('/hr/payroll') && !A.can('payroll.lock')) hide('lock');
+    if (path.startsWith('/hr/payroll') && !A.can('payroll.reopen')) hide('reopen');
+    if (path.startsWith('/hr/salary-payments') && !A.can('salary.pay')) hide('pay bulk-pay import fail cancel adjust');
     if (path.startsWith('/assets') && !A.can('inventory.manage')) hide('start finish export-report');
     if (path.startsWith('/assets') && !A.can('assets.manage')) hide('add edit dispose');
     if (path.startsWith('/investment') && !A.can('shareholders.manage')) hide('add edit add-round record add-dist add-project');

@@ -38,7 +38,7 @@ export const FLOW_TRACE = {
   F01: 'Khách thuê (FR-CUS-01, BR-18)', F02: 'Hợp đồng & kích hoạt (FR-CUS-02, BR-05/06)', F03: 'Chỉ số & hóa đơn (FR-FIN-01/02, BR-21)', F04: 'Gửi Zalo hóa đơn (FR-ZAL-01/02)',
   F05: 'Công nợ & thu tiền (FR-FIN-03)', F06: 'Nhắc nợ Zalo (FR-ZAL-03)', F07: 'Kết thúc HĐ (FR-CUS-04)', F08: 'Hoàn cọc (FR-FIN-05, OI-07)', F09: 'Dọn phòng & vòng đời phòng (FR-BLD-05)', F10: 'Chi phí, import, tài khoản, báo cáo (FR-FIN-05, FR-SYS-02/03, FR-RPT-01)',
   F11: 'CRM lead → giữ chỗ → chốt thuê → hoa hồng (FR-SAL-01..05)', F12: 'OCR hợp đồng (FR-OCR-01..03)', F13: 'Import bảng kê & số dư đầu kỳ (FR-FIN-04/06, Data Job)', F14: 'Bảo trì & bảo dưỡng → chi phí (FR-MNT-01..03)', F15: 'Báo cáo, khóa kỳ, Zalo retry (FR-RPT-02, FR-FIN-08, FR-ZAL-04)', 'F08.5': 'Hoàn cọc – yêu cầu chỉnh sửa (FR-FIN-05 mở rộng)',
-  F16: 'Kiểm kê tài sản (FR-BLD-04, FR-MNT-02)', F17: 'Nhân sự → bảng công → lương → chi phí (FR-HR-01..04)', F18: 'Cổ đông, vốn góp, phân phối, scope cổ đông (FR-INV-01..04, D-14)', F19: 'Ngân hàng & đối soát (FR-FIN-07)',
+  F16: 'Kiểm kê tài sản (FR-BLD-04, FR-MNT-02)', F17: 'Nhân sự → phân công → bảng công mô phỏng (lương P1: F14 §4.26)', F18: 'Cổ đông, vốn góp, phân phối, scope cổ đông (FR-INV-01..04, D-14)', F19: 'Ngân hàng & đối soát (FR-FIN-07)',
 };
 export const SIMULATION_LABELS = ['Zalo (gửi/retry mô phỏng)', 'OCR (trích xuất mô phỏng)', 'Ngân hàng/VietQR (sao kê mô phỏng)'];
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));

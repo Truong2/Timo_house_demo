@@ -51,7 +51,7 @@ const COMMIT = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding:
 
 const roleLabel = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Kinh doanh', kythuat: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
 const ROLE_MENU = { admin: /Quay lại Admin|Quản trị viên/, accountant: /Kế toán/, ops: /Vận hành/, sale: /Kinh doanh|Sale/, kythuat: /Kỹ thuật/, hr: /Nhân sự/, codong: /Cổ đông/ };
-const EXPECTED = 44; // S0 (4) + F00 (4) + F01–F10 (32) + F12 OCR Data Onboarding (4, spec v1.8 §12.8)
+const EXPECTED = 48; // S0 (4) + F00 (4) + F01–F10 (32) + F12 OCR Data Onboarding (4, spec v1.8 §12.8) + F14 Hiệu suất → lương → chi lương (3, §4.26) + F15 Import chi phí & phân bổ (1, §4.27)
 const route = (x) => `#${x}`;
 
 const FLOWS = [
@@ -151,6 +151,18 @@ const FLOWS = [
       ['F12.4', 'Xác nhận tạo hợp đồng – commit 1 transaction', 'ops', '/contracts/ocr', 'Modal xác nhận tóm tắt payload; màn Kết quả liệt kê entity đã tạo/liên kết.', 'Commit không mô phỏng lỗi.', 'Bấm Xác nhận tạo hợp đồng → Commit.', 'Job COMMITTED; HĐ Dự thảo nguồn OCR kèm người thuê, 6 dịch vụ snapshot, cọc RECEIVABLE, xe, 2 chỉ số OPENING, tài sản bàn giao, điều khoản thanh toán/gia hạn, tài liệu; giá điện tòa Sunrise có bản ghi mới hiệu lực 01/11/2026.', '[data-guide="ocr-open-contract"]'],
     ],
   },
+  {
+    key: 'F14', title: 'Hiệu suất thu tiền → bảng lương → chi lương (spec v1.8 §4.26)', core: true, steps: [
+      ['F14.1', 'Hiệu suất thu tiền M1/M2/M3 theo NV × tòa', 'admin', '/hr/collection-performance', 'Bảng NV × tòa: số phòng, DT niêm yết, DT phải thu, thu M1/M2/M3, tổng sau 3 mốc, dịch vụ, tỷ lệ DV/DT, thu thêm, tổng DT thu được, hiệu suất %, mức lương/phòng, lương theo phòng; drill-down về Payment.', 'Kỳ 10/2026; mốc M1 ≤ 05, M2 ≤ 10, M3 ≤ 15 (Master Data); Payroll Rule PR-2026-01/PR-2026-01S (chờ chốt).', 'Mở Nhân sự → Hiệu suất thu tiền, bấm drill-down dòng đầu.', 'Mọi số thu truy được về Payment Allocation gắn mốc; hiệu suất = Tổng DT thu được / DT niêm yết × 100.', '[data-guide="perf-table"]'],
+      ['F14.2', 'Mở kỳ lương → điều chỉnh có lý do → review → duyệt → khóa', 'hr', '/hr/payroll', 'Bảng lương cấu phần §4.26.5, stepper Nháp → Chờ duyệt → Đã duyệt → Đã khóa, drill-down §4.26.7.', 'Kỳ 10/2026 (đã mở sẵn – Nháp); điều chỉnh +300.000đ có lý do cho dòng đầu.', 'Nhân sự: điều chỉnh dòng đầu (có lý do) → Gửi review; Kế toán: Duyệt → Khóa bảng lương.', 'Snapshot NV + tòa + kỳ; không hoa hồng Sale / PC số nhà; khóa sinh danh sách chi lương + Payroll Cost Allocation, KHÔNG tạo chi phí Lương.', '[data-guide="pay-lock"]'],
+      ['F14.3', 'Chi lương từng người (partial) & hàng loạt', 'accountant', '/hr/salary-payments', 'Danh sách chi lương từ bảng lương đã khóa: phải chi / đã chi / còn phải chi, TK nhận snapshot, mã GD, chứng từ, trạng thái.', 'Chi một phần 50% cho người đầu tiên (UNC-UAT-1), rồi chi hàng loạt phần còn lại (UNC-202610).', 'Bấm Ghi nhận chi trên dòng đầu → nhập 50% → Ghi nhận; bấm Chi hàng loạt → Chi.', 'Trạng thái Chưa chi → Chi một phần → Đã chi; tổng còn phải chi = 0; không có Expense nhóm Lương.', '[data-guide="salary-table"]'],
+    ],
+  },
+  {
+    key: 'F15', title: 'Import chi phí & phân bổ chi phí chung (spec v1.8 §4.27)', core: true, steps: [
+      ['F15.1', 'Import chi phí từ file mẫu – phát hiện trùng → phân bổ chi phí chung', 'accountant', '/settings/import?type=expense', 'Wizard import 4 bước với dòng trùng/lỗi; phiếu CHUNG chờ phân bổ → drawer phân bổ theo số phòng / doanh thu / số tòa / tỷ lệ / nhóm T-S-G.', 'File mẫu 9 dòng: 6 hợp lệ (1 CHUNG), 1 trùng phiếu đã có, 1 tòa không tồn tại, 1 hạng mục sai & số tiền 0.', 'Dùng file mẫu → Tiếp tục → Xác nhận import; ở Chi phí lọc Chờ phân bổ → Phân bổ theo số phòng → Xác nhận.', 'Job import tạo 6, bỏ qua 3 (nguồn Import, Work Queue đếm lỗi); phiếu chung → Đã phân bổ với Expense Allocation ghi phương thức/kỳ/người xác nhận.', '[data-guide="expense-alloc"]'],
+    ],
+  },
 ];
 
 const STEPS = FLOWS.flatMap((f) => f.steps.map((s) => ({
@@ -246,9 +258,9 @@ async function stateSnapshot(page) {
      // St.add preserves creation order; use the last user batch when timestamps share a second.
      const batch = batches[batches.length - 1] || null;
      const refund = contract ? raw('refunds').filter((x) => x.contractId === contract.id).slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] : null;
-     const expense = raw('expenses').filter((x) => x.source === 'user').slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] || null;
+     const expense = raw('expenses').filter((x) => x.source === 'user' && x.dataSource !== 'import').slice().sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)))[0] || null;
      const expenseAllocations = expense ? raw('expenseAllocations').filter((x) => x.expenseId === expense.id) : [];
-     const importJob = raw('importJobs').filter((x) => x.source === 'user').slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] || null;
+     const importJob = raw('importJobs').filter((x) => x.source === 'user' && x.type === 'tenant').slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] || null;
      const user = users.filter((x) => x.source === 'user').slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0] || null;
      const meter = room ? raw('meterReadings').filter((x) => x.roomId === room.id && x.period === s.meta.period).slice(-2) : [];
      const paid = invoice ? T.q.invPaid(invoice) : 0; const remaining = invoice ? T.q.invRemaining(invoice) : 0;
@@ -477,6 +489,42 @@ async function runScenario(page, base) {
   });
   await switchRole(page, 'admin');
 
+  // F14 – Hiệu suất thu tiền → bảng lương → chi lương (spec v1.8 §4.26)
+  const payroll = () => page.evaluate(() => { const T = window.TH; const p = T.q.payroll('2026-10'); if (!p) return null; const rs = T.q.payrollResults(p.id); return { code: p.code, status: p.status, employees: rs.length, total: p.total, snapshots: T.q.payrollSnapshots(p.id).length, adjust: rs.reduce((s, r) => s + (r.adjustmentTotal || 0), 0), cost: T.q.payrollCostAllocations({ period: '2026-10' }).length, salary: T.q.salaryTotals(T.q.salaryPayments({ period: '2026-10' })), luongExpenses: T.store.all('expenses').filter(e => /^VH-L-/.test(e.categoryCode) || /chi lương/i.test(e.desc)).length }; });
+  await run('F14.1', async () => { await goto(page, base, route('/hr/collection-performance')); await page.waitForTimeout(300); const n = await page.locator('#perf-tbl tbody tr').count(); const t = await page.evaluate(() => { const rows = window.TH.q.perfRows('2026-10'); const tt = window.TH.q.perfTotals(rows); return { rows: rows.length, M1: tt.M1, M2: tt.M2, M3: tt.M3, eff: tt.efficiency, roomSalary: tt.roomSalary, tagged: window.TH.store.all('paymentAllocations').filter(a => a.milestone).length, total: window.TH.store.all('paymentAllocations').length }; }); const drill = page.locator('[data-guide="perf-drill"]').first(); if (await drill.count()) { await drill.click(); await page.waitForTimeout(300); } const extra = [await screenshot(page, 'F14.1', 'action', 'admin', '.overlay')]; await closeModal(page); return { actual: `${t.rows} dòng NV × tòa kỳ 10/2026; thu M1 ${t.M1.toLocaleString('vi-VN')} · M2 ${t.M2.toLocaleString('vi-VN')} · M3 ${t.M3.toLocaleString('vi-VN')}; hiệu suất chung ${t.eff}% → lương theo phòng ${t.roomSalary.toLocaleString('vi-VN')}đ; ${t.tagged}/${t.total} Payment Allocation gắn mốc.`, assertions: [{ id: 'perf-rows', status: n >= 5 && t.rows === n && t.tagged === t.total ? 'PASS' : 'FAIL', detail: `table=${n}; rows=${t.rows}; tagged=${t.tagged}/${t.total}` }], screenshots: extra }; }, { before: true });
+  await run('F14.2', async () => {
+    await switchRole(page, 'hr'); await goto(page, base, route('/hr/payroll?period=2026-10')); await page.waitForTimeout(300);
+    const st0 = await payroll(); if (!st0) { await clickAction(page, 'open'); await page.waitForTimeout(400); }
+    const adj = page.locator('[data-guide="pay-adjust"]').first(); await adj.click(); let m = await waitForModal(page); await fill(page, 'amount', '300000', m); await fill(page, 'reason', 'Thưởng hỗ trợ bàn giao phòng (UAT)', m); await m.locator('[data-act="save"]').click(); await page.waitForTimeout(300);
+    const before = await screenshot(page, 'F14.2', 'action', 'hr', '[data-guide="payroll-table"]');
+    await page.locator('[data-guide="pay-submit"]').first().click(); await page.waitForTimeout(300);
+    await switchRole(page, 'accountant'); await goto(page, base, route('/hr/payroll?period=2026-10')); await page.waitForTimeout(300); await page.locator('[data-guide="pay-approve"]').first().click(); await page.waitForTimeout(300);
+    await page.locator('[data-guide="pay-lock"]').first().click(); m = await waitForModal(page); await m.locator('[data-act="yes"]').click(); await page.waitForTimeout(500);
+    const st = await payroll();
+    return { actual: `Bảng lương ${st.code} → ${st.status}: ${st.employees} NV, ${st.snapshots} snapshot NV × tòa, điều chỉnh +${st.adjust.toLocaleString('vi-VN')}đ có lý do, tổng ${st.total.toLocaleString('vi-VN')}đ; khóa sinh ${st.salary.count} khoản chi lương + ${st.cost} dòng Payroll Cost Allocation; chi phí "Lương" ở Chi phí = ${st.luongExpenses}.`, assertions: [{ id: 'payroll-locked', status: st.status === 'locked' && st.adjust === 300000 && st.salary.count > 0 && st.cost > 0 && st.luongExpenses === 0 ? 'PASS' : 'FAIL', detail: JSON.stringify({ status: st.status, adjust: st.adjust, salary: st.salary.count, cost: st.cost, luong: st.luongExpenses }) }], screenshots: [before] };
+  }, { before: true });
+  await run('F14.3', async () => {
+    await goto(page, base, route('/hr/salary-payments?period=2026-10')); await page.waitForTimeout(300);
+    const first = await page.evaluate(() => { const s = window.TH.q.salaryPayments({ period: '2026-10' })[0]; return { id: s.id, due: s.amountDue }; });
+    await page.locator(`[data-guide="salary-pay"][data-id="${first.id}"]`).first().click(); let m = await waitForModal(page); await fill(page, 'amount', String(Math.round(first.due / 2 / 1000) * 1000), m); await fill(page, 'ref', 'UNC-UAT-1', m); await m.locator('[data-guide="salary-record"]').click(); await page.waitForTimeout(300);
+    const before = await screenshot(page, 'F14.3', 'action', 'accountant', '[data-guide="salary-table"]');
+    await page.locator('[data-guide="salary-bulk"]').first().click(); m = await waitForModal(page); await m.locator('[data-act="save"]').click(); await page.waitForTimeout(500);
+    const st = await payroll(); const s1 = await page.evaluate((id) => { const s = window.TH.store.get('salaryPayments', id); return { status: s.status, payments: s.payments.length, paid: s.amountPaid, due: s.amountDue }; }, first.id);
+    return { actual: `Khoản đầu: chi ${s1.payments} lần (một phần rồi đủ) → ${s1.status}; kỳ 10/2026: phải chi ${st.salary.due.toLocaleString('vi-VN')} · đã chi ${st.salary.paid.toLocaleString('vi-VN')} · còn ${st.salary.remaining.toLocaleString('vi-VN')}; ${st.salary.done}/${st.salary.count} Đã chi.`, assertions: [{ id: 'salary-paid', status: s1.status === 'paid' && s1.payments === 2 && st.salary.remaining === 0 ? 'PASS' : 'FAIL', detail: JSON.stringify(s1) + ' remaining=' + st.salary.remaining }], screenshots: [before] };
+  }, { before: true });
+  // F15 – Import chi phí & phân bổ (spec v1.8 §4.27)
+  await run('F15.1', async () => {
+    await goto(page, base, route('/settings/import?type=expense&period=2026-10')); await page.waitForTimeout(200); await clickAction(page, 'use-sample'); await page.waitForTimeout(300); await clickAction(page, 'to3'); await page.waitForTimeout(300);
+    const before = await screenshot(page, 'F15.1', 'action', 'accountant', '.wz-foot');
+    await clickAction(page, 'to4'); await page.waitForTimeout(300); await clickAction(page, 'commit'); const m = await waitForModal(page); await m.locator('[data-act="yes"]').click(); await page.waitForTimeout(600);
+    const job = await page.evaluate(() => { const j = window.TH.store.all('importJobs').filter(x => x.type === 'expense' && x.source === 'user').slice(-1)[0]; return j ? { code: j.code, created: j.created, skipped: j.skipped, error: j.error } : null; });
+    await goto(page, base, route('/expenses?status=pending_alloc&period=2026-10')); await page.waitForTimeout(300); const alloc = page.locator('[data-guide="expense-alloc"]').first(); await alloc.click(); const d = await waitForModal(page); await select(page, 'allocMethod', 'ROOM_COUNT', d); await page.waitForTimeout(200); const mid = await screenshot(page, 'F15.1', 'action2', 'accountant', '.overlay'); await d.locator('[data-guide="expense-allocate"]').click(); await page.waitForTimeout(400);
+    const ex = await page.evaluate(() => { const e = window.TH.store.all('expenses').filter(x => x.status === 'allocated' && x.source === 'user').slice(-1)[0]; return e ? { code: e.code, method: (e.allocation || {}).method, allocs: window.TH.q.expenseAllocations(e.id).map(a => ({ pct: a.pct, amount: a.amount, method: a.method, period: a.period, by: !!a.confirmedBy })) } : null; });
+    const ok = job && job.created === 6 && job.skipped === 3 && ex && ex.method === 'ROOM_COUNT' && ex.allocs.length >= 5 && ex.allocs.every(a => a.period === '2026-10' && a.by);
+    return { actual: `Import ${job?.code}: tạo ${job?.created}, bỏ qua ${job?.skipped} (trùng CP đã có / tòa không tồn tại / hạng mục sai); phiếu ${ex?.code} phân bổ ${ex?.method} cho ${ex?.allocs.length} tòa (${(ex?.allocs || []).map(a => a.pct + '%').join(', ')}), Expense Allocation ghi kỳ & người xác nhận.`, assertions: [{ id: 'expense-import-alloc', status: ok ? 'PASS' : 'FAIL', detail: JSON.stringify({ job, ex }) }], screenshots: [before, mid] };
+  }, { before: true });
+  await switchRole(page, 'admin');
+
   return { results, final: await stateSnapshot(page) };
 }
 
@@ -539,7 +587,7 @@ async function buildDoc(manifest, diagramPng) {
     new Paragraph({ spacing: { before: 850, after: 140 }, children: [new TextRun({ text: 'WALKTHROUGH / UAT', bold: true, size: 34, color: '16324F' })] }),
     new Paragraph({ children: [new TextRun({ text: 'Phase 1 · Core Rental / Go-live', bold: true, size: 27, color: '1769AA' })] }),
     p('Tài liệu hướng dẫn nghiệp vụ và bằng chứng chạy runtime trên mockup TimoHouse.', { size: 22, after: 260 }),
-    table([['Thông tin', 'Giá trị'], ['Phạm vi', `${EXPECTED} mốc · S0 + F00 thiết lập + 10 luồng core + F10 bổ trợ + F12 OCR Data Onboarding (v1.8)`], ['Commit / nhánh', `${manifest.commit} · ${manifest.branch || ''}`], ['Đối tượng', 'Nghiệp vụ + UAT'], ['Môi trường', 'Chrome 1440×1080 · Phase 1 only'], ['Ngày/kỳ demo', '28/10/2026 · 10/2026'], ['Kết quả', `${manifest.qa.status} · ${manifest.summary.pass}/${manifest.summary.total}`]], [30, 70]),
+    table([['Thông tin', 'Giá trị'], ['Phạm vi', `${EXPECTED} mốc · S0 + F00 thiết lập + 10 luồng core + F10 bổ trợ + F12 OCR + F14 hiệu suất/lương/chi lương + F15 import chi phí (v1.8)`], ['Commit / nhánh', `${manifest.commit} · ${manifest.branch || ''}`], ['Đối tượng', 'Nghiệp vụ + UAT'], ['Môi trường', 'Chrome 1440×1080 · Phase 1 only'], ['Ngày/kỳ demo', '28/10/2026 · 10/2026'], ['Kết quả', `${manifest.qa.status} · ${manifest.summary.pass}/${manifest.summary.total}`]], [30, 70]),
     p('Lưu ý dữ liệu: hợp đồng dùng ngày bắt đầu 01/10/2026 để đủ điều kiện lập hóa đơn kỳ 10/2026. PNG gốc chỉ là tham chiếu UI, không phải bằng chứng thực thi.', { size: 18, color: '64748B', after: 220 }),
     heading('Sơ đồ tổng thể', HeadingLevel.HEADING_1),
     new Paragraph({ children: [new ImageRun({ data: fs.readFileSync(diagramPng), transformation: { width: 650, height: 216 }, type: 'png' })] }),

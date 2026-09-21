@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { createRunner, fill, select, clickText, clickAction, modal, goto, saveDownload, confirmDialog, ROOT } from './uat/runtime.mjs';
 
-const runner = await createRunner({ phase: 3, expectedMilestones: 15, phaseFlags: { p1: true, p2: true, p3: true } });
+const runner = await createRunner({ phase: 3, expectedMilestones: 14, phaseFlags: { p1: true, p2: true, p3: true } });
 const { page } = runner;
 const created = {};
 
@@ -71,16 +71,6 @@ try {
     const fillDefault = page.getByRole('button', { name: 'Điền mặc định' }); if (await fillDefault.isEnabled().catch(() => false)) await fillDefault.click();
     const confirmButton = page.getByRole('button', { name: 'Xác nhận bảng công' }); if (await confirmButton.isEnabled().catch(() => false)) { await confirmButton.click(); const box = await modal(page); await clickText(page, 'Xác nhận', { scope: box, exact: true }); }
     await page.waitForTimeout(250); return { actual: 'Bảng công kỳ 10/2026 đã xác nhận và khóa chỉnh sửa.' };
-  });
-
-  await runner.step('F17.4', async () => {
-    const build = page.locator('[data-act=build]').first(); if (await build.isEnabled().catch(() => false)) await build.click();
-    const submit = page.locator('[data-act=submit]').first(); if (await submit.isEnabled().catch(() => false)) await submit.click();
-    await runner.switchRole('accountant'); await goto(page, runner.baseUrl, '#/hr/payroll');
-    const approve = page.locator('[data-act=approve]').first(); if (await approve.isEnabled().catch(() => false)) await approve.click();
-    const pay = page.locator('[data-act=pay]').first(); if (await pay.isEnabled().catch(() => false)) { await pay.click(); const box = await modal(page); await fill(page, 'date', '2026-10-28', box); await fill(page, 'ref', 'UNC-UAT-P3-202610', box); await clickText(page, 'Ghi nhận chi', { scope: box }); }
-    await page.waitForTimeout(300); created.payroll = await latest('payrolls');
-    return { actual: `Bảng lương ${created.payroll?.code || ''} qua Nháp → Chờ duyệt → Đã duyệt → Đã chi; chi phí Lương tạo đúng kỳ.` };
   });
 
   await runner.step('F18.1', async () => {
@@ -164,11 +154,8 @@ try {
     const mismatch = lines.filter(l => { const a = (S.assets || []).find(x => x.id === l.assetId); return !a || a.condition !== l.condition; });
     return { ok: !mismatch.length && inv.status === 'done', detail: `inventory=${inv.code}/${inv.status} lines=${lines.length} synced=${lines.length - mismatch.length}` };
   }));
-  runner.smoke.push(await runner.smokeCheck('payroll-creates-expense', () => {
-    const S = window.TH.store.state; const p = (S.payrolls || []).filter(x => x.status === 'paid').slice(-1)[0]; if (!p) return { ok: false, detail: 'không có bảng lương đã chi' };
-    const exs = (S.expenses || []).filter(x => (p.expenseIds || []).includes(x.id)); const total = exs.reduce((n, x) => n + Number(x.amount || 0), 0);
-    const ok = exs.length > 0 && exs.every(x => x.group === 'Lương' && String(x.date).slice(0, 7) === '2026-10') && Math.abs(total - Number(p.total)) < 1000;
-    return { ok, detail: `payroll=${p.code} total=${p.total} expenses=${exs.length} sum=${total} period=${[...new Set(exs.map(x => String(x.date).slice(0, 7)))].join(',')}` };
+  runner.smoke.push(await runner.smokeCheck('payroll-no-expense', () => {
+    const S = window.TH.store.state; const exs = (S.expenses || []).filter(x => /^VH-L-/.test(x.categoryCode || '') || x.group === 'Lương'); return { ok: exs.length === 0, detail: `expenses nhóm Lương=${exs.length} (spec v1.8 §4.27.4: lương không nhập lại Chi phí – bảng lương ở F14 P1)` };
   }));
   runner.smoke.push(await runner.smokeCheck('bank-reduces-receivable', () => {
     const S = window.TH.store.state; const T = window.TH; const matched = (S.bankTransactions || []).filter(x => x.matchStatus === 'matched' && x.paymentId); if (!matched.length) return { ok: false, detail: 'không có giao dịch khớp' };

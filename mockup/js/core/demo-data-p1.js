@@ -28,7 +28,7 @@
     payment: { date: TODAY, amount: 3000000, method: 'Chuyển khoản', ref: 'CK289104', note: 'Khách thanh toán một phần hóa đơn kỳ 10/2026.', remaining: 4715000 },
     termination: { endType: 'early_tenant', reasonCode: 'early_tenant', noticeDate: TODAY, actualEnd: TODAY, issueFinal: true },
     refund: { inspection: { wall: 'ok', furniture: 'minor', utilities: 'ok', devices: 'ok' }, offsetDebt: true, debtOffset: 4715000, deductions: [{ group: 'Khấu hao', desc: 'Khấu hao thiết bị phòng Z.01.01', amount: 200000 }, { group: 'Dịch vụ', desc: 'Vệ sinh phòng Z.01.01', amount: 200000 }], amount: 7885000, paidDate: TODAY, paidMethod: 'Chuyển khoản', paidRef: 'UNC289104', paidEvidence: 'uy_nhiem_chi_hoan_coc.pdf' },
-    expense: { date: TODAY, desc: 'Sửa khóa phòng Z.01.01', amount: 350000, method: 'cash', recordType: 'ops', note: 'Chi phí sửa khóa thuộc Tòa Demo Onboard.' },
+    expense: { date: TODAY, docDate: TODAY, desc: 'Sửa khóa phòng Z.01.01', amount: 350000, payMethod: 'cash', supplier: 'Thợ khóa Minh Tâm', recordType: 'ops', note: 'Chi phí sửa khóa thuộc Tòa Demo Onboard.' },
     user: { name: 'Lê Demo Vận Hành', email: 'demo.vanhanh@timohouse.vn', phone: '0913 222 333', role: 'ops', region: 'Cầu Giấy', effectiveDate: TODAY, status: 'active', note: 'Phụ trách Tòa Demo Onboard.' }
   });
 

@@ -31,6 +31,7 @@ const fixture = {
   orgUnits: [], positions: [], employmentAssignments: [], buildingTypeHistory: [], masterData: [],
   servicePrices: [], meters: [], depositLedger: [], contractTenants: [], contractHandoverAssets: [], contractPaymentTerms: [], contractRenewalClauses: [],
   roomStatusHistory: [], roomPriceHistory: [], contractEvents: [], contractFollowUps: [], billingPeriods: [],
+  payrollRuleVersions: [], payrollAssignmentSnapshots: [], payrollResults: [], salaryPayments: [], payrollCostAllocations: [], allocationRules: [],
   ocrJobs: [{ id: 'job-mine', uploadedBy: 'u-ops', status: 'READY_FOR_REVIEW', fields: [], decisions: {} }, { id: 'job-b2', uploadedBy: 'u-admin', status: 'READY_FOR_REVIEW', fields: [{ key: 'roomCode', value: 'R2' }], decisions: {} }],
   leads: [
     { id: 'l-lead', saleId: 'u-sale-lead', buildingIds: ['b1'] },
@@ -135,7 +136,7 @@ assert.deepEqual(ids(TH.auth.filterByScope('distributions', state.distributions)
 
 // Sidebar structure is declarative and every referenced item comes from the canonical registry.
 run('mockup/js/ui/layout.js');
-const expectedTopLevel = { admin: 9, qltong: 6, tpvh: 5, ops: 7, accountant: 6, sale: 4, kythuat: 3, hr: 3, codong: 2 };
+const expectedTopLevel = { admin: 9, qltong: 6, tpvh: 5, ops: 7, accountant: 7, sale: 4, kythuat: 3, hr: 3, codong: 2 };
 for (const [role, count] of Object.entries(expectedTopLevel)) {
   const groups = TH.layout.menuForRole(role);
   assert.equal(groups.length, count, `${role} must have ${count} top-level sidebar entries`);
@@ -201,8 +202,8 @@ function registrations(source, file) {
 
 const pagesDir = path.join(root, 'mockup/js/pages');
 const routes = fs.readdirSync(pagesDir).filter(file => file.endsWith('.js')).flatMap(file => registrations(read(`mockup/js/pages/${file}`), file));
-assert.equal(routes.length, 74, 'Expected the demo route inventory to contain 74 routes');
-assert.equal(new Set(routes.map(route => route.path)).size, 74, 'Route paths must be unique');
+assert.equal(routes.length, 76, 'Expected the demo route inventory to contain 76 routes');
+assert.equal(new Set(routes.map(route => route.path)).size, 76, 'Route paths must be unique');
 for (const route of routes) assert.ok(TH.auth.ROLE_POLICY[route.permission], `${route.path} uses unknown permission ${route.permission}`);
 const routeAt = pathName => routes.find(route => route.path === pathName);
 assert.equal(routeAt('/crm/leads/:id').resource.type, 'lead');
@@ -246,7 +247,7 @@ for (const [role, userId] of Object.entries(accounts)) {
     }
   }
 }
-assert.equal(matrixCases, 9 * 74 * 2);
+assert.equal(matrixCases, 9 * 76 * 2);
 state.session = null;
 for (const route of routes) assert.equal(state.session ? 'continue' : 'login', 'login', `Logged-out access to ${route.path} must stop at Login`);
 
