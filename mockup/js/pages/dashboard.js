@@ -45,12 +45,13 @@
 
   TH.router.register('/dashboard', (root, params, q) => {
     const role = TH.auth.role(), period = q.period || St.state.meta.period, dashboardView = role === 'admin' ? (q.view || 'work') : 'work';
-    const f = { period, areaId: q.areaId || '', buildingId: q.buildingId || '', buildingType: q.buildingType || '', managerId: q.managerId || '', leadId: q.leadId || '' }, scope = Q.scope(f);
+    const f = { period, orgUnitId: q.orgUnitId || '', employeeId: q.employeeId || '', areaId: q.areaId || '', buildingId: q.buildingId || '', buildingType: q.buildingType || '', managerId: q.managerId || '', leadId: q.leadId || '' }, scope = Q.scope(f);
     const m = dashboardModel(role, period, f);
     const buildings = St.where('buildings', b => !b.stub && scope.buildingIds.includes(b.id));
     const groups = buildings.map(b => { const s = Q.roomStats(Q.roomsOf(b.id)); return { label: b.name, sub: '(' + s.total + ' phòng)', values: [s.occupied, s.ready, s.held, s.maintenance, s.cleaning + s.inactive] }; });
     const finB = buildings.map(b => { const x = Q.finance(period, { buildingId: b.id }); return { label: b.name, a: x.collected, b: x.remaining }; });
-    const contextualFilter = ['admin', 'accountant'].includes(role) ? U.dimFilter(f, { dims: ['period', 'areaId', 'buildingId', 'managerId', 'leadId'], inline: 2 }) : '';
+    const contextualFilter = ['admin', 'accountant', 'qltong', 'tpvh', 'hr'].includes(role) ? U.dimFilter(f, { dims: ['period', 'orgUnitId', 'employeeId', 'areaId', 'buildingType', 'buildingId', 'managerId', 'leadId'], inline: 3 }) : '';
+    const scopeNote = f.orgUnitId || f.employeeId ? U.note('info', 'Phạm vi theo cây tổ chức tại ' + F.date(scope.date || Q.periodEndDate(period)), (f.orgUnitId ? 'Đơn vị <b>' + esc(Q.orgUnit(f.orgUnitId).name || '') + '</b> + đơn vị con → nhân sự → tòa do Phụ trách chính (§4.3). ' : '') + (f.employeeId ? 'Nhân sự <b>' + esc(Q.employeeName(f.employeeId)) + '</b>. ' : '') + '<b>' + scope.buildingIds.length + ' tòa</b>: ' + scope.buildingIds.map(id => esc(Q.building(id).name)).join(', ')) + '<div class="mb16"></div>' : '';
     const occupancyChart = U.card({ title: 'Trạng thái phòng theo tòa', icon: 'bar-chart-2', actions: C.legend([{ label: 'Đang ở', color: '#1D4ED8' }, { label: 'Trống', color: '#BFDBFE' }, { label: 'Giữ chỗ', color: '#FCD34D' }, { label: 'Bảo trì', color: '#F97316' }]), body: C.stackedBar({ groups, series: [{ color: '#1D4ED8' }, { color: '#BFDBFE', dark: true }, { color: '#FCD34D', dark: true }, { color: '#F97316' }, { color: '#CBD5E1', dark: true }] }) });
     const collectionChart = U.card({ title: 'Tiến độ thu theo tòa', icon: 'trending-up', body: C.barLine({ groups: finB }) });
     const chart = m.chart === 'collection' ? collectionChart : m.chart === 'none' ? '' : occupancyChart;
@@ -60,9 +61,9 @@
     const dashboardBody = role === 'admin' && dashboardView === 'exec' ? `${wbBlocks}<div class="grid grid-1 dashboard-exec">${collectionChart}</div>` : `<div class="focus-kpis" data-guide="dash-kpi">${m.kpis.join('')}</div><div class="dashboard-focus ${chart ? '' : 'single'}">${U.card({ title: 'Việc cần xử lý', icon: 'square-check', sub: 'Sắp xếp theo mức độ ưu tiên', body: `<div class="work-list">${m.queue.map(queueRow).join('') || U.empty({ title: 'Không có việc tồn đọng', text: 'Mọi công việc quan trọng đã được xử lý.' })}</div>` })}${chart}</div>`;
     TH.router.crumb([{ label: m.title }]);
     root.innerHTML = `${U.pageHead({ title: m.title, sub: m.subtitle, acts: role === 'admin' ? [U.btn({ label: 'Xuất báo cáo', icon: 'download', cls: 'btn-outline', act: 'export' })] : [] })}
-      <div class="dashboard-context-row">${viewSwitch}${contextualFilter}</div>${dashboardBody}`;
+      <div class="dashboard-context-row">${viewSwitch}${contextualFilter}</div>${scopeNote}${dashboardBody}`;
     U.onChange(root, { f: () => TH.router.applyFilter(f, U.formData(root.querySelector('.filterbar'))) });
-    U.bind(root, { 'view-work': () => { TH.router.replaceQuery(Object.assign({}, f, { view: 'work' })); TH.router.refresh(); }, 'view-exec': () => { TH.router.replaceQuery(Object.assign({}, f, { view: 'exec' })); TH.router.refresh(); }, export: () => { const rows = buildings.map(b => { const s = Q.roomStats(Q.roomsOf(b.id)), x = Q.finance(period, { buildingId: b.id }); return [b.code, b.name, s.total, s.occupied, s.ready, x.receivable, x.collected, x.remaining]; }); F.download('tong-quan-' + period + '.csv', F.csv(rows, ['Mã tòa', 'Tòa', 'Tổng phòng', 'Đang thuê', 'Sẵn sàng', 'Phải thu', 'Đã thu', 'Còn nợ']), 'text/csv'); U.toast('ok', 'Đã xuất báo cáo tổng quan'); } });
+    U.bind(root, { 'view-work': () => { TH.router.replaceQuery(Object.assign({}, f, { view: 'work' })); TH.router.refresh(); }, 'view-exec': () => { TH.router.replaceQuery(Object.assign({}, f, { view: 'exec' })); TH.router.refresh(); }, export: () => { const rows = buildings.map(b => { const s = Q.roomStats(Q.roomsOf(b.id)), x = Q.finance(period, { buildingId: b.id }); return [b.code, b.name, Q.buildingManagerName(b.id, scope.date), (Q.buildingUnit(b.id, scope.date) || {}).name || '', s.total, s.occupied, s.ready, x.receivable, x.collected, x.remaining]; }); F.download('tong-quan-' + period + '.csv', F.csv(rows, ['Mã tòa', 'Tòa', 'Quản lý (tại kỳ)', 'Đơn vị', 'Tổng phòng', 'Đang thuê', 'Sẵn sàng', 'Phải thu', 'Đã thu', 'Còn nợ']), 'text/csv'); U.toast('ok', 'Đã xuất báo cáo tổng quan'); } });
     U.bindMetricInfo(root);
   }, { menu: 'dashboard', permission: 'dashboard.view' });
 })(window.TH);

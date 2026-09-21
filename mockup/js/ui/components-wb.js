@@ -6,9 +6,12 @@
     const activeEmployees = St.where('employees', e => e.status === 'working');
     const defs = {
       period: ['Kỳ', U.select({ name: key, value: f.period || St.state.meta.period, options: [...new Set(St.all('invoices').map(i => i.period).concat([St.state.meta.period]))].sort().reverse().map(p => [p, F.periodLabel(p)]), attrs })],
+      // Spec v1.8 §4.3/§12.1.3: cascading Tổ chức (node + descendants) → Nhân sự → Tòa theo assignment hiệu lực tại kỳ
+      orgUnitId: ['Tổ chức', U.select({ name: key, value, all: 'Toàn công ty', options: Q.orgOptions ? Q.orgOptions() : [], attrs })],
+      employeeId: ['Nhân sự', U.select({ name: key, value, all: f.orgUnitId ? 'Tất cả nhân sự đơn vị' : 'Tất cả nhân sự', options: Q.employeeOptions ? Q.employeeOptions({ orgUnitId: f.orgUnitId, period: f.period }) : [], attrs })],
       areaId: ['Khu nhà', U.select({ name: key, value, all: 'Tất cả khu nhà', options: Q.areas().map(a => [a.id, a.name]), attrs })],
-      buildingId: ['Tòa nhà', U.select({ name: key, value, all: 'Tất cả tòa nhà', options: St.where('buildings', b => !b.stub && (!f.areaId || b.areaId === f.areaId)).map(b => [b.id, b.name]), attrs })],
-      buildingType: ['Loại nhà', U.select({ name: key, value, all: 'Tất cả loại', options: Object.entries(Q.L.buildingType).map(([k, v]) => [k, v[0]]), attrs })],
+      buildingId: ['Tòa nhà', U.select({ name: key, value, all: f.orgUnitId || f.employeeId ? 'Tòa trong scope' : 'Tất cả tòa nhà', options: (() => { const ids = (f.orgUnitId || f.employeeId) && Q.scopeBuildingIds ? new Set(Q.scopeBuildingIds({ orgUnitId: f.orgUnitId, employeeId: f.employeeId, period: f.period })) : null; return St.where('buildings', b => !b.stub && (!f.areaId || b.areaId === f.areaId) && (!ids || ids.has(b.id))).map(b => [b.id, b.name]); })(), attrs })],
+      buildingType: ['Loại nhà (hiệu lực trong kỳ)', U.select({ name: key, value, all: 'Tất cả loại', options: Q.buildingTypeOptions ? Q.buildingTypeOptions() : Object.entries(Q.L.buildingType).map(([k, v]) => [k, v[0]]), attrs })],
       managerId: ['Quản lý', U.select({ name: key, value, all: 'Tất cả quản lý', options: Q.managers().map(u => [u.id, u.name]), attrs })],
       leadId: ['Trưởng nhóm', U.select({ name: key, value, all: 'Tất cả trưởng nhóm', options: activeEmployees.filter(e => e.dept === 'vanhanh' || /trưởng/i.test(e.title || '')).map(e => [e.id, e.name]), attrs })],
       opsId: ['Vận hành', U.select({ name: key, value, all: 'Tất cả nhân sự', options: activeEmployees.filter(e => e.dept === 'vanhanh').map(e => [e.id, e.name]), attrs })],

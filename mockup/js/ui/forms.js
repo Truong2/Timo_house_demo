@@ -37,6 +37,12 @@
   };
   /* ---- Tòa ---- */
   // Tòa mới luôn đi qua onboarding chủ nhà (Chủ nhà → HĐ đầu vào → Tòa → Phòng); drawer chỉ dùng để sửa
+  /* §4.6 Ký hiệu/loại tòa: sửa phải nhập ngày hiệu lực, lưu lịch sử, không ghi đè quá khứ */
+  Fm.buildingType = (b) => {
+    const cur = Q.buildingTypeAt(b.id);
+    const m = U.modal({ title: 'Cập nhật ký hiệu / loại tòa – ' + esc(b.name), sub: 'Giá trị phụ thuộc hợp đồng đầu vào/giai đoạn; báo cáo kỳ cũ dùng ký hiệu hiệu lực tại kỳ (§4.6)', body: `<div class="form-grid">${U.field({ label: 'Ký hiệu loại tòa', req: true, input: U.select({ name: 'type', value: cur, options: Q.buildingTypeOptions() }), help: 'Danh mục mở rộng được tại Master Data (§7.5)' })}${U.field({ label: 'Ngày hiệu lực', req: true, input: U.date({ name: 'effectiveFrom', value: F.today() }) })}${U.field({ label: 'Lý do', input: U.input({ name: 'reason', placeholder: 'VD: HĐ đầu vào mới / chuyển sang góp vốn cổ đông' }), cls: 'span2' })}</div>`, footer: U.btn({ label: 'Hủy', act: 'cancel', cls: 'btn-ghost' }) + U.btn({ label: 'Lưu (tạo bản ghi lịch sử)', icon: 'save', act: 'save', cls: 'btn-primary' }) });
+    U.bind(m.el, { cancel: () => m.close(), save: () => { try { const d = m.data(); X.setBuildingType({ buildingId: b.id, type: d.type, effectiveFrom: d.effectiveFrom, reason: d.reason }); m.close(); U.toast('ok', 'Đã cập nhật loại tòa', 'Hiệu lực từ ' + F.date(d.effectiveFrom) + ' – lịch sử được giữ'); } catch (e) { U.toast('err', 'Không cập nhật được', e.message); } } });
+  };
   Fm.building = (b = {}) => {
     if (!b.id) {
       const lls = St.where('landlords', l => l.status !== 'paused').sort((a, c) => a.name.localeCompare(c.name, 'vi'));
@@ -59,7 +65,7 @@
       ${U.field({ label: 'Tình trạng tòa', input: U.select({ name: 'condition', value: b.condition || 'medium', options: [['new', 'Mới'], ['medium', 'Trung bình'], ['old', 'Cũ'] ] }) })}
       ${U.field({ label: 'Vận hành từ', input: U.date({ name: 'operatingSince', value: b.operatingSince || F.today() }) })}
       ${U.field({ label: 'Chủ nhà', input: `<div class="static-val">${ll ? U.link('#/landlords/' + ll.id, esc(ll.name)) + ' <span class="muted small">(' + esc(ll.code) + ')</span>' : '<span class="red">Chưa gán – bổ sung qua Onboarding chủ nhà</span>'}</div>`, help: 'Đổi chủ nhà bằng cách tạo HĐ đầu vào mới cho tòa.' })}
-      ${U.field({ label: 'Người phụ trách', input: U.select({ name: 'managerId', value: b.managerId || '', options: opt.managers() }) })}
+      ${b.id ? U.field({ label: 'Quản lý hiện tại', input: `<div class="static-val">${esc(Q.buildingManagerName(b.id))}</div>`, help: 'Đọc từ Nhân sự → Phân công tòa nhà; đổi quản lý tại đó (§4.6, §10.17)' }) : U.field({ label: 'Phụ trách chính ban đầu', input: U.select({ name: 'managerId', value: b.managerId || '', all: 'Phân công sau', options: opt.managers() }), help: 'Sẽ tạo phân công Phụ trách chính hiệu lực từ ngày vận hành' })}
       ${U.field({ label: 'Chu kỳ trả chủ nhà', input: U.select({ name: 'payCycle', value: b.payCycle || 3, options: [[3, '3 tháng/lần'], [4, '4 tháng/lần'], [6, '6 tháng/lần']] }) })}
       ${U.field({ label: 'Ngày trả trong kỳ', input: U.input({ name: 'payDay', type: 'number', value: b.payDay || 5 }) })}
       ${U.field({ label: 'Trạng thái', input: U.select({ name: 'status', value: b.status || 'active', options: [['active', 'Đang hoạt động'], ['maintenance', 'Bảo trì, sửa chữa'], ['inactive', 'Tạm ngừng']] }) })}
@@ -81,7 +87,7 @@
       ${U.field({ label: 'Giá tham chiếu', req: true, input: U.money({ name: 'price', value: r.price || '' }) })}
       ${U.field({ label: 'Hướng phòng', input: U.input({ name: 'direction', value: r.direction || '' }) })}
       ${U.field({ label: 'Nội thất', input: U.select({ name: 'furniture', value: r.furniture || 'Cơ bản', options: ['Đầy đủ', 'Cơ bản', 'Trống'] }) })}
-      ${U.field({ label: 'Người phụ trách', input: U.select({ name: 'managerId', value: r.managerId || '', all: 'Theo tòa', options: opt.managers() }) })}
+      ${U.field({ label: 'Người phụ trách', input: `<div class="static-val">${esc(r.buildingId || buildingId ? Q.buildingManagerName(r.buildingId || buildingId) : 'Theo tòa')}</div>`, help: 'Theo Phụ trách chính của tòa (Phân công tòa nhà)' })}
       ${r.id ? '' : U.field({ label: 'Trạng thái ban đầu', input: U.select({ name: 'status', value: 'ready', options: [['ready', 'Sẵn sàng'], ['maintenance', 'Bảo trì'], ['inactive', 'Ngừng sử dụng']] }) })}
       <div class="field span2"><label>Dịch vụ mặc định</label><div class="row wrap gap12">${svcs.map(s => U.check({ name: 'svc_' + s.id, label: s.name + ' – ' + F.vnd(s.price) + '/' + s.unit, checked: (r.defaultServiceIds || []).includes(s.id) })).join('')}</div></div></div>`, footer: footer(r.id ? 'Lưu thay đổi' : 'Lưu phòng') });
     U.bind(m.el, { cancel: () => m.close(), save: () => { const d = m.data(); const ids = svcs.filter(s => d['svc_' + s.id]).map(s => s.id); svcs.forEach(s => delete d['svc_' + s.id]); d.defaultServiceIds = ids; d.floor = Number(d.floor) || 1; d.area = Number(d.area) || 0; if (r.id) d.id = r.id; if (!d.price) throw new Error('Giá tham chiếu là bắt buộc'); run(m, () => X.saveRoom(d), x => 'Đã lưu phòng ' + x.code); } });

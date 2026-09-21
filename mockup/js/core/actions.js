@@ -27,10 +27,19 @@
     }
   };
   const grantBuildingToManager = (building) => {
-    if (!building || !building.managerId) return;
+    if (!building) return;
+    // §4.6: ký hiệu loại tòa ban đầu ghi thành lịch sử có hiệu lực
+    if (St.state.buildingTypeHistory && !St.state.buildingTypeHistory.some(h => h && h.buildingId === building.id)) St.add('buildingTypeHistory', { buildingId: building.id, type: building.buildingType || 'T', effectiveFrom: building.operatingSince || F.today(), effectiveTo: '', sourceType: 'manual', sourceId: null, reason: 'Ký hiệu ban đầu khi tạo tòa', by: me() });
+    if (!building.managerId) return;
     const user = (St.state.users || []).find(u => u && u.id === building.managerId);
-    if (!user || user.role !== 'ops') return;
-    user.buildingIds = [...new Set([...(user.buildingIds || []), building.id])];
+    if (!user || !['ops', 'tpvh', 'admin'].includes(user.role)) return;
+    if (user.role === 'ops') user.buildingIds = [...new Set([...(user.buildingIds || []), building.id])];
+    // §4.25: Phụ trách chính ban đầu ghi thành assignment (nguồn chuẩn) – mọi đường tạo tòa (form, onboarding) đều đi qua đây
+    if (TH.seed && TH.seed.assignmentsAt && !TH.seed.assignmentsAt(St.state, building.id, F.today(), 'manager').length) {
+      let emp = (St.state.employees || []).find(e => e && e.userId === user.id);
+      if (!emp && user.role === 'ops') { emp = St.add('employees', { code: St.nextCode('employees', 'NV', 3), name: user.name, dept: 'vanhanh', title: 'Nhân viên', phone: user.phone || '', email: user.email || '', area: 'Tất cả khu vực', status: 'working', startDate: F.today(), workType: 'Toàn thời gian', documents: [], history: [], userId: user.id, salaryBase: 9000000, titleAllowance: 500000 }); }
+      if (emp) { const ea = (St.state.employmentAssignments || []).find(x => x && x.employeeId === emp.id && x.isPrimary); St.add('buildingAssignments', { employeeId: emp.id, buildingId: building.id, role: 'manager', primary: false, start: building.operatingSince && building.operatingSince <= F.today() ? building.operatingSince : F.today(), end: null, status: 'active', orgUnitId: ea ? ea.orgUnitId : null, reason: 'Phụ trách chính ban đầu khi tạo tòa', note: '', roomScope: '', approvedAt: F.nowISO(), approvedBy: me(), createdBy: me() }); }
+    }
   };
 
   /* ---------- Tòa & phòng ---------- */
@@ -42,6 +51,7 @@
       const old = St.get('buildings', d.id);
       if (d.status === 'inactive' && old.status !== 'inactive') { Au.need('deactivateBuilding'); checkDeactivate(d.id); }
       const nextLandlordId = d.landlordId === undefined ? old.landlordId : d.landlordId;
+      delete d.managerId; // managerId dẫn xuất từ Phân công tòa nhà (§10.17)
       const b = St.update('buildings', d.id, d); assignBuildingLandlord(b, nextLandlordId); grantBuildingToManager(b); St.audit('update', 'building', b.id, 'Cập nhật tòa ' + b.name); done(); return b;
     }
     const code = d.code || St.nextCode('buildings', 'TH-', 2);
@@ -199,7 +209,7 @@
     });
 
     const snapshot = {};
-    ['areas', 'landlords', 'buildings', 'rooms', 'landlordContracts', 'landlordPayments', 'users', 'auditLog'].forEach(k => snapshot[k] = JSON.parse(JSON.stringify(St.state[k] || [])));
+    ['areas', 'landlords', 'buildings', 'rooms', 'landlordContracts', 'landlordPayments', 'users', 'auditLog', 'buildingAssignments', 'employees', 'buildingTypeHistory'].forEach(k => snapshot[k] = JSON.parse(JSON.stringify(St.state[k] || [])));
     try {
       const areaMap = new Map(); const createdAreas = [];
       areaDrafts.forEach(a => {

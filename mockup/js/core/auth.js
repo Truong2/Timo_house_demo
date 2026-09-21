@@ -40,16 +40,27 @@
     'hr.view': ['admin', 'hr'], 'hr.manage': ['admin', 'hr'], 'timesheet.view': ['admin', 'hr'], 'timesheet.manage': ['admin', 'hr'], 'payroll.view': ['admin', 'hr', 'accountant'], 'payroll.manage': ['admin', 'hr'], 'payroll.approve': ['admin', 'accountant'],
     'projects.view': ['admin', 'accountant', 'codong'], 'projects.manage': ['admin'], 'shareholders.view': ['admin', 'accountant', 'codong'], 'shareholders.manage': ['admin', 'accountant'], 'contributions.record': ['admin', 'accountant'], 'distributions.manage': ['admin', 'accountant'], 'distributions.approve': ['admin'], 'roi.view': ['admin', 'accountant', 'codong'],
     'bank.view': ['admin', 'accountant'], 'bank.manage': ['admin', 'accountant'],
+    // Spec v1.8 Wave 1 – Phase 1: cơ cấu tổ chức, phân công tòa (single source of truth), master data, vai trò Quản lý Tổng / TPVH (§16)
+    'org.view': ['admin', 'accountant', 'ops', 'hr', 'qltong', 'tpvh'], 'org.manage': ['admin', 'hr', 'qltong'],
+    'assignments.view': ['admin', 'accountant', 'ops', 'hr', 'qltong', 'tpvh'], 'assignments.manage': ['admin', 'hr', 'qltong', 'tpvh'], 'assignments.approve': ['admin', 'qltong'],
+    'masterData.view': ['admin', 'accountant', 'hr'], 'masterData.manage': ['admin'],
   };
+  // Vai trò tổ chức (§16): Quản lý Tổng xem toàn cây + duyệt; TPVH thao tác vận hành trong scope đơn vị + descendants
+  const QLTONG_PERMS = ['dashboard.view', 'buildings.view', 'landlords.view', 'rooms.view', 'tenants.view', 'contracts.view', 'invoices.view', 'payments.view', 'refunds.view', 'refunds.approve', 'expenses.view', 'reports.view', 'reports.export', 'reports.hub', 'documents.view', 'hr.view', 'payroll.view', 'payroll.approve', 'shareholders.view', 'projects.view', 'roi.view', 'catalog.view', 'zalo.view', 'import.view', 'ocr.use', 'deposits.view', 'maintenance.view', 'crm.view', 'deals.view', 'assets.view', 'inventory.view'];
+  const TPVH_PERMS = ['dashboard.view', 'buildings.view', 'landlords.view', 'rooms.view', 'rooms.manage', 'tenants.view', 'tenants.manage', 'contracts.view', 'contracts.manage', 'invoices.view', 'meterReadings.manage', 'payments.view', 'payments.record', 'recordPayment', 'refunds.view', 'refunds.prepare', 'expenses.view', 'expenses.manage', 'documents.view', 'documents.manage', 'hr.view', 'ocr.use', 'deposits.view', 'import.view', 'import.operations', 'maintenance.view', 'maintenance.manage'];
+  QLTONG_PERMS.forEach(k => { if (ROLE_POLICY[k] && !ROLE_POLICY[k].includes('qltong')) ROLE_POLICY[k].push('qltong'); });
+  TPVH_PERMS.forEach(k => { if (ROLE_POLICY[k] && !ROLE_POLICY[k].includes('tpvh')) ROLE_POLICY[k].push('tpvh'); });
+  // HR là vai trò Phase 1 (§4.23–4.26): mở quyền đọc vận hành cơ bản để đối chiếu phân công
+  ['buildings.view', 'rooms.view', 'documents.view', 'dashboard.view'].forEach(k => { if (ROLE_POLICY[k] && !ROLE_POLICY[k].includes('hr')) ROLE_POLICY[k].push('hr'); });
   const PERMS = ROLE_POLICY; // alias tương thích cho các màn hình hiện hữu
   // Vai trò P2 được đọc một số màn P1 (read-only)
   const P2_READ = { sale: ['dashboard.view', 'rooms.view', 'tenants.view', 'contracts.view', 'buildings.view'], kythuat: ['dashboard.view', 'rooms.view', 'buildings.view', 'expenses.view'], hr: ['dashboard.view', 'buildings.view'], codong: ['dashboard.view'] };
   Object.entries(P2_READ).forEach(([role, perms]) => perms.forEach(k => { if (PERMS[k] && !PERMS[k].includes(role)) PERMS[k].push(role); }));
-  const P1_ROLES = ['admin', 'accountant', 'ops'];
-  const PHASE_ROLES = { 2: ['sale', 'kythuat'], 3: ['hr', 'codong'] };
+  const P1_ROLES = ['admin', 'accountant', 'ops', 'hr', 'qltong', 'tpvh']; // spec v1.8: Nhân sự thuộc Phase 1
+  const PHASE_ROLES = { 2: ['sale', 'kythuat'], 3: ['codong'] };
   const phaseOfRole = (role) => Number(Object.keys(PHASE_ROLES).find(n => PHASE_ROLES[n].includes(role))) || 1;
   const roleAllowed = (role) => P1_ROLES.includes(role) || (phaseOfRole(role) > 1 && TH.phase && TH.phase.on(phaseOfRole(role)));
-  const SCOPED_ROLES = ['ops', 'sale', 'kythuat', 'codong'];
+  const SCOPED_ROLES = ['ops', 'tpvh', 'sale', 'kythuat', 'codong'];
   const isScoped = (role) => SCOPED_ROLES.includes(role);
   const COLLECTION_TYPE = {
     buildings: 'building', rooms: 'room', landlords: 'landlord', landlordContracts: 'landlordContract', landlordPayments: 'landlordPayment',
@@ -64,6 +75,7 @@
   };
   const DATA_SCOPE = {
     ops: new Set(Object.keys(COLLECTION_TYPE)),
+    tpvh: new Set(Object.keys(COLLECTION_TYPE)),
     sale: new Set(['leads', 'leadActivities', 'viewings', 'holds', 'deals', 'commissions', 'tenants', 'contracts', 'reportRuns']),
     kythuat: new Set(['buildings', 'rooms', 'expenses', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'assets', 'inventories', 'inventoryLines']),
     codong: new Set(['buildings', 'rooms', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions']),
@@ -72,7 +84,7 @@
   const rawGet = (c, id) => TH.store.rawGet ? TH.store.rawGet(c, id) : rawAll(c).find(x => x && x.id === id) || null;
   const uniq = rows => [...new Set(rows.filter(Boolean))];
 
-  A.ROLE_LABEL = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Kinh doanh', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
+  A.ROLE_LABEL = { admin: 'Quản trị viên', qltong: 'Quản lý Tổng', tpvh: 'Trưởng phòng vận hành', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Kinh doanh', kythuat: 'Kỹ thuật', tech: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông' };
   A.P1_ROLES = P1_ROLES; A.roleAllowed = roleAllowed; A.PHASE_ROLES = PHASE_ROLES; A.phaseOfRole = phaseOfRole;
   A.ROLE_POLICY = ROLE_POLICY; A.PERMISSIONS = PERMS; A.DATA_SCOPE = DATA_SCOPE;
   A.session = () => TH.store.state.session;
@@ -92,7 +104,20 @@
   A.allowedBuildingIds = () => {
     const role = A.role(), u = A.user();
     if (!isScoped(role) || role === 'sale') return null;
-    if (role === 'ops') return new Set((u && Array.isArray(u.buildingIds) ? u.buildingIds : []).filter(Boolean));
+    // §4.25.7: scope Vận hành suy ra từ Phân công tòa nhà có hiệu lực (managerId/users.buildingIds chỉ là cache); fallback cache khi chưa có hồ sơ NV
+    if (role === 'ops') {
+      const employee = u && rawAll('employees').find(e => e && e.userId === u.id);
+      const today = TH.f.today();
+      const fromAssign = employee ? rawAll('buildingAssignments').filter(a => a && a.employeeId === employee.id && ['active', 'ended', 'approved'].includes(a.status || 'active') && a.start <= today && (!a.end || a.end >= today)).map(a => a.buildingId) : [];
+      return new Set((fromAssign.length ? fromAssign : (u && Array.isArray(u.buildingIds) ? u.buildingIds : [])).filter(Boolean));
+    }
+    // §4.3/§16: TPVH thấy toàn bộ tòa do nhân sự thuộc đơn vị mình (kể cả đơn vị con) làm Phụ trách chính
+    if (role === 'tpvh') {
+      const employee = u && rawAll('employees').find(e => e && e.userId === u.id);
+      if (!employee || !TH.q || !TH.q.employmentAt) return new Set();
+      const units = [...new Set(TH.q.employmentAt(employee.id).map(a => a.orgUnitId).filter(Boolean).flatMap(id => TH.q.orgDescendants(id)))];
+      return new Set(TH.q.scopeBuildingIds ? units.flatMap(id => TH.q.scopeBuildingIds({ orgUnitId: id })) : []);
+    }
     if (role === 'kythuat') {
       const employee = u && rawAll('employees').find(e => e && e.userId === u.id);
       return new Set(employee ? rawAll('buildingAssignments').filter(a => a && a.employeeId === employee.id && a.status === 'active').map(a => a.buildingId).filter(Boolean) : []);
@@ -187,9 +212,9 @@
       if (type === 'capitalCommitment' || type === 'contribution') return !!sh && record.shareholderId === sh.id && projectIds.has(record.projectId);
       if (type === 'distribution') return !!sh && (!record.projectId || projectIds.has(record.projectId)) && (record.lines || []).some(l => l.shareholderId === sh.id);
     }
-    if (role === 'ops' && type === 'ocrExtraction' && record.createdBy === (user || {}).id) return true;
+    if (['ops', 'tpvh'].includes(role) && type === 'ocrExtraction' && record.createdBy === (user || {}).id) return true;
     // Ops: khách thuê chưa gắn HĐ/giữ chỗ nào (vừa tạo tay hoặc từ OCR) không thuộc tòa nào → được thấy/dùng để lập HĐ đầu tiên trong tòa của mình
-    if (role === 'ops' && type === 'tenant' && !buildingIds(type, record).length) return true;
+    if (['ops', 'tpvh'].includes(role) && type === 'tenant' && !buildingIds(type, record).length) return true;
     const allowed = A.allowedBuildingIds(); if (!allowed || !allowed.size) return false;
     if (role === 'kythuat') {
       if (type === 'incident') return buildingIds(type, record).some(id => allowed.has(id)) && (!record.assigneeId || record.assigneeId === user.id);
@@ -231,7 +256,7 @@
     const id = params && params[meta.resource.param || 'id'];
     return !!id && A.inScope(meta.resource.type, A.resource(meta.resource.type, id));
   };
-  A.importTypes = () => A.role() === 'admin' ? ['room', 'tenant', 'contract', 'meter', 'invoice'] : A.role() === 'accountant' ? ['meter', 'invoice'] : A.role() === 'ops' ? ['room', 'tenant', 'contract'] : [];
+  A.importTypes = () => A.role() === 'admin' ? ['room', 'tenant', 'contract', 'meter', 'invoice'] : A.role() === 'accountant' ? ['meter', 'invoice'] : ['ops', 'tpvh'].includes(A.role()) ? ['room', 'tenant', 'contract'] : [];
   A.validateSession = () => {
     const s = A.session(); if (!s) return false;
     const u = rawGet('users', s.userId);
@@ -243,11 +268,11 @@
     const role = A.role(), hide = names => String(names || '').split(' ').filter(Boolean).forEach(name => root.querySelectorAll(`[data-act="${name}"]`).forEach(el => el.remove()));
     if (path.startsWith('/buildings')) {
       if (role !== 'admin') hide('add import edit add-lc schedule actions upload rm-doc');
-      if (role === 'ops') hide('add-pay paid paid2 landlord-paid go-catalog');
+      if ((role === 'ops' || role === 'tpvh')) hide('add-pay paid paid2 landlord-paid go-catalog');
     }
     if (path.startsWith('/landlords')) {
       if (role !== 'admin') hide('add edit add-lc edit-lc schedule upload rm-doc');
-      if (role === 'ops') hide('add-pay paid paid2');
+      if ((role === 'ops' || role === 'tpvh')) hide('add-pay paid paid2');
     }
     if (path.startsWith('/rooms') && role === 'accountant') hide('edit svc add-asset edit-asset rm-asset newc newc-any hold release clean upload rm-doc more');
     if (path.startsWith('/rooms') && ['sale', 'kythuat'].includes(role)) hide('edit svc add-asset edit-asset rm-asset newc newc-any hold release clean upload rm-doc more export inv');
@@ -257,18 +282,23 @@
     if (path.startsWith('/dashboard') && ['sale', 'kythuat'].includes(role)) hide('remind more');
     if (path.startsWith('/tenants') && role === 'accountant') hide('add edit newc upload rm-doc more');
     if (path.startsWith('/contracts') && role === 'accountant') hide('add new edit save activate cancel terminate renew note upload rm-doc more');
-    if (path.startsWith('/invoices') && role === 'ops') hide('batch import issue-valid bulk-issue issue adjust add-line note remind bulk-zalo zalo more');
-    if (path.startsWith('/payments') && role === 'ops') hide('adjust reverse');
+    if (path.startsWith('/invoices') && (role === 'ops' || role === 'tpvh')) hide('batch import issue-valid bulk-issue issue adjust add-line note remind bulk-zalo zalo more');
+    if (path.startsWith('/payments') && (role === 'ops' || role === 'tpvh')) hide('adjust reverse');
     if (path.startsWith('/refunds')) {
       if (role === 'accountant') hide('new edit save submit');
-      if (role === 'ops') hide('approve reject paid');
+      if ((role === 'ops' || role === 'tpvh')) hide('approve reject paid');
     }
     if (path.startsWith('/zalo') && role === 'accountant') hide('new retry retry-msg start send test save toggle new-tpl edit-tpl export');
     if (path.startsWith('/settings/catalog') && !A.can('catalog.manage')) hide('apply add-svc save toggle del add-item edit-item rm-item');
     // Phase 3: cổ đông read-only (FR-SHR-04 AC-2); Nhân sự không thấy nút ghi ngoài module HR
     if (role === 'codong') root.querySelectorAll('[data-act]').forEach(el => { const a = el.dataset.act; if (!/^(view|tab|stab|page|psize|tsort|tsel|export|reset|f|back|home|more|cols|filter|roi|detail|open|sb-|guide|palette)/.test(a)) el.remove(); });
     if (role === 'hr' && (path.startsWith('/buildings') || path.startsWith('/dashboard'))) hide('add import edit add-lc schedule actions upload rm-doc add-pay paid paid2 landlord-paid go-catalog add-room bulk import-rooms remind more');
-    if (path.startsWith('/hr') && !A.can('hr.manage')) hide('add edit assign assign-more status doc-add doc-rm profile fill confirm');
+    if (path.startsWith('/hr') && !path.startsWith('/hr/assignments') && !path.startsWith('/hr/org') && !A.can('hr.manage')) hide('add edit assign assign-more status doc-add doc-rm profile fill confirm');
+    if (path.startsWith('/hr/org') && !A.can('org.manage')) hide('add edit move lead deactivate');
+    if (path.startsWith('/hr/assignments') && !A.can('assignments.manage')) hide('new change transfer end cancel');
+    if (path.startsWith('/hr/assignments') && !A.can('assignments.approve')) hide('approve reject');
+    if (path.startsWith('/buildings') && !A.can('assignments.manage')) hide('change-manager');
+    if (path.startsWith('/settings/catalog') && !A.can('masterData.manage')) hide('md-add md-edit md-toggle');
     if (path.startsWith('/hr/payroll') && !A.can('payroll.approve')) hide('approve pay');
     if (path.startsWith('/hr/payroll') && !A.can('payroll.manage')) hide('build submit');
     if (path.startsWith('/assets') && !A.can('inventory.manage')) hide('start finish export-report');
@@ -297,7 +327,7 @@
     const origin = current.impersonator || { userId: current.userId, name: current.name, role: current.role };
     if (origin.role !== 'admin') throw new Error('Phiên gốc không có quyền Admin.');
     if (role === 'admin') return A.endImpersonation();
-    const demo = { accountant: 'ketoan', ops: 'vanhanh', sale: 'sale', kythuat: 'kythuat', hr: 'nhansu', codong: 'codong' }[role];
+    const demo = { accountant: 'ketoan', ops: 'vanhanh', sale: 'sale', kythuat: 'kythuat', hr: 'nhansu', codong: 'codong', qltong: 'qltong', tpvh: 'tpvh1' }[role];
     const u = rawAll('users').find(x => x && x.username === demo && x.status === 'active') || rawAll('users').find(x => x && x.role === role && x.status === 'active');
     if (!u) throw new Error('Không có tài khoản demo hoạt động cho vai trò này.');
     TH.store.state.session = { userId: u.id, name: u.name, role: u.role, at: TH.f.nowISO(), impersonator: origin };

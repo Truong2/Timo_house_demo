@@ -7,7 +7,7 @@
     dashboard: navItem('dashboard', 'Tổng quan', 'home', '#/dashboard', 'dashboard.view'),
     rooms: navItem('rooms', 'Phòng', 'door', '#/rooms', 'rooms.view'), buildings: navItem('buildings', 'Tòa nhà', 'building', '#/buildings', 'buildings.view'),
     tenants: navItem('tenants', 'Khách thuê', 'users', '#/tenants', 'tenants.view'), contracts: navItem('contracts', 'Hợp đồng', 'file-text', '#/contracts', 'contracts.view'),
-    ocr: navItem('ocr', 'Trích xuất hợp đồng', 'file-check', '#/contracts/ocr', 'ocr.use', 2), landlords: navItem('landlords', 'Chủ nhà & đối tác', 'user-check', '#/landlords', 'landlords.view'),
+    ocr: navItem('ocr', 'Trích xuất hợp đồng', 'file-check', '#/contracts/ocr', 'ocr.use'), landlords: navItem('landlords', 'Chủ nhà & đối tác', 'user-check', '#/landlords', 'landlords.view'),
     'crm-overview': navItem('crm-overview', 'Tổng quan kinh doanh', 'bar-chart-2', '#/crm', 'crm.view', 2), crm: navItem('crm', 'Khách hàng tiềm năng', 'user', '#/crm/leads', 'crm.view', 2),
     viewings: navItem('viewings', 'Lịch xem phòng', 'calendar-check', '#/crm/viewings', 'crm.view', 2), holds: navItem('holds', 'Giữ chỗ', 'clock', '#/crm/holds', 'crm.view', 2), deals: navItem('deals', 'Giao dịch & hoa hồng', 'hand-coins', '#/crm/deals', 'deals.view', 2),
     invoices: navItem('invoices', 'Hóa đơn', 'receipt', '#/invoices', 'invoices.view'), receivables: navItem('receivables', 'Thu tiền & công nợ', 'wallet', '#/receivables', 'payments.view'), refunds: navItem('refunds', 'Hoàn cọc', 'hand-coins', '#/refunds', 'refunds.view'),
@@ -17,19 +17,25 @@
     'zalo-history': navItem('zalo-history', 'Lịch sử gửi Zalo', 'send', '#/zalo/history', 'zalo.view'), 'zalo-config': navItem('zalo-config', 'Thông báo & nhắc việc', 'sliders', '#/zalo/config', 'zalo.config'), reports: navItem('reports', 'Báo cáo tổng quan', 'bar-chart', '#/reports', 'reports.view'),
     'reports-detail': navItem('reports-detail', 'Trung tâm báo cáo', 'list', '#/reports/hub', 'reports.hub', 2), cashbook: navItem('cashbook', 'Dòng tiền', 'arrow-left-right', '#/reports/cashflow', 'reports.hub', 2),
     statement: navItem('statement', 'Nhập bảng kê thu tiền', 'file-spreadsheet', '#/finance/statement-import', 'statement.import', 2), opening: navItem('opening', 'Số dư ban đầu', 'layers', '#/finance/opening-balance', 'openingBalance.manage', 2), jobs: navItem('jobs', 'Tác vụ dữ liệu', 'database', '#/settings/jobs', 'dataJobs.view', 2),
-    hr: navItem('hr', 'Nhân viên', 'users', '#/hr', 'hr.view', 3), timesheet: navItem('timesheet', 'Chấm công', 'clock', '#/hr/timesheet', 'timesheet.view', 3), payroll: navItem('payroll', 'Lương thưởng', 'banknote', '#/hr/payroll', 'payroll.view', 3),
-    projects: navItem('projects', 'Dự án', 'folder', '#/investment/projects', 'projects.view', 3), shareholders: navItem('shareholders', 'Vốn góp & phân phối', 'users', '#/investment/shareholders', 'shareholders.view', 3), roi: navItem('roi', 'Hiệu quả đầu tư', 'trending-up', '#/investment/roi', 'roi.view', 3),
+    hr: navItem('hr', 'Nhân viên', 'users', '#/hr', 'hr.view'), timesheet: navItem('timesheet', 'Chấm công', 'clock', '#/hr/timesheet', 'timesheet.view', 3), payroll: navItem('payroll', 'Bảng lương', 'banknote', '#/hr/payroll', 'payroll.view'),
+    // Spec v1.8 Wave 1 – Nhân sự P1: cơ cấu tổ chức, phân công tòa nhà (single source of truth); Cài đặt: master data
+    org: navItem('org', 'Cơ cấu tổ chức', 'layers', '#/hr/org', 'org.view'), assignments: navItem('assignments', 'Phân công tòa nhà', 'building', '#/hr/assignments', 'assignments.view'),
+    'master-data': navItem('master-data', 'Master Data', 'database', '#/settings/catalog?tab=master', 'masterData.view'),
+    projects: navItem('projects', 'Dự án', 'folder', '#/investment/projects', 'projects.view', 3), shareholders: navItem('shareholders', 'Cổ đông, góp vốn & phân phối', 'users', '#/investment/shareholders', 'shareholders.view'), roi: navItem('roi', 'Hiệu quả đầu tư', 'trending-up', '#/investment/roi', 'roi.view', 3),
   };
   const item = ref => { const spec = typeof ref === 'string' ? { key: ref } : ref; return Object.assign({}, NAV_ITEMS[spec.key], spec); };
   const section = (key, group, icon, refs) => ({ key, group, icon, items: refs.map(item) });
   const home = label => ({ items: [item({ key: 'dashboard', label })] });
+  // Menu theo spec v1.8 §8: Tổng quan · Vận hành · Tài chính · Kinh doanh (P2) · Nhân sự · Tài sản (P2/P3) · Đầu tư · Thông báo · Báo cáo. Cài đặt qua app launcher.
   const ROLE_NAV_LAYOUT = {
-    admin: [home('Tổng quan'), section('leasing', 'Quản lý cho thuê', 'building', ['rooms', 'buildings', 'tenants', 'contracts', 'ocr', 'landlords']), section('business', 'Kinh doanh', 'briefcase', ['crm-overview', 'crm', 'viewings', 'holds', 'deals']), section('finance', 'Tài chính', 'wallet', ['invoices', 'receivables', 'refunds', 'deposits', 'expenses', 'bank']), section('operations', 'Vận hành', 'wrench', ['maintenance', 'tasks', 'documents', 'assets', 'inventory', 'zalo-history', 'zalo-config']), section('reports', 'Báo cáo', 'bar-chart', ['reports', 'reports-detail', 'cashbook'])],
-    ops: [home('Công việc của tôi'), section('property', 'Phòng & tòa nhà', 'building', ['rooms', 'buildings', 'landlords']), section('leasing', 'Khách thuê & hợp đồng', 'file-text', ['tenants', 'contracts', 'ocr']), section('collection', 'Tài chính vận hành', 'wallet', ['invoices', 'receivables', 'refunds', 'deposits', 'expenses']), section('maintenance', 'Bảo trì & tài sản', 'wrench', ['maintenance', 'tasks', 'documents', 'assets', 'inventory']), section('sales-ops', 'Hỗ trợ kinh doanh', 'calendar-check', ['crm-overview', 'crm', 'viewings', 'holds'])],
-    accountant: [home('Công việc của tôi'), section('finance', 'Tài chính', 'wallet', ['invoices', 'receivables', 'deposits', 'refunds', 'expenses', 'bank']), section('data', 'Dữ liệu & đối soát', 'database', ['statement', 'opening', 'jobs', 'documents', 'inventory']), section('reports', 'Báo cáo', 'bar-chart', ['reports', 'reports-detail', 'cashbook']), section('reference', 'Tra cứu', 'search', ['rooms', 'buildings', 'tenants', 'contracts', 'landlords', 'deals', 'maintenance'])],
+    admin: [home('Tổng quan'), section('leasing', 'Vận hành', 'building', ['contracts', 'ocr', 'buildings', 'rooms', 'tenants', 'landlords', 'refunds']), section('finance', 'Tài chính', 'wallet', ['invoices', 'receivables', 'expenses', 'deposits', 'bank']), section('business', 'Kinh doanh', 'briefcase', ['crm-overview', 'crm', 'viewings', 'holds', 'deals']), section('hr', 'Nhân sự', 'users', ['org', 'hr', 'assignments', 'payroll', 'timesheet']), section('assets', 'Tài sản & bảo trì', 'package', ['assets', 'inventory', 'maintenance', 'tasks', 'documents']), section('investment', 'Đầu tư', 'trending-up', ['shareholders', 'projects', 'roi']), section('notify', 'Thông báo', 'send', ['zalo-history', 'zalo-config']), section('reports', 'Báo cáo', 'bar-chart', ['reports', 'reports-detail', 'cashbook'])],
+    qltong: [home('Tổng quan'), section('leasing', 'Vận hành', 'building', ['contracts', 'buildings', 'rooms', 'tenants', 'landlords', 'refunds']), section('finance', 'Tài chính', 'wallet', ['invoices', 'receivables', 'expenses', 'deposits']), section('hr', 'Nhân sự', 'users', ['org', 'hr', 'assignments', 'payroll']), section('investment', 'Đầu tư', 'trending-up', ['shareholders', 'projects', 'roi']), section('reports', 'Báo cáo', 'bar-chart', ['reports', 'reports-detail', 'cashbook'])],
+    tpvh: [home('Công việc của tôi'), section('leasing', 'Vận hành', 'building', ['contracts', 'ocr', 'buildings', 'rooms', 'tenants', 'landlords', 'refunds']), section('collection', 'Tài chính vận hành', 'wallet', ['invoices', 'receivables', 'deposits', 'expenses']), section('hr', 'Nhân sự', 'users', ['org', 'hr', 'assignments']), section('maintenance', 'Bảo trì & tài liệu', 'wrench', ['maintenance', 'tasks', 'documents'])],
+    ops: [home('Công việc của tôi'), section('property', 'Phòng & tòa nhà', 'building', ['rooms', 'buildings', 'landlords']), section('leasing', 'Khách thuê & hợp đồng', 'file-text', ['tenants', 'contracts', 'ocr']), section('collection', 'Tài chính vận hành', 'wallet', ['invoices', 'receivables', 'refunds', 'deposits', 'expenses']), section('hr', 'Phân công', 'users', ['assignments', 'org']), section('maintenance', 'Bảo trì & tài sản', 'wrench', ['maintenance', 'tasks', 'documents', 'assets', 'inventory']), section('sales-ops', 'Hỗ trợ kinh doanh', 'calendar-check', ['crm-overview', 'crm', 'viewings', 'holds'])],
+    accountant: [home('Công việc của tôi'), section('finance', 'Tài chính', 'wallet', ['invoices', 'receivables', 'deposits', 'refunds', 'expenses', 'bank']), section('data', 'Dữ liệu & đối soát', 'database', ['statement', 'opening', 'jobs', 'documents', 'inventory']), section('investment', 'Đầu tư', 'trending-up', ['shareholders', 'payroll']), section('reports', 'Báo cáo', 'bar-chart', ['reports', 'reports-detail', 'cashbook']), section('reference', 'Tra cứu', 'search', ['rooms', 'buildings', 'tenants', 'contracts', 'landlords', 'assignments', 'deals', 'maintenance'])],
     sale: [home('Công việc của tôi'), section('business', 'Kinh doanh', 'briefcase', ['crm-overview', 'crm', 'viewings', 'holds', 'deals']), section('reports', 'Báo cáo', 'bar-chart', ['reports-detail']), section('reference', 'Tra cứu', 'search', ['rooms', 'buildings', 'tenants', 'contracts'])],
     kythuat: [home('Công việc của tôi'), section('maintenance', 'Công việc kỹ thuật', 'wrench', [{ key: 'maintenance', label: 'Sự cố được giao', href: '#/maintenance?assignee=me' }, 'tasks']), section('reference', 'Tra cứu', 'search', ['rooms', 'buildings', 'assets', 'inventory', { key: 'expenses', label: 'Chi phí sự cố' }])],
-    hr: [home('Công việc của tôi'), section('hr', 'Nhân sự', 'users', ['hr', 'timesheet', 'payroll']), section('reference', 'Tra cứu', 'search', ['buildings'])],
+    hr: [home('Công việc của tôi'), section('hr', 'Nhân sự', 'users', ['org', 'hr', 'assignments', 'payroll', 'timesheet']), section('reference', 'Tra cứu', 'search', ['buildings', 'rooms'])],
     codong: [home('Tổng quan đầu tư'), section('investment', 'Đầu tư', 'trending-up', ['projects', 'shareholders', 'roi'])],
   };
   const NAV = ROLE_NAV_LAYOUT;
@@ -82,16 +88,16 @@
     p2: ['Màn hình Phase 2', 2, 'Route này thuộc Phase 2 – bật phase để xem.', ''],
     p3: ['Màn hình Phase 3', 3, 'Route này thuộc Phase 3 – bật phase để xem.', ''],
     inventory: ['Kiểm kê tài sản', 3, 'Đợt kiểm kê hàng tháng theo tòa, ghi kết quả/bằng chứng, biên bản kiểm kê (Admin/Kế toán phụ trách).', 'FR-MNT-02'],
-    shareholders: ['Cổ đông, vốn góp & phân phối', 3, 'Danh sách cổ đông, tỷ lệ vốn nhập tay theo dự án, đợt góp vốn, bảng phân phối lợi nhuận.', 'FR-SHR-01/02/03'],
-    hr: ['Nhân viên', 3, 'Hồ sơ nhân viên, phòng ban, chức danh, phân công, KPI.', 'FR-HR-01/03'],
+    shareholders: ['Cổ đông, vốn góp & phân phối', 1, 'Danh sách cổ đông, cổ phần theo tòa, đợt góp vốn, bảng phân phối lợi nhuận (spec v1.8 §4.29–4.32).', 'Phase 1'],
+    hr: ['Nhân viên', 1, 'Hồ sơ nhân viên, đơn vị tổ chức, chức danh, phân công tòa (spec v1.8 §4.24).', 'Phase 1'],
     timesheet: ['Chấm công', 3, 'Chấm công nếu cần, liên kết bảng lương.', 'FR-HR-02'],
-    payroll: ['Lương thưởng', 3, 'Lương cứng + phụ cấp + hoa hồng; công thức TBD (OI-15).', 'FR-HR-02'],
+    payroll: ['Bảng lương', 1, 'Hiệu suất thu tiền M1/M2/M3 theo tòa → Payroll Rule → bảng lương → chi lương (spec v1.8 §4.26).', 'Phase 1'],
     projects: ['Dự án', 3, 'Danh mục dự án đầu tư, cổ đông, vốn góp.', 'FR-SHR-01/02'],
     assets: ['Tài sản', 3, 'Danh mục tài sản theo phòng/tòa, QR, kiểm kê hàng tháng, khấu hao.', 'FR-BLD-04, FR-MNT-02'],
     roi: ['Hiệu quả đầu tư', 3, 'Hiệu suất, lợi nhuận theo tòa, phân phối cổ đông – công thức TBD (OI-10/12/13/17).', 'FR-REP-01/02, FR-SHR-02'],
     'reports-detail': ['Trung tâm báo cáo', 2, 'Tạo báo cáo theo loại (48 loại) và kỳ, lưu bản ghi snapshot, xem trước và tải CSV.', 'FR-REP-07–11'],
     system: ['Thiết lập hệ thống', 2, 'Thông số hệ thống, múi giờ, làm tròn, chính sách lưu trữ (OI-24).', 'NFR', true],
-    ocr: ['Trích xuất hợp đồng (OCR)', 2, 'Upload PDF/JPG, trích xuất trường, review confidence, mapping vào form hợp đồng.', 'FR-CUS-02 (BR-03)'],
+    ocr: ['Trích xuất hợp đồng (OCR)', 1, 'Upload PDF/JPG → review theo nhóm entity → Create/Link/Update/Ignore → commit (spec v1.8 §12.8).', 'Phase 1'],
     statement: ['Import bảng kê thu tiền', 2, 'Mapping, auto-match hóa đơn, review, Data Jobs, retry dòng lỗi.', 'Phase 2 §3.4'],
     'refund-workflow': ['Duyệt hoàn cọc nhiều cấp', 2, 'Workflow duyệt nhiều cấp theo ngưỡng số tiền.', 'FR-FIN-07 (OI-07)'],
     'zalo-advanced': ['Notification nâng cao', 2, 'Rule Builder, template management, provider response, fallback SMS, hội thoại 2 chiều.', 'FR-ZAL-04/05/06'],
@@ -104,7 +110,7 @@
     const s = TH.store.state.session, items = [];
     if (s.role === 'admin' || s.impersonator) {
       items.push({ header: s.impersonator ? 'Admin đang xem theo vai trò' : 'Chuyển vai trò (Admin demo)' });
-      ['admin', 'accountant', 'ops', ...(TH.phase && TH.phase.on(2) ? ['sale', 'kythuat'] : []), ...(TH.phase && TH.phase.on(3) ? ['hr', 'codong'] : [])].forEach(role => items.push({ label: role === 'admin' && s.impersonator ? 'Quay lại Admin' : (s.role === role ? '● ' : '○ ') + TH.auth.ROLE_LABEL[role], icon: role === 'admin' && s.impersonator ? 'corner-up-left' : 'user', onClick: () => switchDemoRole(role) }));
+      ['admin', 'qltong', 'tpvh', 'accountant', 'ops', 'hr', ...(TH.phase && TH.phase.on(2) ? ['sale', 'kythuat'] : []), ...(TH.phase && TH.phase.on(3) ? ['codong'] : [])].forEach(role => items.push({ label: role === 'admin' && s.impersonator ? 'Quay lại Admin' : (s.role === role ? '● ' : '○ ') + TH.auth.ROLE_LABEL[role], icon: role === 'admin' && s.impersonator ? 'corner-up-left' : 'user', onClick: () => switchDemoRole(role) }));
       items.push('-');
     }
     if (TH.auth.can('users.manage')) items.push({ label: 'Quản lý tài khoản', icon: 'user-check', onClick: () => TH.go('#/settings/users') });
@@ -127,10 +133,10 @@
   };
   const launcherApps = () => [
     { label: 'Kinh doanh', text: 'CRM, lịch xem, giữ chỗ và giao dịch', icon: 'briefcase', href: '#/crm', permission: 'crm.view', phase: 2 },
-    { label: 'OCR hợp đồng', text: 'Trích xuất và review hợp đồng', icon: 'file-check', href: '#/contracts/ocr', permission: 'ocr.use', phase: 2 },
-    { label: 'Nhân sự', text: 'Nhân viên, chấm công, lương', icon: 'users', href: '#/hr', permission: 'hr.view', phase: 3 },
-    { label: 'Lương thưởng', text: 'Bảng lương và phê duyệt', icon: 'banknote', href: '#/hr/payroll', permission: 'payroll.view', phase: 3, roles: ['accountant'] },
-    { label: 'Đầu tư', text: 'Dự án, vốn góp, phân phối', icon: 'trending-up', href: '#/investment/projects', permission: 'projects.view', phase: 3 },
+    { label: 'OCR hợp đồng', text: 'Trích xuất và review hợp đồng', icon: 'file-check', href: '#/contracts/ocr', permission: 'ocr.use' },
+    { label: 'Nhân sự', text: 'Tổ chức, nhân viên, phân công, lương', icon: 'users', href: '#/hr', permission: 'hr.view' },
+    { label: 'Bảng lương', text: 'Bảng lương và phê duyệt', icon: 'banknote', href: '#/hr/payroll', permission: 'payroll.view' },
+    { label: 'Đầu tư', text: 'Cổ đông, cổ phần, góp vốn, phân phối', icon: 'trending-up', href: '#/investment/shareholders', permission: 'shareholders.view' },
     { label: 'Tài sản', text: 'Tài sản và kiểm kê', icon: 'package', href: '#/assets', permission: 'assets.view', phase: 3 },
     { label: 'Tài liệu', text: 'Tra cứu hồ sơ vận hành và pháp lý', icon: 'folder', href: '#/documents', permission: 'documents.view' },
     { label: 'Lịch sử gửi Zalo', text: 'Theo dõi trạng thái và gửi lại', icon: 'send', href: '#/zalo/history', permission: 'zalo.view' },
@@ -140,6 +146,7 @@
     { label: 'Tác vụ dữ liệu', text: 'Theo dõi import và xử lý dữ liệu', icon: 'database', href: '#/settings/jobs', permission: 'dataJobs.view', phase: 2 },
     { label: 'Tài khoản & phân quyền', text: 'Người dùng và phân quyền', icon: 'shield', href: '#/settings/users', permission: 'users.manage' },
     { label: 'Danh mục', text: 'Dịch vụ và dữ liệu dùng chung', icon: 'sliders', href: '#/settings/catalog', permission: 'catalog.view' },
+    { label: 'Master Data', text: 'Loại tòa, loại phòng, trạng thái khách, vai trò phân công…', icon: 'database', href: '#/settings/catalog?tab=master', permission: 'masterData.view' },
     { label: 'Import dữ liệu', text: 'Nhập dữ liệu nghiệp vụ', icon: 'upload', href: '#/settings/import', permission: 'import.view' },
     { label: 'Công cụ hệ thống', text: 'Phạm vi demo và dữ liệu kỹ thuật', icon: 'settings', href: '#/settings/tools', permission: 'advancedTools' },
   ];
@@ -230,7 +237,7 @@
     box.addEventListener('click', (e) => { if (e.target === box) box.remove(); });
   };
   /* Công tắc phase: bật/tắt → toast; tắt phase n khi đang là vai trò của phase đó → về Admin; route tự thành coming-soon (router guard, giữ URL) */
-  const PHASE_TOAST = { 2: '18 màn CRM / OCR / Tài chính / Bảo trì / Báo cáo / Data Job đã mở · thêm vai trò Sale, Kỹ thuật', 3: 'Sổ tài sản & kiểm kê / Nhân sự / Chấm công / Lương / Dự án / Cổ đông / Ngân hàng đã mở · thêm vai trò Nhân sự, Cổ đông' };
+  const PHASE_TOAST = { 2: '18 màn CRM / Tài chính / Bảo trì / Báo cáo / Data Job đã mở · thêm vai trò Sale, Kỹ thuật', 3: 'Sổ tài sản & kiểm kê / Chấm công / Dự án / ROI / Ngân hàng đã mở · thêm vai trò Cổ đông' };
   const PHASE_OFF = { 2: 'Trở về kịch bản Go-live Phase 1 – dữ liệu P2 vẫn được giữ', 3: 'Các màn Phase 3 về coming-soon – dữ liệu P3 vẫn được giữ' };
   L.togglePhase = (n, on) => {
     try {

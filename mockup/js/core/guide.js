@@ -2,7 +2,7 @@
 (function (TH) {
   const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, X = TH.actions, esc = F.esc;
   const G = { KEY: 'timehouse-guide-p1-v1', openState: false };
-  const ROLE = { admin: 'Quản trị viên', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông', any: 'Bất kỳ' };
+  const ROLE = { admin: 'Quản trị viên', qltong: 'Quản lý Tổng', tpvh: 'Trưởng phòng VH', accountant: 'Kế toán', ops: 'Vận hành', sale: 'Sale', kythuat: 'Kỹ thuật', hr: 'Nhân sự', codong: 'Cổ đông', any: 'Bất kỳ' };
   /* ---- ngữ cảnh: record do người demo tạo ---- */
   const ctx = () => {
     const pin = (St.state.guide && St.state.guide.pin) || {}; const demo = TH.demoData ? TH.demoData.context() : {};
@@ -171,7 +171,7 @@
     X.saveRefund({ id: rf.id, contractId: c.id, deductions: [{ group: 'Khấu hao', desc: 'Khấu hao cố định theo phòng (BR-12)', amount: 200000, evidenceCount: 1 }, { group: 'Dịch vụ', desc: 'Vệ sinh phòng', amount: 200000, evidenceCount: 1 }], offsetDebt: false, inspection: { wall: 'ok', furniture: 'minor', utilities: 'ok', devices: 'ok' } }); X.submitRefund(rf.id);
     TH.auth.switchRole('accountant'); X.approveRefund(rf.id); X.recordRefundPaid(rf.id, { paidDate: F.today(), paidMethod: 'Chuyển khoản', paidRef: 'UNC' + Date.now().toString().slice(-5), paidEvidence: 'uy_nhiem_chi.pdf' }); log.push('Hoàn cọc ' + F.vnd(rf.refundAmount));
     TH.auth.switchRole('ops'); X.confirmCleaned(room.id); log.push('Phòng ' + room.code + ' → Sẵn sàng');
-    TH.auth.switchRole(prevRole || 'admin'); TH.layout.refreshTop(); St.state.guide.visited = Object.assign(St.state.guide.visited || {}, { '/dashboard': 1, '/settings/catalog': 1, '/rooms': 1, '/tenants': 1, '/contracts/new': 1, '/invoices/batch': 1, '/zalo/batches/new': 1, '/receivables': 1, ['/payments/' + pay.id]: 1, ['/contracts/' + c.id]: 1, '/refunds/new': 1, '/reports': 1 }); G.evaluate('sync');
+    TH.auth.switchRole(prevRole || 'admin'); TH.layout.refreshTop(); St.state.guide.visited = Object.assign(St.state.guide.visited || {}, { '/dashboard': 1, '/settings/catalog': 1, '/rooms': 1, '/tenants': 1, '/contracts/new': 1, '/invoices/batch': 1, '/zalo/batches/new': 1, '/receivables': 1, ['/payments/' + pay.id]: 1, ['/contracts/' + c.id]: 1, '/refunds/new': 1, '/reports': 1, '/hr/org': 1, '/dashboard?orgUnitId=1': 1 }); if (G.runAllOrg) { try { log.push(await G.runAllOrg()); } catch (e) { log.push('H1 lỗi: ' + e.message); } } G.evaluate('sync');
     return log.join(' · ');
   };
   TH.guide = G;

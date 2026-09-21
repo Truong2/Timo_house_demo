@@ -19,19 +19,22 @@
   Q.expenseCategory = code => raw('expenseGroups').find(g => g.code === code) || {};
   Q.expenseTree = () => raw('expenseGroups').filter(g => !g.parentCode && ['GV', 'DV', 'VH', 'BH'].includes(g.code)).map(p => ({ ...p, children: raw('expenseGroups').filter(g => g.parentCode === p.code) }));
   Q.salesTeam = id => St.get('salesTeams', id) || {};
-  Q.staffOf = (buildingId, role, atDate = F.today()) => raw('buildingAssignments').filter(a => a.buildingId === buildingId && (!role || a.role === role) && a.start <= atDate && (!a.end || a.end >= atDate)).map(a => ({ ...a, employee: St.get('employees', a.employeeId) || {} }));
+  Q.staffOf = (buildingId, role, atDate = F.today()) => raw('buildingAssignments').filter(a => a.buildingId === buildingId && (!role || a.role === role) && ['active', 'ended', 'approved'].includes(a.status || 'active') && a.start <= atDate && (!a.end || a.end >= atDate)).map(a => ({ ...a, employee: St.get('employees', a.employeeId) || {} }));
   Q.areaLead = areaId => { const a = Q.area(areaId); return St.get('employees', a.leadEmployeeId) || {}; };
   Q.buildingLead = buildingId => { const b = Q.building(buildingId), lead = Q.areaLead(b.areaId); return lead.id ? lead : ((Q.staffOf(buildingId, 'lead')[0] || {}).employee || {}); };
 
   Q.scope = (f = {}) => {
     const period = f.period === undefined ? St.state.meta.period : f.period;
+    // Spec v1.8 §4.3/§12.1.5: scope resolve theo ngày cuối kỳ – tổ chức (node + descendants) → nhân sự → assignment Phụ trách chính → tòa
+    const refDate = Q.refDate ? Q.refDate({ date: f.date, period: period && period !== 'all' ? period : '' }) : F.today();
     let buildings = raw('buildings').filter(b => !b.stub);
+    if (f.orgUnitId || f.employeeId) { const ids = new Set(Q.scopeBuildingIds({ orgUnitId: f.orgUnitId, employeeId: f.employeeId, date: refDate })); buildings = buildings.filter(b => ids.has(b.id)); }
     if (f.areaId) buildings = buildings.filter(b => b.areaId === f.areaId);
     if (f.buildingId) buildings = buildings.filter(b => b.id === f.buildingId);
-    if (f.buildingType) buildings = buildings.filter(b => b.buildingType === f.buildingType);
-    if (f.managerId) buildings = buildings.filter(b => b.managerId === f.managerId);
+    if (f.buildingType) buildings = buildings.filter(b => (Q.buildingTypeAt ? Q.buildingTypeAt(b.id, refDate) : b.buildingType) === f.buildingType);
+    if (f.managerId) { const emp = Q.employeeByUser ? Q.employeeByUser(f.managerId) : null; buildings = buildings.filter(b => emp ? (Q.managerAssignment(b.id, refDate) || {}).employeeId === emp.id : b.managerId === f.managerId); }
     if (f.leadId) buildings = buildings.filter(b => Q.buildingLead(b.id).id === f.leadId);
-    if (f.opsId) buildings = buildings.filter(b => Q.staffOf(b.id, 'ops').some(x => x.employeeId === f.opsId));
+    if (f.opsId) buildings = buildings.filter(b => Q.staffOf(b.id, null, refDate).some(x => ['manager', 'support', 'ops'].includes(x.role) && x.employeeId === f.opsId));
     if (f.shareholderId) {
       const pids = new Set(raw('capitalCommitments').filter(c => c.shareholderId === f.shareholderId).map(c => c.projectId));
       const bids = new Set(raw('projects').filter(p => pids.has(p.id)).map(p => p.buildingId)); buildings = buildings.filter(b => bids.has(b.id));
@@ -39,7 +42,7 @@
     let sales = raw('users').filter(u => u.role === 'sale' && u.status === 'active');
     if (f.teamId) sales = sales.filter(u => u.teamId === f.teamId);
     if (f.saleId) sales = sales.filter(u => u.id === f.saleId);
-    return { period, buildingIds: buildings.map(b => b.id), saleIds: sales.map(u => u.id), filters: { ...f } };
+    return { period, date: refDate, buildingIds: buildings.map(b => b.id), saleIds: sales.map(u => u.id), filters: { ...f } };
   };
   const inScope = (id, scope) => !scope || !scope.buildingIds || scope.buildingIds.includes(id);
 

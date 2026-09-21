@@ -1,16 +1,19 @@
 /* Store: state + persist localStorage */
 (function (TH) {
   const KEY = 'timehouse-demo-p1-v3-2026';
-  const SCHEMA = 4;
+  const SCHEMA = 5; // v5: cơ cấu tổ chức, phân công theo hiệu lực, lịch sử loại tòa, master data (spec v1.8 W1)
+  const MIN_SCHEMA = 4; // state v4 được nâng cấp additive qua TH.seed.migrateV5
   const COLLECTIONS = ['users', 'areas', 'salesTeams', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
     // Phase 2
     'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines', 'reportRuns',
     // Phase 3
-    'assets', 'inventories', 'inventoryLines', 'employees', 'buildingAssignments', 'timesheets', 'payrolls', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions', 'bankAccounts', 'bankTransactions'];
+    'assets', 'inventories', 'inventoryLines', 'employees', 'buildingAssignments', 'timesheets', 'payrolls', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions', 'bankAccounts', 'bankTransactions',
+    // Spec v1.8 – Wave 1: cơ cấu tổ chức (§4.23), quan hệ tổ chức của NV (§4.24), lịch sử loại tòa (§4.6), master data (§7.5)
+    'orgUnits', 'positions', 'employmentAssignments', 'buildingTypeHistory', 'masterData'];
   const S = { state: null, listeners: [], _t: null };
   S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
   S.migrate = (st) => {
-    if (!st || Number(st.schema) !== SCHEMA) throw new Error('Schema không khớp');
+    if (!st || Number(st.schema) > SCHEMA || Number(st.schema) < MIN_SCHEMA) throw new Error('Schema không khớp');
     COLLECTIONS.forEach(c => { if (!Array.isArray(st[c])) st[c] = []; });
     st.meta = st.meta || { today: TH.f.DEMO_TODAY, period: '2026-10' };
     st.guide = st.guide || { done: {}, ts: {}, current: null };
@@ -28,6 +31,8 @@
     // Workbook alignment v2.3: additive-only migration; giữ nguyên schema và dữ liệu nghiệp vụ cũ.
     if (TH.seed && TH.seed.workbook && !st.meta.wbSeeded && st.buildings.length) { try { TH.seed.workbook(st); } catch (e) { console.warn('seed workbook alignment', e); } }
     if (TH.seed && TH.seed.workbookFixups && st.meta.wbSeeded) { try { TH.seed.workbookFixups(st); } catch (e) { console.warn('workbook fixups', e); } }
+    // Spec v1.8 – v5: tổ chức/phân công/loại tòa/master data; additive & idempotent (meta.v5Migrated)
+    if (TH.seed && TH.seed.migrateV5 && st.buildings.length) { try { TH.seed.migrateV5(st); } catch (e) { console.warn('migrate v5', e); } }
     // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
     // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
     const leadGroups = {};
@@ -48,7 +53,7 @@
     return st;
   };
   S.load = () => {
-    try { const raw = localStorage.getItem(KEY); if (raw) { const st = JSON.parse(raw); if (st && Number(st.schema) === SCHEMA) { S.state = S.migrate(st); S.saveNow(); return true; } } } catch (e) { console.warn('store load', e); }
+    try { const raw = localStorage.getItem(KEY); if (raw) { const st = JSON.parse(raw); if (st && Number(st.schema) <= SCHEMA && Number(st.schema) >= MIN_SCHEMA) { S.state = S.migrate(st); S.saveNow(); return true; } } } catch (e) { console.warn('store load', e); }
     S.state = S.empty(); return false;
   };
   S.save = () => { clearTimeout(S._t); S._t = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) { console.warn('store save', e); } }, 60); };

@@ -1,5 +1,20 @@
 # TimoHouse – Mockup tương tác Phase 1 + Phase 2 + Phase 3
 
+## Spec v1.8 – Wave 1: Cơ cấu tổ chức & Phân công tòa nhà (single source of truth)
+
+Mockup đang được đưa theo `docs_timonouse/TimoHouse_Mo_Ta_Chuc_Nang_3_Phase_v1.8_OCR_Data_Onboarding.md` (kế hoạch 6 wave, backlog gap tại `docs/TimoHouse-Spec-v1.8-vs-Mockup-Gap-2026-09-21.md`). Wave 1 đã có:
+
+- **Phạm vi Phase 1 theo spec:** OCR hợp đồng, Nhân sự (Nhân viên, Cơ cấu tổ chức, Phân công tòa nhà, Bảng lương) và Cổ đông/góp vốn/phân phối **không còn gate P2/P3**; Chấm công, Dự án, ROI, Tài sản/Kiểm kê vẫn theo công tắc phase. Menu Admin xếp theo spec §8 (Vận hành · Tài chính · Kinh doanh · Nhân sự · Tài sản & bảo trì · Đầu tư · Thông báo · Báo cáo; Cài đặt qua app launcher).
+- **Cơ cấu tổ chức `#/hr/org`** (§4.23): cây số cấp linh hoạt (Công ty → Quản lý Tổng → Đơn vị vận hành {TPVH 1, TPVH 2, Kỹ thuật} / Tài chính–Kế toán / Kinh doanh → Nhóm KD → Team Sale), một Lead hiệu lực/đơn vị có lịch sử nhiệm kỳ, xem cây theo ngày, điều chuyển/kiêm nhiệm nhân viên có ngày hiệu lực (`employmentAssignments`), chức danh (`positions`).
+- **Phân công tòa nhà `#/hr/assignments`** (§4.25): views Hiện tại / Sắp tới / Chờ duyệt / Lịch sử, bảng nhà–phòng hiện tại & sắp tới (§4.25.9), cảnh báo tòa thiếu Phụ trách chính và phân công trùng, **Thay đổi quản lý** (tòa → NV → vai trò → ngày hiệu lực → lý do → gửi duyệt/xác nhận), điều chuyển hàng loạt, workflow `Dự thảo → Chờ duyệt → Đã duyệt → Đang hiệu lực → Hết hiệu lực` (+ Từ chối / Đã hủy). Phụ trách chính mới tự kết thúc người cũ ngày hiệu lực − 1; phân công đến ngày tự kích hoạt (`X.activateDueAssignments`).
+- **`managerId` chỉ là cache dẫn xuất** (§10.17): `buildings/rooms/contracts/tenants.managerId` và `users.buildingIds` được đồng bộ từ assignment Phụ trách chính (`X.syncDerivedManagers`). Màn Tòa chỉ đọc Quản lý hiện tại / sắp tới / lịch sử từ Phân công; nút "Thay đổi quản lý" mở form của module Nhân sự. Scope Vận hành (RBAC) tính từ assignment hiệu lực.
+- **Scope theo cây tổ chức + thời gian** (§4.3): bộ lọc Dashboard có Tổ chức (gồm đơn vị con) → Nhân sự → Tòa; resolve theo ngày cuối kỳ. Kịch bản seed: tòa **Central** kỳ 09/2026 thuộc TPVH 1 (Hoàng Nam Khánh), từ 01/10/2026 thuộc TPVH 2 (Lê Hoàng); tòa **Garden** có Quản lý sắp tới từ 01/11/2026; 1 đề xuất Phối hợp tòa Sunrise chờ duyệt.
+- **Ký hiệu/loại tòa có lịch sử hiệu lực** (`buildingTypeHistory`, §4.6): cập nhật phải nhập ngày hiệu lực; `Q.buildingTypeAt(b, date)` dùng cho báo cáo kỳ cũ.
+- **Master Data** (`#/settings/catalog?tab=master`, §7.5): loại tòa (mở rộng ngoài T/S/G), loại phòng, trạng thái khách hàng, lý do kết thúc HĐ, vai trò phân công, loại đơn vị, sự kiện thông báo, mốc thu M1/M2/M3; tab Chức danh.
+- **Vai trò demo mới:** `qltong` (Quản lý Tổng – xem toàn cây, duyệt phân công) và `tpvh1` (Trưởng phòng vận hành TPVH 1 – scope đơn vị + descendants). `nhansu` là vai trò Phase 1.
+- **Dữ liệu cũ:** state v4 trong localStorage được nâng lên schema 5 additive (`TH.seed.migrateV5`, cờ `meta.v5Migrated`): quản lý tòa cũ → assignment `manager`, nhân viên → quan hệ tổ chức, loại tòa → lịch sử. Không mất dữ liệu người xem; "Đặt lại dữ liệu demo" cho seed đầy đủ.
+- Panel Hướng dẫn: luồng **H1 "Tổ chức & phân công tòa nhà"** (6 mốc) chèn sau F10; `runAll()` chạy thêm H1.
+
 ## Workbook alignment (v2.3)
 
 Mockup có thêm lớp đối soát workbook theo hướng additive, giữ tương thích state cũ:
@@ -21,7 +36,7 @@ Mockup click-through dựng từ bộ PNG `Phase_1_Core_Rental_GoLive/` (mặc �
 - **Cách 1:** mở `index.html` bằng Chrome/Edge (double-click) – chạy trực tiếp từ file://.
 - **Cách 2:** ở thư mục gốc repo chạy `npm run dev` rồi mở `http://localhost:8765` (cần Node ≥ 20, không cần cài dependency).
 - **Deploy Netlify:** xem mục *Deploy lên Netlify* trong `README.md` ở gốc repo (`npm run build` → thư mục `dist/`; repo đã có `netlify.toml`).
-- Tài khoản demo (mật khẩu bất kỳ): `admin` (Quản trị viên), `ketoan` (Kế toán), `vanhanh` (Vận hành); khi bật Phase 2 thêm `sale` (Sale), `kythuat` (Kỹ thuật); khi bật Phase 3 thêm `nhansu` (Nhân sự), `codong` (Cổ đông – read-only). Đổi vai trò nhanh ở menu góc phải.
+- Tài khoản demo (mật khẩu bất kỳ): `admin` (Quản trị viên), `qltong` (Quản lý Tổng), `tpvh1` (Trưởng phòng vận hành), `ketoan` (Kế toán), `vanhanh` (Vận hành), `nhansu` (Nhân sự); khi bật Phase 2 thêm `sale` (Sale), `kythuat` (Kỹ thuật); khi bật Phase 3 thêm `codong` (Cổ đông – read-only). Đổi vai trò nhanh ở menu góc phải.
 - Ngày hệ thống demo cố định **28/10/2026**, kỳ **Tháng 10/2026** để khớp số liệu mockup (đổi tại *Công cụ nâng cao*).
 
 ## Kịch bản demo 16 điều kiện Go-live

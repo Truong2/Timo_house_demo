@@ -20,12 +20,15 @@ const fixture = {
     { id: 'u-tech', role: 'kythuat', status: 'active', name: 'Technician' },
     { id: 'u-hr', role: 'hr', status: 'active', name: 'HR' },
     { id: 'u-investor', role: 'codong', status: 'active', name: 'Investor' },
+    { id: 'u-qltong', role: 'qltong', status: 'active', name: 'Quan ly Tong' },
+    { id: 'u-tpvh', role: 'tpvh', status: 'active', name: 'TPVH 1' },
   ],
   salesTeams: [{ id: 'team-1', leadUserId: 'u-sale-lead', status: 'active' }, { id: 'team-2', leadUserId: 'u-sale-other', status: 'active' }],
   buildings: [{ id: 'b1', name: 'Building 1' }, { id: 'b2', name: 'Building 2' }],
   rooms: [{ id: 'r1', code: 'R1', buildingId: 'b1' }, { id: 'r2', code: 'R2', buildingId: 'b2' }],
-  employees: [{ id: 'e-tech', userId: 'u-tech' }],
-  buildingAssignments: [{ id: 'ba1', employeeId: 'e-tech', buildingId: 'b1', status: 'active' }],
+  employees: [{ id: 'e-tech', userId: 'u-tech' }, { id: 'e-tpvh', userId: 'u-tpvh' }],
+  buildingAssignments: [{ id: 'ba1', employeeId: 'e-tech', buildingId: 'b1', status: 'active', start: '2026-01-01', end: null, role: 'tech' }],
+  orgUnits: [], positions: [], employmentAssignments: [], buildingTypeHistory: [], masterData: [],
   leads: [
     { id: 'l-lead', saleId: 'u-sale-lead', buildingIds: ['b1'] },
     { id: 'l-member', saleId: 'u-sale-member', buildingIds: ['b1'] },
@@ -70,7 +73,7 @@ const store = {
 const phaseState = { 1: true, 2: true, 3: true };
 const TH = {
   store,
-  phase: { state: phaseState, on: n => n === 1 || !!phaseState[n], ROLES: { 2: ['sale', 'kythuat'], 3: ['hr', 'codong'] } },
+  phase: { state: phaseState, on: n => n === 1 || !!phaseState[n], ROLES: { 2: ['sale', 'kythuat'], 3: ['codong'] } },
   f: {
     esc: value => String(value ?? ''), uid: prefix => `${prefix}-test`, nowISO: () => '2026-10-28T09:00:00',
     today: () => '2026-10-28', pad: n => String(n).padStart(2, '0'), num: Number,
@@ -128,7 +131,7 @@ assert.deepEqual(ids(TH.auth.filterByScope('distributions', state.distributions)
 
 // Sidebar structure is declarative and every referenced item comes from the canonical registry.
 run('mockup/js/ui/layout.js');
-const expectedTopLevel = { admin: 6, ops: 6, accountant: 5, sale: 4, kythuat: 3, hr: 3, codong: 2 };
+const expectedTopLevel = { admin: 9, qltong: 6, tpvh: 5, ops: 7, accountant: 6, sale: 4, kythuat: 3, hr: 3, codong: 2 };
 for (const [role, count] of Object.entries(expectedTopLevel)) {
   const groups = TH.layout.menuForRole(role);
   assert.equal(groups.length, count, `${role} must have ${count} top-level sidebar entries`);
@@ -138,7 +141,7 @@ for (const [role, count] of Object.entries(expectedTopLevel)) {
   }
 }
 const keysOf = role => TH.layout.menuForRole(role).flatMap(group => group.items.map(item => item.key));
-for (const [role, userId] of Object.entries({ admin: 'u-admin', accountant: 'u-accountant', ops: 'u-ops', sale: 'u-sale-member', kythuat: 'u-tech', hr: 'u-hr', codong: 'u-investor' })) {
+for (const [role, userId] of Object.entries({ admin: 'u-admin', qltong: 'u-qltong', tpvh: 'u-tpvh', accountant: 'u-accountant', ops: 'u-ops', sale: 'u-sale-member', kythuat: 'u-tech', hr: 'u-hr', codong: 'u-investor' })) {
   login(role, userId);
   const sidebarHrefs = new Set(TH.layout.menuForRole(role).flatMap(group => group.items.filter(item => TH.auth.can(item.permission)).map(item => item.href)));
   const launcher = TH.layout.availableLauncherApps();
@@ -151,6 +154,10 @@ login('admin', 'u-admin');
 assert.equal(keysOf('admin').includes('tools'), false);
 assert.ok(TH.layout.availableLauncherApps().some(app => app.href === '#/settings/tools'));
 assert.ok(keysOf('ops').includes('crm') && keysOf('ops').includes('inventory'));
+// Spec v1.8 W1: Nhân sự/phân công/cổ đông/OCR là Phase 1 (không gate phase)
+assert.equal(TH.layout.NAV_ITEMS.ocr.phase, 0); assert.equal(TH.layout.NAV_ITEMS.hr.phase, 0); assert.equal(TH.layout.NAV_ITEMS.shareholders.phase, 0);
+assert.ok(keysOf('admin').includes('org') && keysOf('admin').includes('assignments') && keysOf('hr').includes('assignments'));
+assert.ok(TH.auth.ROLE_POLICY['assignments.approve'].includes('qltong') && !TH.auth.ROLE_POLICY['assignments.approve'].includes('tpvh'));
 assert.ok(keysOf('accountant').includes('maintenance') && keysOf('accountant').includes('inventory'));
 assert.equal(TH.layout.NAV_ITEMS.ocr.key, 'ocr');
 assert.equal(TH.layout.NAV_ITEMS.inventory.key, 'inventory');
@@ -190,8 +197,8 @@ function registrations(source, file) {
 
 const pagesDir = path.join(root, 'mockup/js/pages');
 const routes = fs.readdirSync(pagesDir).filter(file => file.endsWith('.js')).flatMap(file => registrations(read(`mockup/js/pages/${file}`), file));
-assert.equal(routes.length, 68, 'Expected the demo route inventory to contain 68 routes');
-assert.equal(new Set(routes.map(route => route.path)).size, 68, 'Route paths must be unique');
+assert.equal(routes.length, 71, 'Expected the demo route inventory to contain 71 routes');
+assert.equal(new Set(routes.map(route => route.path)).size, 71, 'Route paths must be unique');
 for (const route of routes) assert.ok(TH.auth.ROLE_POLICY[route.permission], `${route.path} uses unknown permission ${route.permission}`);
 const routeAt = pathName => routes.find(route => route.path === pathName);
 assert.equal(routeAt('/crm/leads/:id').resource.type, 'lead');
@@ -219,7 +226,7 @@ assert.equal(TH.auth.canRoute(routeAt('/settings/jobs/:id'), { id: 'job-other' }
 
 // Guard matrix: Login -> Permission -> Data scope -> Phase -> Render.
 const accounts = {
-  admin: 'u-admin', accountant: 'u-accountant', ops: 'u-ops', sale: 'u-sale-member',
+  admin: 'u-admin', qltong: 'u-qltong', tpvh: 'u-tpvh', accountant: 'u-accountant', ops: 'u-ops', sale: 'u-sale-member',
   kythuat: 'u-tech', hr: 'u-hr', codong: 'u-investor',
 };
 let matrixCases = 0;
@@ -235,7 +242,7 @@ for (const [role, userId] of Object.entries(accounts)) {
     }
   }
 }
-assert.equal(matrixCases, 7 * 68 * 2);
+assert.equal(matrixCases, 9 * 71 * 2);
 state.session = null;
 for (const route of routes) assert.equal(state.session ? 'continue' : 'login', 'login', `Logged-out access to ${route.path} must stop at Login`);
 

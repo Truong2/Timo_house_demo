@@ -190,3 +190,15 @@
 .dashboard-context-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.dashboard-context-row .dash-context{margin:0}.dashboard-view-switch{display:flex;gap:3px;padding:3px;border:1px solid var(--border);border-radius:9px;background:#fff}.dashboard-view-switch button{height:32px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:6px;color:var(--muted);font-size:12.5px;font-weight:600}.dashboard-view-switch button.on{background:var(--primary);color:#fff}.dashboard-exec .card{min-width:0}
 @media(max-width:1180px){.focus-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-focus{grid-template-columns:1fr}.dash-context{margin:0}.dashboard-context-row{align-items:flex-start;flex-direction:column}}
 @media(max-width:620px){.focus-kpis{grid-template-columns:1fr}.dash-context{width:100%;justify-content:flex-start;flex-wrap:wrap}.dash-context .inp{flex:1;min-width:140px}.focus-kpi{min-height:auto}}
+
+/* ---------- Spec v1.8 W1: cây tổ chức / master data (pages/org.js, settings master) ---------- */
+.org-tree{display:flex;flex-direction:column}
+.org-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.org-row:hover{background:var(--surface-2,#f8fafc)}
+.org-row.on{background:var(--blue-bg,#eff6ff);box-shadow:inset 3px 0 0 var(--blue,#2563eb)}
+.org-row .org-caret{width:14px;color:var(--muted);font-size:12px;text-align:center}
+.org-row .org-name{flex:1;min-width:0;font-size:13.5px}
+.org-row .org-name b{color:var(--text)}
+.org-row .org-lead{display:flex;align-items:center;gap:6px;min-width:160px;font-size:13px;color:var(--text)}
+.org-row .org-stats{min-width:150px;text-align:right}
+@media (max-width:760px){.org-row .org-lead,.org-row .org-stats{display:none}}

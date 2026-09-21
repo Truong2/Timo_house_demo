@@ -13,7 +13,7 @@
   P.info = (n) => INFO[Number(n)] || INFO[2];
   P.label = () => 'P1' + (P.on(2) ? ' + P2' : '') + (P.on(3) ? ' + P3' : '');
   P.tag = (n, cls = '') => { n = Number(n) || 2; return `<span class="tag-p ${P.on(n) ? 'on' : ''} ${cls}" title="${P.info(n).label} – ${P.info(n).name}">${P.info(n).short}</span>`; };
-  P.ROLES = { 2: ['sale', 'kythuat'], 3: ['hr', 'codong'] }; // vai trò demo chỉ khả dụng khi phase bật
+  P.ROLES = { 2: ['sale', 'kythuat'], 3: ['codong'] }; // vai trò demo chỉ khả dụng khi phase bật (spec v1.8: Nhân sự thuộc Phase 1)
   P.ofRole = (role) => Number(Object.keys(P.ROLES).find(n => P.ROLES[n].includes(role))) || 1;
   P.set = (n, on) => {
     n = Number(n); if (!P.available(n)) throw new Error(P.info(n).label + ' chưa có mockup UI – công tắc bị khóa');

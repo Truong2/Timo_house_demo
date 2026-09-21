@@ -9,6 +9,7 @@
       if (what === 'phase') { TH.layout.refreshTop(); if (TH.router.current && TH.router.current.path !== '/login') TH.router.refresh(); if (TH.guide) { TH.guide.evaluate('phase'); TH.guide.render(); } }
       if (TH.guide) TH.guide.evaluate(what);
     });
+    if (TH.actions.activateDueAssignments) { TH.actions.activateDueAssignments(); TH.actions.syncDerivedManagers(); } // §4.25: quản lý tòa dẫn xuất từ phân công hiệu lực
     if (TH.auth.can('zalo.send')) TH.actions.resumeBatches();
     TH.router.start();
     if (TH.guide) TH.guide.init();
