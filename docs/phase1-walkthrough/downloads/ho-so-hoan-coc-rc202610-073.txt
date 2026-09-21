@@ -5,7 +5,6 @@ Phòng: Z.01.01
 Cọc: 13,000,000
 - Khấu hao: Khấu hao thiết bị phòng Z.01.01 200,000
 - Dịch vụ: Vệ sinh phòng Z.01.01 200,000
-- Sửa chữa: Sửa chữa hư hỏng (nếu có) 0
-Hoàn: 12,600,000
+Hoàn: 7,885,000
 
 Tài liệu mô phỏng cho mục đích demo.

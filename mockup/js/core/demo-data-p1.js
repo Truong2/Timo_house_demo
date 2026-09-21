@@ -26,8 +26,8 @@
     meter: { electricDelta: 150, waterDelta: 12 },
     invoice: { period: PERIOD, expectedTotal: 7715000, issueLater: true },
     payment: { date: TODAY, amount: 3000000, method: 'Chuyển khoản', ref: 'CK289104', note: 'Khách thanh toán một phần hóa đơn kỳ 10/2026.', remaining: 4715000 },
-    termination: { actualEnd: TODAY, reason: 'Khách trả phòng sớm', toCleaning: true, createRefund: true },
-    refund: { inspection: { wall: 'ok', furniture: 'minor', utilities: 'ok', devices: 'ok' }, offsetDebt: false, deductions: [{ group: 'Khấu hao', desc: 'Khấu hao thiết bị phòng Z.01.01', amount: 200000 }, { group: 'Dịch vụ', desc: 'Vệ sinh phòng Z.01.01', amount: 200000 }], amount: 12600000, paidDate: TODAY, paidMethod: 'Chuyển khoản', paidRef: 'UNC289104', paidEvidence: 'uy_nhiem_chi_hoan_coc.pdf' },
+    termination: { endType: 'early_tenant', reasonCode: 'early_tenant', noticeDate: TODAY, actualEnd: TODAY, issueFinal: true },
+    refund: { inspection: { wall: 'ok', furniture: 'minor', utilities: 'ok', devices: 'ok' }, offsetDebt: true, debtOffset: 4715000, deductions: [{ group: 'Khấu hao', desc: 'Khấu hao thiết bị phòng Z.01.01', amount: 200000 }, { group: 'Dịch vụ', desc: 'Vệ sinh phòng Z.01.01', amount: 200000 }], amount: 7885000, paidDate: TODAY, paidMethod: 'Chuyển khoản', paidRef: 'UNC289104', paidEvidence: 'uy_nhiem_chi_hoan_coc.pdf' },
     expense: { date: TODAY, desc: 'Sửa khóa phòng Z.01.01', amount: 350000, method: 'cash', recordType: 'ops', note: 'Chi phí sửa khóa thuộc Tòa Demo Onboard.' },
     user: { name: 'Lê Demo Vận Hành', email: 'demo.vanhanh@timohouse.vn', phone: '0913 222 333', role: 'ops', region: 'Cầu Giấy', effectiveDate: TODAY, status: 'active', note: 'Phụ trách Tòa Demo Onboard.' }
   });
@@ -63,7 +63,7 @@
     payment: { title: 'Thu tiền một phần', values: P.payment, relations: 'Phân bổ vào hóa đơn kỳ 10/2026; còn nợ 4.715.000đ' },
     termination: { title: 'Kết thúc hợp đồng', values: P.termination },
     'refund-inspection': { title: 'Hiện trạng trả phòng', values: P.refund.inspection },
-    'refund-deductions': { title: 'Khấu trừ hoàn cọc', values: { deductions: P.refund.deductions, offsetDebt: false, expectedRefund: P.refund.amount } },
+    'refund-deductions': { title: 'Khấu trừ hoàn cọc', values: { deductions: P.refund.deductions, offsetDebt: true, debtOffset: P.refund.debtOffset, expectedRefund: P.refund.amount } },
     'refund-paid': { title: 'Chứng từ hoàn cọc', values: { paidDate: P.refund.paidDate, paidMethod: P.refund.paidMethod, paidRef: P.refund.paidRef, paidEvidence: P.refund.paidEvidence } },
     expense: { title: 'Chi phí vận hành', values: P.expense, relations: 'Liên kết Tòa Demo Onboard; diễn giải nêu rõ phòng Z.01.01' },
     import: { title: 'Import khách thuê', kind: 'file', values: { file: 'mau-import-khach-phase1.csv', validRooms: 'Z.01.02, Z.01.03, Z.01.04', intentionalErrors: 'Trùng SĐT, CCCD sai, thiếu SĐT, phòng Z.99.99 không tồn tại' } },
@@ -163,7 +163,7 @@
     } else if (key === 'refund-deductions') {
       if (!c.refund) return missing('Cần kết thúc hợp đồng và tạo hồ sơ hoàn cọc trước.', '#/contracts', 'Mở Hợp đồng');
       while (root.querySelectorAll('#ded-body tr').length < 2) root.querySelector('[data-act=add-ded]')?.click();
-      P.refund.deductions.forEach((x, i) => { n += setMany(root, { ['g_' + i]: x.group, ['d_' + i]: x.desc, ['a_' + i]: x.amount }); }); n += setOne(root, 'offsetDebt', false) ? 1 : 0;
+      P.refund.deductions.forEach((x, i) => { n += setMany(root, { ['g_' + i]: x.group, ['d_' + i]: x.desc, ['a_' + i]: x.amount }); }); n += setOne(root, 'offsetDebt', true) ? 1 : 0; n += setOne(root, 'debtOffset', P.refund.debtOffset) ? 1 : 0;
     } else if (key === 'refund-paid') { if (!c.refund) return missing('Chưa có hồ sơ hoàn cọc đã duyệt.', '#/refunds', 'Mở Hoàn cọc'); n = setMany(root, { paidDate: P.refund.paidDate, paidMethod: P.refund.paidMethod, paidRef: P.refund.paidRef }); if (attachFile(root, P.refund.paidEvidence, 'ev')) n++; }
     else if (key === 'expense') { if (!c.building) return missing('Cần tạo Tòa Demo Onboard trước khi ghi nhận chi phí.', '#/landlords/new', 'Mở onboarding Chủ nhà'); n = setMany(root, P.expense); n += setOne(root, 'buildingId', c.building.id) ? 1 : 0; const cat = root.querySelector('select[name=categoryCode]'); if (cat) { const o = [...cat.options].find(x => /sửa|bảo trì/i.test(x.textContent) && !x.disabled); if (o) { cat.value = o.value; fire(cat); n++; } } }
     else if (key === 'user') { if (!c.building) return missing('Cần tạo Tòa Demo Onboard trước khi phân phạm vi tài khoản.', '#/landlords/new', 'Mở onboarding Chủ nhà'); n = setMany(root, P.user); n += setOne(root, 'b_' + c.building.id, true) ? 1 : 0; }

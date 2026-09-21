@@ -4,7 +4,7 @@
 > **Nguồn spec:** `docs_timonouse/TimoHouse_Mo_Ta_Chuc_Nang_3_Phase_v1.8_OCR_Data_Onboarding.md` (Review Draft 1.8, 20/09/2026)
 > **Nguồn mockup:** `mockup/` (SPA vanilla JS – `js/ui/layout.js`, `js/core/*`, `js/pages/*`)
 > **Mục đích:** Liệt kê chi tiết những gì mockup **cần sửa / bổ sung / bỏ** để bám đúng spec v1.8, dùng làm backlog cho các vòng chỉnh mockup tiếp theo.
-> **Tiến độ:** ✅W1 = đã xử lý ở Wave 1 (nhánh `feat/w1-org-scope`, 21/09/2026): scope tổ chức, phân công tòa nhà single source of truth, lịch sử loại tòa, master data, menu §8, bỏ gate phase cho OCR/HR/Cổ đông. GAP-BLD-05 hoàn thành trừ tab Báo cáo (W5); GAP-OCR-01 mới bỏ gate route, luồng v1.8 làm ở W2. ✅W2 = đã xử lý ở Wave 2 (nhánh `feat/w2-ocr-onboarding`, 21/09/2026): OCR Data Onboarding §12.8 (job/hash/13 nhóm entity/Create-Link-Update-Ignore/validate/commit rollback/kết quả), bảng giá 2 lớp §12.9, Deposit Ledger, người thuê theo HĐ, điều khoản & tài sản bàn giao theo HĐ, công tơ; 🔶W2 = một phần.
+> **Tiến độ:** ✅W1 = đã xử lý ở Wave 1 (nhánh `feat/w1-org-scope`, 21/09/2026): scope tổ chức, phân công tòa nhà single source of truth, lịch sử loại tòa, master data, menu §8, bỏ gate phase cho OCR/HR/Cổ đông. GAP-BLD-05 hoàn thành trừ tab Báo cáo (W5); GAP-OCR-01 mới bỏ gate route, luồng v1.8 làm ở W2. ✅W2 = đã xử lý ở Wave 2 (nhánh `feat/w2-ocr-onboarding`, 21/09/2026): OCR Data Onboarding §12.8 (job/hash/13 nhóm entity/Create-Link-Update-Ignore/validate/commit rollback/kết quả), bảng giá 2 lớp §12.9, Deposit Ledger, người thuê theo HĐ, điều khoản & tài sản bàn giao theo HĐ, công tơ; 🔶W2 = một phần. ✅W3 = đã xử lý ở Wave 3 (nhánh `feat/w3-rental-states`, 21/09/2026): state machine phòng/HĐ + lịch sử, kết thúc HĐ đủ bước & công thức hoàn cọc §4.18, Work Queue HĐ sắp hết, Điện/Nước theo kỳ, Kỳ hóa đơn, thu tiền chưa xác định/thu thừa, khách thuê trạng thái & bulk/export, HĐ đầu vào HKD/PCCC/loại tòa/workflow, tài liệu docType/phiên bản, Dashboard KPI & Work Queue; 🔶W3 = một phần (M1/M2/M3 ở W4).
 
 ---
 
@@ -92,7 +92,7 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 | 10.11 | Cọc phải có ledger | `Q.deposits()` tổng hợp on-the-fly từ payments/holds/refunds; không có bảng `depositLedger` | GAP-DEP-01 (xem §7) |
 | 10.12 / 10.14 | Payroll khóa không đổi khi điều chuyển; cổ phần theo tòa có hiệu lực theo thời gian, báo cáo dùng snapshot | Payroll tính lại từ dữ liệu sống; cổ đông tỷ lệ theo **dự án**, không có effective date | GAP-HR-10, GAP-INV-02 |
 | 10.18 | Audit log cho mọi dữ liệu quan trọng | `store.audit()` có, hiển thị tab "Lịch sử" từng entity; **không có màn Audit Log toàn hệ thống** với before/after/reason | **GAP-CORE-03 🔴 P1** – Màn `#/settings/audit` (filter user/entity/action/thời gian; cột before/after/reason/batch_id theo §19) |
-| §7.3 Document Center | Hợp đồng, phụ lục, pháp lý, PCCC, CCCD, chứng từ, ảnh, file OCR, **phiên bản**, quyền xem | `#/documents` liệt kê theo entity; `documents` không có `version`, `docType` chuẩn, `replaces` | **GAP-CORE-04 🟡 P1** – Thêm `docType` (danh mục: Giấy đăng ký HKD, PCCC, Sổ đỏ, HĐ, Phụ lục, CCCD, Biên bản bàn giao, File OCR…), `version`, `supersedesId`; upload "thay thế" tạo version mới không xóa cũ (§4.5) |
+| §7.3 Document Center | Hợp đồng, phụ lục, pháp lý, PCCC, CCCD, chứng từ, ảnh, file OCR, **phiên bản**, quyền xem | `#/documents` liệt kê theo entity; `documents` không có `version`, `docType` chuẩn, `replaces` | **GAP-CORE-04 ✅W3 🟡 P1** – Thêm `docType` (danh mục: Giấy đăng ký HKD, PCCC, Sổ đỏ, HĐ, Phụ lục, CCCD, Biên bản bàn giao, File OCR…), `version`, `supersedesId`; upload "thay thế" tạo version mới không xóa cũ (§4.5) |
 | §7.4 Import Center | File, sheet, mapping, total/valid/warning/error/confirmed, người import, source row | `#/settings/import` + `#/settings/jobs` (P2) có mapping/preview/tổng dòng | **GAP-CORE-05 🟡 P1** – Bỏ gate P2 cho Data Jobs; thêm loại import **Chi phí**, **Bảng giá dịch vụ**, **Nhân viên**, **Cổ đông/Cổ phần**; mỗi dòng có trạng thái `valid/warning/error/approved_override` (§18.2) |
 | §7.5 Master Data | Building type, Room type, **Customer status**, Service, Expense category, Contract reason, Termination reason, Payment method, Position, Org type, Asset type, Lead source, Commission recipient type, Notification event | `#/settings/catalog`: Dịch vụ, Khu nhà, Team KD, Nhóm chi phí, PTTT, Nguồn khách (P2), NCC (P2) | **GAP-CORE-06 ✅W1 🔴 P1** – Thêm tab: **Ký hiệu loại tòa** (mở rộng ngoài T/S/G), **Loại phòng**, **Trạng thái khách hàng**, **Lý do kết thúc HĐ**, **Chức danh**, **Loại đơn vị tổ chức**, **Vai trò phân công**, **Sự kiện thông báo** |
 | §7.6 Metric Registry | Code, Name, Formula, Data source, Version, Effective date, Owner, Exception; Dashboard & Report dùng chung | `core/metrics.js` có label/formula/includes/excludes/status/owner nhưng **key không theo `metric_code` spec** (`revenue.rent` vs `RENT_REVENUE`), không có version/effective date | **GAP-CORE-07 🟠 P0** – Đổi registry sang `metric_code` §12.23.3/§12.23.6 (`TOTAL_REVENUE`, `RENT_REVENUE`, `COGS`, `GROSS_PROFIT`, `NET_MARGIN`…) kèm `business_confirmation_status` |
@@ -106,10 +106,10 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Spec | Mockup | Việc cần làm |
 |---|---|---|---|---|---|
-| GAP-DASH-01 | 🟡 | P1 | **KPI phòng** 9 chỉ số: tổng tòa, tổng phòng, đang thuê, sẵn sàng, giữ chỗ, chờ dọn, bảo trì, **sắp trống**, tỷ lệ lấp đầy | View "Công việc": 4 KPI; view "Điều hành": 3 KPI trống + 3 KPI thu | Dựng khối **KPI phòng** đủ 9 ô (cần trạng thái `Sắp trống` – GAP-ROOM-01) |
-| GAP-DASH-02 | 🔴 | P1 | **KPI hợp đồng** 7: hiệu lực, sắp hết hạn, còn ≤35 ngày, chờ gia hạn, chờ kết thúc, chờ quyết toán, phá HĐ trong kỳ | Chỉ "HĐ sắp hết hạn" | Thêm khối KPI HĐ; phụ thuộc trạng thái HĐ mới (GAP-CT-01) |
+| GAP-DASH-01 ✅W3 | 🟡 | P1 | **KPI phòng** 9 chỉ số: tổng tòa, tổng phòng, đang thuê, sẵn sàng, giữ chỗ, chờ dọn, bảo trì, **sắp trống**, tỷ lệ lấp đầy | View "Công việc": 4 KPI; view "Điều hành": 3 KPI trống + 3 KPI thu | Dựng khối **KPI phòng** đủ 9 ô (cần trạng thái `Sắp trống` – GAP-ROOM-01) |
+| GAP-DASH-02 ✅W3 | 🔴 | P1 | **KPI hợp đồng** 7: hiệu lực, sắp hết hạn, còn ≤35 ngày, chờ gia hạn, chờ kết thúc, chờ quyết toán, phá HĐ trong kỳ | Chỉ "HĐ sắp hết hạn" | Thêm khối KPI HĐ; phụ thuộc trạng thái HĐ mới (GAP-CT-01) |
 | GAP-DASH-03 | 🔴 | P0 | **KPI tài chính** 10: tổng phải thu, đã thu, còn phải thu, quá hạn, **thu M1/M2/M3**, thu thừa, cọc đang giữ, cọc chờ hoàn | Có phải thu/đã thu/quá hạn; không có M1/M2/M3, thu thừa, cọc | Thêm khối KPI tài chính; M1/M2/M3 cần `payments` gắn mốc (GAP-PAY-01) và cọc cần ledger (GAP-DEP-01) |
-| GAP-DASH-04 🔶W2 (mục OCR chờ review; các mục khác ở W3/W4) | 🟡 | P1 | **Work Queue** 9 mục: OCR chờ review, HĐ sắp hết, HĐ chưa phát hành, khách còn nợ, Zalo lỗi, HĐ chờ quyết toán, hoàn cọc chờ duyệt, phòng chờ dọn, **import chi phí lỗi** | Admin: 5 mục (nợ quá hạn, HĐ sắp hết, Zalo lỗi, hoàn cọc đang xử lý, kỳ trả chủ nhà) | Bổ sung 5 mục còn thiếu; `Q.todo()` thêm `ocrReview`, `draftInvoices`, `settlementPending`, `cleaningRooms`, `expenseImportErrors` |
+| GAP-DASH-04 🔶W3 (9 mục Work Queue; import chi phí lỗi đếm từ W4) | 🟡 | P1 | **Work Queue** 9 mục: OCR chờ review, HĐ sắp hết, HĐ chưa phát hành, khách còn nợ, Zalo lỗi, HĐ chờ quyết toán, hoàn cọc chờ duyệt, phòng chờ dọn, **import chi phí lỗi** | Admin: 5 mục (nợ quá hạn, HĐ sắp hết, Zalo lỗi, hoàn cọc đang xử lý, kỳ trả chủ nhà) | Bổ sung 5 mục còn thiếu; `Q.todo()` thêm `ocrReview`, `draftInvoices`, `settlementPending`, `cleaningRooms`, `expenseImportErrors` |
 | GAP-DASH-05 ✅W1 |  | P0 | **Bộ lọc chung** §12.1.3: kỳ/ngày tham chiếu, **Tổ chức (node cây)**, Nhân sự (cascading theo tổ chức), Khu vực, Loại tòa (hiệu lực trong kỳ), Tòa (trong scope), Trạng thái phòng, Trạng thái HĐ, Mốc thu M1/M2/M3 | `U.dimFilter` với `period, areaId, buildingId, managerId, leadId` | Thêm dimension `orgUnitId` (tree-select), `employeeId` cascading, `roomStatus`, `contractStatus`, `milestone`; `buildingType` phải resolve theo lịch sử tại kỳ (GAP-BLD-03) |
 | GAP-DASH-06 ✅W1 |  | P0 | **Chống đếm trùng** & scope theo `Phụ trách chính` (§4.3, §12.1.6); scope theo **thời gian** (T01 tháng 9 thuộc TPVH1, tháng 10 thuộc TPVH2) | Scope theo `managerId`/`leadId` tĩnh | Viết lại `Q.scope(f)` theo GAP-CORE-01; ví dụ §4.3 phải tái hiện được trong seed (1 tòa đổi quản lý ngày 01/10) |
 
@@ -130,11 +130,11 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-HL-01 | 🔴 | P1 | **Trạng thái HKD** (`Chưa đăng ký / Đã đăng ký`) trên HĐ đầu vào; **tự chuyển "Đã đăng ký" khi upload tài liệu loại "Giấy đăng ký hộ kinh doanh"** gắn đúng HĐ/tòa; người có quyền chỉnh lại kèm lý do; audit từng lần đổi. Hiện chỉ có `buildings.license`/`licenseExpiry` (text) – sai vị trí và không có luồng |
-| GAP-HL-02 | 🔴 | P1 | **Ký hiệu/loại tòa theo HĐ** với **ngày hiệu lực** → ghi `buildingTypeHistory` (§4.6). Form HĐ đầu vào chưa có field này |
-| GAP-HL-03 | 🟡 | P1 | Form thiếu: **Lịch tăng giá** (nhiều dòng: từ ngày – giá mới), **Ngày đến hạn thanh toán**, **Tài khoản người nhận**, **PCCC** (trạng thái/hạn), **Tài sản bàn giao**, **Phụ lục**, file HĐ. Hiện chỉ có ngày ký, loại, bắt đầu/kết thúc, giá, cọc, giữ giá, chu kỳ, ghi chú |
-| GAP-HL-04 | 🔴 | P1 | **Workflow HĐ đầu vào**: Tạo dự thảo → Kích hoạt → Gia hạn → Kết thúc (§12.3.5). Hiện `status` suy diễn từ ngày (`Q.lcStatus`), không có action Kích hoạt/Gia hạn/Kết thúc/Thêm phụ lục |
-| GAP-HL-05 | 🟡 | P2 | **Lịch sử điều chỉnh giá** và **lịch sử tài liệu (version)** – gắn với GAP-CORE-04 |
+| GAP-HL-01 ✅W3 | 🔴 | P1 | **Trạng thái HKD** (`Chưa đăng ký / Đã đăng ký`) trên HĐ đầu vào; **tự chuyển "Đã đăng ký" khi upload tài liệu loại "Giấy đăng ký hộ kinh doanh"** gắn đúng HĐ/tòa; người có quyền chỉnh lại kèm lý do; audit từng lần đổi. Hiện chỉ có `buildings.license`/`licenseExpiry` (text) – sai vị trí và không có luồng |
+| GAP-HL-02 ✅W3 | 🔴 | P1 | **Ký hiệu/loại tòa theo HĐ** với **ngày hiệu lực** → ghi `buildingTypeHistory` (§4.6). Form HĐ đầu vào chưa có field này |
+| GAP-HL-03 ✅W3 | 🟡 | P1 | Form thiếu: **Lịch tăng giá** (nhiều dòng: từ ngày – giá mới), **Ngày đến hạn thanh toán**, **Tài khoản người nhận**, **PCCC** (trạng thái/hạn), **Tài sản bàn giao**, **Phụ lục**, file HĐ. Hiện chỉ có ngày ký, loại, bắt đầu/kết thúc, giá, cọc, giữ giá, chu kỳ, ghi chú |
+| GAP-HL-04 ✅W3 | 🔴 | P1 | **Workflow HĐ đầu vào**: Tạo dự thảo → Kích hoạt → Gia hạn → Kết thúc (§12.3.5). Hiện `status` suy diễn từ ngày (`Q.lcStatus`), không có action Kích hoạt/Gia hạn/Kết thúc/Thêm phụ lục |
+| GAP-HL-05 ✅W3 | 🟡 | P2 | **Lịch sử điều chỉnh giá** và **lịch sử tài liệu (version)** – gắn với GAP-CORE-04 |
 | GAP-HL-06 | 🟡 | P2 | Event `HEAD_LEASE_ACTIVATED` (§17) cập nhật tòa/loại tòa/lịch trả – hiện lịch trả sinh ngay khi tạo HĐ |
 
 ### 4.3. Khu nhà / Tòa nhà (§4.6, §12.4) – `pages/buildings.js`
@@ -154,12 +154,12 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-ROOM-01 | 🟠 | P1 | **State machine** §12.5.3: thêm trạng thái **`Sắp trống`** (DangThue → SapTrong khi có ngày trả xác nhận; SapTrong → ChoDon), **`Ngừng khai thác`** tách khỏi Bảo trì (hiện `inactive` dùng chung); chuyển `ChoDon → BaoTri → SanSang (nghiệm thu)`. Cập nhật `Q.L.room`, tab trạng thái danh sách, KPI |
-| GAP-ROOM-02 | 🔴 | P0 | **Room Status History** (`roomStatusHistory`: roomId, from, to, at, by, reason, refId) – nguồn tính vacancy/occupancy cho báo cáo (§12.5.4, §4.28.3). Hiện chỉ có audit log text |
-| GAP-ROOM-03 | 🟡 | P1 | **Lịch sử giá phòng** (`roomPriceHistory`, action "Cập nhật giá" có ngày hiệu lực) – hiện sửa `price` trực tiếp |
+| GAP-ROOM-01 ✅W3 | 🟠 | P1 | **State machine** §12.5.3: thêm trạng thái **`Sắp trống`** (DangThue → SapTrong khi có ngày trả xác nhận; SapTrong → ChoDon), **`Ngừng khai thác`** tách khỏi Bảo trì (hiện `inactive` dùng chung); chuyển `ChoDon → BaoTri → SanSang (nghiệm thu)`. Cập nhật `Q.L.room`, tab trạng thái danh sách, KPI |
+| GAP-ROOM-02 ✅W3 | 🔴 | P0 | **Room Status History** (`roomStatusHistory`: roomId, from, to, at, by, reason, refId) – nguồn tính vacancy/occupancy cho báo cáo (§12.5.4, §4.28.3). Hiện chỉ có audit log text |
+| GAP-ROOM-03 ✅W3 | 🟡 | P1 | **Lịch sử giá phòng** (`roomPriceHistory`, action "Cập nhật giá" có ngày hiệu lực) – hiện sửa `price` trực tiếp |
 | GAP-ROOM-04 | 🟡 | P2 | Field thiếu: **Sức chứa**, **Ngày sẵn sàng dự kiến**; bỏ/giữ `direction`, `furniture` (ngoài spec, không hại) |
 | GAP-ROOM-05 | 🟡 | P2 | Action **Bulk update** (chọn nhiều phòng → cập nhật giá/loại/trạng thái được phép), **Export theo filter** (có – đạt) |
-| GAP-ROOM-06 | 🟡 | P1 | Chi tiết phòng thêm tab **Chỉ số điện nước** (lịch sử theo kỳ, chỉ số OPENING từ OCR) và **Công nợ** (drill-down hóa đơn/payment); tab "Sự cố" gắn P2 – đạt |
+| GAP-ROOM-06 ✅W3 | 🟡 | P1 | Chi tiết phòng thêm tab **Chỉ số điện nước** (lịch sử theo kỳ, chỉ số OPENING từ OCR) và **Công nợ** (drill-down hóa đơn/payment); tab "Sự cố" gắn P2 – đạt |
 | GAP-ROOM-07 | 🟢 | – | Rule "không 2 HĐ hiệu lực chồng nhau", "không tự Sẵn sàng khi hoàn cọc" (BR-02) đã có trong `actions.js` |
 
 ---
@@ -170,25 +170,25 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-CUS-01 | 🟠 | P1 | **Đã chốt §10.1**: chỉ có **một field `Trạng thái`** (danh mục cấu hình, người có quyền sửa trực tiếp), **không dùng "trạng thái vòng đời"**. Mockup: `Q.tenantStatus(t)` **suy diễn** từ HĐ/hoàn cọc (`renting/expiring/moved_out/awaiting_refund/new/held`) và hiển thị như trạng thái khách → phải đổi: `tenants.status` là field lưu (danh mục Master Data), các giá trị suy diễn chuyển thành **cờ riêng** (`Có HĐ hiệu lực`, `Sắp hết hạn`, `Còn công nợ`, `Chờ hoàn cọc`, `Đã liên kết Zalo`) hiển thị dạng chip phụ |
-| GAP-CUS-02 | 🔴 | P1 | **Cập nhật trạng thái hàng loạt** (§4.8): chọn nhiều / "Tất cả kết quả tìm kiếm" → chọn trạng thái → preview số bản ghi → xác nhận → audit batch + từng khách. Bảng đã `selectable: true` nhưng chưa có bulk action |
-| GAP-CUS-03 | 🔴 | P1 | **Export theo đúng filter hiện tại** (Excel/CSV; selected hoặc all-filtered; file ghi thời điểm + điều kiện lọc; tuân data scope). Danh sách khách hiện **không có nút Xuất** (chỉ "Tùy chỉnh cột") |
-| GAP-CUS-04 | 🟡 | P1 | Bộ lọc thiếu: **Tổ chức**, **Quản lý (theo assignment)**, **Phòng**, **Có/không HĐ hiệu lực**, **Khách đứng tên / Người ở cùng**, **Ngày tạo**; từ khóa phải bao gồm **CCCD** (hiện search name/code/phone/email/biển số) |
+| GAP-CUS-01 ✅W3 | 🟠 | P1 | **Đã chốt §10.1**: chỉ có **một field `Trạng thái`** (danh mục cấu hình, người có quyền sửa trực tiếp), **không dùng "trạng thái vòng đời"**. Mockup: `Q.tenantStatus(t)` **suy diễn** từ HĐ/hoàn cọc (`renting/expiring/moved_out/awaiting_refund/new/held`) và hiển thị như trạng thái khách → phải đổi: `tenants.status` là field lưu (danh mục Master Data), các giá trị suy diễn chuyển thành **cờ riêng** (`Có HĐ hiệu lực`, `Sắp hết hạn`, `Còn công nợ`, `Chờ hoàn cọc`, `Đã liên kết Zalo`) hiển thị dạng chip phụ |
+| GAP-CUS-02 ✅W3 | 🔴 | P1 | **Cập nhật trạng thái hàng loạt** (§4.8): chọn nhiều / "Tất cả kết quả tìm kiếm" → chọn trạng thái → preview số bản ghi → xác nhận → audit batch + từng khách. Bảng đã `selectable: true` nhưng chưa có bulk action |
+| GAP-CUS-03 ✅W3 | 🔴 | P1 | **Export theo đúng filter hiện tại** (Excel/CSV; selected hoặc all-filtered; file ghi thời điểm + điều kiện lọc; tuân data scope). Danh sách khách hiện **không có nút Xuất** (chỉ "Tùy chỉnh cột") |
+| GAP-CUS-04 ✅W3 | 🟡 | P1 | Bộ lọc thiếu: **Tổ chức**, **Quản lý (theo assignment)**, **Phòng**, **Có/không HĐ hiệu lực**, **Khách đứng tên / Người ở cùng**, **Ngày tạo**; từ khóa phải bao gồm **CCCD** (hiện search name/code/phone/email/biển số) |
 | GAP-CUS-05 | 🟡 | P2 | Cột thiếu: **CCCD**, **Tổ chức phụ trách**, **Có HĐ hiệu lực (cờ)**, **Zalo (ID/trạng thái liên kết)**, **Ngày tạo/cập nhật**; hồ sơ thiếu **Giới tính**, **Liên hệ khẩn cấp**, **Zalo ID** (hiện `zalo` = SĐT + `verified`) |
 | GAP-CUS-06 ✅W2 | 🟠 | P1 | **Người ở cùng phải là hồ sơ khách riêng** liên kết HĐ với vai trò `Người ở cùng` (§4.8, ERD `CONTRACT_TENANT`). Mockup lưu `contractMembers` (name/dob/idNumber/relation) **không liên kết `tenants`** → cần `contractTenants` (contractId, tenantId, role) + khi thêm thành viên: chọn khách có sẵn hoặc tạo hồ sơ mới |
-| GAP-CUS-07 | 🟡 | P1 | Tabs chi tiết theo §4.8: Thông tin · Hợp đồng · **Nơi ở** · **Người ở cùng** · **Xe** · Hóa đơn · **Thanh toán** · **Công nợ** · **Zalo** · Tài liệu · Lịch sử. Hiện: Thông tin, Lịch sử thuê, Hợp đồng, Tài chính (gộp), Hoàn cọc, Tài liệu, Lịch sử |
+| GAP-CUS-07 ✅W3 | 🟡 | P1 | Tabs chi tiết theo §4.8: Thông tin · Hợp đồng · **Nơi ở** · **Người ở cùng** · **Xe** · Hóa đơn · **Thanh toán** · **Công nợ** · **Zalo** · Tài liệu · Lịch sử. Hiện: Thông tin, Lịch sử thuê, Hợp đồng, Tài chính (gộp), Hoàn cọc, Tài liệu, Lịch sử |
 | GAP-CUS-08 | 🟡 | P2 | Action **Liên kết Zalo**, **Merge khách trùng** (tùy chọn); rule cảnh báo trùng CCCD/SĐT khi tạo (có ở OCR, chưa có ở form thường) |
 
 ### 5.2. Hợp đồng thuê phòng (§4.9, §12.7) – `pages/contracts.js`, `actions.js`
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-CT-01 | 🟠 | P0 | **State machine §12.7.3**: `Draft → ChoDuyet → HieuLuc → SapHetHan → ChoGiaHan → HieuLuc` và `HieuLuc/SapHetHan → ChoKetThuc → ChoQuyetToan → DaKetThuc`; `ChoDuyet → Draft (trả sửa)`. Mockup: `draft/active/expiring(suy diễn)/ended/cancelled`. Cần thêm **Chờ duyệt**, **Chờ gia hạn**, **Chờ kết thúc**, **Chờ quyết toán** + action Gửi duyệt / Duyệt / Trả sửa / Xác nhận trả phòng / Chấm dứt sớm / Chốt quyết toán |
+| GAP-CT-01 ✅W3 | 🟠 | P0 | **State machine §12.7.3**: `Draft → ChoDuyet → HieuLuc → SapHetHan → ChoGiaHan → HieuLuc` và `HieuLuc/SapHetHan → ChoKetThuc → ChoQuyetToan → DaKetThuc`; `ChoDuyet → Draft (trả sửa)`. Mockup: `draft/active/expiring(suy diễn)/ended/cancelled`. Cần thêm **Chờ duyệt**, **Chờ gia hạn**, **Chờ kết thúc**, **Chờ quyết toán** + action Gửi duyệt / Duyệt / Trả sửa / Xác nhận trả phòng / Chấm dứt sớm / Chốt quyết toán |
 | GAP-CT-02 | 🔴 | P0 | **Mốc thu M1/M2/M3** trên HĐ (ngày 05/10/15 cấu hình được) và hạn thu – nguồn cho hiệu suất lương & KPI (§4.9, §4.26.2, §12.7.1). Hiện chỉ có `payDay` |
 | GAP-CT-03 ✅W2 | 🔴 | P1 | **Tài sản bàn giao** (`contractHandoverAssets`: tên, nhóm, SL, đơn vị, tình trạng, ghi chú, nguồn OCR trang/confidence) – hiện chỉ `roomAssets` của phòng, không theo HĐ |
 | GAP-CT-04 ✅W2 | 🔴 | P1 | **Điều khoản thanh toán** (`contractPaymentTerms`: ngày thông báo, khoảng ngày thanh toán, hình thức, ngân hàng/chủ TK/số TK, nội dung CK template, phạt chậm trả, grace) và **Điều khoản gia hạn** (`renewal_type`, `renewal_period_months`, `notice_days`, `raw_clause`) – §12.8.13–14. Work Queue dùng `notice_days` |
-| GAP-CT-05 | 🟡 | P1 | Field thiếu: **Loại HĐ**, **Lần hợp đồng/gia hạn** (số thứ tự – hiện chỉ `renewedFromId`), **Người ở cùng** liên kết khách (GAP-CUS-06), **Ngày ký** có (đạt) |
-| GAP-CT-06 | 🟡 | P1 | Tabs §4.9: Tổng quan · Người thuê · Dịch vụ · Hóa đơn · **Thanh toán** · **Công nợ** · **Cọc** (ledger) · **Gia hạn** (chuỗi HĐ) · Tài liệu · Lịch sử. Hiện: Tổng quan, Dịch vụ & xe, Thành viên, Hóa đơn, Tài liệu, Lịch sử |
+| GAP-CT-05 ✅W3 | 🟡 | P1 | Field thiếu: **Loại HĐ**, **Lần hợp đồng/gia hạn** (số thứ tự – hiện chỉ `renewedFromId`), **Người ở cùng** liên kết khách (GAP-CUS-06), **Ngày ký** có (đạt) |
+| GAP-CT-06 ✅W3 | 🟡 | P1 | Tabs §4.9: Tổng quan · Người thuê · Dịch vụ · Hóa đơn · **Thanh toán** · **Công nợ** · **Cọc** (ledger) · **Gia hạn** (chuỗi HĐ) · Tài liệu · Lịch sử. Hiện: Tổng quan, Dịch vụ & xe, Thành viên, Hóa đơn, Tài liệu, Lịch sử |
 | GAP-CT-07 | 🟡 | P2 | Gia hạn tạo **HĐ/phụ lục mới ở Draft → review giá/cọc/dịch vụ/thời hạn → Approve → hiệu lực kế tiếp** (§12.15.3). `Fm.renew` hiện tạo HĐ mới và kích hoạt ngay trong 1 drawer |
 | GAP-CT-08 | 🟢 | – | Snapshot giá/dịch vụ (BR-21), không 2 HĐ chồng, gia hạn không ghi đè HĐ cũ, kiểm tra HĐ đầu vào trước kích hoạt – đã có |
 
@@ -220,8 +220,8 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-EXPQ-01 | 🔴 | P1 | **Màn Work Queue riêng** (đề xuất `#/contracts/expiring`) thay vì chỉ tab lọc `?status=expiring`. Cột: Tòa/phòng, Khách, SĐT, **Người ở cùng**, **Quản lý (assignment)**, Ngày bắt đầu/kết thúc, **Số ngày còn lại**, Giá, Cọc, **Công nợ**, **Lần liên hệ gần nhất**, **Kết quả**, **Deadline/SLA** |
-| GAP-EXPQ-02 | 🔴 | P1 | Actions: **Ghi nhận liên hệ** (log), chọn kết quả **Gia hạn / Trả phòng đúng hạn / Chấm dứt sớm / Chưa phản hồi**, **Assign người xử lý**, Export. Cần collection `contractFollowUps` (contractId, at, by, channel, result, note, nextDeadline) |
+| GAP-EXPQ-01 ✅W3 | 🔴 | P1 | **Màn Work Queue riêng** (đề xuất `#/contracts/expiring`) thay vì chỉ tab lọc `?status=expiring`. Cột: Tòa/phòng, Khách, SĐT, **Người ở cùng**, **Quản lý (assignment)**, Ngày bắt đầu/kết thúc, **Số ngày còn lại**, Giá, Cọc, **Công nợ**, **Lần liên hệ gần nhất**, **Kết quả**, **Deadline/SLA** |
+| GAP-EXPQ-02 ✅W3 | 🔴 | P1 | Actions: **Ghi nhận liên hệ** (log), chọn kết quả **Gia hạn / Trả phòng đúng hạn / Chấm dứt sớm / Chưa phản hồi**, **Assign người xử lý**, Export. Cần collection `contractFollowUps` (contractId, at, by, channel, result, note, nextDeadline) |
 | GAP-EXPQ-03 | 🟡 | P2 | Ngưỡng **35 ngày cấu hình được** (hiện hard-code); hệ thống chỉ tạo queue, không tự gia hạn/kết thúc (đạt) |
 
 ---
@@ -242,19 +242,19 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-MTR-01 | 🔴 | P1 | **Màn Điện/Nước độc lập** (đề xuất `#/meters`): chọn kỳ → tòa → phòng → **công tơ** → chỉ số cũ/mới → sản lượng → **ảnh**; action Nhập từng dòng, Import Excel, Upload ảnh, **Copy chỉ số kỳ trước**, Validate, **Xác nhận**, **Reopen** (có quyền), Export, **Lịch sử theo kỳ**. Hiện chỉ có bảng nhập trong wizard hóa đơn, không có ảnh/xác nhận/lịch sử |
-| GAP-MTR-02 🔶W2 (meters + readingType/meterId/readingDate; màn `#/meters` ở W3) | 🔴 | P1 | **Meter master** (`meters`: roomId, type điện/nước, mã công tơ, ngày lắp, thay công tơ/rollover) – ERD `ROOM ||--o{ METER`; `meterReadings` thêm `meterId`, `readingDate`, `photo`, `confirmedBy`, `status draft/confirmed/used`, **`readingType OPENING/PERIOD/CLOSING`** |
-| GAP-MTR-03 | 🟡 | P1 | Validation §4.13: mới < cũ (có), **thiếu chỉ số** (có), **trùng kỳ** (1 công tơ/kỳ 1 reading hợp lệ), **tiêu thụ bất thường** (ngưỡng % so kỳ trước) – thêm 2 rule sau; rollover phải qua duyệt |
+| GAP-MTR-01 ✅W3 | 🔴 | P1 | **Màn Điện/Nước độc lập** (đề xuất `#/meters`): chọn kỳ → tòa → phòng → **công tơ** → chỉ số cũ/mới → sản lượng → **ảnh**; action Nhập từng dòng, Import Excel, Upload ảnh, **Copy chỉ số kỳ trước**, Validate, **Xác nhận**, **Reopen** (có quyền), Export, **Lịch sử theo kỳ**. Hiện chỉ có bảng nhập trong wizard hóa đơn, không có ảnh/xác nhận/lịch sử |
+| GAP-MTR-02 🔶W3 (màn #/meters, meterId/readingType; rollover qua duyệt = chặn mới<cũ) | 🔴 | P1 | **Meter master** (`meters`: roomId, type điện/nước, mã công tơ, ngày lắp, thay công tơ/rollover) – ERD `ROOM ||--o{ METER`; `meterReadings` thêm `meterId`, `readingDate`, `photo`, `confirmedBy`, `status draft/confirmed/used`, **`readingType OPENING/PERIOD/CLOSING`** |
+| GAP-MTR-03 ✅W3 | 🟡 | P1 | Validation §4.13: mới < cũ (có), **thiếu chỉ số** (có), **trùng kỳ** (1 công tơ/kỳ 1 reading hợp lệ), **tiêu thụ bất thường** (ngưỡng % so kỳ trước) – thêm 2 rule sau; rollover phải qua duyệt |
 | GAP-MTR-04 | 🟡 | P2 | Rule "dữ liệu đã dùng phát hành HĐ không sửa âm thầm" – có (`status: 'used'`), cần hiển thị khóa + lý do khi reopen |
 
 ### 6.3. Kỳ hóa đơn & Hóa đơn (§4.14, §12.11) – `pages/invoices.js`, `actions.js`
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-BILL-01 | 🔴 | P0 | **Billing Period** master (§12.11.1): mã kỳ, từ/đến ngày, ngày chốt, ngày phát hành, trạng thái, **lock status** → màn "Kỳ tài chính" (menu Tài chính). Hiện `meta.period` + `periods` (P2 khóa kỳ ở Dòng tiền) |
-| GAP-BILL-02 | 🔴 | P0 | Invoice thêm **M1/M2/M3** (số đã thu tại từng mốc – snapshot theo ngày mốc), **Nợ chuyển sang** (nếu hiển thị), **Điều chỉnh** tách khỏi total, `contract/customer snapshot` (§12.11.2) |
-| GAP-BILL-03 | 🟡 | P1 | **Invoice Line** có `lineType` (RENT/SERVICE/PENALTY/ADJUSTMENT), `serviceId`, `unit`, **`sourceReadingId`** (drill-down → Meter Reading §12.23.10). Hiện `invoiceLines` chỉ item/desc/qty/unitPrice/amount |
-| GAP-BILL-04 | 🟡 | P1 | Dòng hóa đơn §4.14: thêm loại **Vệ sinh, Máy giặt, Điện chung, Phạt, Điều chỉnh, Khoản khác** (theo GAP-SVC-03; "Thêm dòng" hiện free-text) |
+| GAP-BILL-01 ✅W3 | 🔴 | P0 | **Billing Period** master (§12.11.1): mã kỳ, từ/đến ngày, ngày chốt, ngày phát hành, trạng thái, **lock status** → màn "Kỳ tài chính" (menu Tài chính). Hiện `meta.period` + `periods` (P2 khóa kỳ ở Dòng tiền) |
+| GAP-BILL-02 🔶W3 (carriedOver/adjustment/snapshot; M1-M3 ở W4) | 🔴 | P0 | Invoice thêm **M1/M2/M3** (số đã thu tại từng mốc – snapshot theo ngày mốc), **Nợ chuyển sang** (nếu hiển thị), **Điều chỉnh** tách khỏi total, `contract/customer snapshot` (§12.11.2) |
+| GAP-BILL-03 ✅W3 | 🟡 | P1 | **Invoice Line** có `lineType` (RENT/SERVICE/PENALTY/ADJUSTMENT), `serviceId`, `unit`, **`sourceReadingId`** (drill-down → Meter Reading §12.23.10). Hiện `invoiceLines` chỉ item/desc/qty/unitPrice/amount |
+| GAP-BILL-04 ✅W3 | 🟡 | P1 | Dòng hóa đơn §4.14: thêm loại **Vệ sinh, Máy giặt, Điện chung, Phạt, Điều chỉnh, Khoản khác** (theo GAP-SVC-03; "Thêm dòng" hiện free-text) |
 | GAP-BILL-05 | 🟡 | P2 | Actions §12.11.4: **Cancel** hóa đơn đã phát hành có audit (hiện chỉ hủy nháp + điều chỉnh), **Export PDF/Excel** thật thay `U.fakePdf` (mockup chấp nhận mô phỏng) |
 | GAP-BILL-06 | 🟢 | – | Luồng kỳ → tòa → HĐ hiệu lực → chỉ số → dịch vụ → preview → nháp → phát hành; 1 HĐ/phòng/kỳ 1 hóa đơn; phát hành không sửa trực tiếp; idempotent – **đạt** |
 
@@ -263,7 +263,7 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
 | GAP-PAY-01 | 🔴 | P0 | **Gắn mốc M1/M2/M3** cho mỗi allocation (theo ngày thu so với mốc HĐ/kỳ) → nguồn cho hiệu suất lương & KPI; snapshot M5/M10/M15 để P2 (§5.13) |
-| GAP-PAY-02 | 🟡 | P1 | Trạng thái/loại: **Thu thừa**, **Tạm ứng**, **Tiền chưa xác định (Unidentified Receipt)** + action **Mark unidentified**, **Match khách/phòng/invoice** sau. Hiện `unallocated` số dư nhưng không có trạng thái/luồng riêng |
+| GAP-PAY-02 ✅W3 | 🟡 | P1 | Trạng thái/loại: **Thu thừa**, **Tạm ứng**, **Tiền chưa xác định (Unidentified Receipt)** + action **Mark unidentified**, **Match khách/phòng/invoice** sau. Hiện `unallocated` số dư nhưng không có trạng thái/luồng riêng |
 | GAP-PAY-03 | 🟡 | P2 | Payment data §12.12.1: **Tài khoản nhận**, **Người nộp** (khác khách), **Bank reference** (có `ref`), chứng từ (có) |
 | GAP-PAY-04 | 🟡 | P2 | **Import payment** (nguồn bảng kê) – hiện P2 `#/finance/statement-import`; spec §15 Payment Import ✓ ở P1 → bỏ gate P2 hoặc ghi rõ |
 | GAP-PAY-05 | 🟢 | – | 1 payment → nhiều invoice, 1 invoice → nhiều payment, thu một phần, reverse/reallocate có audit – **đạt** |
@@ -272,8 +272,8 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-AR-01 | 🟡 | P0 | Bộ lọc §4.16: **Kỳ, Tổ chức, Nhân sự, Khu vực, Tòa, Phòng, Khách, M1/M2/M3, Trạng thái, Hạn thanh toán** – thiếu Tổ chức/Nhân sự (theo assignment), Phòng, Khách, **M1/M2/M3** |
-| GAP-AR-02 | 🟡 | P1 | Trạng thái §4.16 thêm **Thu thừa**; chỉ tiêu §12.13.1 thêm **Thu thừa/tạm ứng**, **Thu theo M1/M2/M3**, **Nợ theo khách/phòng/tòa/quản lý** (bảng tổng hợp theo chiều) |
+| GAP-AR-01 🔶W3 (Tổ chức/Nhân sự/Phòng/Khách/Hạn; M1-M3 ở W4) | 🟡 | P0 | Bộ lọc §4.16: **Kỳ, Tổ chức, Nhân sự, Khu vực, Tòa, Phòng, Khách, M1/M2/M3, Trạng thái, Hạn thanh toán** – thiếu Tổ chức/Nhân sự (theo assignment), Phòng, Khách, **M1/M2/M3** |
+| GAP-AR-02 🔶W3 (Thu thừa + bảng tổng hợp theo chiều; M1-M3 ở W4) | 🟡 | P1 | Trạng thái §4.16 thêm **Thu thừa**; chỉ tiêu §12.13.1 thêm **Thu thừa/tạm ứng**, **Thu theo M1/M2/M3**, **Nợ theo khách/phòng/tòa/quản lý** (bảng tổng hợp theo chiều) |
 | GAP-AR-03 | 🟡 | P2 | **Drill-down** §4.16: Tổ chức → Tòa → Phòng → Khách → Hóa đơn → Payment (hiện phẳng theo hóa đơn) và **Snapshot theo mốc/kỳ** (P2) |
 | GAP-AR-04 | 🟢 | – | Công thức còn phải thu = phải thu − allocation − credit/adjustment; gửi nhắc Zalo; export – **đạt** |
 
@@ -285,10 +285,10 @@ Mã gap: `GAP-<phân hệ>-<số>` để tham chiếu khi tạo task.
 
 | Gap | Mức | Ưu tiên | Việc cần làm |
 |---|---|---|---|
-| GAP-END-01 | 🔴 | P1 | **Luồng kết thúc đầy đủ** §4.17: Khách báo trả → xác nhận ngày ra → **chốt điện nước (chỉ số cuối)** → **lập hóa đơn cuối/quyết toán** → chốt công nợ → cọc → khấu trừ → duyệt → hoàn → kết thúc HĐ → chờ dọn → nghiệm thu. `Fm.terminate` hiện: lý do + ngày kết thúc thực tế + tick chờ dọn + tick tạo hồ sơ hoàn cọc → cần wizard **Kết thúc HĐ** với bước chỉ số cuối & hóa đơn cuối; trạng thái HĐ `Chờ kết thúc → Chờ quyết toán` |
-| GAP-END-02 | 🟡 | P1 | Dữ liệu kết thúc §12.16.1: **Loại kết thúc** (đúng hạn/sớm/phá HĐ), **Ngày thông báo**, **Lý do chuẩn** (Master Data), mô tả, **chỉ số cuối**, **tình trạng tài sản** (đối chiếu handover), công nợ, phạt, khấu trừ, bằng chứng |
+| GAP-END-01 ✅W3 | 🔴 | P1 | **Luồng kết thúc đầy đủ** §4.17: Khách báo trả → xác nhận ngày ra → **chốt điện nước (chỉ số cuối)** → **lập hóa đơn cuối/quyết toán** → chốt công nợ → cọc → khấu trừ → duyệt → hoàn → kết thúc HĐ → chờ dọn → nghiệm thu. `Fm.terminate` hiện: lý do + ngày kết thúc thực tế + tick chờ dọn + tick tạo hồ sơ hoàn cọc → cần wizard **Kết thúc HĐ** với bước chỉ số cuối & hóa đơn cuối; trạng thái HĐ `Chờ kết thúc → Chờ quyết toán` |
+| GAP-END-02 ✅W3 | 🟡 | P1 | Dữ liệu kết thúc §12.16.1: **Loại kết thúc** (đúng hạn/sớm/phá HĐ), **Ngày thông báo**, **Lý do chuẩn** (Master Data), mô tả, **chỉ số cuối**, **tình trạng tài sản** (đối chiếu handover), công nợ, phạt, khấu trừ, bằng chứng |
 | GAP-DEP-01 ✅W2 | 🔴 | P0 | **Deposit Ledger** thật (`depositLedger`: contractId, type `RECEIVABLE/RECEIVED/TRANSFERRED/DEDUCTED/REFUNDED/FORFEITED`, amount, date, refId) – nguồn cho `NEW_DEPOSIT`, `FORFEITED_DEPOSIT`, `REFUND_AMOUNT` (§4.28.3, §12.23.3). Mockup `Q.deposits()` tổng hợp on-the-fly, không có "Cọc điều chuyển", "Giữ lại/forfeited" |
-| GAP-DEP-02 | 🟠 | P1 | Công thức thực hoàn §4.18: `Cọc − công nợ được phép bù trừ − phạt − sửa chữa − vệ sinh − khác`. Mockup theo OI-07 **không bù trừ công nợ** và khấu hao cố định 200k (BR-12) → cần tùy chọn "Công nợ được phép bù trừ" (nhập số/duyệt) để bám spec; nhóm khấu trừ `KH/SC/VS/CN/KHAC` đã có |
+| GAP-DEP-02 ✅W3 | 🟠 | P1 | Công thức thực hoàn §4.18: `Cọc − công nợ được phép bù trừ − phạt − sửa chữa − vệ sinh − khác`. Mockup theo OI-07 **không bù trừ công nợ** và khấu hao cố định 200k (BR-12) → cần tùy chọn "Công nợ được phép bù trừ" (nhập số/duyệt) để bám spec; nhóm khấu trừ `KH/SC/VS/CN/KHAC` đã có |
 | GAP-DEP-03 | 🟢 | – | Workflow Nháp → Chờ duyệt → Đã duyệt → Đã hoàn / Từ chối; hoàn cọc không tự Ready phòng – **đạt** (`needs_edit` là mở rộng P2) |
 
 ---

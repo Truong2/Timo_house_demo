@@ -40,11 +40,12 @@
 
   /* ---- hợp đồng ---- */
   Q.contractStatus = (c) => { if (!c) return 'ended'; if (c.status === 'active' && F.daysUntil(c.end) <= 35) return 'expiring'; return c.status; };
-  Q.contractRemaining = (c) => c.status === 'active' ? F.daysUntil(c.end) : null;
-  Q.activeContractOfRoom = (roomId) => TH.store.one('contracts', c => c && c.roomId === roomId && c.status === 'active');
+  Q.contractRemaining = (c) => LIVE.includes(c.status) ? F.daysUntil(c.end) : null;
+  const LIVE = ['active', 'pending_renewal', 'pending_end']; // HĐ còn ràng buộc phòng (spec v1.8 §12.7.3)
+  Q.activeContractOfRoom = (roomId) => TH.store.one('contracts', c => c && c.roomId === roomId && LIVE.includes(c.status));
   Q.contractsOfRoom = (roomId) => TH.store.where('contracts', c => c.roomId === roomId).sort((a, b) => F.cmp(b.start, a.start));
   Q.contractsOfTenant = (tId) => TH.store.where('contracts', c => c.tenantId === tId).sort((a, b) => F.cmp(b.start, a.start));
-  Q.activeContractOfTenant = (tId) => TH.store.one('contracts', c => c.tenantId === tId && c.status === 'active');
+  Q.activeContractOfTenant = (tId) => TH.store.one('contracts', c => c.tenantId === tId && LIVE.includes(c.status));
   Q.contractServices = (cId) => TH.store.where('contractServices', s => s.contractId === cId);
   Q.contractMembers = (cId) => TH.store.where('contractMembers', s => s.contractId === cId);
   Q.contractDebt = (cId) => F.sum(TH.store.where('invoices', i => i.contractId === cId && i.docStatus !== 'draft' && i.docStatus !== 'cancelled'), i => Q.invRemaining(i));
@@ -52,7 +53,7 @@
 
   /* ---- khách ---- */
   Q.tenantStatus = (t) => {
-    const cs = Q.contractsOfTenant(t.id); const act = cs.find(c => c.status === 'active');
+    const cs = Q.contractsOfTenant(t.id); const act = cs.find(c => LIVE.includes(c.status));
     if (act) return Q.contractStatus(act) === 'expiring' ? 'expiring' : 'renting';
     if (TH.store.one('holds', h => h.tenantId === t.id)) return 'held';
     if (TH.store.one('refunds', r => r.tenantId === t.id && ['draft', 'pending', 'approved'].includes(r.status))) return 'awaiting_refund';
@@ -68,7 +69,8 @@
   // % thay đổi so với kỳ trước (null khi không có cơ sở so sánh) – dùng cho KPI delta thay vì số hard-code
   Q.deltaPct = (cur, prev) => { cur = Number(cur) || 0; prev = Number(prev) || 0; if (!prev) return null; const v = Math.round((cur - prev) / Math.abs(prev) * 1000) / 10; return Math.abs(v) > 500 ? null : v; };
   Q.prevPeriod = (p) => p ? F.addMonths(p + '-01', -1).slice(0, 7) : '';
-  Q.refundDefaults = () => [{ group: 'Khấu hao', groupCode: 'KH', desc: 'Khấu hao cố định theo phòng (BR-12)', amount: 200000, evidenceCount: 1, status: 'confirmed' }, { group: 'Dịch vụ', groupCode: 'VS', desc: 'Vệ sinh phòng', amount: 200000, evidenceCount: 1, status: 'confirmed' }, { group: 'Sửa chữa', groupCode: 'SC', desc: 'Sửa chữa hư hỏng (nếu có)', amount: 0, evidenceCount: 0, status: 'pending' }];
+  Q.refundDefaults = () => [ // spec v1.8 §12.16.4: mọi khấu trừ phải có dòng chi tiết – không còn khấu hao cố định (BR-12 cũ)
+    { group: 'Dịch vụ', groupCode: 'VS', desc: 'Vệ sinh phòng', amount: 200000, evidenceCount: 1, status: 'confirmed' }, { group: 'Sửa chữa', groupCode: 'SC', desc: 'Sửa chữa hư hỏng (nếu có)', amount: 0, evidenceCount: 0, status: 'pending' }];
   Q.invLines = (invId) => TH.store.where('invoiceLines', l => l.invoiceId === invId).sort((a, b) => a.seq - b.seq);
   Q.invPaid = (inv) => { const pays = F.idx(TH.store.all('payments')); return F.sum(TH.store.where('paymentAllocations', a => a.invoiceId === inv.id && pays[a.paymentId] && pays[a.paymentId].status === 'recorded'), a => a.amount); };
   Q.invRemaining = (inv) => Math.max(0, (inv.total || 0) - Q.invPaid(inv));
@@ -109,7 +111,7 @@
 
   /* ---- hoàn cọc ---- */
   Q.refundDeductions = (rId) => TH.store.where('refundDeductions', d => d.refundId === rId);
-  Q.refundCompute = (rf) => { const ded = F.sum(Q.refundDeductions(rf.id), d => d.amount); const debt = rf.offsetDebt ? (rf.debt || 0) : 0; return { ded, debt, refund: Math.max(0, (rf.deposit || 0) - ded - debt) }; };
+  Q.refundCompute = (rf) => { const ded = F.sum(Q.refundDeductions(rf.id), d => d.amount); const debt = rf.offsetDebt ? (rf.debtOffset != null ? Math.min(Number(rf.debtOffset) || 0, rf.debt || 0) : (rf.debt || 0)) : 0; /* §4.18: chỉ bù trừ phần công nợ được phép */ return { ded, debt, refund: Math.max(0, (rf.deposit || 0) - ded - debt) }; };
 
   /* ---- Zalo ---- */
   Q.batchMessages = (bId) => TH.store.where('zaloMessages', m => m.batchId === bId);
