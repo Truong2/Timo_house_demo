@@ -2,7 +2,7 @@
 window.TH = window.TH || {};
 (function (TH) {
   const F = {};
-  F.DEMO_TODAY = '2026-10-28';
+  F.DEMO_TODAY = '2026-09-23';
   F.today = () => (TH.store && TH.store.state && TH.store.state.meta.today) || F.DEMO_TODAY;
   F.pad = (n, l = 2) => String(n).padStart(l, '0');
   F.uid = (p = 'id') => p + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);

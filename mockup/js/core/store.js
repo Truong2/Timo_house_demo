@@ -1,6 +1,6 @@
 /* Store: state + persist localStorage */
 (function (TH) {
-  const KEY = 'timehouse-demo-p1-v3-2026';
+  const KEY = 'timohouse-demo-real-v1';
   const SCHEMA = 5; // v5: cơ cấu tổ chức, phân công theo hiệu lực, lịch sử loại tòa, master data (spec v1.8 W1); W2 bổ sung additive qua meta.w2Migrated
   const MIN_SCHEMA = 4; // state v4 được nâng cấp additive qua TH.seed.migrateV5
   const COLLECTIONS = ['users', 'areas', 'salesTeams', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
@@ -18,11 +18,11 @@
     'payrollRuleVersions', 'payrollAssignmentSnapshots', 'payrollResults', 'salaryPayments', 'payrollCostAllocations', 'allocationRules',
     'metricDefinitions', 'reportPeriods', 'reportSnapshots', 'reportMetricValues', 'goldenDatasets', 'buildingShares', 'capitalCalls', 'capitalPayments', 'profitDistributions'];
   const S = { state: null, listeners: [], _t: null };
-  S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
+  S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-09', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
   S.migrate = (st) => {
     if (!st || Number(st.schema) > SCHEMA || Number(st.schema) < MIN_SCHEMA) throw new Error('Schema không khớp');
     COLLECTIONS.forEach(c => { if (!Array.isArray(st[c])) st[c] = []; });
-    st.meta = st.meta || { today: TH.f.DEMO_TODAY, period: '2026-10' };
+    st.meta = st.meta || { today: TH.f.DEMO_TODAY, period: '2026-09' };
     st.guide = st.guide || { done: {}, ts: {}, current: null };
     // Phase 1 RBAC: preserve explicit assignments and only backfill legacy
     // operation accounts from buildings they already manage.
@@ -46,6 +46,8 @@
     if (TH.seed && TH.seed.migrateW4 && st.buildings.length) { try { TH.seed.migrateW4(st); } catch (e) { console.warn('migrate w4', e); } }
     // Spec v1.8 – W5: cổ phần theo tòa / góp vốn / golden G1 / metric registry; additive & idempotent (meta.w5Migrated)
     if (TH.seed && TH.seed.migrateW5 && st.buildings.length) { try { TH.seed.migrateW5(st); } catch (e) { console.warn('migrate w5', e); } }
+    if (TH.seed && TH.seed.realWorkbook && !st.meta.realWorkbookSeeded) { try { TH.seed.realWorkbook(st); } catch (e) { console.warn('real workbook seed', e); } }
+    if (TH.seed && TH.seed.realWorkbookFixups && st.meta.realWorkbookSeeded) { try { TH.seed.realWorkbookFixups(st); } catch (e) { console.warn('real workbook fixups', e); } }
     // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
     // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
     const leadGroups = {};

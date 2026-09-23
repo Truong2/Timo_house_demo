@@ -281,8 +281,7 @@
   };
   X.addLandlordPayment = (d) => { Au.need('landlordPayments.manage'); req(d.dueDate, 'Hạn thanh toán'); req(d.amount, 'Số tiền'); const p = St.add('landlordPayments', Object.assign({ status: 'upcoming', paidDate: null, evidence: null }, d)); done(); return p; };
   X.markLandlordPaid = (id, { paidDate, evidence, amount }) => { Au.need('landlordPayments.manage'); req(paidDate, 'Ngày thanh toán'); const cur = St.get('landlordPayments', id); if (cur.status === 'paid') err('Kỳ này đã được ghi nhận thanh toán'); const patch = { status: 'paid', paidDate, evidence: evidence || 'chung_tu.pdf' }; if (F.num(amount) > 0) patch.amount = F.num(amount); const p = St.update('landlordPayments', id, patch);
-    // Tiền trả chủ nhà là chi phí Thuê nhà của tòa → ghi vào sổ chi phí (1 kỳ trả = 1 chi phí, không tạo trùng)
-    if (!St.one('expenses', e => e.landlordPaymentId === id)) { const ll = St.get('landlords', p.landlordId) || {}; const ex = St.add('expenses', { code: St.nextCode('expenses', 'CP', 4), date: paidDate, categoryCode: 'GV-THUE', group: 'Thuê nhà', desc: 'Trả tiền thuê nhà ' + (ll.name || '') + ' – ' + (p.periodLabel || ''), buildingId: p.buildingId || null, amount: p.amount, recordType: 'ops', method: 'cash', evidence: patch.evidence, note: 'Tự tạo từ kỳ thanh toán chủ nhà', createdBy: me(), status: 'recorded', landlordPaymentId: id, landlordId: p.landlordId }); p.expenseId = ex.id; }
+    // Ngày chuyển tiền thuộc sổ quỹ. Chi phí thuê được tính theo tháng hợp đồng trong Report A/B.
     St.audit('landlord_paid', 'landlordPayment', id, 'Ghi nhận trả chủ nhà ' + F.vnd(p.amount) + ' – ' + p.periodLabel); done(); return p; };
 
   /* ---------- Khách thuê ---------- */
@@ -314,7 +313,7 @@
   };
   /* Kích hoạt HĐ có thể sinh chứng từ đi kèm (opts): thu cọc ngay (payments kind=deposit) và hóa đơn nháp kỳ đầu (tiền phòng tính theo ngày + DV cố định).
      Kết quả phụ (phiếu thu/hóa đơn/ghi chú) đặt ở X.lastActivation để UI hiển thị. */
-  const prorateFirstInvoice = (inv, c) => { const period = inv.period; const [y, m] = period.split('-').map(Number); const dim = new Date(y, m, 0).getDate(); const startDay = Number(String(c.start).slice(8, 10)) || 1; if (startDay <= 1) return; const days = dim - startDay + 1; const line = Q.invLines(inv.id).find(l => l.kind === 'rent'); if (!line) return; line.amount = Math.round(c.price * days / dim / 1000) * 1000; line.desc += ' (từ ' + F.date(c.start) + ', ' + days + '/' + dim + ' ngày)'; inv.total = F.sum(Q.invLines(inv.id), l => l.amount); };
+  const prorateFirstInvoice = (inv, c) => { const period = inv.period; const [y, m] = period.split('-').map(Number); const dim = new Date(y, m, 0).getDate(); const divisor = Number(TH.params && TH.params.value('P-03')) || 30; const startDay = Number(String(c.start).slice(8, 10)) || 1; if (startDay <= 1) return; const days = dim - startDay + 1; const line = Q.invLines(inv.id).find(l => l.kind === 'rent'); if (!line) return; line.amount = Math.round(c.price * days / divisor / 1000) * 1000; line.prorateDays = days; line.prorateDivisor = divisor; line.desc += ' (từ ' + F.date(c.start) + ', ' + days + '/' + divisor + ' ngày · P-03)'; inv.total = F.sum(Q.invLines(inv.id), l => l.amount); };
   X.activateContract = (id, key, opts = {}) => idem(key, () => {
     Au.need('contracts.manage', { type: 'contract', record: St.get('contracts', id) });
     const c = St.get('contracts', id); if (!c) err('Không tìm thấy hợp đồng'); if (c.status === 'active') return c; if (!['draft', 'pending_approval'].includes(c.status)) err('Chỉ kích hoạt được hợp đồng Dự thảo / Chờ duyệt');

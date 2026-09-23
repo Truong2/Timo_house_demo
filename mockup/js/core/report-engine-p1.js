@@ -16,6 +16,20 @@
   const expenseAmt = (e, bid) => { if (e.buildingId) return e.buildingId === bid ? Number(e.amount || 0) : 0; const a = raw('expenseAllocations').find(x => x.expenseId === e.id && x.buildingId === bid); return a ? Number(a.amount != null ? a.amount : Number(e.amount || 0) * Number(a.pct || 0) / 100) : 0; };
   const expenses = (period, bid, cats) => { const set = new Set(cats); return raw('expenses').filter(e => e.status !== 'reversed' && (e.accountingPeriod || F.period(e.date)) === period && set.has(Q.expenseAlias ? Q.expenseAlias(e.categoryCode) : e.categoryCode)).map(e => ({ e, amount: expenseAmt(e, bid) })).filter(x => x.amount); };
   const expenseRow = (x, bid) => { const alloc = x.e.buildingId ? null : raw('expenseAllocations').find(a => a.expenseId === x.e.id && a.buildingId === bid); return { type: 'expense', id: x.e.id, label: x.e.code + ' · ' + F.date(x.e.docDate || x.e.date), sub: (x.e.desc || '') + (alloc ? ' · phân bổ ' + (alloc.method || '') + ' ' + (alloc.pct != null ? alloc.pct + '%' : '') + ' của ' + F.vnd(x.e.amount) : ' · trực tiếp tòa') + (x.e.evidence ? ' · ' + x.e.evidence : ''), amount: x.amount, href: '#/expenses?s=' + encodeURIComponent(x.e.code), chain: ['Tòa', 'Expense Allocation' + (alloc ? ' (' + (alloc.method || '') + ')' : ' (DIRECT)'), 'Expense ' + x.e.code].concat(x.e.evidence ? ['Attachment ' + x.e.evidence] : []) }; };
+  const leaseCost = (period, bid) => {
+    const rows = []; const first = period + '-01';
+    raw('landlordContracts').filter(c => (c.buildingIds || []).includes(bid) && c.status !== 'draft' && c.status !== 'cancelled').forEach(c => {
+      if (!c.start || !c.end || c.start.slice(0, 7) > period || c.end.slice(0, 7) < period) return;
+      const index = (Number(period.slice(0, 4)) - Number(c.start.slice(0, 4))) * 12 + Number(period.slice(5, 7)) - Number(c.start.slice(5, 7));
+      const free = Array.isArray(c.freeMonths) ? c.freeMonths.includes(index + 1) : index < Number(c.freeMonths || c.rentFreeMonths || 0);
+      const rent = Q.lcPriceAt ? Q.lcPriceAt(c, first) : Number(c.rent || 0);
+      const pct = c.allocations && c.allocations[bid] != null ? Number(c.allocations[bid]) : (c.buildingIds.length === 1 ? 100 : 0);
+      const amount = free ? 0 : rent * pct / 100;
+      rows.push({ type: 'landlordContract', id: c.id, label: c.code + ' · ' + period, sub: free ? 'Tháng miễn tiền thuê theo hợp đồng' : 'CF theo tháng hợp đồng · phân bổ ' + pct + '%', amount, href: '#/head-lease-costs?buildingId=' + encodeURIComponent(bid), chain: ['Tòa', 'Hợp đồng đầu vào ' + c.code, 'CF ' + period] });
+    });
+    if (rows.length) return rows;
+    return raw('landlordPayments').filter(p => p.buildingId === bid && p.period === period && p.source === 'workbook').map(p => ({ type: 'landlordPaymentSource', id: p.id, label: (p.periodLabel || 'Sổ tiền thuê') + ' · ' + period, sub: 'Giá thuê tháng theo sổ nguồn; chưa có thời hạn HĐ/ngày chi', amount: Number(p.amount || 0), href: '#/head-lease-costs?buildingId=' + encodeURIComponent(bid), chain: ['Tòa', 'Kỳ thuê nguồn ' + period] }));
+  };
   /* ---- compute Report A ---- */
   E.compute = (period, bid) => {
     const { from, to } = E.range(period); const v = {}, drill = {}; const b = get('buildings', bid);
@@ -40,6 +54,8 @@
     set('ROOM_COUNT', rooms.length, []);
     const occ = Q.occupancy ? Q.occupancy(period, bid) : null; set('OCCUPANCY_RATE', occ && !occ.na && occ.pct != null ? occ.pct : 0, []);
     M.P1.filter(d => d.cats).forEach(d => { const xs = expenses(period, bid, d.cats); set(d.code, F.sum(xs, x => x.amount), xs.map(x => expenseRow(x, bid))); });
+    const leaseRows = leaseCost(period, bid);
+    if (leaseRows.length) set('HEAD_LEASE_COST', F.sum(leaseRows, x => x.amount), leaseRows);
     const pca = raw('payrollCostAllocations').filter(a => a.buildingId === bid && a.period === period && (get('payrolls', a.payrollId).status === 'locked'));
     set('SALARY_COST', F.sum(pca, a => Number(a.amount || 0)), pca.map(a => { const e = get('employees', a.employeeId); const p = get('payrolls', a.payrollId); return { type: 'payrollAlloc', id: a.id, label: (e.name || '') + ' · ' + (p.code || ''), sub: (a.method === 'DIRECT_SNAPSHOT' ? 'NV trực tiếp – assignment snapshot' : 'Vai trò chung – Allocation Rule ' + (a.method || '') + (a.pct != null ? ' ' + a.pct + '%' : '')), amount: Number(a.amount || 0), href: '#/hr/payroll?period=' + period, chain: ['Tòa', 'Payroll Cost Allocation', 'Payroll Result ' + (p.code || ''), 'Employee ' + (e.code || ''), a.method === 'DIRECT_SNAPSHOT' ? 'Assignment Snapshot → M1/M2/M3' : 'Allocation Rule'] }; }));
     E.formulas(v);

@@ -18,6 +18,7 @@
     'expenses.manageCommon': ['admin', 'accountant'], 'landlordPayments.manage': ['admin', 'accountant'],
     'zalo.view': ['admin', 'accountant'], 'zalo.send': ['admin'], 'zalo.config': ['admin'],
     'reports.view': ['admin', 'accountant'], 'reports.export': ['admin', 'accountant'],
+    'commissions.view': ['admin', 'accountant'], 'headLeaseCosts.view': ['admin', 'accountant', 'qltong'],
     'catalog.view': ['admin', 'accountant'], 'catalog.manage': ['admin', 'accountant'],
     'import.view': ['admin', 'accountant', 'ops'], 'import.all': ['admin'],
     'import.finance': ['admin', 'accountant'], 'import.operations': ['admin', 'ops'],

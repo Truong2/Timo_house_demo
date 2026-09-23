@@ -19,7 +19,9 @@
     if (b) return b;
     const g = list.filter(p => p.scope === 'GLOBAL').sort((a, c) => F.cmp(c.effectiveFrom, a.effectiveFrom))[0];
     if (g) return g;
-    const s = St.rawGet('services', serviceId); return s ? { serviceId, scope: 'GLOBAL', buildingId: null, price: Number(s.price) || 0, effectiveFrom: s.effectiveFrom, virtual: true } : null;
+    const s = St.rawGet('services', serviceId);
+    if (!s || (s.scope === 'buildings' && (!buildingId || !(s.buildingIds || []).includes(buildingId)))) return null;
+    return { serviceId, scope: s.scope === 'buildings' ? 'BUILDING' : 'GLOBAL', buildingId: s.scope === 'buildings' ? buildingId : null, price: Number(s.price) || 0, effectiveFrom: s.effectiveFrom, virtual: true };
   };
   Q.servicePrice = (serviceId, buildingId, date) => { const r = Q.servicePriceRecord(serviceId, buildingId, date); return r ? Number(r.price) || 0 : 0; };
   Q.servicePriceByCode = (code, buildingId, date) => { const s = raw('services').find(x => x.code === code); return s ? Q.servicePrice(s.id, buildingId, date) : 0; };

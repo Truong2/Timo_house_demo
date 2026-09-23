@@ -126,7 +126,7 @@
   };
 
   /* ---- Dashboard / tổng hợp ---- */
-  Q.filterRooms = (f = {}) => TH.store.where('rooms', r => (!f.buildingId || r.buildingId === f.buildingId) && (!f.district || Q.building(r.buildingId).district === f.district) && (!f.managerId || r.managerId === f.managerId));
+  Q.filterRooms = (f = {}) => TH.store.where('rooms', r => !Q.building(r.buildingId).summaryOnly && (!f.buildingId || r.buildingId === f.buildingId) && (!f.district || Q.building(r.buildingId).district === f.district) && (!f.managerId || r.managerId === f.managerId));
   Q.finance = (period, f = {}) => {
     const invs = Q.invoicesOfPeriod(period).filter(i => i.docStatus !== 'draft' && (!f.buildingId || i.buildingId === f.buildingId) && (!f.district || Q.building(i.buildingId).district === f.district));
     const receivable = F.sum(invs, i => i.total), collected = F.sum(invs, i => Q.invPaid(i)); const remaining = receivable - collected;

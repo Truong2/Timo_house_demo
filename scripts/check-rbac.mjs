@@ -203,8 +203,8 @@ function registrations(source, file) {
 
 const pagesDir = path.join(root, 'mockup/js/pages');
 const routes = fs.readdirSync(pagesDir).filter(file => file.endsWith('.js')).flatMap(file => registrations(read(`mockup/js/pages/${file}`), file));
-assert.equal(routes.length, 82, 'Expected the demo route inventory to contain 82 routes');
-assert.equal(new Set(routes.map(route => route.path)).size, 82, 'Route paths must be unique');
+assert.equal(routes.length, 84, 'Expected the demo route inventory to contain 84 routes');
+assert.equal(new Set(routes.map(route => route.path)).size, 84, 'Route paths must be unique');
 for (const route of routes) assert.ok(TH.auth.ROLE_POLICY[route.permission], `${route.path} uses unknown permission ${route.permission}`);
 const routeAt = pathName => routes.find(route => route.path === pathName);
 assert.equal(routeAt('/crm/leads/:id').resource.type, 'lead');
@@ -248,7 +248,7 @@ for (const [role, userId] of Object.entries(accounts)) {
     }
   }
 }
-assert.equal(matrixCases, 9 * 82 * 2);
+assert.equal(matrixCases, 9 * 84 * 2);
 state.session = null;
 for (const route of routes) assert.equal(state.session ? 'continue' : 'login', 'login', `Logged-out access to ${route.path} must stop at Login`);
 
