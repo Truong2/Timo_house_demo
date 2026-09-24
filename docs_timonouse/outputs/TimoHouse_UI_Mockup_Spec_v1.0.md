@@ -1,9 +1,15 @@
 # TIMOHOUSE — UI MOCKUP FUNCTIONAL SPECIFICATION
 
-**Phiên bản:** 1.6
+**Phiên bản:** 1.9
 
 **Ngày lập:** 23/09/2026
 
+> **Thay đổi ở 1.9 (24/09/2026) —** viết lại mô tả chuỗi **Chủ nhà → HĐ đầu vào → Tòa → Phòng** (UI-02…UI-05) cho rõ: thêm mục *Chuỗi Nguồn nhà* đầu §9 với sơ đồ luồng, bảng điều kiện qua từng bước và bảng đối tượng/trạng thái; mỗi màn theo khung Mục đích → Route/Mockup → Phác họa → Chú giải → Field → Action theo trạng thái → Rule → Nghiệm thu; phác họa dùng dữ liệu HĐ mẫu tùng sói (Seed §17) cho đường tạo mới và G1 (Seed §4, §6) cho trạng thái vận hành, thay dữ liệu minh họa T42/S19A/T17 không có nguồn. Điều kiện `Chuẩn bị → Đang khai thác` của tòa ghi **ASSUMED**.
+>
+> **Thay đổi ở 1.8 (24/09/2026) —** cụm **Nguồn nhà & tòa/phòng** dựng lại từ HĐ chủ nhà mẫu `Hợp đồng thuê nhà 2026(Mẫu) tùng sói.doc`: thêm job **Trích xuất HĐ chủ nhà** (upload → trích xuất → review → commit, route đề xuất `#/landlords/import`) thay cho quy định cũ "Phase 1 nhập tay, không OCR"; bổ sung các trường mẫu có nhưng bản đồ UI-03 còn thiếu và ba mâu thuẫn nội tại của mẫu; UI-05 thêm cách **sinh phòng theo tầng**; UI-27 tách **tài sản bàn giao của chủ nhà** khỏi tài sản công ty đầu tư. Phần cổ đông góp vốn của HĐ đầu vào để **làm sau**. Mockup render từ mã ở `ui-imagegen-v1/02-nguon-nha-toa-phong/`; dữ liệu mẫu ở Seed Data §17.
+>
+> **Thay đổi ở 1.7 (24/09/2026) —** sửa các lỗi phát hiện khi nghiệm thu bộ ảnh [`ui-imagegen-v1/`](ui-imagegen-v1/AUDIT.md): phép tính hoa hồng UI-26, dấu chênh CF − AC ở UI-28, lịch khấu hao G1 ở UI-27 theo `nghiep_vu/04` §4.4, người phụ trách theo Seed Data ở UI-01/UI-04/UI-19, cọc 301T41 ở UI-16, trạng thái kỳ trả ở UI-03/UI-28, trạng thái hóa đơn UI-12, đủ 8 xung đột HĐ–rule ở wireframe UI-08 và link gallery ở §8.1.
+>
 > **Thay đổi ở 1.6 —** thay toàn bộ số minh họa trong phác họa UI bằng **dữ liệu thật trích từ sổ Excel của công ty**, tập hợp tại tài liệu mới [`TimoHouse_Mockup_Seed_Data_v1.0.md`](TimoHouse_Mockup_Seed_Data_v1.0.md). Trục xuyên suốt là **tòa G1 kỳ 09/2026** và **kỳ đối soát 08/2026**. Các màn UI-01, UI-12, UI-21, UI-22 được cập nhật sang số thật; riêng UI-12 phơi bày một sai lệch có thật trong sổ: **điện chung được tính ra 40.533,33 đ/người nhưng không cộng vào Tổng dịch vụ**.
 >
 > **Thay đổi ở 1.5 —** đối chiếu spec với **hai hợp đồng mẫu thật**: `Hop_dong_thue_phong_demo_day_du.pdf` (HĐ khách, nguồn OCR) và `Hợp đồng thuê nhà 2026(Mẫu) tùng sói.doc` (HĐ chủ nhà, nhập tay). UI-08 thay bảng 7 nhóm chung bằng **bản đồ trích xuất theo từng Điều** kèm **bảng 8 xung đột giữa điều khoản hợp đồng và rule hệ thống** mà UI bắt buộc hiển thị. UI-03 bổ sung bản đồ trường theo Điều 1–12 của hợp đồng chủ nhà và danh sách trường hệ thống có nhưng mẫu không có. Bảy phát hiện mới được ghi thành **P-30…P-36** ở §18 để đăng ký ngược vào `nghiep_vu/`.
@@ -250,9 +256,9 @@ Read-only khác disabled: vẫn copy được, nền trung tính và có nhãn `
 | UI-00 | Đăng nhập | `#/login` | System |
 | UI-01 | Dashboard & Work Queue | `#/dashboard` | M-1.01 |
 | UI-02 | Chủ nhà | `#/landlords`, `#/landlords/:id` | M-2.01 |
-| UI-03 | Hợp đồng đầu vào | `#/landlords/:id?tab=head-leases` | M-2.02 |
+| UI-03 | Hợp đồng đầu vào | `#/landlords/import` (trích xuất), `#/landlords/:id?tab=head-leases`, `#/head-leases/:id` | M-2.02 |
 | UI-04 | Tòa nhà | `#/buildings`, `#/buildings/:id` | M-2.03 |
-| UI-05 | Phòng | `#/rooms`, `#/rooms/:id` | M-2.04 |
+| UI-05 | Phòng | `#/rooms`, `#/rooms/:id`, `#/rooms/new?building=:id` | M-2.04 |
 | UI-06 | Khách thuê | `#/tenants`, `#/tenants/:id` | M-2.05 |
 | UI-07 | Hợp đồng thuê | `#/contracts`, `#/contracts/:id`, `#/contracts/new` | M-2.06 |
 | UI-08 | OCR/Data Onboarding | `#/contracts/ocr` | M-2.06 |
@@ -286,11 +292,11 @@ Read-only khác disabled: vẫn copy được, nền trung tính và có nhãn `
 
 ## 8.1 Dòng dữ liệu nguồn, vòng đời và phác họa UI
 
-**Mockup ảnh:** [Mở gallery 17 màn hình](ui-mockups/README.md), gồm ảnh bổ sung cho wizard chủ nhà/HĐ đầu vào và hóa đơn điện nối kỳ.
+**Mockup ảnh:** [Bộ mockup ImageGen v1](ui-imagegen-v1/README.md) — 34 màn UI-00…UI-33, 8 flow, 4 bảng responsive, 2 bảng state. Kết quả nghiệm thu từng ảnh: [AUDIT.md](ui-imagegen-v1/AUDIT.md).
 
 ### Nguồn dữ liệu và nhập liệu
 
-- **Chủ nhà → HĐ đầu vào → tòa → phòng** là chuỗi dữ liệu chuẩn về tài sản Timehouse thuê lại. Chủ nhà liên kết nhiều tòa/HĐ theo thời gian. Tòa/phòng được tạo tay hoặc import; HĐ đầu vào và hồ sơ chủ nhà là căn cứ xác nhận nguồn.
+- **Chủ nhà → HĐ đầu vào → tòa → phòng** là chuỗi dữ liệu chuẩn về tài sản Timehouse thuê lại. Chủ nhà liên kết nhiều tòa/HĐ theo thời gian. Cách tạo chính là **job trích xuất HĐ chủ nhà**: một lần commit tạo chủ nhà, HĐ đầu vào Nháp, tòa Chuẩn bị, tài liệu và tài sản bàn giao. Phòng tạo riêng ở UI-05 (sinh theo tầng hoặc import) vì HĐ chủ nhà không có danh sách phòng. Luồng đầy đủ và điều kiện qua bước ở mục *Chuỗi Nguồn nhà* đầu §9.
 - **Hợp đồng thuê khách** là đầu vào OCR để đề xuất khách đứng tên, người ở, tòa/phòng, thời hạn, tiền phòng/cọc, dịch vụ/giá theo hợp đồng, phương tiện, tài sản bàn giao, chỉ số đầu kỳ, điều khoản và tài liệu. Người dùng rà soát rồi chọn tạo/liên kết/cập nhật/bỏ qua.
 - Mẫu hợp đồng thuê phòng PDF có các nhóm trường OCR cụ thể: đại diện bên cho thuê, khách thuê/CCCD/liên hệ, mã tòa/phòng, số người/xe, bảng tài sản bàn giao và tình trạng, ngày giao phòng/ngày tính tiền/thời hạn, tiền phòng/cọc, giá điện/nước/internet/dịch vụ chung/xe, **chỉ số điện và nước bàn giao**, lịch thanh toán/tài khoản nhận, gia hạn và điều khoản khác. Trường trên mẫu chỉ là candidate; reviewer xác nhận từng nhóm trước khi lưu.
 - Tòa/phòng chưa có trong danh mục trở thành ứng viên OCR, chờ liên kết chủ nhà/HĐ đầu vào và xác nhận trước khi vận hành; không ghi đè dữ liệu chuẩn hay giá đã hiệu lực.
@@ -311,38 +317,7 @@ Read-only khác disabled: vẫn copy được, nền trung tính và có nhãn `
 
 ### Phác họa các màn hình
 
-**Chủ nhà → tòa/phòng**
-
-    ┌ Chủ nhà / LL-0001 ─────── [Sửa] [Tạo từ HĐ đầu vào] ┐
-    │ Tổng quan | HĐ đầu vào | Tòa nhà | Thanh toán | Hồ sơ │
-    │ Bên A: tên · CCCD/MST · liên hệ · người đại diện      │
-    ├ Nhà cho thuê ──────────── [Thêm tòa] [Import] ──────┤
-    │ Địa chỉ | Giấy CN | Số tầng | HĐ nguồn | Số phòng   │
-    ├ Tài liệu theo loại ─────── [Tải tài liệu] ───────────┤
-    │ Sổ đỏ: đã có | PCCC: cần xác minh | HKD: chưa có    │
-    └───────────────────────────────────────────────────────┘
-
-**Tạo HĐ đầu vào từ chủ nhà**
-
-    ┌ HĐ thuê nguyên tòa ─────────────────── [Lưu nháp] ┐
-    │ Bên A (chủ nhà) → Bên B (Timehouse/người ký)      │
-    │ Nhà đất / giấy CN / số tầng / diện tích / mục đích│
-    │ Giao nhà / từ–đến / tiền thuê / cọc / kỳ thanh toán│
-    │ PCCC / HKD / thuế / sửa chữa / gia hạn / bàn giao │
-    ├ HĐ đã ký | Phụ lục | Kiểm kê tài sản [Đính kèm] ┤
-    │ [Xem trước tòa/phòng liên kết] [Tạo lịch trả tiền] │
-    └───────────────────────────────────────────────────┘
-
-**Tòa và tài liệu tuân thủ**
-
-    ┌ T42 — Tòa nhà ───────────── [Sửa] [Thêm tài liệu]┐
-    │ Tổng quan | Phòng | Giá dịch vụ | HĐ nguồn | Hồ sơ│
-    │ HKD: Đã đăng ký theo tài liệu · Chờ xác minh      │
-    │ Sổ đỏ: Đã xác minh ✓  Còn 1 tài liệu cần xem     │
-    ├ Loại [Giấy đăng ký HKD ▾]  Tệp [Chọn]            │
-    │ Ngày cấp ___  Hết hạn ___  Cơ quan cấp ___       │
-    │ [Tải lên & lưu] → checklist + trạng thái + audit │
-    └─────────────────────────────────────────────────┘
+**Chủ nhà → HĐ đầu vào → Tòa → Phòng:** phác họa, sơ đồ luồng và điều kiện qua từng bước nằm ở mục *Chuỗi Nguồn nhà* (đầu §9) và các mục UI-02…UI-05; mockup render từ mã ở [`ui-imagegen-v1/02-nguon-nha-toa-phong/`](ui-imagegen-v1/02-nguon-nha-toa-phong/README.md).
 
 **OCR hợp đồng khách thuê**
 
@@ -471,11 +446,11 @@ Số liệu trong phác họa là **dữ liệu thật**, trích từ sổ Excel
 ├───────────────────────────────────────────────────────────────────────────┤
 │ ⑥ WORK QUEUE — việc cần xử lý hôm nay              Sắp xếp: Ưu tiên ▾      │
 │ ● Loại việc            │ Đối tượng  │ Phụ trách │ Tuổi │ Hành động nhanh   │
-│ ● Công nợ > 5 ngày     │ 402G5      │ Khải      │ 9 ng │ [Nhắc Zalo][Phạt] │
+│ ● Công nợ > 5 ngày     │ 402G5      │ Hương     │ 9 ng │ [Nhắc Zalo][Phạt] │
 │ ● Chỉ số chưa duyệt    │ Tòa T24    │ Huy TNVH  │ 2 ng │ [Duyệt]           │
 │ ● OCR chờ review       │ HĐ 302G6   │ Linh      │ 3 ng │ [Mở review]       │
 │ ● Hoàn cọc chờ duyệt   │ 301T41     │ Kế toán   │ 1 ng │ [Duyệt][Trả sửa]  │
-│ ● Lịch trả chủ nhà     │ HĐ LL-0007 │ Kế toán   │ 5 ng │ [Ghi nhận đã trả] │
+│ ● Lịch trả chủ nhà     │ HĐ HL-0021 │ Kế toán   │13 ng │ [Ghi nhận đã trả] │
 │                                    ⑦ [Nhận việc][Chuyển][Bỏ qua có lý do] │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
@@ -513,70 +488,174 @@ Số liệu trong phác họa là **dữ liệu thật**, trích từ sổ Excel
 
 **Empty/error:** không có việc hiển thị trạng thái tốt và link xem dữ liệu; lỗi từng widget không làm hỏng toàn trang, có Retry tại widget.
 
-### UI-02 — Chủ nhà
+### Chuỗi Nguồn nhà — Chủ nhà → HĐ đầu vào → Tòa → Phòng
 
-**Phác họa màn hình**
+Timehouse thuê **nguyên tòa** từ chủ nhà, rồi cho thuê lại **từng phòng**. Vì vậy mọi phòng phải truy ngược được về đúng một tòa, một HĐ đầu vào và một chủ nhà. Mục này mô tả chuỗi 4 màn UI-02 → UI-03 → UI-04 → UI-05, cộng thêm UI-27 cho tài sản bàn giao, theo thứ tự người dùng thao tác. Chi tiết từng màn nằm ở các mục ngay bên dưới.
+
+**Mockup:** [`ui-imagegen-v1/02-nguon-nha-toa-phong/`](ui-imagegen-v1/02-nguon-nha-toa-phong/README.md) có 7 ảnh `-verified` render từ mã. **Dữ liệu mẫu:**
+
+- Đường **tạo mới từ hợp đồng**: dùng HĐ chủ nhà mẫu *tùng sói* (Phí Văn Thắng · 25A Ngõ 261 Phú Diễn · 114.000.000 đ/tháng), Seed Data §17.
+- Trạng thái **đang vận hành**: dùng tòa G1, Seed Data §4 và §6.
+
+**Sơ đồ luồng**
 
 ```text
-┌ Chủ nhà / LL-0001 · Nguyễn Văn A ──── [Sửa] [Thêm HĐ đầu vào] [⋯] ┐
-│ Cá nhân · Hoạt động · 2 tòa · 2 HĐ hiệu lực                        │
-├────────────────────────────────────────────────────────────────────┤
-│ ① Tổng quan │ HĐ đầu vào │ Tòa nhà │ Thanh toán │ Tài liệu │ Lịch sử│
-├────────────────────────────────────────────────────────────────────┤
-│ ② BÊN CHO THUÊ (Bên A)                                             │
-│   Mã LL-0001 · Loại [Cá nhân ▾] · Họ tên ____________              │
-│   CCCD/MST ___________ · Ngày cấp ____ · Nơi cấp ______            │
-│   Người đại diện/ủy quyền ____________ (khi là tổ chức)            │
-│ ③ LIÊN HỆ    SĐT* _________ · Email ________ · Địa chỉ __________  │
-│ ④ THANH TOÁN Ngân hàng ▾ · STK _________ · Chủ TK ______           │
-│              Hiệu lực từ 01/01/2026   [Lịch sử STK ▸]              │
-├────────────────────────────────────────────────────────────────────┤
-│ ⑤ NHÀ CHO THUÊ                          [Thêm tòa] [Import]        │
-│  Mã tòa │ Địa chỉ        │ Số tầng │ HĐ nguồn │ Số phòng │ Trạng thái│
-│  T42    │ 12 Mỹ Đình     │ 7       │ HL-0031  │ 42       │ Khai thác │
-│  S19A   │ 8 Cầu Giấy     │ 6       │ HL-0044  │ 36       │ Khai thác │
-├────────────────────────────────────────────────────────────────────┤
-│ ⑥ HỒ SƠ CHỦ NHÀ                              [Tải tài liệu]        │
-│  CCCD ✓ đã xác minh │ Giấy ủy quyền △ chờ xác minh │ Sổ đỏ → xem ở │
-│  hồ sơ tòa (PCCC/sổ đỏ gắn TÒA, không gắn chủ nhà — BR-2.01.5)     │
-└────────────────────────────────────────────────────────────────────┘
+ ① DANH SÁCH CHỦ NHÀ (UI-02)                           CTA chính [Tạo từ HĐ chủ nhà]
+      │                                                CTA phụ   [+ Chủ nhà] (nhập tay)
+      ▼
+ ② TRÍCH XUẤT HĐ CHỦ NHÀ (UI-03 · #/landlords/import)
+      Upload → Trích xuất → Review → Validate → Commit
+      │ Commit = 1 transaction, lỗi một entity thì rollback toàn bộ
+      ├──► Chủ nhà ............ Hoạt động                 → UI-02 chi tiết
+      ├──► HĐ đầu vào ......... Nháp                      → UI-03 chi tiết
+      ├──► Tòa ................ Chuẩn bị (ứng viên từ HĐ)  → UI-04
+      ├──► Tài liệu ........... Chờ xác minh              → UI-02 ⑥ / UI-04 ⑦
+      ├──► Tài sản bàn giao ... thuộc chủ nhà             → UI-27
+      ├──► Công tơ cấp tòa .... chờ nhập mã               → UI-04 ⑥
+      └──► Phòng .............. 0 (HĐ chủ nhà không có danh sách phòng)
+      ▼
+ ③ BỔ SUNG & KÍCH HOẠT HĐ ĐẦU VÀO (UI-03)   ngày thuê · STK chủ nhà · người ký Timehouse
+      │ Nháp → Hiệu lực  ⇒ sinh lịch đóng tiền chủ nhà
+      ▼
+ ④ HOÀN THIỆN TÒA (UI-04)   mã tòa · số tầng · T/S/G · L1–L3 · TK nhận · hồ sơ pháp lý · QL (UI-20)
+      ▼
+ ⑤ TẠO PHÒNG (UI-05)        sinh theo tầng hoặc import Excel ⇒ phòng Sẵn sàng
+      ▼
+ ⑥ XÁC NHẬN BÀN GIAO (UI-27) · tòa Chuẩn bị → Đang khai thác
+      ▼
+ Phòng Sẵn sàng nhận HĐ thuê khách (UI-08 → UI-07)
+```
+
+**Điều kiện qua từng bước.** UI phải disable nút tương ứng và liệt kê điều kiện còn thiếu ngay trên màn:
+
+| Bước | Điều kiện bắt buộc | Nút bị chặn | Căn cứ |
+|---|---|---|---|
+| ② Commit trích xuất | Mọi xung đột ✕ đã chọn hướng xử lý. Chủ nhà trùng CCCD/SĐT đã chọn `Dùng bản ghi có sẵn` hoặc `Vẫn tạo` kèm lý do | `Commit` | UI-03 trích xuất, BR-2.01.2 |
+| ③ Kích hoạt HĐ đầu vào | Có ngày bắt đầu và kết thúc. Chủ nhà có STK nhận. Có người ký phía Timehouse. Tòa không thuộc HĐ đầu vào hiệu lực khác trùng thời gian. Phân bổ nhiều tòa đủ 100 % | `Bổ sung & kích hoạt` | BR-2.02.1, BR-2.02.2 |
+| ⑤ Tạo phòng | Tòa đã có mã; mã **bất biến** sau khi lưu | `Tạo phòng` | BR-2.03.3, BR-2.04.1 |
+| ⑥ Tòa → Đang khai thác | HĐ đầu vào `Hiệu lực`. Có ít nhất 1 phòng. Có QL phụ trách chính. Có TK nhận mặc định. T/S/G và L1–L3 đã xác nhận | `Chuyển Đang khai thác` | **ASSUMED 1.9**, chờ xác nhận |
+| Phòng nhận HĐ khách | Tòa `Chuẩn bị` hoặc `Đang khai thác`. Phòng `Sẵn sàng`. Có giá niêm yết và giá QL | `Tạo HĐ` ở UI-05 | State UI-04, BR-2.04.3 |
+
+**Đối tượng và trạng thái trong chuỗi**
+
+| Đối tượng | Entity | Trạng thái | Tạo ở | Nguồn dữ liệu |
+|---|---|---|---|---|
+| Chủ nhà | `LANDLORD` | `Hoạt động → Ngừng hoạt động` | Commit trích xuất hoặc `+ Chủ nhà` | HĐ, phần mở đầu (Bên A) |
+| HĐ đầu vào | `HEAD_LEASE`, `HEAD_LEASE_PAYMENT_SCHEDULE` | `Nháp → Hiệu lực → Sắp hết → Kết thúc` | Commit trích xuất | HĐ, Điều 1–12 |
+| Tòa | `BUILDING`, `BUILDING_TYPE_HISTORY`, `METER` (MAIN/COMMON) | `Chuẩn bị → Đang khai thác → Ngừng khai thác` | Commit (ứng viên) hoặc tạo tay | Điều 1, 3, Phụ lục I |
+| Phòng | `ROOM`, `ROOM_STATUS_HISTORY` | `Sẵn sàng → Giữ chỗ → Đang thuê → …` | UI-05 | Sinh theo tầng, tạo tay, import |
+| Tài liệu | `DOCUMENT` | `Chờ xác minh → Đã xác minh` | Commit hoặc upload | File HĐ, phụ lục, giấy tờ |
+| Tài sản bàn giao | `ASSET` với `ownership = Chủ nhà` | `Chờ xác nhận → Đã bàn giao → Đã trả lại` | Commit trích xuất | Phụ lục I |
+
+**Nguyên tắc dữ liệu áp cho cả chuỗi**
+
+1. Trường **để trống trên HĐ thì giữ trống**, không suy diễn. Mọi giá trị người dùng tự điền đều ghi audit (người, lúc, nguồn).
+2. **Không tạo phòng từ HĐ chủ nhà.** Phòng chỉ sinh ở UI-05.
+3. Quan hệ chủ nhà ↔ tòa **suy ra từ HĐ đầu vào** (BR-2.01.4). Màn tòa không có ô chọn chủ nhà.
+4. Mã tòa do người review đặt, bất biến sau khi lưu. Mã phòng = số phòng + mã tòa, lưu thành 2 trường riêng.
+5. CCCD, SĐT, STK che theo quyền. Cổ đông không truy cập chuỗi màn này.
+6. **Cổ đông góp vốn: làm sau.** Các điểm chờ module Cổ đông, trên màn chỉ hiện nhãn `Làm sau`:
+   - UI-03 ⑨ phần cổ đông.
+   - Phụ lục góp vốn 3 bên (Điều 7.2).
+   - Cờ "là vốn góp ban đầu" ở UI-27.
+   - Nghĩa vụ góp ở UI-28 và UI-29.
+
+### UI-02 — Chủ nhà
+
+**Mục đích:** quản lý bên cho thuê (Bên A) và là điểm vào của chuỗi Nguồn nhà. **Route:** `#/landlords` (danh sách), `#/landlords/:id` (chi tiết). **Mockup:** [`UI-02-landlord-list-verified.png`](ui-imagegen-v1/02-nguon-nha-toa-phong/UI-02-landlord-list-verified.png), [`UI-02-landlord-detail-verified.png`](ui-imagegen-v1/02-nguon-nha-toa-phong/UI-02-landlord-detail-verified.png).
+
+**Phác họa 2.1 — Danh sách chủ nhà**
+
+```text
+┌ Chủ nhà · 7 ─────────────────────────────────── [+ Chủ nhà] [Tạo từ HĐ chủ nhà] ┐
+│ ① Chủ nhà 7 │ HĐ đầu vào hiệu lực 0 │ Thiếu HĐ đầu vào 6 │ Job trích xuất 1     │
+│ ② Loại ▾ │ Trạng thái ▾ │ Khu vực ▾ │ Tòa ▾ │ HĐ sắp hết ≤ 6 th ▾ │ Tìm… [Xuất] │
+│ ③ △ 6 chủ nhà chưa có HĐ đầu vào — upload HĐ để trích xuất đủ thông tin         │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ ④ Mã     │Chủ nhà          │SĐT   │CCCD  │Tòa         │Phòng│HĐ đầu vào  │TT    │
+│ LL-0007  │Phí Văn Thắng    │…338  │…351  │25A Phú Diễn│  —  │HL-0031 Nháp│ⓘ Nháp│
+│ LL-0001  │Tống Văn Định    │  —   │  —   │T2          │  —  │  —         │△     │
+│ LL-0002  │Nguyễn Văn Khiết │  —   │  —   │T3          │ 22  │  —         │△     │
+│ …        │T5 · T7 · T8 · T10 (Seed §17.5)                                       │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Phác họa 2.2 — Chi tiết chủ nhà**
+
+```text
+┌ LL-0007 · Phí Văn Thắng ● Hoạt động ───────────────── [⋯] [Sửa] [Mở HĐ đầu vào] ┐
+│ Cá nhân · 1 tòa · HĐ đầu vào HL-0031 đang Nháp · tạo từ trích xuất HĐ           │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ ① Tổng quan │ HĐ đầu vào (1) │ Tòa nhà (1) │ Thanh toán │ Tài liệu (3) │ Lịch sử│
+│ △ Thiếu TK nhận tiền — HĐ không có (Đ.4.4)              [Bổ sung TK]            │
+├───────────────────────────────────┬─────────────────────────────────────────────┤
+│ ② BÊN A                           │ ③ LIÊN HỆ · ④ THANH TOÁN                    │
+│ Mã LL-0007 · Loại Cá nhân         │ SĐT •••••••338 · Email —                    │
+│ CCCD •••••••••351                 │ HKTT Tổ 18 Phú Diễn, Hà Nội                 │
+│ Cấp 19/04/2021 · Hà Nội           │ Ngân hàng · STK · Chủ TK △ chưa có          │
+│ Đại diện/ủy quyền: không có       │ Kỳ trả 3 tháng/lần [Lịch sử STK ▸]          │
+├───────────────────────────────────┴─────────────────────────────────────────────┤
+│ ⑤ NHÀ CHO THUÊ — suy ra từ HĐ đầu vào                [Thêm tòa từ HĐ]           │
+│  PD25A △ví dụ │ Số 25A Ngõ 261 Phú Diễn │ HL-0031 Nháp │ 114.000.000 │ 0 phòng  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ ⑥ HỒ SƠ CHỦ NHÀ                                        [Tải tài liệu]           │
+│  CCCD △ chờ bản chụp │ HĐ đã ký ◐ chờ xác minh │ PL bàn giao ◐ chờ              │
+│  ⓘ GCN/PCCC/HKD là hồ sơ của TÒA → UI-04 · PL góp vốn 3 bên: làm sau            │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Chú giải vùng và chức năng**
 
 | Vùng | Thành phần | Chức năng chi tiết |
 |---|---|---|
-| ① | Tabs | 6 tab cố định; tab `Tòa nhà` và `HĐ đầu vào` là **dữ liệu suy ra** từ M-2.02, không nhập tay tại đây |
-| ② | Nhận diện Bên A | Đổi `Loại` giữa Cá nhân/Tổ chức sẽ đổi bộ trường bắt buộc (CCCD ↔ MST + người đại diện). Trùng CCCD/MST → modal `Dùng bản ghi có sẵn` / `Vẫn tạo` kèm lý do |
-| ③ | Liên hệ | SĐT bắt buộc và được chuẩn hóa; trùng SĐT chỉ cảnh báo |
-| ④ | Thanh toán | Đổi STK sau khi đã có kỳ thanh toán **không sửa đè** mà tạo bản ghi mới có ngày hiệu lực; nút `Lịch sử STK` mở timeline |
-| ⑤ | Danh sách nhà cho thuê | Quan hệ chủ nhà ↔ tòa suy ra từ HĐ đầu vào; nút `Thêm tòa` mở wizard tạo HĐ chứ không gán tòa trực tiếp |
-| ⑥ | Hồ sơ | Chỉ giữ giấy tờ **của con người**: CCCD, ủy quyền, chứng từ sở hữu. Sổ đỏ/PCCC hiển thị dạng link sang UI-04 |
-| Nút `⋯` | Menu phụ | `Ngừng hoạt động` bị **disable kèm tooltip** khi còn HĐ đầu vào hiệu lực (BR-2.01.6) |
+| 2.1 ① | KPI | Đếm theo phạm vi quyền. `Thiếu HĐ đầu vào` là chủ nhà chưa có HĐ nào; click để lọc danh sách |
+| 2.1 ② | Bộ lọc | Loại Cá nhân/Tổ chức, trạng thái, khu vực, tòa, nhóm T/S/G (qua tòa), có HĐ hiệu lực, HĐ sắp hết ≤ 6 tháng (P-23), từ khóa tên/SĐT/CCCD/MST. Phản ánh lên URL |
+| 2.1 ③ | Băng cảnh báo | Hiện khi có chủ nhà thiếu HĐ đầu vào hoặc job trích xuất chưa commit |
+| 2.1 ④ | Bảng | Cột: Mã, Chủ nhà · loại, SĐT, CCCD/MST (che), Tòa, Số phòng, HĐ đầu vào, Kỳ trả gần nhất, Trạng thái, Cập nhật, action. Dòng tạo từ trích xuất có chip `Nháp · từ trích xuất` |
+| Header 2.1 | CTA | **Chính:** `Tạo từ HĐ chủ nhà`, mở UI-03 trích xuất. **Phụ:** `+ Chủ nhà`, mở wizard nhập tay |
+| 2.2 ① | Tabs | 6 tab cố định. Tab `HĐ đầu vào` và `Tòa nhà` là **dữ liệu suy ra** từ M-2.02, không nhập tay tại đây |
+| 2.2 ② | Bên A | Đổi `Loại` Cá nhân/Tổ chức thì đổi bộ trường bắt buộc (CCCD ↔ MST + người đại diện) |
+| 2.2 ③④ | Liên hệ, thanh toán | SĐT bắt buộc, chuẩn hóa. Đổi STK sau khi đã có kỳ thanh toán thì tạo bản ghi mới có ngày hiệu lực, **không sửa đè**. Thiếu STK hiện băng cảnh báo vì chặn kích hoạt HĐ |
+| 2.2 ⑤ | Nhà cho thuê | Liệt kê tòa qua HĐ đầu vào. `Thêm tòa từ HĐ` mở UI-03 trích xuất, **không gán tòa trực tiếp** |
+| 2.2 ⑥ | Hồ sơ | Chỉ giữ giấy tờ **của con người**: CCCD, ủy quyền, HĐ đã ký, phụ lục bàn giao. GCN, PCCC, HKD hiển thị dạng link sang UI-04 |
+| `⋯` | Menu phụ | `Ngừng hoạt động` bị **disable kèm tooltip** khi còn HĐ đầu vào hiệu lực (BR-2.01.6) |
 
-**Module nguồn:** M-2.01 · **Entity:** `LANDLORD`, `DOCUMENT` · **Quyền:** Admin/Kế toán toàn quyền; TPVH/Trưởng khu vực xem toàn bộ; NVVH chỉ xem chủ nhà của tòa được phân công (R-33/R-34); Cổ đông không truy cập.
+**Module nguồn:** M-2.01 · **Entity:** `LANDLORD`, `DOCUMENT` · **Quyền:**
 
-**Danh sách**
+- Admin, Kế toán: toàn quyền.
+- TPVH, Trưởng khu vực: xem toàn bộ.
+- NVVH: chỉ xem chủ nhà của tòa được phân công (R-33/R-34).
+- Cổ đông: không truy cập.
 
-- Filter: loại Cá nhân/Tổ chức, trạng thái, khu vực, tòa, nhóm T/S/G (qua tòa), có HĐ đầu vào hiệu lực, HĐ đầu vào sắp hết ≤ 6 tháng (P-23), từ khóa tên/SĐT/CCCD/MST.
-- Cột: Mã, Tên, Loại, SĐT, CCCD/MST (mask theo quyền), số tòa, số HĐ hiệu lực, kỳ trả gần nhất, trạng thái, cập nhật, action.
-- Action: `Thêm chủ nhà`, xem, sửa, ngừng hoạt động, thêm HĐ đầu vào (mở UI-03), xem các tòa, xem lịch thanh toán, upload/replace hồ sơ, export.
+**Field**
 
-**Form/chi tiết**
+| Nhóm | Field | Nguồn khi tạo từ HĐ |
+|---|---|---|
+| Nhận diện Bên A | Mã tự sinh `LL-xxxx`, loại cá nhân/tổ chức, họ tên/tên pháp nhân, CCCD/MST, ngày/nơi cấp, người đại diện/ủy quyền | Phần mở đầu HĐ |
+| Liên hệ | SĐT (bắt buộc), email, địa chỉ thường trú/trụ sở, địa chỉ liên hệ | Mở đầu: SĐT, HKTT |
+| Thanh toán | Ngân hàng, số TK, chủ TK, hiệu lực từ; lịch sử STK; kỳ trả mặc định | **Mẫu không có STK** → nhập tay |
+| Hồ sơ | CCCD, giấy ủy quyền, HĐ đã ký, phụ lục bàn giao | File HĐ |
+| Liên kết (suy ra) | Tòa, HĐ đầu vào, lịch đóng tiền | Commit trích xuất |
+| Quản trị | Trạng thái, ghi chú, nguồn tạo (job trích xuất hoặc tay), created/updated, audit | Hệ thống |
 
-| Nhóm | Field |
+**Hai cách tạo chủ nhà**
+
+1. **Tạo từ HĐ chủ nhà (chính).** Đi theo UI-03 trích xuất. Tạo cùng lúc chủ nhà, HĐ Nháp, tòa ứng viên, tài liệu, tài sản bàn giao và công tơ.
+2. **Nhập tay (phụ).** Wizard 4 bước:
+   1. Bên A và người đại diện.
+   2. Nhà đất/tòa, GCN và tài sản bàn giao.
+   3. HĐ đầu vào: Bên B, thời hạn, giá, cọc, kỳ trả.
+   4. Đính kèm file, rồi xem trước liên kết Chủ nhà → HĐ → Tòa → Phòng.
+
+   Có thể tạo chủ nhà trước, bổ sung HĐ và tòa sau. **Không** dùng OCR hợp đồng khách (UI-08) để tạo chủ nhà.
+
+**Action theo trạng thái**
+
+| Trạng thái | Action |
 |---|---|
-| Nhận diện bên cho thuê (Bên A) | Mã tự sinh `LL-0001`, loại cá nhân/tổ chức, họ tên/tên pháp nhân, CCCD/MST, ngày/nơi cấp, người đại diện/ủy quyền nếu có |
-| Liên hệ | SĐT bắt buộc, email, địa chỉ thường trú/trụ sở, địa chỉ liên hệ |
-| Thanh toán | Ngân hàng, số tài khoản, chủ tài khoản, từ ngày hiệu lực; lịch sử tài khoản |
-| Hồ sơ chủ nhà | CCCD, giấy ủy quyền, chứng từ sở hữu/quyền cho thuê; các giấy tờ pháp lý riêng của từng tòa truy cập qua liên kết tòa |
-| Tài sản cho thuê từ hợp đồng đầu vào | Địa chỉ nhà/đất, số giấy chứng nhận và cơ quan/ngày cấp nếu có, số tầng, diện tích sàn, mô tả kết cấu, mục đích thuê, tình trạng bàn giao; lưu tại hồ sơ tòa/HĐ liên kết, không nhân bản vào mọi lần sửa chủ nhà |
-| Liên kết | Bên thuê (đơn vị Timehouse/người ký đại diện), tòa, HĐ đầu vào, lịch đóng tiền, biên bản bàn giao |
-| Quản trị | Trạng thái, ghi chú, created/updated, audit |
-
-**Wizard `Thêm chủ nhà từ hợp đồng đầu vào`:** (1) nhập/kiểm tra Bên A và người đại diện; (2) khai báo nhà đất/tòa, giấy chứng nhận và tài sản bàn giao; (3) nhập HĐ đầu vào, Bên B, thời hạn/giá/cọc/kỳ trả; (4) đính kèm file HĐ, giấy tờ theo loại rồi xem trước liên kết Chủ nhà → HĐ → Tòa → Phòng. Có thể tạo chủ nhà tay trước và bổ sung HĐ/tòa sau; không dùng OCR hợp đồng khách để tự tạo chủ nhà.
-
-**Validation:** CCCD/MST và SĐT chuẩn hóa; cảnh báo trùng; mỗi tòa chỉ được liên kết HĐ đầu vào hiệu lực phù hợp khoảng thời gian; không được ngừng chủ nhà nếu còn HĐ đầu vào hiệu lực, trừ Admin có kế hoạch thay thế. Tab: Tổng quan, HĐ đầu vào, Tòa nhà, Thanh toán, Tài liệu, Lịch sử.
+| `Hoạt động` | Sửa, bổ sung STK, tải tài liệu, thêm tòa từ HĐ, mở HĐ đầu vào, xem lịch thanh toán, xuất |
+| `Hoạt động` và còn HĐ hiệu lực | `Ngừng hoạt động` bị disable kèm lý do |
+| `Ngừng hoạt động` | Chỉ xem; Admin mở lại có lý do |
 
 **Rule màn hình và truy vết**
 
@@ -589,106 +668,189 @@ Số liệu trong phác họa là **dữ liệu thật**, trích từ sổ Excel
 | Hồ sơ PCCC/sổ đỏ gắn **tòa**, không gắn chủ nhà; UI-02 chỉ hiển thị link sang UI-04 | BR-2.01.5 | Cần chốt |
 | Chặn `Ngừng hoạt động` khi còn HĐ đầu vào hiệu lực | BR-2.01.6 | Cần chốt |
 
-**Nghiệm thu màn hình:** tạo được chủ nhà cá nhân và tổ chức; trùng CCCD cảnh báo đúng; chủ nhà có 2 tòa hiển thị đủ 2 tòa kèm HĐ tương ứng; đổi STK giữ lịch sử; ngừng hoạt động bị chặn khi còn HĐ hiệu lực.
+**Nghiệm thu màn hình**
+
+1. Danh sách hiện 7 chủ nhà theo Seed §17.5. Dòng Phí Văn Thắng có chip `Nháp · từ trích xuất`. 6 chủ nhà thiếu HĐ hiện `—` ở các trường chưa khai báo, không có số bịa.
+2. CCCD và SĐT hiển thị dạng che, giữ 3 số cuối.
+3. Chi tiết Phí Văn Thắng có đủ ngày cấp 19/04/2021 và nơi cấp Hà Nội. Băng cảnh báo thiếu STK hiện ở đầu trang.
+4. Tạo chủ nhà trùng CCCD thì modal `Dùng bản ghi có sẵn / Vẫn tạo` xuất hiện.
+5. Đổi STK thì bản ghi cũ vẫn còn trong lịch sử.
+6. `Ngừng hoạt động` bị chặn khi còn HĐ hiệu lực.
 
 ### UI-03 — Hợp đồng đầu vào
 
-**Phác họa màn hình**
+**Mục đích:** ghi nhận HĐ thuê nguyên tòa. Màn này là căn cứ tạo tòa, sinh lịch đóng tiền cho chủ nhà và phân bổ tiền thuê.
+
+**Route:**
+
+- `#/landlords/import`: trích xuất, route đề xuất.
+- `#/landlords/:id?tab=head-leases`: danh sách HĐ trong tab của chủ nhà. Có thêm màn tổng hợp lịch trả theo kỳ đến hạn, xem ở UI-28.
+- `#/head-leases/:id`: chi tiết HĐ, route đề xuất.
+
+**Mockup:** [`UI-03-head-lease-extract-verified.png`](ui-imagegen-v1/02-nguon-nha-toa-phong/UI-03-head-lease-extract-verified.png), [`UI-03-head-lease-verified.png`](ui-imagegen-v1/02-nguon-nha-toa-phong/UI-03-head-lease-verified.png).
+
+**Phác họa 3.1 — Trích xuất HĐ chủ nhà** (job riêng, **tách khỏi OCR hợp đồng khách UI-08**)
 
 ```text
-┌ HĐ đầu vào / HL-0031 · Tòa T42 ──── [Kích hoạt] [Gia hạn] [⋯] ┐
-│ Hiệu lực · 01/10/2026 → 30/09/2031 (60 th) · 114.000.000 đ/th  │
-├────────────────────────────────────────────────────────────────┤
-│ ① Tổng quan │ Lịch đóng tiền │ Tòa/Phân bổ │ Pháp lý │ Lịch sử  │
-├────────────────────────────────────────────────────────────────┤
-│ ② CÁC BÊN     Bên A: LL-0001 ▸ · Bên B: Timehouse / người ký ▾ │
-│ ③ ĐỐI TƯỢNG   Địa chỉ nhà đất ______ · GCN số ______           │
-│               Số tầng __ · DT sàn ___ m² · Mục đích cho thuê   │
-│ ④ THỜI GIAN   Ngày ký __ · Giao nhà __ · Bắt đầu tính tiền __  │
-│               Từ ____ → Đến ____ · Thời hạn 60 tháng           │
-│ ⑤ GIÁ         Tiền thuê/th 114.000.000 · Giữ giá 24 th         │
-│               Lịch tăng giá [+5% từ 01/10/2028]  [Thêm mốc]    │
-│               Tháng miễn 1 th từ 01/10/2026                    │
-│ ⑥ CỌC         114.000.000 · trả 25/09/2026 · dự kiến hoàn ___  │
-│               ⓘ Theo dõi riêng, KHÔNG ghi chi phí (BR-2.02.10) │
-│ ⑦ THANH TOÁN  Kỳ trả [3 tháng ▾] · Đến hạn ngày 01–10          │
-│               STK nhận: ... (đọc từ hồ sơ chủ nhà)             │
-├────────────────────────────────────────────────────────────────┤
-│ ⑧ LỊCH ĐÓNG TIỀN CHỦ NHÀ                      [Sinh lại lịch]  │
-│ Kỳ│ Từ–Đến      │ Đến hạn   │ Phải trả    │Đã trả│Trạng thái   │
-│ 1 │10–12/2026   │10/10/2026 │228.000.000  │  0   │Sắp đến hạn  │
-│ 2 │01–03/2027   │10/01/2027 │342.000.000  │  0   │Chưa đến hạn │
-│   └▸ ⑨ Phần cổ đông: A 40% = 91.200.000 · B 35% · C 25%        │
-├────────────────────────────────────────────────────────────────┤
-│ ⑩ PHÂN BỔ NHIỀU TÒA (khi 1 HĐ gắn n tòa)        Tổng: 100,0 %  │
-│  S19A 40% = 45.600.000 │ S19B 35% │ S19C 25%   [Đổi tỷ lệ]     │
-└────────────────────────────────────────────────────────────────┘
+┌ Trích xuất HĐ chủ nhà ● Đang review ───── [Validate] [🔒 Commit · còn 3 xung đột] ┐
+│ ● Upload ━ ● Trích xuất ━ ③ Review ─ ④ Validate ─ ⑤ Commit                       │
+├──────────────┬─────────────────────────────────────┬─────────────────────────────┤
+│ ① TỆP & TRANG│ ② NHÓM TRƯỜNG THEO ĐIỀU             │ ③ TỔNG HỢP                  │
+│ [◂ 3/9 ▸]    │ Trường │ Nguyên văn HĐ │ Chuẩn hóa  │ Đọc được 17 · Cảnh báo 8    │
+│ ┌──────────┐ │ ▾ Bên A — chủ nhà · Mở đầu → Create │ Xung đột chặn 3 · PL 13     │
+│ │ Đ.4.1    │ │ ✓ Họ tên  PHÍ VĂN THẮNG  Phí Văn…  │ ④ XUNG ĐỘT CHỌN TRƯỚC        │
+│ │▓114.000.▓│ │ △ TK nhận  —         Mẫu không có  │ ✕1 Ngày thuê để trống        │
+│ │ Đ.5.1    │ │ ▾ Bên B · Mở đầu → Xác nhận         │   [Nhập ngày][Lưu nháp]     │
+│ │▓/tháng ▓ │ │ ✕ Họ tên  NGUYỄN ĐÌNH CHUNG  cá nhân│ ✕2 Cọc ghi "/tháng"         │
+│ └──────────┘ │ ▾ Nhà đất Đ.1 · Thời hạn Đ.2 · Mục  │   [114.000.000 · một lần]   │
+│ Raw ·        │   đích Đ.3 · Tiền Đ.4 · Cọc Đ.5 ·   │ ✕3 Bên B là cá nhân         │
+│ Chuẩn hóa ·  │   Nghĩa vụ Đ.6/7/10 · PL bàn giao · │   [Ký thay Timehouse]       │
+│ Trang/vùng   │   PL góp vốn 3 bên (Làm sau)        │ ⑤ CẢNH BÁO · KẾT QUẢ COMMIT │
+└──────────────┴─────────────────────────────────────┴─────────────────────────────┘
+```
+
+**Phác họa 3.2 — Chi tiết HĐ đầu vào** (sau commit, trạng thái Nháp)
+
+```text
+┌ HĐ đầu vào HL-0031 ● Nháp ──────────────── [Gia hạn ⨯] [Bổ sung & kích hoạt] ┐
+│ Phí Văn Thắng → 25A Phú Diễn · 60 tháng · 114.000.000 đ/tháng · kỳ 3 th/lần  │
+│ ① Tổng quan │ Lịch đóng tiền │ Tòa/Phân bổ │ Pháp lý │ Điều khoản │ Lịch sử  │
+│ ✕ Chưa kích hoạt được: thiếu ngày (Đ.2) · thiếu STK chủ nhà · Bên B cá nhân  │
+├─────────────────────────┬─────────────────────────┬──────────────────────────┤
+│ ② CÁC BÊN               │ ③ ĐỐI TƯỢNG · Đ.1, Đ.3  │ ④ THỜI GIAN · Đ.2        │
+│ A Phí Văn Thắng ▸       │ Số 25A Ngõ 261 Phú Diễn │ Ngày ký        △ trống   │
+│ B Nguyễn Đình Chung     │ GCN          △ trống    │ Giao nhà       △ trống   │
+│   △ cá nhân             │ Số tầng/DT   △ trống    │ Tính tiền = ngày bắt đầu │
+│ Ký thay △ chờ ủy quyền  │ Gạch–bê tông · toàn bộ  │ Từ → đến       △ trống   │
+│                         │ Kinh doanh cho thuê     │ 60 tháng · báo trước 3 th│
+├─────────────────────────┼─────────────────────────┼──────────────────────────┤
+│ ⑤ GIÁ · Đ.4             │ ⑥ CỌC · Đ.5             │ ⑦ THANH TOÁN · Đ.4.4     │
+│ 114.000.000 đ/tháng     │ 114.000.000 · một lần   │ 3 tháng/lần              │
+│ Giữ giá/tăng giá: không │ Nguyên văn "đồng/tháng" │ Hạn ngày 01–10 tháng đầu │
+│ Gia hạn: theo thị trường│ ⓘ theo dõi riêng, KHÔNG │ CK hoặc tiền mặt         │
+│ Thuế nhà đất: bên A     │   ghi chi phí           │ STK △ hồ sơ chủ nhà chưa │
+├─────────────────────────┴─────────────────────────┴──────────────────────────┤
+│ ⑧ LỊCH ĐÓNG TIỀN  🔒 Chưa sinh được — cần ngày bắt đầu (Đ.2.2)                │
+│    Khi có ngày: 60 ÷ 3 = 20 kỳ × 342.000.000 · hạn 01–10    [Nhập ngày BĐ]   │
+├──────────────────────────────────────────────┬───────────────────────────────┤
+│ ĐIỀU KHOẢN RỦI RO (nguyên văn)               │ ⑨ PHẦN CỔ ĐÔNG  ○ Làm sau     │
+│ 6.2·10.2 chậm 1 tháng → A lấy nhà  ✕ cao     │ Bật khi có module UI-29.      │
+│ 6.1 phạt A 3 tháng thuê   △ lệch 10.4        │ Đ.7.2 Phụ lục góp vốn 3 bên   │
+│ 10.4 phạt A 3 lần cọc     △ lệch 6.1         │ → loại tài liệu riêng         │
+│ PL II ≠ 7.1 hao mòn       △ lệch             │ ● Commit ● Nháp ○ Kích hoạt   │
+└──────────────────────────────────────────────┴───────────────────────────────┘
+ ⑩ Tab Tòa/Phân bổ: HL-0031 → 25A Phú Diễn 100 %. HĐ gắn n tòa thì bắt buộc tổng = 100 %
 ```
 
 **Chú giải vùng và chức năng**
 
 | Vùng | Thành phần | Chức năng chi tiết |
 |---|---|---|
-| ② | Các bên | Bên A đọc từ UI-02; Bên B là đơn vị Timehouse và người ký đại diện, có giấy ủy quyền nếu cần |
-| ③ | Đối tượng thuê | Thông tin nhà đất theo mẫu HĐ; lưu tại hồ sơ tòa/HĐ, **không nhân bản** mỗi lần sửa chủ nhà |
-| ④ | Thời gian | `Ngày giao nhà` và `Ngày bắt đầu tính tiền` tách riêng vì thường lệch nhau do thời gian cải tạo |
-| ⑤ | Giá | `Giữ giá` = số tháng chủ nhà không được tăng giá. Lịch tăng giá có ngày hiệu lực; kỳ **chưa trả** sau ngày đó tự tính lại (BR-2.02.13) |
-| ⑥ | Cọc chủ nhà | Có băng ghi chú cố định nhắc đây là khoản theo dõi, là cơ sở trình bày Vốn ở bảng cổ phần |
-| ⑦ | Thanh toán | Kỳ trả 3/4/6 tháng + khoảng ngày đến hạn → đầu vào sinh lịch ở ⑧ |
-| ⑧ | Lịch đóng tiền | Sinh tự động; kế toán sửa từng kỳ có lý do nhưng **không sửa kỳ đã trả**. Số tiền kỳ = tiền thuê × số tháng − tháng miễn nằm trong kỳ |
-| ⑨ | Phần cổ đông | Bung theo từng kỳ: số phải góp = % hiệu lực **tại ngày đến hạn** × số tiền kỳ; % đổi sau đó không tính lại kỳ đã đóng |
-| ⑩ | Phân bổ nhiều tòa | Bắt buộc tổng = 100%; **chặn kích hoạt** nếu tổng phân bổ ≠ tiền thuê (BR-2.02.2 → P-15) |
-| Nhắc hạn | Thông báo | Trước 15/7/1 ngày cho kế toán + admin, cổ đông nhận qua UI-29; quá hạn hiện cảnh báo đỏ trên UI-01 |
+| 3.1 ① | Tệp & trang | Giữ file gốc và vị trí trang/vùng làm bằng chứng. Chọn một trường ở ② thì vùng tương ứng trên file được tô sáng: xanh là đọc được, đỏ là xung đột |
+| 3.1 ② | Nhóm trường theo Điều | Mỗi dòng có: nguyên văn, chuẩn hóa/đích, dấu ✓ △ ✕. Mỗi nhóm có quyết định `Create / Link / Ignore`. Dò trùng chủ nhà theo CCCD → SĐT → tên |
+| 3.1 ③ | Tổng hợp | Bộ đếm: đọc được / cảnh báo / xung đột chặn / số tài sản phụ lục |
+| 3.1 ④ | Xung đột chặn | Mỗi xung đột là **lựa chọn bắt buộc** có nút; hệ thống không tự chọn. Nút `Commit` disable kèm tooltip liệt kê xung đột còn lại |
+| 3.1 ⑤ | Cảnh báo, kết quả commit | Cảnh báo không chặn: chậm trả → lấy nhà (đỏ), hai mức phạt lệch, hao mòn lệch, trường trống. Liệt kê entity sẽ tạo: 1 chủ nhà, 1 HĐ Nháp, 1 tòa, 3 tài liệu, 11 tài sản, 2 công tơ, **0 phòng** |
+| 3.2 header | Alert kích hoạt | Liệt kê **mọi** điều kiện kích hoạt còn thiếu (xem bảng điều kiện của chuỗi) |
+| 3.2 ② | Các bên | Bên A đọc từ UI-02. Bên B là đơn vị Timehouse và người ký có ủy quyền. Mẫu ghi Bên B là cá nhân thì phải xác nhận người ký thay |
+| 3.2 ③④ | Đối tượng, thời gian | Trường trống trên HĐ hiện `△ trống`, không điền mặc định. `Ngày giao nhà` và `Ngày bắt đầu tính tiền` là 2 trường. Mẫu gộp thì tính tiền = ngày bắt đầu |
+| 3.2 ⑤ | Giá | `Giữ giá` = số tháng chủ nhà không được tăng giá. Lịch tăng giá có ngày hiệu lực; kỳ **chưa trả** sau ngày đó tự tính lại (BR-2.02.13). Mẫu không có thì ghi "không có trên HĐ" |
+| 3.2 ⑥ | Cọc chủ nhà | Băng ghi chú cố định: khoản theo dõi, **không ghi chi phí**. Đây là cơ sở trình bày Vốn ở bảng cổ phần (làm sau) |
+| 3.2 ⑦ | Thanh toán | Kỳ trả 3/4/6 tháng cộng khoảng ngày đến hạn là đầu vào sinh lịch ở ⑧ |
+| 3.2 ⑧ | Lịch đóng tiền | Chưa có ngày bắt đầu thì hiện trạng thái khóa kèm công thức dự kiến. Kích hoạt xong thì sinh tự động. Kế toán sửa từng kỳ có lý do, **không sửa kỳ đã trả** |
+| 3.2 rủi ro | Điều khoản | Lưu nguyên văn, gắn mức (rủi ro cao / lệch / lưu), **không** biến thành rule chung |
+| 3.2 ⑨ | Phần cổ đông | **Làm sau.** Khi có module: số phải góp = % hiệu lực **tại ngày đến hạn** × số tiền kỳ |
+| ⑩ | Phân bổ nhiều tòa | Tổng phải bằng 100 %; **chặn kích hoạt** nếu tổng phân bổ ≠ tiền thuê (BR-2.02.2 → P-15) |
+| Nhắc hạn | Thông báo | Nhắc trước 15/7/1 ngày cho kế toán và admin; quá hạn cảnh báo đỏ trên UI-01 |
 
-**Bố cục:** danh sách HĐ trong tab chủ nhà và màn tổng hợp theo kỳ đến hạn; chi tiết hai cột có timeline trạng thái và lịch thanh toán.
+**Các bước trích xuất HĐ chủ nhà**
+
+| Bước | Nội dung |
+|---|---|
+| Upload | File `.doc/.docx/.pdf`/ảnh; lưu hash — upload trùng hash mở lại job cũ |
+| Trích xuất | Đọc lớp chữ (hoặc OCR nếu là scan) → đề xuất trường theo Điều 1–12 và Phụ lục I–II; giữ trang/vùng làm bằng chứng |
+| Review | Bố cục 3 vùng như phác họa 3.1; quyết định theo nhóm; dò trùng chủ nhà |
+| Validate | Xung đột **chặn commit** phải được chọn hướng xử lý; cảnh báo không chặn được ghi nhận để bổ sung sau |
+| Commit | Một transaction: 1 chủ nhà, 1 HĐ đầu vào **Nháp**, 1 tòa **Chuẩn bị**, tài liệu (HĐ đã ký, phụ lục bàn giao, CCCD), tài sản bàn giao của chủ nhà (UI-27) và công tơ cấp tòa (UI-04). **Không tạo phòng** |
+
+**Xung đột chặn commit với mẫu tùng sói:**
+
+1. Ngày giao nhà và "từ … đến …" để trống, nên chưa sinh được lịch trả.
+2. Cọc ghi "114.000.000 đồng/tháng", trong khi cọc là khoản một lần.
+3. Bên B ký là **cá nhân**, cần xác nhận người ký thay Timehouse hoặc giấy ủy quyền.
 
 **Field**
 
 | Nhóm | Field/Quy tắc |
 |---|---|
-| Nhận diện | Số HĐ, chủ nhà, 1..n tòa, trạng thái, HĐ trước/sau |
+| Nhận diện | Số HĐ, chủ nhà, 1..n tòa, trạng thái, HĐ trước/sau, job trích xuất nguồn |
 | Các bên | Bên A chủ nhà/người đại diện, Bên B đơn vị thuê/người ký, thông tin định danh/liên hệ và giấy ủy quyền nếu có |
 | Đối tượng thuê | Địa chỉ nhà đất, quyền sở hữu/quyền cho thuê, số giấy chứng nhận/cơ quan cấp/ngày cấp, số tầng/diện tích sàn/kết cấu, mục đích kinh doanh cho thuê, tài sản theo phụ lục |
-| Thời gian | Ngày ký, ngày giao nhà, ngày bắt đầu tính tiền, bắt đầu/kết thúc, thời hạn tháng, thời điểm thông báo/ưu tiên gia hạn; cảnh báo sắp hết mặc định 6 tháng |
+| Thời gian | Ngày ký (mốc hiệu lực, Đ.12.1), ngày giao nhà, ngày bắt đầu tính tiền, bắt đầu/kết thúc, thời hạn tháng, thời điểm thông báo/ưu tiên gia hạn; cảnh báo sắp hết mặc định 6 tháng |
 | Giá | Tiền thuê/tháng, giữ giá, lịch tăng giá (% hoặc tiền, effective date), tháng miễn, giảm giá |
 | Cọc | Số cọc, ngày/hình thức trả, điều kiện hoàn/khấu trừ, dự kiến hoàn, chứng từ; không ghi chi phí |
 | Thanh toán | Chu kỳ và khoảng ngày đến hạn theo HĐ (mẫu: 3 tháng/lần, ngày 01–10 tháng đầu kỳ), chuyển khoản/tiền mặt, tài khoản nhận, lịch sinh tự động |
 | Nghĩa vụ và điều khoản | Bên chịu thuế/phí, PCCC, đăng ký kinh doanh, sửa chữa/nâng cấp, bàn giao, gia hạn, chấm dứt trước hạn/bồi thường; lưu text/ảnh nguồn và các mốc cần theo dõi, không biến điều khoản mẫu thành rule chung |
 | Phân bổ nhiều tòa | Mặc định theo số phòng; override tỷ lệ/số tiền theo phụ lục, tổng 100%, có ngày hiệu lực |
 | Phân loại | T/S/G và L1/L2/L3 đề xuất, ngày hiệu lực, người xác nhận |
-| Pháp lý & chứng từ | Giấy chứng nhận nhà đất, hồ sơ PCCC + hạn, giấy đăng ký HKD, file HĐ đã ký, phụ lục, biên bản kiểm kê/bàn giao tài sản, ủy quyền và minh chứng khác; gắn loại, tòa, người tải, phiên bản, trạng thái xác minh |
+| Pháp lý & chứng từ | Giấy chứng nhận nhà đất, hồ sơ PCCC + hạn, giấy đăng ký HKD, file HĐ đã ký, phụ lục, biên bản kiểm kê/bàn giao tài sản, ủy quyền, **phụ lục góp vốn 3 bên (làm sau)** và minh chứng khác; gắn loại, tòa, người tải, phiên bản, trạng thái xác minh |
 | Nguồn | Nhân viên nguồn, ngày tìm, ghi chú |
 
-**Bảng lịch đóng tiền:** kỳ số, từ–đến tháng, đến hạn, phải trả, đã trả, còn lại, trạng thái, chứng từ, phần nghĩa vụ từng cổ đông.
-
-**Tạo từ mẫu chủ nhà:** form gợi ý cấu trúc theo Điều 1–12 và phụ lục bàn giao của `.doc`, nhưng mọi giá trị ví dụ đều để trống khi tạo hồ sơ mới. Cho phép tải HĐ gốc và nhập/đối chiếu thủ công; nếu bổ sung OCR HĐ đầu vào trong tương lai thì dùng job riêng với OCR hợp đồng khách.
-
-**Bản đồ trường theo từng Điều của hợp đồng chủ nhà** — lập từ mẫu thật `Hợp đồng thuê nhà 2026(Mẫu) tùng sói.doc`. Đây là **nhập tay có đối chiếu**, không qua OCR ở Phase 1.
+**Bản đồ trường theo từng Điều của hợp đồng chủ nhà** — lập từ mẫu thật `Hợp đồng thuê nhà 2026(Mẫu) tùng sói.doc`; là đích của job trích xuất. Cột Điều là neo để reviewer mở đúng trang trên file gốc.
 
 | Điều | Trường trên hợp đồng | Đích trong hệ thống |
 |---|---|---|
-| Mở đầu | Ngày ký · địa chỉ ký · Bên A (họ tên, CCCD, cấp ngày, nơi cấp, ĐT, HKTT) · Bên B (tương tự) | `LANDLORD` (UI-02) + Bên B là đơn vị Timekeeper/người ký |
+| Mở đầu | Ngày ký · địa chỉ ký · Bên A (họ tên, CCCD, cấp ngày, nơi cấp, ĐT, HKTT) · Bên B (tương tự) | `LANDLORD` (UI-02) + Bên B là đơn vị Timehouse/người ký. **Mẫu thật ghi Bên B là cá nhân** (không có tên pháp nhân, chức vụ) → xung đột chặn commit |
 | 1 | Địa chỉ nhà đất · số Giấy chứng nhận · cơ quan cấp · ngày cấp · số tầng · diện tích mặt sàn · kết cấu · **dẫn chiếu biên bản kiểm kê tài sản kèm theo** | Nhóm `Đối tượng thuê` + hồ sơ tòa (UI-04) |
 | 2.1 | Thời điểm giao nhà | `Ngày giao nhà` |
-| 2.2 | Thời hạn (05 năm = 60 tháng) · từ ngày · đến ngày | `Thời hạn`, `Từ–Đến`; là mẫu số khấu hao cải tạo ở UI-27 |
+| 2.2 | Thời hạn (05 năm = 60 tháng) · từ ngày · đến ngày · **gộp ngày bắt đầu tính tiền** | `Thời hạn`, `Từ–Đến`; là mẫu số khấu hao cải tạo ở UI-27. Mẫu không có trường ngày tính tiền riêng → mặc định = ngày bắt đầu |
 | 2.3 | **Báo trước 03 tháng** để thương lượng gia hạn · quyền ưu tiên thuê tiếp · giá sẽ thay đổi | `Điều khoản gia hạn`; đối chiếu với ngưỡng cảnh báo mặc định 6 tháng (P-23) |
 | 3 | Mục đích thuê: **kinh doanh cho thuê** | Căn cứ yêu cầu đăng ký hộ kinh doanh |
 | 4.1 | Tiền thuê/tháng · **bên A chịu thuế nhà đất và thuế TNCN** · **bên B trả phí dịch vụ cho NCC** | Tiền thuê/tháng; nhóm `Nghĩa vụ và điều khoản` — quyết định khoản nào là chi phí của Timehouse |
+| 4.2 | Hết hạn/gia hạn thì giá điều chỉnh theo thị trường | Ghi chú cạnh `Lịch tăng giá` (trống) |
+| 4.3 | Bên A bảo đảm bên B không phải trả thêm khoản nào ngoài tiền thuê | Điều khoản chi phí |
 | 4.4 | **Kỳ trả 03 tháng/lần** · **khoảng ngày đến hạn 01–10 của tháng đầu kỳ** · hình thức CK hoặc tiền mặt | Sinh lịch đóng tiền chủ nhà |
-| 5.1 | Cọc chủ nhà (= 1 tháng tiền thuê) · trả bằng tiền mặt ngay sau khi ký | `Cọc`, theo dõi riêng, **không ghi chi phí** |
-| 5.2 | **04 trường hợp được hoàn cọc** | Điều khoản hoàn cọc |
+| 5.1 | Cọc chủ nhà (= 1 tháng tiền thuê, mẫu ghi "đồng/tháng") · trả bằng tiền mặt ngay sau khi ký | `Cọc`, theo dõi riêng, **không ghi chi phí** |
+| 5.2 · 5.3 | **04 trường hợp được hoàn cọc** · bên A không được tự ý khấu trừ/tịch thu cọc | Điều khoản hoàn cọc |
 | 6.1 | **Bên A trang bị hệ thống PCCC và hồ sơ PCCC** · **bên A thực hiện đăng ký kinh doanh và nộp thuế** · cho phép bên B cải tạo (không đụng kết cấu, cần chấp thuận bằng văn bản) · bồi thường 03 tháng tiền thuê nếu bên A hủy HĐ | Gán **trách nhiệm** cho trạng thái PCCC và HKD ở UI-04; điều khoản cải tạo là căn cứ ghi nhận đầu tư ban đầu ở UI-27 |
-| 6.2 / 10.2 | **Chậm thanh toán 01 tháng → bên A có quyền lấy nhà** | Rủi ro vận hành cao nhất của HĐ đầu vào → cảnh báo đỏ trên lịch đóng tiền và trên UI-01 |
-| 7.x | **Thay đổi nhân sự quản lý hoặc người góp vốn → ký lại HĐ hoặc thêm Phụ lục 3 bên người góp vốn** | **Đây là nguồn khai báo cổ đông ban đầu của tòa** → liên kết UI-29; lưu thành loại tài liệu riêng |
+| 6.2 · 10.2 | **Chậm thanh toán 01 tháng → bên A có quyền lấy nhà** · bên B đem nhà thế chấp → bên A được chấm dứt, bồi thường ≥ 03 tháng tiền thuê | Rủi ro vận hành cao nhất → cảnh báo đỏ trên lịch đóng tiền và trên UI-01 |
+| 7.2 | Bên B được chấm dứt **không bị phạt** khi thiên tai, dịch bệnh, chiến tranh · **đổi nhân sự quản lý hoặc người góp vốn → ký lại HĐ hoặc thêm Phụ lục 3 bên người góp vốn** | Điều khoản chấm dứt · phụ lục góp vốn lưu thành loại tài liệu riêng, liên kết UI-29 (**làm sau**) |
 | 10.4 | Bồi thường chấm dứt sớm: **gấp 03 lần tiền cọc** cho cả hai chiều | Điều khoản chấm dứt |
-| 12.2 | Số trang · số bản | Metadata |
-| Phụ lục | **Biên bản bàn giao tài sản**: STT · tên tài sản · số lượng · tình trạng (điều hòa, bình nóng lạnh, thiết bị vệ sinh, cửa, bóng điện, **công tơ điện**, **đồng hồ nước**, hệ thống báo cháy…) | Tài sản của tòa (UI-27); công tơ điện/nước là căn cứ tạo `METER` cấp tòa ở UI-04 |
+| 12.1 · 12.2 | Hiệu lực từ ngày ký · số trang · số bản | `Ngày ký` là mốc hiệu lực · metadata |
+| Phụ lục I–II | **Biên bản bàn giao tài sản**: STT · tên tài sản · số lượng · tình trạng (điều hòa, bình nóng lạnh, thiết bị vệ sinh, cửa, bóng điện, **công tơ điện**, **đồng hồ nước**, hệ thống báo cháy…) · cam kết trả lại tài sản | Tài sản bàn giao của chủ nhà (UI-27); công tơ điện/nước là căn cứ tạo `METER` cấp tòa ở UI-04 |
 
-**Trường hệ thống có nhưng mẫu `.doc` không có** — UI phải để trống và **không suy diễn**: `Thời gian giữ giá`, `Lịch tăng giá`, `Tháng miễn tiền nhà`, `Phân bổ tiền thuê cho nhiều tòa`, `Nhóm T/S/G`, `Hạng L1–L3`, `Phí môi giới`. Đây là tham số vận hành của Timehouse, thỏa thuận ngoài văn bản mẫu hoặc ghi ở phụ lục riêng; người nhập tự điền và hệ thống ghi audit.
+**Mâu thuẫn nội tại của mẫu — hiển thị cảnh báo, không tự chọn:**
 
-**Action theo trạng thái:** Lưu nháp; kích hoạt; tạo lịch; ghi nhận trả; tải chứng từ; điều chỉnh lịch; gia hạn bằng HĐ mới; thanh lý sớm; kết thúc. Nhắc mặc định **ASSUMED** 15/7/1 ngày và cho phép override từng HĐ.
+- (a) Phạt bên A khi chấm dứt: **03 tháng tiền thuê** (6.1) ≠ **03 lần tiền cọc** (10.4).
+- (b) Trả tài sản: Phụ lục II "**không tính hao mòn**" ≠ Điều 7.1 "**trừ hao mòn theo thời gian**".
+- (c) Điều 5.1 ghi cọc "đồng/**tháng**".
 
-**State:** `Nháp → Hiệu lực → Sắp hết → Kết thúc`; nhánh `Hiệu lực/Sắp hết → Thanh lý sớm → Kết thúc`. Kỳ trả: `Chưa đến hạn → Sắp đến hạn (≤15 ngày) → Đã trả/Trả một phần/Quá hạn`.
+Mẫu cũng **không có** tài khoản ngân hàng của chủ nhà, người đại diện/ủy quyền và ngày sinh các bên. Các trường này bổ sung ở UI-02 trước khi kích hoạt.
+
+**Trường hệ thống có nhưng mẫu `.doc` không có.** UI phải để trống và **không suy diễn**:
+
+- `Thời gian giữ giá`, `Lịch tăng giá`, `Tháng miễn tiền nhà`.
+- `Phân bổ tiền thuê cho nhiều tòa`.
+- `Nhóm T/S/G`, `Hạng L1–L3`.
+- `Phí môi giới`.
+
+Đây là tham số vận hành của Timehouse, được thỏa thuận ngoài văn bản mẫu hoặc ghi ở phụ lục riêng. Người nhập tự điền và hệ thống ghi audit.
+
+**Action theo trạng thái**
+
+| Trạng thái | Action |
+|---|---|
+| `Nháp` | Sửa, bổ sung trường trống, tải chứng từ, `Bổ sung & kích hoạt` (disable khi còn thiếu điều kiện). `Gia hạn` disable |
+| `Hiệu lực` | Ghi nhận trả, điều chỉnh lịch có lý do, tải chứng từ, gia hạn bằng HĐ mới, thanh lý sớm |
+| `Sắp hết` | Như `Hiệu lực`, kèm cảnh báo mặc định 6 tháng (P-23) |
+| `Kết thúc` | Chỉ xem |
+
+Nhắc mặc định **ASSUMED** 15/7/1 ngày, cho phép override từng HĐ.
+
+**State:**
+
+- HĐ: `Nháp → Hiệu lực → Sắp hết → Kết thúc`, có nhánh `Hiệu lực/Sắp hết → Thanh lý sớm → Kết thúc`.
+- Kỳ trả: `Chưa đến hạn → Sắp đến hạn (≤15 ngày) → Đã trả/Trả một phần/Quá hạn`.
 
 **Cách UI dựng lịch đóng tiền** (mỗi dòng = 1 kỳ trả, entity `HEAD_LEASE_PAYMENT_SCHEDULE`)
 
@@ -698,9 +860,12 @@ Số liệu trong phác họa là **dữ liệu thật**, trích từ sổ Excel
 | Ngày đến hạn | Ngày cuối của khoảng đến hạn trong tháng đầu kỳ (mẫu: ngày 10) |
 | Số tiền phải trả | Tiền thuê/tháng × số tháng trong kỳ − **tháng miễn nằm trong kỳ** |
 | Đã trả · Còn lại · Chứng từ | Ghi từ phiếu chi ở UI-28 |
-| Phần từng cổ đông | Số tiền kỳ × % cổ phần **hiệu lực tại ngày đến hạn**; % đổi sau đó không tính lại kỳ đã đóng |
+| Phần từng cổ đông | **Làm sau** — số tiền kỳ × % cổ phần **hiệu lực tại ngày đến hạn**; % đổi sau đó không tính lại kỳ đã đóng |
 
-Ví dụ kiểm thử: HĐ 114.000.000đ/tháng, 60 tháng, trả 3 tháng/lần, miễn 1 tháng đầu → kỳ 1 (10–12/2026) = 228.000.000đ hạn 10/10/2026; kỳ 2 (01–03/2027) = 342.000.000đ hạn 10/01/2027; cổ đông giữ 40% thấy phần đóng kỳ 1 = 91.200.000đ.
+Ví dụ kiểm thử:
+
+- **Mẫu tùng sói.** 114.000.000 đ/tháng, 60 tháng, trả 3 tháng/lần, không có tháng miễn. Kết quả: 20 kỳ, mỗi kỳ 342.000.000 đ, hạn ngày 10 tháng đầu kỳ. Lịch chỉ sinh sau khi có ngày bắt đầu.
+- **Rule tháng miễn (minh họa).** Cùng HĐ nhưng miễn 1 tháng đầu. Kỳ 1 = 228.000.000 đ, kỳ 2 = 342.000.000 đ.
 
 **Rule màn hình và truy vết**
 
@@ -711,7 +876,7 @@ Ví dụ kiểm thử: HĐ 114.000.000đ/tháng, 60 tháng, trả 3 tháng/lần
 | Lịch đóng tiền sinh tự động; kế toán sửa từng kỳ có lý do; **không sửa kỳ đã trả** | BR-2.02.3 | Cần chốt |
 | Tháng miễn: màn này chỉ lưu dữ liệu; CF ghi 0, AC thẳng hàng do UI-28 tính | BR-2.02.4, R-27 | Cần chốt |
 | Nhắc hạn trả chủ nhà trước 15/7/1 ngày; quá hạn cảnh báo đỏ trên UI-01 | BR-2.02.5 → **P-23** | Cần chốt |
-| Phần đóng cổ đông = tiền kỳ × % tại ngày đến hạn | BR-2.02.6, R-31 | Đã chốt |
+| Phần đóng cổ đông = tiền kỳ × % tại ngày đến hạn (**hiển thị khi có module Cổ đông**) | BR-2.02.6, R-31 | Đã chốt |
 | Nhóm T/S/G do HĐ đề xuất → người dùng xác nhận → ghi `BUILDING_TYPE_HISTORY` có ngày hiệu lực, không ghi đè lịch sử | BR-2.02.7, D-02 | Đã chốt |
 | HKD chuyển `Đã đăng ký` chỉ khi có tài liệu đúng loại gắn đúng HĐ/tòa; gỡ file không tự đổi trạng thái | BR-2.02.8 | Đã chốt |
 | PCCC = Không → cảnh báo trên hồ sơ tòa, **không chặn** nghiệp vụ | BR-2.02.9 | Cần chốt |
@@ -719,80 +884,145 @@ Ví dụ kiểm thử: HĐ 114.000.000đ/tháng, 60 tháng, trả 3 tháng/lần
 | Kết thúc sớm → tòa `Ngừng khai thác`, mọi phòng phải hết HĐ thuê; khấu hao còn lại xử lý ở UI-27 | BR-2.02.11, R-28 | Cần chốt |
 | Gia hạn = HĐ mới liên kết HĐ trước; **không sửa ngày kết thúc HĐ cũ** | BR-2.02.12 | Cần chốt |
 | Lịch tăng giá có ngày hiệu lực; kỳ chưa trả sau ngày đó tự tính lại | BR-2.02.13 | Cần chốt |
+| Trích xuất HĐ chủ nhà: giá trị trống giữ trống; commit là một transaction; upload trùng hash mở lại job cũ | Spec 1.8 | ASSUMED |
+
+**Nghiệm thu màn hình**
+
+1. Upload mẫu tùng sói thì job hiện 29 trường theo 10 nhóm, 3 xung đột chặn và 8 cảnh báo. Nút `Commit` bị khóa cho tới khi chọn xong 3 xung đột.
+2. Sau commit, UI-02 có chủ nhà Phí Văn Thắng. HĐ HL-0031 ở trạng thái Nháp. Tòa 25A Phú Diễn ở trạng thái Chuẩn bị. Có 13 dòng phụ lục ở UI-27 và **0 phòng**.
+3. HĐ Nháp không kích hoạt được khi còn thiếu ngày, STK hoặc người ký. Alert liệt kê đủ ba điều kiện.
+4. Nhập ngày bắt đầu và kích hoạt thì lịch sinh 20 kỳ × 342.000.000 đ, hạn ngày 10.
+5. Các điều khoản 6.1, 6.2, 10.2, 10.4 và PL II hiện nguyên văn kèm mức cảnh báo.
+6. ⑨ hiện `Làm sau`.
 
 ### UI-04 — Tòa nhà
 
-**Phác họa màn hình**
+**Mục đích:** hồ sơ vận hành của một tòa: phân loại, thu tiền, công tơ, hồ sơ pháp lý và chỉ số báo cáo. **Route:** `#/buildings`, `#/buildings/:id`. **Mockup:** [`UI-04-building-verified.png`](ui-imagegen-v1/02-nguon-nha-toa-phong/UI-04-building-verified.png), trạng thái Chuẩn bị.
+
+**Phác họa 4.1 — Tòa mới tạo từ HĐ chủ nhà** (trạng thái Chuẩn bị)
 
 ```text
-┌ Tòa nhà / T42 · Mỹ Đình ─────── [Sửa] [Thêm tài liệu] [Phân công] ┐
-│ Nhóm T · Hạng L2 · Đang khai thác · 42 phòng · QL: Huyền (từ 01/09)│
-├───────────────────────────────────────────────────────────────────┤
-│ ① Tổng quan│Phòng│Phân công│Giá DV│Công tơ│HĐ nguồn│Tài sản│Báo cáo│Tài liệu│
-├───────────────────────────────────────────────────────────────────┤
-│ ② CƠ BẢN     Mã T42 (bất biến) · Tên ____ · Khu vực [Mỹ Đình ▾]   │
-│              Số tầng 7 · Ngày bắt đầu vận hành 01/03/2025         │
-│ ③ PHÂN LOẠI  Nhóm [T ▾] từ 01/03/2025  ⓘ lịch sử                  │
-│              Hạng [L2 – trung bình ▾] từ 01/01/2026  ⓘ lịch sử    │
-│ ④ TIỆN ÍCH   ☑ Thang máy ☑ Máy giặt chung ☐ Sạc xe điện ☑ Camera  │
-│              ⓘ Bỏ tick thang máy → dịch vụ thang máy bị chặn ở HĐ │
-│ ⑤ THU TIỀN   TK nhận mặc định [VP-Hằng ▾] từ 01/01/2026           │
-│              Mẫu in hóa đơn: HĐ (VP-HẰNG) · Ngày chốt chỉ số [22] │
-├───────────────────────────────────────────────────────────────────┤
-│ ⑥ CÔNG TƠ CẤP TÒA — hai loại, KHÔNG gộp                           │
-│  ┌ MAIN · 000T42 · 3.500 đ/kWh ──────────────────────────────────┐│
-│  │ Chỉ đối chiếu hóa đơn NCC + tính thất thoát. KHÔNG lên hóa đơn││
-│  │ khách, KHÔNG chia cho phòng.                                  ││
-│  └───────────────────────────────────────────────────────────────┘│
-│  ┌ COMMON · Điện vệ sinh chung · 3.800 đ/kWh ────────────────────┐│
-│  │ Chia theo SỐ NGƯỜI → dòng 12 của hóa đơn phòng.               ││
-│  └───────────────────────────────────────────────────────────────┘│
-├───────────────────────────────────────────────────────────────────┤
-│ ⑦ HỒ SƠ PHÁP LÝ (checklist theo loại)         [Tải tài liệu]      │
-│  Giấy CN nhà đất  ✓ đã xác minh                                   │
-│  Hồ sơ PCCC       △ hết hạn 12/2026 — còn 80 ngày                 │
-│  Giấy ĐK HKD      ◐ Đã đăng ký (theo tài liệu) · chờ xác minh     │
-│  Biên bản bàn giao ✓ · Ủy quyền ✓ · Chứng từ thuế ○ chưa có       │
-├───────────────────────────────────────────────────────────────────┤
-│ ⑧ CHỈ SỐ TỪ BÁO CÁO — kỳ 08/2026 (đã khóa)  ⓘ không tính realtime │
-│  Hiệu suất 93,2 % │ LN ròng 38,4 tr │ Thời gian vận hành 19 tháng │
-└───────────────────────────────────────────────────────────────────┘
+┌ 25A Phú Diễn ○ Chuẩn bị ─────────── [Thêm tài liệu] [Phân công] [Tạo phòng] ┐
+│ Thuê toàn bộ căn nhà · chủ nhà Phí Văn Thắng · HĐ HL-0031 · 0 phòng         │
+│ ① Tổng quan│Phòng (0)│Phân công│Giá DV│Công tơ (2)│HĐ nguồn│Tài sản (11)│…  │
+│ ⓘ Tòa ứng viên từ HĐ: chỉ địa chỉ, kết cấu, mục đích, phạm vi có trên HĐ    │
+├──────────────────────────────────────┬──────────────────────────────────────┤
+│ ② CƠ BẢN                             │ ③ PHÂN LOẠI · ⑤ THU TIỀN             │
+│ Mã tòa [PD25A] △ ví dụ · người đặt   │ Nhóm T/S/G   chọn khi kích hoạt      │
+│ Địa chỉ Số 25A Ngõ 261 Phú Diễn [Đ.1]│ Hạng L1–L3   chọn khi kích hoạt      │
+│ Số tầng [—] △ trống · DT sàn [—] △   │ QL phụ trách chưa phân công (UI-20)  │
+│ Kết cấu Gạch–bê tông · Kinh doanh CT │ TK nhận khách · ngày chốt chỉ số 22  │
+├──────────────────────────────────────┼──────────────────────────────────────┤
+│ ⑥ CÔNG TƠ TỪ PHỤ LỤC                 │ ⑦ HỒ SƠ PHÁP LÝ      [Tải tài liệu]  │
+│ Nhóm 2·STT 6 MAIN điện · mã chờ nhập │ GCN △ chưa có · PCCC △ · HKD △       │
+│ Nhóm 2·STT 7 MAIN nước · mã chờ nhập │ HĐ đã ký ✓ có file · ◐ chờ xác minh  │
+│ ⓘ MAIN chỉ đối chiếu, KHÔNG lên HĐ   │ PL bàn giao ✓ · PL góp vốn ○ làm sau │
+├──────────────────────────────────────┴──────────────────────────────────────┤
+│ ⑧ CHỈ SỐ TỪ BÁO CÁO — chưa có kỳ đã khóa                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Phác họa 4.2 — Tòa đang khai thác** (dữ liệu G1, Seed Data §3, §4, §13)
+
+```text
+┌ Tòa nhà / G1 ● Đang khai thác ─────────────────── [Sửa] [Thêm tài liệu] [Phân công] ┐
+│ Nhóm G · Hạng L2 (minh họa) · 15 phòng · QL: Đỗ Thuỳ Linh                           │
+│ ① Tổng quan│Phòng│Phân công│Giá DV│Công tơ│HĐ nguồn│Tài sản│Báo cáo│Tài liệu│Lịch sử│
+├─────────────────────────────────────────────────────────────────────────────────────┤
+│ ② CƠ BẢN     Mã G1 (bất biến) · Tên ____ · Khu vực ▾ · Số tầng __                   │
+│ ③ PHÂN LOẠI  Nhóm [G ▾] ⓘ lịch sử · Hạng [L2 ▾] ⓘ lịch sử                           │
+│ ④ TIỆN ÍCH   ☑ Thang máy ☑ Máy giặt chung · tiện ích khác chưa khai báo             │
+│              ⓘ Bỏ tick thang máy → dịch vụ thang máy bị chặn ở HĐ                   │
+│ ⑤ THU TIỀN   TK nhận mặc định BIDV 2120368058 – NGUYEN THI HANG                     │
+│              Mẫu in hóa đơn G1 TECH · Ngày chốt chỉ số [22]                         │
+├─────────────────────────────────────────────────────────────────────────────────────┤
+│ ⑥ CÔNG TƠ CẤP TÒA — hai loại, KHÔNG gộp                                             │
+│  ┌ MAIN · 000G1 · 3.500 đ/kWh ─────────────────────────────────────────┐            │
+│  │ Kỳ 09: 882 kWh × 3.500 = 3.087.000 · chỉ đối chiếu NCC + thất thoát │            │
+│  │ KHÔNG lên hóa đơn khách, KHÔNG chia cho phòng                       │            │
+│  └─────────────────────────────────────────────────────────────────────┘            │
+│  ┌ COMMON · điện khu vực chung · 3.800 đ/kWh ──────────────────────────┐            │
+│  │ Tầng 2: 1.935 → 1.967 = 32 kWh ÷ 3 người = 40.533,33 đ/người → dòng 12│          │
+│  └─────────────────────────────────────────────────────────────────────┘            │
+├─────────────────────────────────────────────────────────────────────────────────────┤
+│ ⑦ HỒ SƠ PHÁP LÝ (checklist theo loại · trạng thái minh họa)  [Tải tài liệu]         │
+│  Giấy CN nhà đất ✓ │ PCCC △ còn hạn … │ HKD ◐ Đã đăng ký (theo tài liệu)            │
+│  Biên bản bàn giao ✓ │ Chứng từ thuế ○ chưa có                                      │
+├─────────────────────────────────────────────────────────────────────────────────────┤
+│ ⑧ CHỈ SỐ TỪ BÁO CÁO — kỳ 08/2026 (đã khóa) ⓘ không tính realtime                    │
+│  Doanh thu 84.186.000 │ LN ròng 14.664.969 │ Phòng trống 0 · mới 2 · phá 1          │
+└─────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Chú giải vùng và chức năng**
 
 | Vùng | Thành phần | Chức năng chi tiết |
 |---|---|---|
-| Header | Dòng quản lý | **Chỉ đọc**, lấy từ phân công phụ trách chính hiệu lực tại ngày xem. Nút `Phân công` mở UI-20 — màn tòa không có ô sửa quản lý |
+| Header | Dòng quản lý | **Chỉ đọc**, lấy từ phân công phụ trách chính hiệu lực tại ngày xem. Nút `Phân công` mở UI-20; màn tòa không có ô sửa quản lý |
+| Header 4.1 | CTA | Tòa Chuẩn bị: CTA chính `Tạo phòng` (UI-05). Tòa đang khai thác: không có CTA tạo phòng hàng loạt |
+| ② | Cơ bản | Mã tòa **bất biến sau khi lưu** (là khóa của mã phòng). Tòa từ HĐ: địa chỉ khóa, gắn nhãn `Đ.1`; số tầng và DT sàn trống thì viền đỏ, gắn nhãn `Trống trên HĐ` |
 | ③ | Phân loại | Nhóm T/S/G và hạng L1–L3 là **2 thuộc tính độc lập**, mỗi loại có lịch sử riêng; báo cáo kỳ dùng giá trị hiệu lực ngày cuối kỳ |
 | ④ | Tiện ích | Quyết định dịch vụ nào được phép thêm vào HĐ (validate chéo với UI-07/UI-09) |
-| ⑤ | Thu tiền | TK nhận có ngày hiệu lực; hóa đơn **snapshot** TK tại ngày phát hành. Ngày chốt chỉ số đổi chỉ áp kỳ chưa chốt |
-| ⑥ | Hai khối công tơ | Cố ý vẽ thành 2 khung tách biệt kèm câu cảnh báo, vì gộp nhầm hai công tơ này là lỗi phổ biến nhất khi dựng hóa đơn |
-| ⑦ | Checklist pháp lý | **Trạng thái đăng ký** và **trạng thái xác minh tài liệu** là 2 cột khác nhau: upload giấy HKD chuyển tòa sang `Đã đăng ký (theo tài liệu)` nhưng tài liệu vẫn `Chờ xác minh` cho tới khi người có quyền duyệt |
-| ⑧ | Chỉ số từ báo cáo | Đọc `REPORT_SNAPSHOT` kỳ Locked gần nhất, bắt buộc hiện nhãn kỳ; công thức ba chỉ số này thuộc X-07 chưa chốt |
+| ⑤ | Thu tiền | TK nhận có ngày hiệu lực; hóa đơn **snapshot** TK tại ngày phát hành. Đổi ngày chốt chỉ số chỉ áp kỳ chưa chốt |
+| ⑥ | Công tơ | Tòa từ HĐ: 2 dòng công tơ lấy từ phụ lục (STT 6, 7), chờ nhập mã và chỉ số bàn giao. Tòa đang khai thác: 2 khung MAIN/COMMON tách biệt kèm câu cảnh báo, vì gộp nhầm là lỗi phổ biến nhất khi dựng hóa đơn |
+| ⑦ | Checklist pháp lý | **Trạng thái đăng ký** và **trạng thái xác minh** là 2 cột khác nhau. Mỗi dòng ghi căn cứ trên HĐ (ví dụ: PCCC và HKD là trách nhiệm bên A theo Đ.6.1) |
+| ⑧ | Chỉ số từ báo cáo | Đọc `REPORT_SNAPSHOT` kỳ Locked gần nhất, bắt buộc hiện nhãn kỳ. Tòa Chuẩn bị hiện "chưa có kỳ đã khóa" |
 
-**Danh sách:** filter scope, trạng thái khai thác, T/S/G, L1/L2/L3, chủ nhà, quản lý, HKD/PCCC, tỷ lệ lấp đầy. Cột: mã, tên, khu vực, nhóm/hạng, tổng phòng, đang thuê/trống, quản lý tại kỳ, HĐ đầu vào, ngày đến hạn gần nhất, PCCC, trạng thái.
+**Danh sách:**
 
-**Nhập dữ liệu:** tạo tay hoặc import tòa/phòng; map mã, tên, chủ nhà/HĐ nguồn, tầng/phòng; preview, dò trùng và báo lỗi theo dòng trước khi ghi.
+- **Filter:** phạm vi, trạng thái khai thác, T/S/G, L1/L2/L3, chủ nhà, quản lý, HKD/PCCC, tỷ lệ lấp đầy.
+- **Cột:** mã, tên, khu vực, nhóm/hạng, tổng phòng, đang thuê/trống, quản lý tại kỳ, HĐ đầu vào, ngày đến hạn gần nhất, PCCC, trạng thái.
+- Tòa tạo từ trích xuất hiện chip `Chuẩn bị · từ HĐ`.
+
+**Nhập dữ liệu:** có ba cách tạo tòa.
+
+1. Commit trích xuất HĐ chủ nhà (chính).
+2. Tạo tay.
+3. Import. Map mã, tên, chủ nhà/HĐ nguồn, tầng; có preview, dò trùng và báo lỗi theo dòng trước khi ghi.
 
 **Field chi tiết**
 
 | Nhóm | Field |
 |---|---|
-| Cơ bản | Mã bất biến, tên, địa chỉ, khu vực, số tầng, ngày bắt đầu vận hành, trạng thái |
+| Cơ bản | Mã bất biến, tên, địa chỉ, khu vực, số tầng, diện tích sàn, kết cấu, ngày bắt đầu vận hành, trạng thái |
 | Phân loại | T/S/G = dòng sản phẩm; L1=cũ, L2=trung bình, L3=mới; effective history |
 | Tiện ích | Thang máy, máy giặt chung, sạc xe điện, camera, bảo vệ |
 | Thu tiền | Tài khoản nhận mặc định, mẫu in hóa đơn, ngày chốt chỉ số mặc định 22 |
 | Điện/nước | Công tơ tổng MAIN, công tơ COMMON, đơn giá gốc/đơn giá chung |
-| Hồ sơ pháp lý | Checklist theo loại: Giấy chứng nhận nhà đất, PCCC, Giấy đăng ký HKD, HĐ đầu vào/phụ lục, bàn giao/kiểm kê, ủy quyền, chứng từ thuế/phí, Khác; trạng thái hồ sơ và xác minh tách riêng, version, người tải, ngày cấp/hết hạn |
+| Hồ sơ pháp lý | Checklist theo loại: Giấy chứng nhận nhà đất, PCCC, Giấy đăng ký HKD, HĐ đầu vào/phụ lục, bàn giao/kiểm kê, ủy quyền, chứng từ thuế/phí, phụ lục góp vốn 3 bên (làm sau), Khác; trạng thái hồ sơ và xác minh tách riêng, version, người tải, ngày cấp/hết hạn |
 | Liên kết | Chủ nhà (nguồn), HĐ đầu vào (căn cứ), phòng, assignment, dịch vụ, tài sản, báo cáo |
 | KPI đọc | Lấp đầy, công nợ, hiệu suất, lợi nhuận snapshot gần nhất |
 
 **Tabs:** Tổng quan, Phòng, Phân công, Dịch vụ & bảng giá, Công tơ, HĐ đầu vào, Tài sản, Báo cáo, Tài liệu, Lịch sử. Thay đổi quản lý luôn mở flow Phân công tòa; không sửa `manager_id` trực tiếp.
 
-**Upload tài liệu theo loại:** modal bắt buộc chọn loại tài liệu, tòa/HĐ liên quan, file, ngày cấp/hết hạn nếu áp dụng, ghi chú; preview rồi lưu. Loại gồm `Giấy chứng nhận nhà đất/sổ đỏ`, `Hồ sơ PCCC`, `Giấy đăng ký hộ kinh doanh`, `Hợp đồng thuê nhà đầu vào đã ký`, `Phụ lục hợp đồng`, `Biên bản bàn giao/kiểm kê tài sản`, `CCCD/ủy quyền bên cho thuê`, `Chứng từ thuế/phí`, `Minh chứng khác`. Loại tài liệu quyết định checklist/mốc hạn và nơi hiển thị. Upload giấy đăng ký HKD tự chuyển **trạng thái đăng ký của tòa** sang `Đã đăng ký (theo tài liệu)`; **trạng thái xác minh tài liệu** vẫn là `Chờ xác minh` cho đến khi người có quyền duyệt. Thay thế/gỡ file phải có lý do, giữ version và đánh giá lại trạng thái nếu không còn minh chứng hợp lệ. PCCC/sổ đỏ cập nhật checklist riêng; không dùng file không phân loại để tự nhận đã đạt chuẩn.
+**Upload tài liệu theo loại**
 
-**State:** `Chuẩn bị → Đang khai thác → Ngừng khai thác`. Chỉ hai trạng thái đầu cho phép chuẩn bị/tạo HĐ thuê; tòa ngừng khai thác chỉ đọc dữ liệu lịch sử.
+- **Modal bắt buộc chọn:** loại tài liệu, tòa/HĐ liên quan, file, ngày cấp/hết hạn nếu áp dụng, ghi chú. Preview rồi mới lưu.
+- **Loại tài liệu:**
+  - `Giấy chứng nhận nhà đất/sổ đỏ`
+  - `Hồ sơ PCCC`
+  - `Giấy đăng ký hộ kinh doanh`
+  - `Hợp đồng thuê nhà đầu vào đã ký`
+  - `Phụ lục hợp đồng`
+  - `Biên bản bàn giao/kiểm kê tài sản`
+  - `CCCD/ủy quyền bên cho thuê`
+  - `Phụ lục góp vốn 3 bên` (làm sau)
+  - `Chứng từ thuế/phí`
+  - `Minh chứng khác`
+- **Loại tài liệu quyết định** checklist, mốc hạn và nơi hiển thị.
+- **Giấy đăng ký HKD:** upload thì **trạng thái đăng ký của tòa** tự chuyển sang `Đã đăng ký (theo tài liệu)`. **Trạng thái xác minh tài liệu** vẫn là `Chờ xác minh` cho đến khi người có quyền duyệt.
+- **Thay thế/gỡ file:** phải có lý do, giữ version, và đánh giá lại trạng thái nếu không còn minh chứng hợp lệ.
+- **Không** dùng file chưa phân loại để tự nhận là đã đạt chuẩn.
+
+**Action theo trạng thái**
+
+| Trạng thái | Action |
+|---|---|
+| `Chuẩn bị` | Đặt mã tòa (một lần), bổ sung số tầng/DT sàn, chọn T/S/G và L, chọn TK nhận, nhập mã công tơ, tải tài liệu, phân công QL, **tạo phòng**, `Chuyển Đang khai thác` (disable khi thiếu điều kiện, xem bảng điều kiện của chuỗi) |
+| `Đang khai thác` | Sửa hồ sơ, đổi phân loại có ngày hiệu lực, quản lý công tơ, tài liệu, phân công, xem báo cáo |
+| `Ngừng khai thác` | Chỉ đọc dữ liệu lịch sử |
+
+**State:** `Chuẩn bị → Đang khai thác → Ngừng khai thác`. Chỉ hai trạng thái đầu cho phép tạo HĐ thuê khách.
 
 **Hai loại công tơ cấp tòa — UI phải tách bạch, không gộp**
 
@@ -817,39 +1047,72 @@ Ví dụ kiểm thử: HĐ 114.000.000đ/tháng, 60 tháng, trả 3 tháng/lần
 | `Ngừng khai thác` chỉ khi hết HĐ thuê hiệu lực và HĐ đầu vào đã kết thúc; tòa ngừng không vào mẫu số N phân bổ | BR-2.03.8 → **P-05** | Cần chốt |
 | Tòa không có thang máy → dịch vụ thang máy không được chọn vào HĐ (validate ở UI-09/UI-07) | BR-2.03.9 | Cần chốt |
 | Không xóa tòa đã có phòng/HĐ | BR-2.03.10 | Đã chốt |
+| Điều kiện `Chuẩn bị → Đang khai thác` (HĐ hiệu lực, ≥ 1 phòng, QL, TK nhận, phân loại) | Spec 1.9 | ASSUMED |
 
-**Nghiệm thu màn hình:** G1 đổi hạng L2 → L3 từ 01/09/2026 thì báo cáo 08/2026 vẫn L2, 09/2026 là L3; màn tòa hiển thị đúng quản lý theo phân công hiệu lực và gắn nhãn "sắp tới" khi có phân công tương lai; T17 dùng tài khoản VP-Hằng in đúng mẫu VP-Hằng, G1 in mẫu G1 TECH; dòng `000G1` tồn tại nhưng không sinh hóa đơn phòng và không tham gia chia điện chung.
+**Nghiệm thu màn hình**
+
+1. Tòa 25A Phú Diễn sau commit ở trạng thái `Chuẩn bị`. Có địa chỉ, kết cấu và mục đích. Số tầng, DT sàn và GCN để trống kèm nhãn. Có 2 công tơ chờ mã. Checklist có HĐ đã ký và phụ lục bàn giao. Không chuyển được sang `Đang khai thác` khi HĐ còn Nháp.
+2. Mã tòa lưu một lần, sau đó bị khóa.
+3. G1 đổi hạng L2 → L3 từ 01/09/2026 thì báo cáo 08/2026 vẫn là L2, 09/2026 là L3.
+4. Màn tòa hiển thị đúng quản lý theo phân công hiệu lực. Phân công tương lai có nhãn "sắp tới".
+5. G1 in hóa đơn theo mẫu G1 TECH, dùng TK BIDV 2120368058. Tòa dùng tài khoản VP-Hằng (ví dụ T17) in đúng mẫu VP-Hằng.
+6. Dòng `000G1` tồn tại nhưng không sinh hóa đơn phòng và không tham gia chia điện chung.
 
 ### UI-05 — Phòng
 
-**Phác họa màn hình**
+**Mục đích:** tạo và vận hành từng phòng cho thuê; là nguồn duy nhất của trạng thái phòng trống. **Route:** `#/rooms`, `#/rooms/:id`, `#/rooms/new?building=:id` (route đề xuất). **Mockup:** [`UI-05-rooms-create-verified.png`](ui-imagegen-v1/02-nguon-nha-toa-phong/UI-05-rooms-create-verified.png) cho màn tạo phòng; bản danh sách/sơ đồ tầng hiện chỉ có ảnh ImageGen nháp.
+
+**Phác họa 5.1 — Tạo phòng cho tòa mới**
 
 ```text
-┌ Phòng ────────────────── [◉ Bảng ○ Sơ đồ tầng] [+ Thêm] [Import] ┐
-│ Tòa ▾ │ Tầng ▾ │ Trạng thái ▾ │ Loại trống ▾ │ Giá ▾ │ Có đồng hồ ▾ │
-├──────────────────────────────────────────────────────────────────┤
-│ ① Mã     │Tòa/Tầng│Niêm yết │Giá QL  │Giá HĐ  │Người│Trạng thái  │
-│ 101T17   │T17 / 1 │3.800.000│3.600.000│3.600.000│ 1  │Đang thuê  │
-│ 304G4    │G4 / 3  │3.500.000│3.300.000│   —     │ 0  │Sẵn sàng   │
-│ 401S4A   │S4A / 4 │4.200.000│3.900.000│3.900.000│ 3  │Trống hết th│
-├──────────────────────────────────────────────────────────────────┤
-│ ② SƠ ĐỒ TẦNG (chế độ xem thứ 2)                                  │
-│  T5 │ ▩501 ▩502 ▢503 ▤504 ▨505 │  ▩ Đang thuê  ▢ Sẵn sàng        │
-│  T4 │ ▩401 ▨402 ▩403 ▩404 ▢405 │  ▤ Chờ dọn    ▨ Giữ chỗ         │
-├──────────────────────────────────────────────────────────────────┤
-│ ③ CHI TIẾT PHÒNG 101T17           [Đổi trạng thái] [Tạo HĐ]      │
-│  Mã = số phòng 101 + mã tòa T17 (lưu 2 trường riêng)             │
-│  ④ GIÁ    Niêm yết 3.800.000 [Lịch sử] · QL 3.600.000 [Lịch sử]  │
-│           Giá hiện tại 3.600.000 (khóa) đọc từ HĐ đang hiệu lực  │
-│  ⑤ SỬ DỤNG Sức chứa 3 · Đang ở 1 · Trống từ — · Sẵn sàng dự kiến —│
-│  ⑥ BÀN GIAO Điều hòa 1 (tốt) · Tủ lạnh 1 (tốt) · Giường 1 …      │
-│  ⑦ CÔNG TƠ  Điện 101T17-E (CS 6.041) · Nước: không có đồng hồ     │
-│             → nước tính theo đầu người                            │
-│  ⑧ TRẠNG THÁI  Đang thuê từ 01/06/2026 · lý do: kích hoạt HĐ      │
-│                [Xem toàn bộ lịch sử trạng thái ▸]                 │
-└──────────────────────────────────────────────────────────────────┘
+┌ Tạo phòng · 25A Phú Diễn ○ 0 phòng ───────────────────────── [Hủy] [Tạo 6 phòng] ┐
+│ ⓘ HĐ chủ nhà không có danh sách phòng → sinh theo tầng hoặc import file          │
+│ ① [Sinh theo tầng] · Import Excel                                                │
+├──────────────────────────────┬───────────────────────────────────────────────────┤
+│ ② THAM SỐ                    │ ③ PREVIEW — sửa từng dòng trước khi tạo           │
+│ Tòa 25A Phú Diễn · PD25A △   │ Mã phòng │Số │Tầng│Loại        │Sức chứa          │
+│ Số tầng [2] △ HĐ trống       │ 101PD25A │101│ 1  │Phòng thường│   2    │+Mới     │
+│ Số phòng/tầng [3] △ minh họa │ 102PD25A │102│ 1  │Phòng thường│   2    │+Mới     │
+│ Mẫu số phòng {tầng}0{stt}    │ …        │   │    │            │        │         │
+│ Loại · sức chứa mặc định     │ 203PD25A │203│ 2  │Phòng thường│   2    │+Mới     │
+│ Giá niêm yết · QL: nhập sau  │ Phòng tạo ở trạng thái Sẵn sàng  6 phòng          │
+├──────────────────────────────┴───────────────────────────────────────────────────┤
+│ ④ IMPORT EXCEL  ● Upload ━ ● Map cột ━ ● Validate ━ ④ Preview ─ ⑤ Commit         │
+│  Dòng│Mã phòng │Tầng│Niêm yết│QL│Sức chứa│Kết quả                                │
+│   2  │301PD25A │ 3  │   —    │— │   2    │✓ Hợp lệ                               │
+│   4  │101PD25A │ 1  │   —    │— │   2    │✕ Trùng mã với dòng sinh theo tầng     │
+│   5  │30APD25A │ 3  │   —    │— │   —    │△ Thiếu sức chứa                       │
+│  Hợp lệ 2 · Trùng 1 · Thiếu 1 — dòng lỗi không chặn dòng hợp lệ [Tải dòng lỗi]   │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
 
- ⑨ Vòng đời trạng thái phòng
+**Phác họa 5.2 — Danh sách, sơ đồ tầng và chi tiết phòng** (dữ liệu G1 kỳ 09/2026, Seed Data §6)
+
+```text
+┌ Phòng ─────────────────────── [◉ Bảng ○ Sơ đồ tầng] [+ Thêm] [Import] ┐
+│ Tòa G1 ▾ │ Tầng ▾ │ Trạng thái ▾ │ Loại trống ▾ │ Giá ▾ │ Có đồng hồ ▾│
+├───────────────────────────────────────────────────────────────────────┤
+│ ⑤ Mã   │Tầng│Niêm yết │Giá QL   │Giá HĐ   │Người│Trạng thái           │
+│ 101G1  │ 1  │3.600.000│3.500.000│3.500.000│  2  │▩ Đang thuê          │
+│ 303G1  │ 3  │4.300.000│4.400.000│4.400.000│  2  │▩ Đang thuê △ QL>NY  │
+│ 304G1  │ 3  │4.400.000│4.400.000│4.400.000│  2  │▩ Đang thuê          │
+├───────────────────────────────────────────────────────────────────────┤
+│ ⑥ SƠ ĐỒ TẦNG                                                          │
+│  T4 │ ▩401 ▩402 ▩403 ▩404 │  ▩ Đang thuê  ▢ Sẵn sàng  ▤ Chờ dọn       │
+│  T3 │ ▩301 ▩302 ▩303 ▩304 │  ▨ Giữ chỗ  ◫ Trống hết tháng ▦ Bảo trì   │
+├───────────────────────────────────────────────────────────────────────┤
+│ ⑦ CHI TIẾT PHÒNG 304G1                  [Đổi trạng thái ▾] [Xem HĐ]   │
+│  Mã = số phòng 304 + mã tòa G1 (lưu 2 trường riêng)                   │
+│  ⑧ GIÁ    Niêm yết 4.400.000 [Lịch sử] · QL 4.400.000 [Lịch sử]       │
+│           Giá hiện tại 4.400.000 [khóa] đọc từ HĐ hiệu lực            │
+│  ⑨ SỬ DỤNG Sức chứa __ · Đang ở 2 · khách mới từ 01/09/2026           │
+│  ⑩ CÔNG TƠ Điện 304G1-E · CS 1.159 (0 kWh kỳ 09)                      │
+│            Nước CÓ đồng hồ 304G1-W · 18 m³ → tính theo m³ (P-31)      │
+│  ⑪ TRẠNG THÁI Đang thuê từ 01/09/2026 · lý do: kích hoạt HĐ [khóa]    │
+│               [Xem toàn bộ lịch sử trạng thái ▸]                      │
+└───────────────────────────────────────────────────────────────────────┘
+
+ ⑫ Vòng đời trạng thái phòng
  Sẵn sàng ─cọc→ Giữ chỗ ─kích hoạt HĐ→ Đang thuê ─xác nhận kết thúc→
  Trống hết tháng ─ngày ra→ Chờ dọn ─(cần sửa)→ Bảo trì ─nghiệm thu→ Sẵn sàng
 ```
@@ -858,33 +1121,41 @@ Ví dụ kiểm thử: HĐ 114.000.000đ/tháng, 60 tháng, trả 3 tháng/lần
 
 | Vùng | Thành phần | Chức năng chi tiết |
 |---|---|---|
-| ① | Bảng danh sách | Cột `Giá HĐ` để trống khi phòng chưa có hợp đồng — đây là dấu hiệu nhận biết phòng trống |
-| ② | Sơ đồ tầng | Chế độ xem thứ hai; màu **không phải dấu hiệu duy nhất**, mỗi ô có ký hiệu và tooltip trạng thái |
-| ④ | Ba lớp giá | Giá niêm yết là **mẫu số tính hiệu suất**; giá QL là sàn; giá hiện tại có biểu tượng khóa vì chỉ đọc từ HĐ |
-| ⑤ | Sử dụng | Số người vượt sức chứa chỉ **cảnh báo**, không chặn — phần vượt thu qua dòng Thu khác của hóa đơn |
-| ⑥ | Nội thất bàn giao | Là **mẫu mặc định** để copy vào HĐ khi tạo hợp đồng mới |
-| ⑦ | Công tơ | Phòng không có đồng hồ nước thì màn hình phải nói rõ "tính theo đầu người" để người nhập chỉ số không đi tìm số nước |
-| ⑧ | Lịch sử trạng thái | Nguồn duy nhất cho mọi thống kê lấp đầy và phòng trống; mỗi lần đổi ghi từ–đến, lý do, người thực hiện |
-| ⑨ | Sơ đồ vòng đời | Đặt ngay trên màn để người dùng thấy transition hợp lệ; UI **chỉ hiển thị nút của transition hợp lệ** và mô tả tác động trước khi xác nhận |
+| ① | Chọn cách tạo | `Sinh theo tầng` (mặc định cho tòa mới từ HĐ), `Import Excel`, hoặc `+ Thêm` từng phòng ở danh sách |
+| ② | Tham số sinh | Số tầng lấy từ hồ sơ tòa; nếu trống thì người dùng nhập. Số phòng mỗi tầng, mẫu số phòng, loại và sức chứa mặc định. Giá niêm yết và giá QL có thể để trống, nhập sau |
+| ③ | Preview | Mỗi dòng sửa được. Mã = số phòng + mã tòa. Phòng tạo ở `Sẵn sàng` và chưa có công tơ phòng (khai báo ở UI-10) |
+| ④ | Import | Upload → Map cột → Validate → Preview → Commit. Cột bắt buộc: mã, tòa, số phòng, tầng, giá niêm yết, giá QL, sức chứa. Phát hiện trùng mã, **kể cả trùng với dòng vừa sinh theo tầng**. Dòng lỗi không chặn dòng hợp lệ |
+| ⑤ | Bảng danh sách | Cột `Giá HĐ` trống khi phòng chưa có HĐ, là dấu hiệu phòng trống. Giá QL > giá niêm yết (303G1) thì cảnh báo △ |
+| ⑥ | Sơ đồ tầng | Chế độ xem thứ hai. Màu **không phải dấu hiệu duy nhất**: mỗi ô có ký hiệu và tooltip trạng thái; legend đủ 6 trạng thái |
+| ⑧ | Ba lớp giá | Giá niêm yết là **mẫu số tính hiệu suất**; giá QL là sàn; giá hiện tại có biểu tượng khóa vì chỉ đọc từ HĐ |
+| ⑨ | Sử dụng | Số người vượt sức chứa chỉ **cảnh báo**, không chặn. Phần vượt thu qua dòng Thu khác của hóa đơn |
+| ⑩ | Công tơ | Nói rõ phòng **có** hay **không** có đồng hồ nước. Có thì tính theo m³ (304G1). Không có thì ghi "tính theo đầu người" |
+| ⑪ | Lịch sử trạng thái | Nguồn duy nhất cho mọi thống kê lấp đầy và phòng trống. `Đang thuê` **chỉ do kích hoạt HĐ đặt**, hiển thị khóa. Mỗi lần đổi ghi từ–đến, lý do, người thực hiện |
+| ⑫ | Vòng đời | UI **chỉ hiển thị nút của transition hợp lệ** và mô tả tác động trước khi xác nhận |
 
-**Chế độ xem:** bảng và sơ đồ theo tầng. Có tạo tay/import phòng, chọn tòa nguồn, preview và phát hiện mã trùng; dữ liệu phòng gắn với hồ sơ chủ nhà/HĐ đầu vào. Bộ lọc: tòa/tầng, trạng thái, loại phòng, khoảng giá, có công tơ, ngày sẵn sàng, HĐ sắp hết.
-
-**Cột bảng:** mã phòng, tòa/tầng, loại/diện tích, giá niêm yết, giá QL, giá HĐ hiện tại, sức chứa/người hiện tại, trạng thái, khách/HĐ, công nợ, ngày sẵn sàng, quản lý.
+**Cột bảng:** mã phòng, tòa/tầng, loại/diện tích, giá niêm yết, giá QL, giá HĐ hiện tại, sức chứa/người hiện tại, trạng thái, khách/HĐ, công nợ, ngày sẵn sàng, quản lý. **Bộ lọc:** tòa/tầng, trạng thái, loại phòng, khoảng giá, có công tơ, ngày sẵn sàng, HĐ sắp hết.
 
 **Field chi tiết**
 
 | Nhóm | Field |
 |---|---|
-| Nhận diện | Mã = số phòng + mã tòa, số phòng, tầng, loại, diện tích |
+| Nhận diện | Mã = số phòng + mã tòa, số phòng, tầng, loại, diện tích, nguồn tạo (sinh theo tầng / tay / import lô) |
 | Giá | Giá niêm yết và giá QL có lịch sử/effective date; giá hiện tại đọc từ HĐ |
 | Sử dụng | Sức chứa, người hiện tại suy ra, ngày trống từ, sẵn sàng dự kiến |
-| Bàn giao | Danh sách nội thất mặc định: tên, SL, tình trạng |
+| Bàn giao | Danh sách nội thất mặc định: tên, SL, tình trạng — mẫu copy vào HĐ khách khi tạo HĐ |
 | Công tơ | Điện/nước, loại, mã, chỉ số gần nhất; nước theo người nếu không có đồng hồ |
 | Trạng thái | Trạng thái, từ ngày, lý do, người đổi; ảnh/ghi chú |
 
-**Action:** thêm/sửa; cập nhật giá; chuyển trạng thái hợp lệ; tạo HĐ; xem khách; nhập chỉ số; xác nhận dọn xong; chuyển bảo trì; nghiệm thu; export.
+**Action theo trạng thái**
 
-**State:** `Sẵn sàng → Giữ chỗ → Đang thuê → Trống hết tháng → Chờ dọn → Bảo trì → Sẵn sàng`; có nhánh hủy giữ, gia hạn, ngừng/mở lại khai thác. UI chỉ hiển thị transition hợp lệ và mô tả tác động trước confirm.
+| Trạng thái | Action |
+|---|---|
+| `Sẵn sàng` | Sửa, cập nhật giá, tạo HĐ khách (UI-07/UI-08), chuyển bảo trì |
+| `Giữ chỗ` | Xem HĐ Nháp/Chờ ký, hủy giữ (xử lý cọc) |
+| `Đang thuê` | Xem khách/HĐ, nhập chỉ số; **không** có action đặt `Đang thuê` bằng tay |
+| `Trống hết tháng` · `Chờ dọn` · `Bảo trì` | Xác nhận ngày ra, xác nhận dọn xong, nghiệm thu → `Sẵn sàng` |
+
+**State:** `Sẵn sàng → Giữ chỗ → Đang thuê → Trống hết tháng → Chờ dọn → Bảo trì → Sẵn sàng`. Có nhánh hủy giữ, gia hạn, ngừng/mở lại khai thác.
 
 **Ánh xạ trạng thái → 3 loại phòng trống (D-24)** — dùng thống nhất ở UI-01, UI-05 và Report A:
 
@@ -909,8 +1180,18 @@ Tổng phòng trống = tổng 3 loại, đếm **tại ngày cuối tháng**, t
 | `Giữ chỗ` chỉ tạo khi có bút toán cọc của HĐ Nháp/Chờ ký; hủy giữ → xử lý bỏ cọc hoặc hoàn nếu lỗi công ty | BR-2.04.7, D-27 | Cần chốt |
 | Số người hiện tại = `occupant_count` của HĐ hiệu lực; vượt sức chứa → **cảnh báo, không chặn** (phụ thu ghi ở dòng Thu khác) | BR-2.04.11, D-17 | Cần chốt |
 | Phòng `Ngừng khai thác` không tính vào N phân bổ và không tính trống | BR-2.04.12 → **P-05** | Cần chốt |
+| Sinh theo tầng và import cùng kiểm tra trùng mã trong tòa trước khi ghi; HĐ chủ nhà không sinh phòng | Spec 1.8 | ASSUMED |
 
-**Cảnh báo bắt buộc:** phòng trống > 30 ngày; `Chờ dọn` > 3 ngày; `Bảo trì` > 15 ngày báo TPVH; giá chốt < giá QL đang chờ duyệt.
+**Cảnh báo bắt buộc:** phòng trống > 30 ngày; `Chờ dọn` > 3 ngày; `Bảo trì` > 15 ngày báo TPVH; giá chốt < giá QL đang chờ duyệt; giá QL > giá niêm yết (ca 303G1).
+
+**Nghiệm thu màn hình**
+
+1. Tòa 25A Phú Diễn với 2 tầng × 3 phòng sinh ra 6 phòng, mã từ `101PD25A` đến `203PD25A`, trạng thái `Sẵn sàng`.
+2. Import có dòng `101PD25A` thì báo trùng mã với dòng sinh theo tầng. 2 dòng hợp lệ vẫn được tạo.
+3. Danh sách G1 hiện 15 phòng đúng giá niêm yết, giá QL và giá HĐ theo Seed §6.1. 303G1 có cảnh báo giá QL > niêm yết.
+4. 304G1 hiện "có đồng hồ nước", tính theo m³.
+5. Sơ đồ tầng không chỉ dùng màu.
+6. Không có nút đặt `Đang thuê` bằng tay.
 
 ### UI-06 — Khách thuê
 
@@ -1119,7 +1400,7 @@ Tổng phòng trống = tổng 3 loại, đếm **tại ngày cuối tháng**, t
 │ [◂ 1/4 ▸]     │ ▾ Bên B – khách       Điều mở đầu │ Trường đọc được: 58  │
 │ [zoom +/−]    │   Họ tên  TRẦN MINH AN     0.98 ✓ │ Cần kiểm tra:     9  │
 │ ┌───────────┐ │   CCCD    001098000001     0.95   │ ✕ Xung đột:       3  │
-│ │ HỢP ĐỒNG  │ │   → [Link hồ sơ cũ ▾]             │ △ Thiếu chi tiết: 2  │
+│ │ HỢP ĐỒNG  │ │   → [Link hồ sơ cũ ▾]             │ △ Cảnh báo nhẹ:   6  │
 │ │ ▓▓▓ vùng  │ │ ▾ Bên A – đại diện    (chỉ đối    │                      │
 │ │ được tô   │ │   ĐỖ THỊ THÙY LINH     chiếu)     │ ④ XUNG ĐỘT PHẢI      │
 │ │ khi chọn  │ │   ✕ KHÔNG tạo hồ sơ chủ nhà       │    CHỌN TRƯỚC COMMIT │
@@ -1152,9 +1433,17 @@ Tổng phòng trống = tổng 3 loại, đếm **tại ngày cuối tháng**, t
 │               │   Hạn 25→30 · BIDV 2120368058     │                      │
 │               │   Phạt 200k/ngày từ mùng 1, ≤3 ng │ ⑤ CẢNH BÁO NHẸ       │
 │               │ ▾ Khấu trừ & bảo hành   Đ.5.2/6.2 │ △ Thiếu biển số xe   │
-│               │   Bảo hành 10 ngày                │ △ TK trên HĐ khác TK │
-│               │   Bẩn tường 600.000               │   mặc định của tòa   │
-│               │   Khấu hao thiết bị ≥ 200.000     │                      │
+│               │   Bảo hành 10 ngày                │ △ 7. TK trên HĐ ≠ TK │
+│               │   Bẩn tường 600.000               │   mặc định tòa → KT  │
+│               │   Khấu hao thiết bị ≥ 200.000     │ △ 1. Tự gia hạn: HĐ  │
+│               │                                   │   30 ng · HT 35 ng   │
+│               │                                   │ △ 2. Phạt: HĐ từ mùng│
+│               │                                   │   1, ≤3 ng · HT từ   │
+│               │                                   │   ngày 6, không trần │
+│               │                                   │ △ 3. Hạn TT 25→30 ·  │
+│               │                                   │   HT 25→cuối tháng   │
+│               │                                   │ △ 8. Chuyển nhượng   │
+│               │                                   │   HĐ: chưa có sự kiện│
 └───────────────┴───────────────────────────────────┴──────────────────────┘
  ⑥ Luồng: Upload → Processing → Ready for review → Reviewing → Validate →
           Xem payload → Confirm commit → Committed   (lỗi: Failed / Commit failed)
@@ -1167,9 +1456,9 @@ Tổng phòng trống = tổng 3 loại, đếm **tại ngày cuối tháng**, t
 |---|---|---|
 | ① | Khung tệp | Luôn giữ file gốc và vị trí trang/bbox làm nguồn kiểm tra; chọn một trường ở cột giữa thì vùng tương ứng trên file được tô sáng |
 | ② | Nhóm trường | Gom theo **nhóm entity** chứ không theo thứ tự xuất hiện trong file. Mỗi dòng có: raw, giá trị chuẩn hóa, độ tin cậy, ứng viên hệ thống, điểm khớp, và quyết định `Create / Link / Update / Ignore` |
-| ③ | Tổng hợp | Bốn bộ đếm điều hướng người review: đọc được / cần kiểm tra / **xung đột** / thiếu chi tiết. Xung đột tách riêng vì nó chặn commit |
+| ③ | Tổng hợp | Bốn bộ đếm điều hướng người review: đọc được / cần kiểm tra / **xung đột** / cảnh báo nhẹ. Xung đột tách riêng vì nó chặn commit |
 | ④ | Khối xung đột | Không phải cảnh báo thông thường. Mỗi xung đột là một **lựa chọn nghiệp vụ bắt buộc** có nút hành động; hệ thống tuyệt đối không tự chọn hộ, vì cả ba xung đột trong mẫu này đều làm sai tiền trên mọi hóa đơn về sau |
-| ⑤ | Cảnh báo nhẹ | Thiếu chi tiết hoặc lệch tham chiếu — cho đi tiếp, ghi nhận để bổ sung tay |
+| ⑤ | Cảnh báo nhẹ | Thiếu chi tiết, hoặc điều khoản HĐ lệch rule hệ thống nhưng không đổi tiền hóa đơn (#1, #2, #3, #7, #8 của bảng xung đột bên dưới) — cho đi tiếp, ghi nhận để bổ sung tay. Đủ 8 xung đột phải hiện trên màn: 3 chặn Commit ở ④, 5 cảnh báo ở ⑤ |
 | ⑥ | Luồng trạng thái | Commit là **một transaction**: lỗi entity bắt buộc thì rollback toàn bộ. Upload cùng hash cảnh báo job cũ và không tạo HĐ trùng |
 | ⑦ | Khóa nút Commit | Nút bị disable kèm tooltip liệt kê xung đột còn lại, thay vì cho bấm rồi báo lỗi |
 | Bên A | Vùng chỉ đối chiếu | Người ký đại diện Bên A trên hợp đồng khách là **người đại diện cho thuê phòng**; UI hiện cảnh báo cố định "không tạo hồ sơ chủ nhà" để reviewer không nhầm sang UI-02 |
@@ -1400,8 +1689,8 @@ page navigation           candidate | decision | final value    validation
 **Phác họa màn hình**
 
 ```text
-┌ Hóa đơn / 201G1 ────────────── [Phát hành] [Gửi Zalo] [In PDF] [⋯] ┐
-│ Kỳ 09/2026 · Nháp · Tòa G1 · Quản lý Đỗ Thuỳ Linh · 2 người        │
+┌ Hóa đơn / 201G1 ───────────── [Điều chỉnh] [Gửi Zalo] [In PDF] [⋯] ┐
+│ Kỳ 09/2026 · Đã phát hành · Tòa G1 · QL Đỗ Thuỳ Linh · 2 người     │
 │ Ngày chốt số liệu 22/08/2026 · Hạn TT 25/08 → 31/08/2026           │
 ├────────────────────────────────────────────────────────────────────┤
 │ ① 12 DÒNG CỐ ĐỊNH                      (số thật — Seed Data §6.2)  │
@@ -1735,11 +2024,11 @@ Nợ phá HĐ thu tháng sau giảm kỳ gốc nhưng không tính vào hiệu s
 ├───────────────────────────────────────────────────────────────────────┤
 │ ① SỔ CỌC (Deposit Ledger — bất biến, sửa bằng bút toán điều chỉnh)    │
 │ Ngày      │Loại bút toán│ Số tiền    │ Chứng từ   │ Số dư             │
-│ 01/06/2025│collect      │ +3.600.000 │ PM-4412    │ 3.600.000         │
-│ 18/09/2026│refund (dự)  │ −3.600.000 │ RF-…0022   │ 0                 │
+│ 01/06/2025│collect      │ +3.800.000 │ PM-4412    │ 3.800.000         │
+│ 18/09/2026│refund (dự)  │ −3.800.000 │ RF-…0022   │ 0                 │
 ├───────────────────────────────────────────────────────────────────────┤
 │ ② WIZARD HOÀN CỌC — 6 bước          ●━━●━━●━━○━━○━━○                  │
-│ 1 Chọn HĐ ở Chờ quyết toán → cọc đang giữ 3.600.000                   │
+│ 1 Chọn HĐ ở Chờ quyết toán → cọc đang giữ 3.800.000                   │
 │ 2 Xác nhận hóa đơn cuối & công nợ được phép bù trừ                    │
 │ 3 Nhập khấu trừ:                                                      │
 │   Hạng mục        │ Mặc định  │ Thực tế   │ Chứng từ                  │
@@ -1750,7 +2039,7 @@ Nợ phá HĐ thu tháng sau giảm kỳ gốc nhưng không tính vào hiệu s
 │   Tiền phòng tháng cuối │ — │ 0 │ ⓘ khách ĐÃ đóng → không trừ         │
 │   7 dịch vụ tháng cuối │ — │ 186.000 │ từ hóa đơn cuối                │
 │ 4 Kiểm tra tài sản bàn giao / chỉ số CLOSING                          │
-│ 5 ③ TÍNH: Thực hoàn = 3.600.000 − 1.256.000 = 2.344.000               │
+│ 5 ③ TÍNH: Thực hoàn = 3.800.000 − 1.256.000 = 2.544.000               │
 │ 6 Gửi duyệt → Admin/Kế toán duyệt → ghi đã hoàn + chứng từ            │
 ├───────────────────────────────────────────────────────────────────────┤
 │ ④ TRƯỜNG HỢP ÂM                                                       │
@@ -1950,7 +2239,7 @@ Công ty (HT CCMN TIMEHOUSE)
 **Phác họa màn hình**
 
 ```text
-┌ Nhân sự / NV-021 · Nguyễn Thu Huyền ─── [Sửa] [Điều chuyển] [⋯] ┐
+┌ NV-021 · Nguyễn Thị Thương Huyền ────── [Sửa] [Điều chuyển] [⋯] ┐
 │ NVVH · Level NVVH-1 · KV1 · Đang làm từ 01/03/2024 · Là cổ đông ✓│
 ├──────────────────────────────────────────────────────────────────┤
 │ ① Tổng quan│Phân công│Cấu phần lương│Kỳ lương│Hồ sơ│Lịch sử       │
@@ -2552,15 +2841,17 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 ├───────────────────────────────────────────────────────────────────────┤
 │ ① DANH SÁCH DÒNG HOA HỒNG                                             │
 │ Deal      │Đợt│Tòa│Phòng │Người nhận│Giá chốt │Tỷ lệ│ Số tiền │TT chi  │
-│ D-202G13  │1/2│G13│202G13│Tú        │3.500.000│ 35% │1.325.000│Đã chi  │
+│ D-202G13  │1/2│G13│202G13│Tú        │3.500.000│ 35% │1.125.000│Đã chi  │
 │ D-202G13  │2/2│G13│202G13│Tú        │3.500.000│ 35% │  100.000│Chưa chi│
+│           └▸ Σ 2 đợt = 1.225.000 = 3.500.000 × 35%                     │
 │ D-404S22  │1/1│S22│404S22│Đối tác M │4.200.000│ 65% │2.730.000│Chưa chi│
 │           └▸ △ Mức 65% ngoài tham chiếu (50%/35%) — cần duyệt         │
 │ D-203S5   │1/1│S5 │203S5 │Lan       │3.800.000│ 25% │  950.000│Chưa chi│
 │           └▸ ⓘ Trùng 2 nguồn → tỷ lệ 50% ÷ 2 = 25%                    │
-│ D-P601    │1/1│G1 │601G1 │Khải      │  bỏ cọc │ 50% │  850.000│Đã chi  │
-│           └▸ ② Cơ sở = cọc 3.600.000 − (3.600.000÷30×22) = 1.700.000  │
-│              △ File gốc chia 31 → 1.716.129. Hiển thị cả hai (P-03)   │
+│ D-P601    │1/1│G1 │601G1 │Khải      │  bỏ cọc │ 50% │  480.000│Đã chi  │
+│           └▸ ② Cơ sở = cọc 3.600.000 − (3.600.000÷30×22) = 960.000    │
+│              △ File gốc chia 31 → 1.045.161 · HH 522.581. Hiện cả hai │
+│                số, chờ chốt mẫu số (P-03)                              │
 ├───────────────────────────────────────────────────────────────────────┤
 │ ③ MỨC THAM CHIẾU (chỉ để cảnh báo, KHÔNG chặn)                        │
 │  Đối tác / lead 50%  ·  Nhân viên 35%                                 │
@@ -2573,7 +2864,7 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 │  Điều kiện chuẩn = HĐ đã ký/hiệu lực VÀ cọc đã thu = cọc phải thu     │
 ├───────────────────────────────────────────────────────────────────────┤
 │ ⑤ NHÓM CHI THEO NGƯỜI NHẬN — kỳ trả 09/2026                           │
-│  Tú    │ 2 dòng │ 1.425.000 │ ND CK: HH Tú lần 1                      │
+│  Tú    │ 1 dòng │   100.000 │ ND CK: HH Tú lần 2 (đợt 1 đã chi)       │
 │  Lan   │ 1 dòng │   950.000 │ ND CK: HH Lan lần 1                     │
 ├───────────────────────────────────────────────────────────────────────┤
 │ ⑥ QUY TẮC HIỂN THỊ CỐ ĐỊNH                                            │
@@ -2641,8 +2932,7 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 │ ① DANH SÁCH TÀI SẢN                                                    │
 │ Mã     │Tên           │Tòa│SL│Nguyên giá │Ngày dùng│Số th│Lũy kế│Còn lại│
 │ AS-0412│Điều hòa LG   │T42│ 1│ 8.500.000 │02/09/26 │ 12  │     0│8.500k │
-│ AS-0301│Cải tạo thạch │G1 │ 1│38.862.000 │01/03/25 │ 48  │16.276│22.586k│
-│        │cao + tủ bếp  │   │  │           │         │     │      │       │
+│ AS-0301│Tủ bếp trên   │G1 │ 1│12.600.000 │01/10/25 │ 36  │ 4.200│ 8.400k│
 │ AS-0288│Máy giặt      │T24│ 2│24.000.000 │15/01/26 │ 36  │ 5.333│18.667k│
 ├────────────────────────────────────────────────────────────────────────┤
 │ ② QUY TẮC KHẤU HAO ĐANG ÁP DỤNG (đề xuất, chờ khách chốt — P-02)       │
@@ -2653,13 +2943,15 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 │  Ngưỡng vốn hóa (chi phí → tài sản) ....... 2.000.000 đ/đơn vị (P-11)  │
 │  Bắt đầu từ tháng đưa vào sử dụng · Trả tòa sớm → ghi hết phần còn lại │
 ├────────────────────────────────────────────────────────────────────────┤
-│ ③ LỊCH KHẤU HAO — AS-0301 (G1)                                         │
+│ ③ LỊCH KHẤU HAO — G1 · 8 tài sản đầu tư ban đầu · 38.862.000           │
 │  Kỳ     │ Số tiền   │ Lũy kế     │ Còn lại    │ Trạng thái             │
-│  03/2025│ 2.325.167 │  2.325.167 │ 36.536.833 │ Đã ghi · kỳ Locked     │
+│  10/2025│ 2.325.167 │  2.325.167 │ 36.536.833 │ Đã ghi · kỳ Locked     │
 │  …      │           │            │            │                        │
-│  09/2026│ 2.325.167 │ 16.276.169 │ 22.585.831 │ Dự kiến                │
-│  ⓘ G1 đang tách theo hạng mục (2.325.167/th). Nếu gộp theo HĐ đầu vào  │
-│    thì là 647.700/th — chênh lệch lớn, đang chờ khách xác nhận (P-02)  │
+│  09/2026│ 2.325.167 │ 27.902.000 │ 10.960.000 │ Dự kiến · TB rời hết   │
+│  10/2026│   403.333 │ 28.305.333 │ 10.556.667 │ Dự kiến · tủ bếp+TC    │
+│  ⓘ Tách hạng mục (P-02): 6 TB rời 23.062.000÷12 + tủ bếp 12.600.000÷36 │
+│    + thạch cao 3.200.000÷60 = 2.325.167/th. Gộp theo HĐ đầu vào ÷60    │
+│    = 647.700/th — chênh lệch lớn, đang chờ khách xác nhận (P-02)       │
 ├────────────────────────────────────────────────────────────────────────┤
 │ ④ TAB: Tổng quan │ Lịch khấu hao │ Điều chuyển │ Tài liệu │ Audit       │
 │    ⓘ Không có kiểm kê định kỳ và lịch bảo dưỡng ở Phase 1 (X-03)       │
@@ -2676,6 +2968,8 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 | ③ | Lịch khấu hao | Kỳ đã khóa hiện trạng thái `Đã ghi` và không sửa được; ghi chú nêu rõ hai cách tính đang cho kết quả rất khác nhau |
 | ④ | Tabs | Tab bảo trì/kiểm kê **không có** ở Phase 1; ghi chú để người review không coi là thiếu sót |
 | Trạng thái | Vòng đời | Tài sản `Nháp → Đang dùng → Đã khấu hao hết / Đã thanh lý / Đã chuyển tòa`; tài sản khấu hao hết vẫn giữ để thống kê tài sản của tòa |
+
+**Tài sản bàn giao của chủ nhà (1.8):** tab riêng, sinh từ Phụ lục I của HĐ đầu vào khi commit job trích xuất. `ownership = Chủ nhà`, **không vốn hóa, không khấu hao**, chỉ theo dõi số lượng/tình trạng để bàn giao lại khi chấm dứt HĐ; dòng công tơ điện/đồng hồ nước chuyển thành công tơ cấp tòa ở UI-04. Mẫu để trống cột số lượng → bắt buộc bổ sung trước `Xác nhận bàn giao`. Cờ "là vốn góp ban đầu" chỉ áp cho tài sản công ty đầu tư và bật khi có module Cổ đông.
 
 **Danh sách:** mã, tên, category, tòa/phòng/khu vực, ownership, quantity, nguyên giá đơn vị/tổng, ngày dùng, tháng khấu hao, khấu hao lũy kế, còn lại, condition, status.
 
@@ -2705,7 +2999,8 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 │ 05/26 │48.000.000│ 48.000.000 │ 44.000.000 │ —                    │
 │ 06/26 │48.000.000│ 48.000.000 │ 44.000.000 │ 96.000.000  (kỳ 2)   │
 │ ───────────────────────────────────────────────────────────────── │
-│ ⑤ Chênh CF − AC lũy kế = chi phí trả trước: +24.000.000           │
+│ ⑤ Chênh CF − AC lũy kế 01–06/26 = 240tr − 264tr = −24.000.000     │
+│   Âm = chi phí dồn tích (AC ghi trước CF); dương mới là trả trước │
 ├───────────────────────────────────────────────────────────────────┤
 │ ⑥ GIẢI THÍCH HIỂN THỊ CỐ ĐỊNH TRÊN MÀN                            │
 │  • Dòng tiền ghi theo THÁNG HỢP ĐỒNG (mỗi tháng hiệu lực ghi tiền │
@@ -2717,12 +3012,13 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 ├───────────────────────────────────────────────────────────────────┤
 │ ⑦ LỊCH ĐÓNG TIỀN & NGHĨA VỤ CỔ ĐÔNG                               │
 │ Kỳ│Đến hạn   │Phải trả    │Đã trả│Trạng thái  │Cổ đông đã góp      │
-│ 1 │10/03/2026│144.000.000 │ đủ   │Đã trả      │A 40% ✓ B 35% ✓ C ✓ │
-│ 2 │10/06/2026│ 96.000.000 │ đủ   │Đã trả      │A ✓ B ✓ C △ thiếu 5tr│
-│ 3 │10/09/2026│144.000.000 │  0   │△ Sắp đến hạn│chưa góp           │
+│ 1 │10/03/2026│144.000.000 │ đủ   │Đã trả      │9/9 cổ đông ✓       │
+│ 2 │10/06/2026│ 96.000.000 │ đủ   │Đã trả      │8/9 ✓ · 1 △ góp thiếu│
+│ 3 │10/09/2026│144.000.000 │  0   │✕ Quá hạn   │chưa góp            │
+│   ⓘ Góp thiếu KHÔNG chặn trả chủ nhà — công ty ứng trước          │
 │                      [Ghi nhận đã trả] [Nhắc cổ đông] [Tải chứng từ]│
 ├───────────────────────────────────────────────────────────────────┤
-│ ⑧ HĐ GẮN NHIỀU TÒA  S19A 40% │ S19B 35% │ S19C 25% │ Tổng 100% ✓  │
+│ ⑧ HĐ GẮN NHIỀU TÒA  HL-0021 → G1 100 % ✓  (vd HL-0044: S19A/B/C)  │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
@@ -2732,9 +3028,9 @@ Lô import lưu: tên file, người tải, thời điểm, template, tổng dò
 |---|---|---|
 | ① | Bảng ba cột | Thiết kế trung tâm của màn: cùng một hợp đồng cho **ba con số khác nhau** tùy mục đích. Đặt cạnh nhau để kế toán đối chiếu trực tiếp |
 | ② | Cột dòng tiền | Ghi theo tháng hợp đồng — đây là cách Excel hiện tại đang làm và là chuẩn để đối soát golden |
-| ③ | Cột kinh doanh | Dàn đều cả tháng miễn; phần chênh với dòng tiền chính là chi phí trả trước |
+| ③ | Cột kinh doanh | Dàn đều cả tháng miễn. Chênh CF − AC lũy kế **dương** là chi phí trả trước, **âm** là chi phí dồn tích phải trả — dấu phụ thuộc tháng miễn nằm đầu hay cuối HĐ |
 | ④ | Lịch trả thực tế | Chỉ là view sổ quỹ, **không** phải dòng chi phí — cột này tồn tại để trả lời câu hỏi "bao giờ phải chuyển tiền" |
-| ⑤ | Dòng chênh lũy kế | Hiển thị tường minh giá trị chi phí trả trước tại mỗi thời điểm |
+| ⑤ | Dòng chênh lũy kế | Hiển thị tường minh chênh CF − AC kèm dấu tại mỗi thời điểm: dương = trả trước, âm = dồn tích |
 | ⑥ | Băng giải thích | Bốn gạch đầu dòng cố định vì đây là quy tắc hay bị hiểu ngược nhất trong toàn hệ thống |
 | ⑦ | Lịch & cổ đông | Trạng thái góp của từng cổ đông hiện ngay trên dòng kỳ; góp thiếu **không chặn** việc trả chủ nhà, công ty ứng trước |
 | ⑧ | Nhiều tòa | Tổng phân bổ phải đúng 100%, hiển thị cố định để dễ phát hiện lệch |

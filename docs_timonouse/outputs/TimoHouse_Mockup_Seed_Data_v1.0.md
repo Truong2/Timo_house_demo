@@ -544,3 +544,67 @@ Ba ca kiểm thử: **một tòa có hai mã điện** (T2), **chủ hợp đồ
 | Lỗi công thức trong sổ | Sheet `cập nhật thu tiền` còn ô `#REF!` và `#DIV/0!` | — |
 
 Nguyên tắc: mockup **hiển thị đúng số gốc và gắn nhãn cảnh báo**, tuyệt đối không tự sửa cho khớp.
+
+---
+
+## 17. Chủ nhà và HĐ đầu vào mẫu — Phí Văn Thắng · 25A Phú Diễn
+
+Nguồn: `Hợp đồng thuê nhà 2026(Mẫu) tùng sói.doc` (file WPS, 9 trang, hash `d8403819975d…`). Dùng cho cụm **Nguồn nhà & tòa/phòng** (UI-02, 03, 04, 05, 27). Dữ liệu máy đọc được ở `ui-imagegen-v1/_source/data/landlord-tungsoi.mjs`. CCCD và SĐT **che khi hiển thị**, giữ 3 số cuối.
+
+### 17.1 Các bên
+
+| Trường | Bên A — chủ nhà | Bên B — bên thuê |
+|---|---|---|
+| Họ tên | **Phí Văn Thắng** | Nguyễn Đình Chung (**cá nhân**, không phải pháp nhân Timehouse) |
+| CCCD | `•••••••••351` · cấp 19/04/2021 · Hà Nội | `•••••••••087` · cấp 22/11/2021 · Hà Nội |
+| Điện thoại | `•••••••338` | `•••••••196` |
+| Hộ khẩu thường trú | Tổ 18 Phú Diễn, Hà Nội | Nam Cao, Quảng Oai, Hà Nội |
+| Tài khoản ngân hàng · người đại diện | **Không có trên HĐ** | — |
+
+### 17.2 Nhà và điều khoản
+
+| Trường | Giá trị | Điều |
+|---|---|---|
+| Địa chỉ | Số 25A Ngõ 261 Phú Diễn, Hà Nội · thuê **toàn bộ** căn nhà | Mở đầu, 1 |
+| GCN · số tầng · DT sàn | **Để trống** | 1 |
+| Kết cấu · mục đích | Gạch và bê tông · kinh doanh cho thuê | 1, 3 |
+| Thời hạn | 60 tháng · ngày giao nhà, từ, đến **để trống** | 2.1, 2.2 |
+| Tiền thuê | **114.000.000 đ/tháng** · không giữ giá, không lịch tăng giá, không tháng miễn | 4.1, 4.2 |
+| Kỳ trả | 03 tháng/lần · ngày 01–10 tháng đầu kỳ · CK hoặc tiền mặt | 4.4 |
+| Cọc | 114.000.000 (mẫu ghi "đồng/tháng") · tiền mặt ngay sau ký | 5.1 |
+| Gia hạn | Báo trước 03 tháng · bên B được ưu tiên | 2.3 |
+
+Khi có ngày bắt đầu: 60 ÷ 3 = **20 kỳ**, mỗi kỳ 114.000.000 × 3 = **342.000.000 đ**.
+
+### 17.3 Phụ lục bàn giao — 13 hạng mục, cột số lượng trống
+
+Nhóm 1: điều hòa kèm điều khiển · thiết bị mạng, công tắc, ổ cắm · bình nóng lạnh · thiết bị vệ sinh. Nhóm 2: cửa ra vào · cửa WC · cửa sổ các phòng · cửa ban công · bóng điện · **công tơ điện** · **đồng hồ nước** · hệ thống báo cháy · cửa chống cháy. Tất cả "Sử dụng bình thường". Hai dòng công tơ/đồng hồ thành công tơ cấp tòa; 11 dòng còn lại là tài sản **của chủ nhà**, không khấu hao.
+
+### 17.4 Ca kiểm thử từ mẫu
+
+| # | Ca | Kỳ vọng trên UI |
+|---:|---|---|
+| 1 | Ngày thuê trống | Chặn commit/kích hoạt; lịch trả hiện "chưa sinh được" |
+| 2 | Cọc "đồng/tháng" | Chặn commit, reviewer chọn "một lần" |
+| 3 | Bên B là cá nhân | Chặn commit, xác nhận người ký thay Timehouse |
+| 4 | Phạt bên A 6.1 ≠ 10.4 | Cảnh báo "Lệch", lưu cả hai |
+| 5 | PL II "không tính hao mòn" ≠ 7.1 "trừ hao mòn" | Cảnh báo "Lệch" ở HĐ và UI-27 |
+| 6 | Chậm trả 01 tháng → chủ nhà lấy nhà (6.2, 10.2) | Cảnh báo đỏ |
+| 7 | Không có danh sách phòng | Commit tạo 0 phòng; phòng tạo ở UI-05 |
+| 8 | Không có TK ngân hàng | Chủ nhà tạo được, HĐ không kích hoạt được |
+
+### 17.5 Chủ nhà suy từ chủ HĐ điện (§12)
+
+Chủ HĐ điện là cá nhân chủ nhà (§12), nên dùng làm danh sách chủ nhà mẫu **chưa có HĐ đầu vào**. Mọi trường khác để trống, không bịa.
+
+| Mã mẫu | Chủ nhà | Tòa | Số phòng | Ghi chú |
+|---|---|---|---:|---|
+| LL-0001 | Tống Văn Định | T2 | — | T2 có 2 chủ HĐ điện (cùng Nguyễn Lan Anh) |
+| LL-0002 | Nguyễn Văn Khiết | T3 | 22 | Số phòng theo §9.3 |
+| LL-0003 | Dương Văn Thành | T5 | — | |
+| LL-0004 | Hồ Bích Diệp | T7 | — | |
+| LL-0005 | Vũ Thị An Thái | T8 | — | |
+| LL-0006 | Nguyen Thi Anh Dao | T10 | 8 | Số phòng theo §9.3 |
+| LL-0007 | Phí Văn Thắng | 25A Phú Diễn (ứng viên) | 0 | Từ HĐ mẫu §17 · HĐ HL-0031 Nháp |
+
+Mã tòa của 25A Phú Diễn không có trên HĐ; mockup dùng `PD25A` làm **giá trị ví dụ** do người review đặt.
