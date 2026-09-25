@@ -1,8 +1,8 @@
 {
   "name": "timohouse-mockup",
   "private": true,
-  "version": "3.0.0",
-  "description": "TimoHouse – mockup tương tác (static SPA, vanilla JS). Build = copy mockup/ → dist/ kèm cache-busting cho Netlify.",
+  "version": "4.0.0",
+  "description": "TimoHouse – mockup tương tác cụm Nguồn nhà & tòa/phòng (SRS v1.0 FR02–FR05). Static SPA, vanilla JS ES modules, không build step.",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -10,18 +10,14 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "dev:dist": "node scripts/serve.mjs --dist",
-    "check": "node scripts/build.mjs --check-only && node scripts/check-rbac.mjs",
-    "check:rbac": "node scripts/check-rbac.mjs",
     "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "check:parity": "node scripts/check-shell-parity.mjs",
+    "test:domain": "node --test \"tests/domain/*.test.mjs\"",
+    "verify:screens": "node scripts/verify-screens.mjs",
+    "verify:flow": "node scripts/verify-flow.mjs",
     "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
-    "walkthrough:p1": "node scripts/capture_phase1_walkthrough.mjs",
-    "walkthrough:p2": "node scripts/capture_phase2_walkthrough.mjs",
-    "walkthrough:p3": "node scripts/capture_phase3_walkthrough.mjs",
-    "walkthrough:all": "node scripts/capture_all_walkthroughs.mjs",
-    "walkthrough:render": "node scripts/render_uat_docs.mjs",
-    "walkthrough:summary": "node scripts/build_uat_summary.mjs",
-    "walkthrough:docs": "node scripts/build_uat_docs.mjs",
-    "demo:phase1:pdf": "node scripts/generate_phase1_demo_pdf.mjs"
+    "render:docs": "node docs_timonouse/outputs/ui-imagegen-v1/_source/render.mjs"
   },
   "devDependencies": {
     "docx": "^9.7.1",

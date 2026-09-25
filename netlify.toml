@@ -1,5 +1,5 @@
 # Netlify đọc file này khi import repo – không cần điền Build command / Publish directory trên UI.
-# _redirects và _headers được scripts/build.mjs sinh sẵn trong dist/.
+# _redirects và _headers được scripts/build.mjs sinh sẵn trong dist/ (copy từ app/).
 [build]
   command = "npm run build"
   publish = "dist"
