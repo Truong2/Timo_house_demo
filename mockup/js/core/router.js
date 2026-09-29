@@ -1,55 +1,80 @@
-/* Hash router: #/path/:id?query */
+/* Hash router theo manifest core/routes.js. Handler đăng ký bằng TH.router.handle(path, fn); không có dòng manifest → lỗi. */
 (function (TH) {
-  const R = { routes: [], current: null };
-  R.register = (pattern, handler, meta = {}) => { const keys = []; const re = new RegExp('^' + pattern.replace(/\/:(\w+)/g, (m, k) => { keys.push(k); return '/([^/]+)'; }) + '$'); R.routes.push({ pattern, re, keys, handler, meta }); };
-  R.parse = () => { let h = location.hash || '#/dashboard'; h = h.replace(/^#/, ''); const [path, qs] = h.split('?'); const query = {}; (qs || '').split('&').filter(Boolean).forEach(p => { const [k, v] = p.split('='); query[decodeURIComponent(k)] = decodeURIComponent(v || ''); }); return { path: path || '/dashboard', query }; };
-  R.match = (path) => { for (const r of R.routes) { const m = path.match(r.re); if (m) { const params = {}; r.keys.forEach((k, i) => params[k] = decodeURIComponent(m[i + 1])); return { route: r, params }; } } return null; };
+  const R = { current: null, handlers: {}, compiled: [] };
+  TH.routes.ROUTES.forEach(meta => {
+    const keys = [];
+    const re = new RegExp('^' + meta.path.replace(/\/:(\w+)/g, (m, k) => { keys.push(k); return '/([^/]+)'; }) + '$');
+    R.compiled.push({ meta, re, keys });
+  });
+  R.handle = (path, fn) => {
+    if (!TH.routes.ROUTES.some(r => r.path === path)) throw new Error('Route chưa khai báo trong core/routes.js: ' + path);
+    R.handlers[path] = fn;
+  };
+  R.parse = () => {
+    let h = (location.hash || '#/dashboard').replace(/^#/, '');
+    const [path, qs] = h.split('?'); const query = {};
+    (qs || '').split('&').filter(Boolean).forEach(p => { const [k, v] = p.split('='); query[decodeURIComponent(k)] = decodeURIComponent((v || '').replace(/\+/g, ' ')); });
+    return { path: path || '/dashboard', query };
+  };
+  R.match = (path) => {
+    // route tĩnh ưu tiên hơn route có tham số (vd /tenants/new trước /tenants/:id)
+    const hits = R.compiled.map(c => ({ c, m: path.match(c.re) })).filter(x => x.m).sort((a, b) => a.c.keys.length - b.c.keys.length);
+    if (!hits.length) return null;
+    const { c, m } = hits[0]; const params = {};
+    c.keys.forEach((k, i) => { params[k] = decodeURIComponent(m[i + 1]); });
+    return { meta: c.meta, params };
+  };
   R.go = (hash) => { if (!hash.startsWith('#')) hash = '#' + hash; if (location.hash === hash) R.render(); else location.hash = hash; };
-  R.replaceQuery = (q) => { const { path } = R.parse(); const qs = Object.entries(q).filter(([k, v]) => v !== '' && v != null).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&'); history.replaceState(null, '', '#' + path + (qs ? '?' + qs : '')); };
+  R.href = (path, q = {}) => '#' + path + R.qs(q);
+  R.qs = (q) => { const s = Object.entries(q).filter(([k, v]) => v !== '' && v != null && v !== false).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&'); return s ? '?' + s : ''; };
+  R.replaceQuery = (q) => { const { path } = R.parse(); history.replaceState(null, '', '#' + path + R.qs(q)); };
+  R.setQuery = (patch) => { const { query } = R.parse(); const q = Object.assign({}, query, patch); Object.keys(q).forEach(k => { if (q[k] === '' || q[k] == null) delete q[k]; }); R.replaceQuery(q); R.refresh(); };
   R.render = () => {
     const { path, query } = R.parse();
     const app = document.getElementById('app');
-    if (TH.store.state.session && TH.auth && !TH.auth.validateSession()) R._sessionEnded = true;
-    if (!TH.store.state.session) { if (path !== '/login') { R._after = path + (Object.keys(query).length ? '?' + new URLSearchParams(query) : ''); } TH.pages.login.render(app); document.body.classList.remove('guide-open'); R.current = { path: '/login' }; return; }
-    if (path === '/login') { R.go(R._after && R._after !== '/login' ? R._after : '/dashboard'); R._after = null; return; }
+    if (!TH.store.session) {
+      if (path !== '/login') R._after = location.hash;
+      app.className = ''; TH.layout.reset(); TH.pages.login(app); R.current = { path: '/login' }; return;
+    }
+    if (path === '/login') { R.go(R._after && !R._after.includes('/login') ? R._after : '#/dashboard'); R._after = null; return; }
     const m = R.match(path);
-    if (!m) { R.go('/dashboard'); return; }
-    TH.layout.ensure(app);
-    // Route handlers bind delegated events directly to #content. Reusing the
-    // same node across renders keeps the old handlers alive, so one click can
-    // invoke every handler registered by previous renders and open duplicate
-    // drawers/modals. Replace the page root to give each render a clean event
-    // lifecycle while preserving its id, classes and layout attributes.
-    // Render lồng nhau (blur ô lọc đang focus → 'change' → applyFilter → refresh) sẽ làm replaceWith văng lỗi:
-    // đánh dấu và render lại 1 lần sau khi render hiện tại xong.
+    if (!m) { R.go('#/dashboard'); return; }
     if (R._rendering) { R._again = true; return; }
     R._rendering = true;
-    const previousRoot = document.getElementById('content');
-    const root = previousRoot.cloneNode(false);
-    if (previousRoot.contains(document.activeElement)) document.activeElement.blur();
-    previousRoot.replaceWith(root);
-    R.current = { path, query, params: m.params, route: m.route };
-    TH.layout.setActive(m.route.meta.menu || path);
-    document.body.classList.remove('sb-open');
-    const pill = document.getElementById('tb-period'); if (pill) pill.hidden = true;
-    if (!TH.auth.canRoute(m.route.meta, m.params)) {
-      TH.router.crumb([{ label: 'Không có quyền truy cập' }]);
-      root.innerHTML = `<div class="card"><div class="card-b">${TH.ui.empty({ icon: 'lock', title: '403 – Không có quyền truy cập', text: TH.auth.role() === 'ops' && !(TH.auth.allowedBuildingIds() || new Set()).size ? 'Tài khoản chưa được phân công tòa. Vui lòng liên hệ Quản trị viên.' : 'Tài khoản của bạn không có quyền truy cập chức năng hoặc dữ liệu này.', action: `<a class="btn btn-primary btn-sm" href="#/dashboard">Về Tổng quan</a>` })}</div></div>`;
-    } else if (m.route.meta.phase && TH.phase && !TH.phase.on(m.route.meta.phase)) {
-      // Chỉ người có quyền mới nhìn thấy teaser của phase chưa bật.
-      TH.pages.comingSoon(root, m.route.meta.scopeKey || m.route.meta.menu || 'p2', { phase: m.route.meta.phase, path });
-    } else try { if (TH.phase && TH.phase.on(2) && TH.actions.expireHolds) TH.actions.expireHolds(); m.route.handler(root, m.params, query); TH.auth.enforceUI(root, path); if (TH.ui.enhanceSideCards) TH.ui.enhanceSideCards(root); if (TH.layout.syncPeriod) TH.layout.syncPeriod(); } catch (e) { console.error(e); root.innerHTML = `<div class="card"><div class="card-b"><div class="note-box danger">${TH.icon('alert-triangle')}<div><b>Lỗi hiển thị trang</b>${TH.esc(e.message)}</div></div></div></div>`; }
-    if (TH.auth.role() === 'ops' && TH.auth.allowedBuildingIds() && !TH.auth.allowedBuildingIds().size && TH.auth.canRoute(m.route.meta, m.params)) root.insertAdjacentHTML('afterbegin', `<div class="note-box warn mb16">${TH.icon('alert-triangle')}<div><b>Chưa được phân công tòa</b>Liên hệ Quản trị viên để được gán phạm vi. Dữ liệu nghiệp vụ đang được ẩn.</div></div>`);
-    if (window.scrollY > 0 && R._lastPath !== path) window.scrollTo(0, 0); R._lastPath = path;
-    TH.store.emit('route');
-    R._rendering = false; if (R._again) { R._again = false; R.render(); }
+    try {
+      const printMode = !!m.meta.print;
+      document.body.classList.toggle('print-mode', printMode);
+      let root;
+      if (printMode) { app.className = 'print-app'; app.innerHTML = '<div id="content" class="print-root"></div>'; root = app.firstElementChild; TH.layout.reset(); }
+      else {
+        TH.layout.ensure(app);
+        const prev = document.getElementById('content'); root = prev.cloneNode(false); prev.replaceWith(root);
+        TH.layout.setActive(m.meta.menu); TH.layout.setTitle(m.meta);
+      }
+      R.current = { path, query, params: m.params, meta: m.meta };
+      if (!TH.auth.canRoute(m.meta)) {
+        TH.layout.crumb([{ label: 'Không có quyền truy cập' }]);
+        root.innerHTML = TH.ui.card({ body: TH.ui.empty({ icon: 'lock', title: '403 – Không có quyền truy cập', text: 'Vai trò ' + TH.esc(TH.auth.roleLabel()) + ' không được xem chức năng này.', action: '<a class="btn btn-primary btn-sm" href="#/dashboard">Về Tổng quan</a>' }) });
+      } else if (!TH.ms.on(m.meta.ms)) {
+        TH.layout.crumb([{ label: m.meta.title }]);
+        root.innerHTML = TH.ui.card({ body: TH.ui.empty({ icon: 'flag', title: m.meta.title + ' thuộc mốc ' + m.meta.ms, text: 'Hệ thống đang ở mốc ' + TH.ms.current() + ' (go-live hóa đơn & thu tiền). Chức năng chốt tháng mở khi chuyển sang mốc 1B ở Cài đặt.', action: TH.auth.can('settings.manage') ? '<a class="btn btn-primary btn-sm" href="#/settings?tab=he-thong">Mở Cài đặt</a>' : '' }) });
+      } else {
+        const h = R.handlers[m.meta.path];
+        if (!h) root.innerHTML = TH.ui.card({ body: TH.ui.empty({ icon: 'alert-circle', title: 'Chưa có màn hình', text: m.meta.ui + ' – ' + m.meta.title }) });
+        else h(root, m.params, query);
+        TH.auth.enforceUI(root);
+      }
+    } catch (e) {
+      console.error(e);
+      const root = document.getElementById('content');
+      if (root) root.innerHTML = `<div class="card"><div class="card-b">${TH.ui.note('danger', 'Lỗi hiển thị trang', TH.esc(e.message))}</div></div>`;
+    }
+    if (R._lastPath !== path) window.scrollTo(0, 0);
+    R._lastPath = path;
+    R._rendering = false;
+    if (R._again) { R._again = false; R.render(); }
   };
-  // Áp bộ lọc trang: kỳ chọn trong filterbar đồng bộ lên topbar (meta.period); 'all' = tất cả kỳ; không ghi period vào URL
-  R.applyFilter = (f, d = {}) => { const n = Object.assign({}, f, d); if (d.period !== undefined && d.period && d.period !== f.period) { TH.store.state.meta.period = d.period; TH.store.save(); TH.layout && TH.layout.refreshTop(); } if (n.period === '') n.period = 'all'; else delete n.period; R.replaceQuery(n); R.refresh(); };
-  R.periodOf = (q) => q.period === 'all' ? '' : (q.period || TH.store.state.meta.period);
-  R.refresh = () => { R._keepScroll = window.scrollY; R.render(); window.scrollTo(0, R._keepScroll || 0); };
+  R.refresh = () => { const y = window.scrollY; R.render(); window.scrollTo(0, y); };
   R.start = () => { window.addEventListener('hashchange', R.render); R.render(); };
-  R.crumb = (items) => TH.layout.setBreadcrumb(items);
-  TH.router = R; TH.pages = TH.pages || {};
-  TH.go = R.go;
+  TH.router = R; TH.pages = TH.pages || {}; TH.go = R.go;
 })(window.TH);

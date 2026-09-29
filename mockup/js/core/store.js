@@ -1,86 +1,96 @@
-/* Store: state + persist localStorage */
+/* Store: state gốc dựng từ seed mỗi lần mở app + overlay thao tác người dùng trong localStorage.
+   Chỉ bản ghi đã thêm/sửa/xóa được lưu (không lưu toàn bộ ~1.500 hóa đơn) → không vượt quota. */
 (function (TH) {
-  const KEY = 'timehouse-demo-p1-v3-2026';
-  const SCHEMA = 4;
-  const COLLECTIONS = ['users', 'areas', 'salesTeams', 'buildings', 'landlords', 'landlordContracts', 'landlordPayments', 'rooms', 'roomAssets', 'tenants', 'contracts', 'contractMembers', 'contractServices', 'services', 'priceHistory', 'expenseGroups', 'payMethods', 'meterReadings', 'invoices', 'invoiceLines', 'payments', 'paymentAllocations', 'refunds', 'refundDeductions', 'expenses', 'expenseAllocations', 'zaloEvents', 'zaloTemplates', 'zaloBatches', 'zaloMessages', 'importJobs', 'documents', 'auditLog', 'holds',
-    // Phase 2
-    'leads', 'leadActivities', 'leadSources', 'viewings', 'deals', 'commissions', 'ocrExtractions', 'openingBalances', 'incidents', 'incidentUpdates', 'maintenanceSchedules', 'vendors', 'periods', 'depreciationLines', 'reportRuns',
-    // Phase 3
-    'assets', 'inventories', 'inventoryLines', 'employees', 'buildingAssignments', 'timesheets', 'payrolls', 'projects', 'shareholders', 'capitalCommitments', 'contributions', 'distributions', 'bankAccounts', 'bankTransactions'];
-  const S = { state: null, listeners: [], _t: null };
-  S.empty = () => { const st = { schema: SCHEMA, meta: { today: TH.f.DEMO_TODAY, period: '2026-10', seededAt: null, columnPrefs: {} }, session: null, guide: { done: {}, ts: {}, current: null } }; COLLECTIONS.forEach(c => st[c] = []); return st; };
-  S.migrate = (st) => {
-    if (!st || Number(st.schema) !== SCHEMA) throw new Error('Schema không khớp');
-    COLLECTIONS.forEach(c => { if (!Array.isArray(st[c])) st[c] = []; });
-    st.meta = st.meta || { today: TH.f.DEMO_TODAY, period: '2026-10' };
-    st.guide = st.guide || { done: {}, ts: {}, current: null };
-    // Phase 1 RBAC: preserve explicit assignments and only backfill legacy
-    // operation accounts from buildings they already manage.
-    st.users.forEach(u => {
-      if (!u || u.role !== 'ops') return;
-      if (!Array.isArray(u.buildingIds)) u.buildingIds = st.buildings.filter(b => b && b.managerId === u.id).map(b => b.id);
-      u.buildingIds = [...new Set(u.buildingIds.filter(id => st.buildings.some(b => b && b.id === id)))];
-    });
-    // Phase 2: state hiện hành chưa có dữ liệu P2 → seed bổ sung trên dữ liệu hiện có (idempotent, không đụng record P1)
-    if (TH.seed && TH.seed.phase2 && !st.meta.p2Seeded && st.buildings.length) { try { TH.seed.phase2(st); } catch (e) { console.warn('seed phase2', e); } }
-    // Phase 3: tương tự, seed bổ sung trên state hiện có (idempotent qua meta.p3Seeded)
-    if (TH.seed && TH.seed.phase3 && !st.meta.p3Seeded && st.buildings.length) { try { TH.seed.phase3(st); } catch (e) { console.warn('seed phase3', e); } }
-    // Workbook alignment v2.3: additive-only migration; giữ nguyên schema và dữ liệu nghiệp vụ cũ.
-    if (TH.seed && TH.seed.workbook && !st.meta.wbSeeded && st.buildings.length) { try { TH.seed.workbook(st); } catch (e) { console.warn('seed workbook alignment', e); } }
-    if (TH.seed && TH.seed.workbookFixups && st.meta.wbSeeded) { try { TH.seed.workbookFixups(st); } catch (e) { console.warn('workbook fixups', e); } }
-    // Kanban CRM: bổ sung thứ tự card cho state cũ mà không đổi schema / reset localStorage.
-    // Luôn chuẩn hóa theo từng giai đoạn để loại bỏ vị trí trùng hoặc không hợp lệ.
-    const leadGroups = {};
-    st.leads.forEach((lead, sourceIndex) => {
-      if (!lead) return;
-      const status = lead.status || 'new';
-      (leadGroups[status] = leadGroups[status] || []).push({ lead, sourceIndex });
-    });
-    Object.values(leadGroups).forEach(items => items
-      .sort((a, b) => {
-        const ao = Number(a.lead.boardOrder), bo = Number(b.lead.boardOrder);
-        const av = Number.isFinite(ao) && ao > 0 ? ao : Number.MAX_SAFE_INTEGER;
-        const bv = Number.isFinite(bo) && bo > 0 ? bo : Number.MAX_SAFE_INTEGER;
-        return av - bv || a.sourceIndex - b.sourceIndex;
-      })
-      .forEach((item, i) => { item.lead.boardOrder = (i + 1) * 1000; }));
-    st.schema = SCHEMA;
-    return st;
+  const KEY = 'timohouse-p1-v1';
+  const SCHEMA = 1;
+  const S = { state: null, meta: null, session: null, version: 0, listeners: [], _dirty: {}, _idx: {}, _t: null, KEY };
+
+  const seedHash = () => {
+    const D = TH.data || {};
+    const sig = [D.master && D.master.stays.length, D.p202609 && D.p202609.invoices.length, D.p202609 && D.p202609.payments.length, D.bench202608 ? 1 : 0, (D.catalog.params || []).length, SCHEMA].join('|');
+    return TH.f.hash(sig);
   };
+  const defaultMeta = () => ({ today: TH.f.DEMO_TODAY, period: '2026-09', milestone: '1B', prefs: {}, seedHash: seedHash() });
+
   S.load = () => {
-    try { const raw = localStorage.getItem(KEY); if (raw) { const st = JSON.parse(raw); if (st && Number(st.schema) === SCHEMA) { S.state = S.migrate(st); S.saveNow(); return true; } } } catch (e) { console.warn('store load', e); }
-    S.state = S.empty(); return false;
+    S.state = TH.seed.build();
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }
+    if (saved && saved.schema === SCHEMA && saved.meta && saved.meta.seedHash === seedHash()) {
+      S.meta = Object.assign(defaultMeta(), saved.meta);
+      S.session = saved.session || null;
+      S._dirty = saved.ops || {};
+      Object.entries(S._dirty).forEach(([c, recs]) => {
+        if (!S.state[c]) S.state[c] = [];
+        const arr = S.state[c]; const pos = {}; arr.forEach((x, i) => { pos[x.id] = i; });
+        Object.entries(recs).forEach(([id, rec]) => {
+          if (rec === 0) { if (pos[id] != null) arr[pos[id]] = null; }
+          else if (pos[id] != null) arr[pos[id]] = rec;
+          else arr.push(rec);
+        });
+        S.state[c] = arr.filter(Boolean);
+      });
+      S.restored = !!saved.ops && Object.keys(saved.ops).length > 0;
+    } else {
+      if (saved && saved.meta && saved.meta.seedHash !== seedHash()) S.seedChanged = true;
+      S.meta = defaultMeta(); S.session = saved && saved.session || null; S._dirty = {};
+    }
+    S.applyCatalog();
+    S.version++;
   };
-  S.save = () => { clearTimeout(S._t); S._t = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) { console.warn('store save', e); } }, 60); };
-  S.saveNow = () => { clearTimeout(S._t); try { localStorage.setItem(KEY, JSON.stringify(S.state)); } catch (e) { } };
-  S.rawAll = (c) => S.state[c] || [];
-  S.rawGet = (c, id) => S.rawAll(c).find(x => x && x.id === id) || null;
-  const visible = (c, rows) => TH.auth && TH.auth.shouldScopeCollection && TH.auth.shouldScopeCollection(c) ? TH.auth.scope(c, rows) : rows;
-  S.all = (c) => visible(c, S.rawAll(c));
-  // Dữ liệu trong localStorage có thể còn record rỗng sau khi người dùng
-  // chỉnh sửa/import. Lookup phải bỏ qua record không hợp lệ thay vì làm văng
-  // lỗi ở các action menu (đặc biệt là các field trạng thái).
-  S.get = (c, id) => S.all(c).find(x => x && x.id === id) || null;
-  S.byCode = (c, code) => S.all(c).find(x => x && x.code === code) || null;
-  S.where = (c, f) => S.all(c).filter(x => x && f(x));
-  S.one = (c, f) => S.all(c).find(x => x && f(x)) || null;
-  S.add = (c, obj) => { if (!obj.id) obj.id = TH.f.uid(c.slice(0, 3)); if (!obj.createdAt) obj.createdAt = TH.f.nowISO(); if (!obj.source) obj.source = 'user'; S.state[c].push(obj); S.save(); return obj; };
-  S.update = (c, id, patch) => { const o = S.get(c, id); if (!o) return null; Object.assign(o, typeof patch === 'function' ? patch(o) : patch); S.save(); return o; };
-  S.remove = (c, id) => { const a = S.state[c]; const i = a.findIndex(x => x && x.id === id); if (i >= 0) a.splice(i, 1); S.save(); };
-  S.removeWhere = (c, f) => { S.state[c] = S.state[c].filter(x => !x || !f(x)); S.save(); };
-  S.nextCode = (c, prefix, width = 3, filter) => {
-    let max = 0; S.state[c].forEach(x => { if (!x || (filter && !filter(x))) return; if (x.code && x.code.startsWith(prefix)) { const n = parseInt(x.code.slice(prefix.length).replace(/\D/g, ''), 10); if (!isNaN(n) && n > max) max = n; } });
-    return prefix + TH.f.pad(max + 1, width);
+  /* Danh mục mở rộng (UI-38): mục bổ sung / ngừng dùng lưu ở collection catalogItems, phủ lên TH.data.catalog để mọi nơi đọc catalog không phải sửa.
+     Dòng báo cáo và 13 loại phí hóa đơn là cấu trúc mẫu – cố định. */
+  S.applyCatalog = () => {
+    const C = TH.data.catalog; if (!C) return;
+    if (!TH.data.catalogBase) TH.data.catalogBase = { expenseCategories: C.expenseCategories.map(x => Object.assign({}, x)), breachReasons: C.breachReasons.slice(), titles: Object.assign({}, C.titles) };
+    const B = TH.data.catalogBase, items = S.all('catalogItems');
+    const on = (kind, key) => { const it = items.find(x => x.kind === kind && x.key === key); return it ? it.active !== false : true; };
+    C.expenseCategories = [...B.expenseCategories.map(x => Object.assign({}, x, { active: on('expenseCategories', x.key) })), ...items.filter(x => x.kind === 'expenseCategories' && !x.base).map(x => ({ key: x.key, label: x.label, reportLine: x.reportLine || null, group: x.group || 'Bổ sung', custom: true, active: x.active !== false }))];
+    C.breachReasons = [...B.breachReasons.filter(r => on('breachReasons', r)), ...items.filter(x => x.kind === 'breachReasons' && !x.base && x.active !== false).map(x => x.label)];
+    C.titles = Object.assign({}, B.titles); C.titlesAll = Object.assign({}, B.titles);
+    items.filter(x => x.kind === 'titles').forEach(x => { if (!x.base) C.titlesAll[x.key] = x.label; if (x.active === false) delete C.titles[x.key]; else if (!x.base) C.titles[x.key] = x.label; });
   };
-  S.audit = (action, entityType, entityId, summary, extra = {}) => {
-    const u = S.state.session; S.state.auditLog.unshift({ id: TH.f.uid('log'), at: TH.f.nowISO(), userId: u ? u.userId : null, userName: u ? u.name : 'Hệ thống', action, entityType, entityId, summary, ...extra }); if (S.state.auditLog.length > 2000) S.state.auditLog.length = 2000; S.save();
+  const persist = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ schema: SCHEMA, meta: S.meta, session: S.session, ops: S._dirty }));
+      S.quotaError = false;
+    } catch (e) { S.quotaError = true; console.warn('store save', e); }
   };
+  S.save = () => { clearTimeout(S._t); S._t = setTimeout(persist, 80); };
+  S.saveNow = () => { clearTimeout(S._t); persist(); };
+  S.usage = () => { try { return (localStorage.getItem(KEY) || '').length * 2; } catch (e) { return 0; } };
+  const mark = (c, obj) => { (S._dirty[c] = S._dirty[c] || {})[obj.id] = obj; S.version++; delete S._idx[c]; S.save(); };
+
+  S.all = (c) => S.state[c] || [];
+  S.index = (c) => { if (!S._idx[c]) { const m = new Map(); S.all(c).forEach(x => m.set(x.id, x)); S._idx[c] = m; } return S._idx[c]; };
+  S.get = (c, id) => id == null ? null : S.index(c).get(id) || null;
+  S.where = (c, f) => S.all(c).filter(f);
+  S.one = (c, f) => S.all(c).find(f) || null;
+  S.add = (c, obj) => {
+    if (!S.state[c]) S.state[c] = [];
+    if (!obj.id) obj.id = TH.f.uid(c.slice(0, 3));
+    if (!obj.createdAt) obj.createdAt = TH.f.nowISO();
+    S.state[c].push(obj); mark(c, obj); return obj;
+  };
+  S.update = (c, id, patch) => { const o = S.get(c, id); if (!o) return null; Object.assign(o, typeof patch === 'function' ? patch(o) : patch); o.updatedAt = TH.f.nowISO(); mark(c, o); return o; };
+  S.touch = (c, obj) => mark(c, obj);
+  S.remove = (c, id) => { S.state[c] = S.all(c).filter(x => x.id !== id); (S._dirty[c] = S._dirty[c] || {})[id] = 0; S.version++; delete S._idx[c]; S.save(); };
+  S.nextCode = (c, prefix, width = 4) => {
+    let max = 0; S.all(c).forEach(x => { if (x.code && x.code.startsWith(prefix)) { const n = parseInt(x.code.slice(prefix.length).replace(/\D/g, ''), 10); if (!isNaN(n) && n > max) max = n; } });
+    return prefix + String(max + 1).padStart(width, '0');
+  };
+  S.audit = (action, entity, entityId, summary, extra = {}) => {
+    const u = S.session;
+    S.add('auditLog', Object.assign({ at: TH.f.nowISO(), userId: u ? u.userId : null, userName: u ? u.name : 'Hệ thống', role: u ? u.role : null, action, entity, entityId, summary }, extra));
+  };
+  S.setMeta = (patch) => { Object.assign(S.meta, patch); S.version++; S.save(); };
+  S.setSession = (sess) => { S.session = sess; S.saveNow(); };
   S.on = (fn) => S.listeners.push(fn);
   S.emit = (what, detail) => { S.listeners.forEach(fn => { try { fn(what, detail); } catch (e) { console.error(e); } }); };
-  S.reset = (withSeed = true) => { S.state = S.empty(); if (withSeed && TH.seed) TH.seed.run(S.state); S.migrate(S.state); S.saveNow(); };
-  S.clearBusiness = () => { const keepUsers = S.state.users; const sess = S.state.session; const g = S.state.guide; S.state = S.empty(); S.state.users = keepUsers; S.state.session = sess; S.state.guide = g; if (TH.seed) TH.seed.catalogOnly(S.state); S.saveNow(); };
-  S.exportJSON = () => JSON.stringify(S.state, null, 2);
-  S.importJSON = (txt) => { S.state = S.migrate(JSON.parse(txt)); S.saveNow(); };
-  S.COLLECTIONS = COLLECTIONS; S.KEY = KEY;
+  /* Xóa mọi thao tác, quay về dữ liệu demo gốc (giữ phiên đăng nhập) */
+  S.reset = () => { const sess = S.session; S._dirty = {}; S.meta = defaultMeta(); S.session = sess; persist(); S.load(); };
+  S.dirtyCount = () => Object.values(S._dirty).reduce((s, m) => s + Object.keys(m).length, 0);
+  S.exportJSON = () => JSON.stringify({ schema: SCHEMA, meta: S.meta, ops: S._dirty }, null, 2);
+  S.importJSON = (txt) => { const o = JSON.parse(txt); if (o.schema !== SCHEMA) throw new Error('File không đúng phiên bản dữ liệu'); S._dirty = o.ops || {}; S.meta = Object.assign(defaultMeta(), o.meta || {}); persist(); S.load(); };
   TH.store = S;
 })(window.TH);

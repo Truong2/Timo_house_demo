@@ -1,68 +1,84 @@
+/* UI-01 Tổng quan: 3 loại phòng trống, tiến độ thu theo mốc 5/10/15, việc cần xử lý. Chỉ đọc. */
 (function (TH) {
-  const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, esc = F.esc, C = TH.chart;
-
-  const queueRow = (x) => `<a class="work-row" href="${x.href}"><span class="work-icon ${x.tone || 'blue'}">${I(x.icon)}</span><span class="grow"><b>${esc(x.label)}</b><small>${esc(x.note || 'Mở danh sách để xử lý')}</small></span><strong class="${x.tone || 'blue'}">${x.count}</strong>${I('chevron-right')}</a>`;
-  const metric = (label, value, note, icon, tone = 'blue', href = '') => `<${href ? 'a href="' + href + '"' : 'div'} class="focus-kpi ${href ? 'clickable' : ''}"><span class="focus-kpi-icon ${tone}">${I(icon)}</span><span><small>${esc(label)}</small><strong>${value}</strong><em>${esc(note)}</em></span></${href ? 'a' : 'div'}>`;
-  const wbMetric = (key, label, value, note, icon, tone, href) => `<a href="${href}" class="focus-kpi clickable wb-kpi"><span class="focus-kpi-icon ${tone}">${I(icon)}</span><span><small>${esc(label)} ${U.metricInfo(key)}</small><strong>${value}</strong><em>${esc(note)}</em></span></a>`;
-
-  const dashboardModel = (role, period, f) => {
-    const rooms = Q.filterRooms(f), rs = Q.roomStats(rooms), fin = Q.finance(period, f), todo = Q.todo();
-    const expiring = St.where('contracts', c => Q.contractStatus(c) === 'expiring' && rooms.some(r => r.id === c.roomId)).length;
-    const overdueAmount = fin.overdueInv.reduce((sum, inv) => sum + Q.invRemaining(inv), 0);
-    const base = { title: 'Tổng quan', subtitle: 'Tình hình quan trọng và công việc cần ưu tiên hôm nay.', rooms, rs, fin, queue: [], kpis: [], chart: 'occupancy' };
-
-    if (role === 'accountant') return Object.assign(base, {
-      title: 'Công việc của tôi', subtitle: 'Tổng quan tài chính – theo dõi dòng tiền, công nợ và các chứng từ cần xử lý.', chart: 'collection',
-      kpis: [metric('Phải thu trong kỳ', F.short(fin.receivable), fin.count + ' hóa đơn', 'receipt'), metric('Đã thu', F.short(fin.collected), fin.pct + '% kế hoạch', 'check-circle', 'green'), metric('Quá hạn', F.short(overdueAmount), fin.overdueInv.length + ' khoản', 'alert-circle', 'red', '#/receivables?overdue=1&period=all'), metric('Hoàn cọc chờ xử lý', todo.refunds || 0, 'Hồ sơ đang xử lý', 'hand-coins', 'amber', '#/refunds?status=processing')],
-      queue: [{ label: 'Công nợ quá hạn', count: todo.overdue || fin.overdueInv.length, icon: 'alert-circle', tone: 'red', href: '#/receivables?overdue=1&period=all', note: 'Ưu tiên theo số ngày quá hạn' }, { label: 'Hóa đơn nháp chờ phát hành', count: todo.drafts || 0, icon: 'file-plus', tone: 'amber', href: '#/invoices?doc=draft&period=all', note: 'Kiểm tra trước khi phát hành' }, { label: 'Hoàn cọc đang xử lý', count: todo.refunds || 0, icon: 'hand-coins', tone: 'blue', href: '#/refunds?status=processing', note: 'Duyệt và ghi nhận thanh toán' }]
-    });
-    if (role === 'ops') return Object.assign(base, {
-      title: 'Công việc của tôi', subtitle: 'Bàn làm việc vận hành – tập trung vào phòng, hợp đồng và các việc phát sinh trong ngày.',
-      kpis: [metric('Phòng sẵn sàng', rs.ready, 'Có thể cho thuê ngay', 'door', 'green', '#/rooms?status=ready'), metric('Chờ dọn', rs.cleaning, 'Cần bàn giao lại', 'brush', 'amber', '#/rooms?status=cleaning'), metric('Hợp đồng sắp hết hạn', expiring, 'Trong 35 ngày', 'clock', 'red', '#/contracts?status=expiring'), metric('Đang giữ chỗ', rs.held, 'Chờ ký hợp đồng', 'bookmark', 'blue', '#/rooms?status=held')],
-      queue: [{ label: 'Hợp đồng sắp hết hạn', count: expiring, icon: 'file-text', tone: 'red', href: '#/contracts?status=expiring', note: 'Liên hệ gia hạn hoặc chuẩn bị trả phòng' }, { label: 'Phòng chờ dọn', count: rs.cleaning, icon: 'brush', tone: 'amber', href: '#/rooms?status=cleaning', note: 'Xác nhận dọn xong để mở bán lại' }, { label: 'Hoàn cọc đang xử lý', count: todo.refunds || 0, icon: 'hand-coins', tone: 'blue', href: '#/refunds?status=processing', note: 'Bổ sung hiện trạng và bằng chứng' }, ...(TH.phase.on(2) ? [{ label: 'Lịch bảo dưỡng sắp đến hạn', count: todo.maintenanceDue || 0, icon: 'wrench', tone: 'amber', href: '#/maintenance/schedules?status=due_soon', note: 'Đến hạn trong 7 ngày' }] : [])]
-    });
-    if (role === 'sale') {
-      const leads = St.all('leads'), viewings = St.all('viewings'), holds = St.all('holds');
-      return Object.assign(base, { title: 'Công việc của tôi', subtitle: 'Bàn làm việc kinh doanh – lead cần chăm sóc, lịch xem phòng và cơ hội chốt thuê.', chart: 'pipeline', kpis: [metric('Lead đang mở', leads.filter(x => !['won', 'lost'].includes(x.status)).length, 'Cần tiếp tục chăm sóc', 'users', 'blue', '#/crm/leads'), metric('Lịch xem hôm nay', todo.viewingsToday || 0, 'Đã lên lịch', 'calendar-check', 'green', '#/crm/viewings?status=scheduled'), metric('Đang giữ chỗ', holds.filter(x => !['expired', 'converted', 'cancelled'].includes(x.status)).length, 'Theo dõi hạn giữ', 'clock', 'amber', '#/crm/holds'), metric('Phòng sẵn sàng', rs.ready, 'Có thể giới thiệu', 'door', 'green', '#/rooms?status=ready')], queue: [{ label: 'Lead cần liên hệ', count: leads.filter(x => ['new', 'contacted'].includes(x.status)).length, icon: 'phone', tone: 'red', href: '#/crm/leads', note: 'Ưu tiên lead mới và chưa có lịch hẹn' }, { label: 'Lịch xem hôm nay', count: todo.viewingsToday || 0, icon: 'calendar-check', tone: 'green', href: '#/crm/viewings?status=scheduled', note: 'Xác nhận khách và phòng trước giờ hẹn' }, { label: 'Giữ chỗ cần theo dõi', count: holds.filter(x => !['expired', 'converted', 'cancelled'].includes(x.status)).length, icon: 'clock', tone: 'amber', href: '#/crm/holds', note: 'Tránh giữ chỗ quá hạn' }] });
-    }
-    if (role === 'kythuat') {
-      const incidents = St.all('incidents'), open = incidents.filter(x => !['done', 'closed', 'cancelled'].includes(x.status));
-      return Object.assign(base, { title: 'Công việc của tôi', subtitle: 'Bàn làm việc kỹ thuật – sự cố được giao và lịch bảo dưỡng cần thực hiện.', kpis: [metric('Sự cố đang mở', open.length, 'Đang chờ xử lý', 'wrench', 'red', '#/maintenance?assignee=me'), metric('Ưu tiên cao', open.filter(x => ['high', 'urgent'].includes(x.priority)).length, 'Cần xử lý trước', 'alert-triangle', 'amber', '#/maintenance?assignee=me&priority=high'), metric('Lịch sắp đến hạn', todo.maintenanceDue || 0, 'Trong 7 ngày', 'calendar-clock', 'blue', '#/maintenance/schedules?status=due_soon'), metric('Tài sản cần xử lý', todo.inventoryPending || 0, 'Sau kiểm kê', 'package', 'purple', '#/assets/inventory?status=needs_action')], queue: [{ label: 'Sự cố ưu tiên cao', count: open.filter(x => ['high', 'urgent'].includes(x.priority)).length, icon: 'alert-triangle', tone: 'red', href: '#/maintenance?assignee=me&priority=high', note: 'Cập nhật tiến độ và bằng chứng' }, { label: 'Lịch bảo dưỡng sắp đến hạn', count: todo.maintenanceDue || 0, icon: 'calendar-clock', tone: 'amber', href: '#/maintenance/schedules?status=due_soon', note: 'Kiểm tra vật tư trước khi thực hiện' }, { label: 'Sự cố đang mở', count: open.length, icon: 'wrench', tone: 'blue', href: '#/maintenance?assignee=me', note: 'Danh sách công việc được giao' }] });
-    }
-    if (role === 'hr') {
-      const employees = St.all('employees'), payrolls = St.all('payrolls');
-      return Object.assign(base, { title: 'Công việc của tôi', subtitle: 'Bàn làm việc nhân sự – hồ sơ nhân viên, chấm công và kỳ lương cần hoàn tất.', chart: 'none', kpis: [metric('Nhân viên', employees.length, 'Trong hệ thống', 'users', 'blue', '#/hr'), metric('Sắp hết thử việc', todo.probationEnding || 0, 'Cần đánh giá', 'clock', 'amber', '#/hr?status=probation'), metric('Kỳ lương đang mở', payrolls.filter(x => !['paid', 'closed'].includes(x.status)).length, 'Cần đối chiếu', 'banknote', 'green', '#/hr/payroll'), metric('Chấm công', 'Hôm nay', 'Mở bảng chấm công', 'calendar-check', 'purple', '#/hr/timesheet')], queue: [{ label: 'Nhân viên sắp hết thử việc', count: todo.probationEnding || 0, icon: 'user-check', tone: 'amber', href: '#/hr?status=probation', note: 'Chuẩn bị đánh giá và quyết định' }, { label: 'Kỳ lương cần xử lý', count: payrolls.filter(x => !['paid', 'closed'].includes(x.status)).length, icon: 'banknote', tone: 'blue', href: '#/hr/payroll', note: 'Đối chiếu công và phụ cấp' }] });
-    }
-    if (role === 'codong') {
-      const projects = St.all('projects'), contributions = St.all('contributions');
-      return Object.assign(base, { title: 'Tổng quan đầu tư', subtitle: 'Theo dõi dự án, tiến độ góp vốn và hiệu quả phân phối.', chart: 'none', kpis: [metric('Dự án đang theo dõi', projects.length, 'Theo phạm vi đầu tư', 'folder', 'blue', '#/investment/projects'), metric('Đợt góp vốn đến hạn', todo.contributionsDue || 0, 'Cần hoàn tất', 'hand-coins', 'amber', '#/investment/shareholders?tab=contributions&status=due'), metric('Giao dịch góp vốn', contributions.length, 'Đã ghi nhận', 'coins', 'green', '#/investment/shareholders?tab=contributions'), metric('Hiệu quả đầu tư', 'ROI', 'Xem báo cáo chi tiết', 'trending-up', 'purple', '#/investment/roi')], queue: [{ label: 'Đợt góp vốn đến hạn', count: todo.contributionsDue || 0, icon: 'hand-coins', tone: 'amber', href: '#/investment/shareholders?tab=contributions&status=due', note: 'Theo dõi phần vốn cam kết' }, { label: 'Dự án trong danh mục', count: projects.length, icon: 'folder', tone: 'blue', href: '#/investment/projects', note: 'Xem tiến độ và hiệu quả' }] });
-    }
-    return Object.assign(base, {
-      kpis: [metric('Phòng sẵn sàng', rs.ready, 'Trên tổng ' + rs.total + ' phòng', 'door', 'green', '#/rooms?status=ready'), metric('Hợp đồng sắp hết hạn', expiring, 'Trong 35 ngày', 'clock', 'amber', '#/contracts?status=expiring'), metric('Tiến độ thu', fin.pct + '%', 'Đã thu ' + F.short(fin.collected), 'calendar-check', 'purple', '#/receivables'), metric('Công nợ quá hạn', F.short(overdueAmount), fin.overdueInv.length + ' khoản', 'alert-circle', 'red', '#/receivables?overdue=1&period=all')],
-      queue: [{ label: 'Công nợ quá hạn', count: todo.overdue || fin.overdueInv.length, icon: 'alert-circle', tone: 'red', href: '#/receivables?overdue=1&period=all', note: 'Theo dõi các khoản có rủi ro cao' }, { label: 'Hợp đồng sắp hết hạn', count: todo.expiring || expiring, icon: 'file-text', tone: 'amber', href: '#/contracts?status=expiring', note: 'Lên kế hoạch gia hạn hoặc trả phòng' }, { label: 'Tin Zalo gửi lỗi', count: todo.zaloFailed || 0, icon: 'send', tone: 'red', href: '#/zalo/history?hasFailed=1', note: 'Kiểm tra và gửi lại' }, { label: 'Hoàn cọc đang xử lý', count: todo.refunds || 0, icon: 'hand-coins', tone: 'blue', href: '#/refunds?status=processing', note: 'Theo dõi tiến độ phê duyệt' }, { label: 'Kỳ trả chủ nhà đến hạn', count: todo.landlordDue || 0, icon: 'banknote', tone: 'amber', href: '#/landlords?upcoming=1', note: 'Đến hạn trong 7 ngày – chuẩn bị thanh toán' }]
-    });
+  const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, I = TH.icon, esc = F.esc;
+  const scopeBuildings = (q) => {
+    const mgr = Q.managerMap();
+    let bs = Q.scopedBuildings();
+    if (q.group) bs = bs.filter(b => b.group === q.group);
+    if (q.area) bs = bs.filter(b => b.areaId === q.area);
+    if (q.manager) bs = bs.filter(b => (mgr[b.id] || {}).id === q.manager);
+    if (q.leader) { const br = TH.auth.branchOf(q.leader, F.today()); bs = bs.filter(b => br.has((mgr[b.id] || {}).id)); }
+    return bs;
   };
-
-  TH.router.register('/dashboard', (root, params, q) => {
-    const role = TH.auth.role(), period = q.period || St.state.meta.period, dashboardView = role === 'admin' ? (q.view || 'work') : 'work';
-    const f = { period, areaId: q.areaId || '', buildingId: q.buildingId || '', buildingType: q.buildingType || '', managerId: q.managerId || '', leadId: q.leadId || '' }, scope = Q.scope(f);
-    const m = dashboardModel(role, period, f);
-    const buildings = St.where('buildings', b => !b.stub && scope.buildingIds.includes(b.id));
-    const groups = buildings.map(b => { const s = Q.roomStats(Q.roomsOf(b.id)); return { label: b.name, sub: '(' + s.total + ' phòng)', values: [s.occupied, s.ready, s.held, s.maintenance, s.cleaning + s.inactive] }; });
-    const finB = buildings.map(b => { const x = Q.finance(period, { buildingId: b.id }); return { label: b.name, a: x.collected, b: x.remaining }; });
-    const contextualFilter = ['admin', 'accountant'].includes(role) ? U.dimFilter(f, { dims: ['period', 'areaId', 'buildingId', 'managerId', 'leadId'], inline: 2 }) : '';
-    const occupancyChart = U.card({ title: 'Trạng thái phòng theo tòa', icon: 'bar-chart-2', actions: C.legend([{ label: 'Đang ở', color: '#1D4ED8' }, { label: 'Trống', color: '#BFDBFE' }, { label: 'Giữ chỗ', color: '#FCD34D' }, { label: 'Bảo trì', color: '#F97316' }]), body: C.stackedBar({ groups, series: [{ color: '#1D4ED8' }, { color: '#BFDBFE', dark: true }, { color: '#FCD34D', dark: true }, { color: '#F97316' }, { color: '#CBD5E1', dark: true }] }) });
-    const collectionChart = U.card({ title: 'Tiến độ thu theo tòa', icon: 'trending-up', body: C.barLine({ groups: finB }) });
-    const chart = m.chart === 'collection' ? collectionChart : m.chart === 'none' ? '' : occupancyChart;
-    const viewSwitch = role === 'admin' ? `<div class="dashboard-view-switch"><button type="button" data-act="view-work" class="${dashboardView === 'work' ? 'on' : ''}">${I('square-check')} Công việc</button><button type="button" data-act="view-exec" class="${dashboardView === 'exec' ? 'on' : ''}">${I('bar-chart-2')} Điều hành</button></div>` : '';
-    const vacancy = Q.vacancy(scope), revenue = Q.revenueSplit(scope);
-    const wbBlocks = `${U.section('Phòng trống ' + U.assume())}<div class="focus-kpis wb-kpi-grid" data-guide="dash-kpi">${wbMetric('occupancy.rate', 'Trống có thể ở ngay', vacancy.immediate.length, 'Có thể ở ngay trong tháng', 'door', 'green', '#/rooms?vac=immediate')}${wbMetric('vacancy.days', 'Trống cuối tháng', vacancy.endOfMonth.length, 'Dự kiến trống cuối kỳ', 'calendar', 'blue', '#/rooms?vac=endOfMonth')}${wbMetric('vacancy.days', 'Trống chờ xử lý', vacancy.waiting.length, 'Giữ chỗ hoặc chờ dọn', 'clock', 'amber', '#/rooms?vac=waiting')}</div>${U.section('Thu trong kỳ')}<div class="focus-kpis wb-kpi-grid">${wbMetric('revenue.rent', 'Doanh thu tiền thuê', F.short(revenue.rent), 'Tiền nhà đã phát hành', 'receipt', 'blue', '#/receivables')}${wbMetric('revenue.newDeposit', 'Tiền cọc mới', F.short(revenue.newDeposit), 'Dòng tiền vào, không phải doanh thu', 'piggy', 'green', '#/finance/deposits?tab=deposit')}${wbMetric('revenue.penalty', 'Phạt / khấu trừ', F.short(revenue.penalty), 'Khoản phạt/khấu trừ', 'alert-triangle', 'purple', '#/refunds?reason=break')}</div>`;
-    const dashboardBody = role === 'admin' && dashboardView === 'exec' ? `${wbBlocks}<div class="grid grid-1 dashboard-exec">${collectionChart}</div>` : `<div class="focus-kpis" data-guide="dash-kpi">${m.kpis.join('')}</div><div class="dashboard-focus ${chart ? '' : 'single'}">${U.card({ title: 'Việc cần xử lý', icon: 'square-check', sub: 'Sắp xếp theo mức độ ưu tiên', body: `<div class="work-list">${m.queue.map(queueRow).join('') || U.empty({ title: 'Không có việc tồn đọng', text: 'Mọi công việc quan trọng đã được xử lý.' })}</div>` })}${chart}</div>`;
-    TH.router.crumb([{ label: m.title }]);
-    root.innerHTML = `${U.pageHead({ title: m.title, sub: m.subtitle, acts: role === 'admin' ? [U.btn({ label: 'Xuất báo cáo', icon: 'download', cls: 'btn-outline', act: 'export' })] : [] })}
-      <div class="dashboard-context-row">${viewSwitch}${contextualFilter}</div>${dashboardBody}`;
-    U.onChange(root, { f: () => TH.router.applyFilter(f, U.formData(root.querySelector('.filterbar'))) });
-    U.bind(root, { 'view-work': () => { TH.router.replaceQuery(Object.assign({}, f, { view: 'work' })); TH.router.refresh(); }, 'view-exec': () => { TH.router.replaceQuery(Object.assign({}, f, { view: 'exec' })); TH.router.refresh(); }, export: () => { const rows = buildings.map(b => { const s = Q.roomStats(Q.roomsOf(b.id)), x = Q.finance(period, { buildingId: b.id }); return [b.code, b.name, s.total, s.occupied, s.ready, x.receivable, x.collected, x.remaining]; }); F.download('tong-quan-' + period + '.csv', F.csv(rows, ['Mã tòa', 'Tòa', 'Tổng phòng', 'Đang thuê', 'Sẵn sàng', 'Phải thu', 'Đã thu', 'Còn nợ']), 'text/csv'); U.toast('ok', 'Đã xuất báo cáo tổng quan'); } });
-    U.bindMetricInfo(root);
-  }, { menu: 'dashboard', permission: 'dashboard.view' });
+  TH.router.handle('/dashboard', (root, p, q) => {
+    const period = q.period || S.meta.period;
+    const money = TH.auth.can('dashboard.money');
+    const bs = scopeBuildings(q); const bset = new Set(bs.map(b => b.id));
+    const vac = Q.vacancy();
+    const inB = (r) => bset.has(r.buildingId);
+    const vNow = vac.now.filter(inB), vEnd = vac.endOfMonth.filter(inB), vWait = vac.waiting.filter(inB);
+    const rooms = S.all('rooms').filter(r => inB(r) && r.exploitation !== 'meter_common');
+    const invs = Q.invoicesOf(period).filter(i => bset.has(i.buildingId) && i.lifecycle !== 'draft');
+    const main = invs.filter(i => !i.isBreach), br = invs.filter(i => i.isBreach);
+    const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
+    const due = sum(main, i => i.totalDue), paid = sum(main, i => Math.min(i.totalDue, Q.invState(i).paid)), remain = sum(main, i => Q.invState(i).remaining);
+    const msDays = TH.calc.params.milestones(Q.param('milestones', F.periodEnd(period))).days;
+    const byInv = {};
+    S.all('payments').forEach(pm => { if (pm.status === 'reversed') return; pm.allocations.forEach(a => { const iv = Q.invoice(a.invoiceId); if (iv && iv.period === period && !iv.isBreach && bset.has(iv.buildingId)) (byInv[iv.id] = byInv[iv.id] || []).push({ receivedAt: pm.receivedAt, amount: a.amount }); }); });
+    const perInv = Object.entries(byInv).map(([id, arr]) => { const due = Q.invoice(id).totalDue; return TH.calc.payments.milestoneCum(arr, period, msDays).map(m => Math.min(due, m.amount)); });
+    const ms = msDays.map((d, k) => ({ day: d, amount: perInv.reduce((s, x) => s + x[k], 0) }));
+    const debtors = main.filter(i => Q.invState(i).debt.state === 'debt');
+    const exp = Q.expiring().filter(s => bset.has(s.buildingId));
+    const zErr = S.where('zaloMessages', m => m.status === 'failed' && bset.has(m.buildingId));
+    const refunds = S.where('refunds', r => !['paid'].includes(r.status) && bset.has(r.buildingId));
+    const cleaning = rooms.filter(r => r.status === 'vacant_cleaning');
+    const pctNow = due ? paid / due : 0;
+    root.innerHTML = U.pageHead({ title: 'Tổng quan', sub: `${F.periodLabel(period)} · ${bs.length} tòa trong phạm vi · số liệu tính đến ${F.date(F.today())}` })
+      + K.filters([
+        { name: 'period', label: 'Kỳ', options: K.periodOpts(), value: S.meta.period, all: false },
+        { name: 'group', label: 'Loại nhà', options: K.groupOpts() },
+        { name: 'area', label: 'Khu vực', options: K.areaOpts() },
+        { name: 'manager', label: 'Quản lý', options: K.managerOpts() },
+        { name: 'leader', label: 'Leader / trưởng nhóm', options: Q.teamLeaders().map(e => [e.id, e.name]) },
+      ], q)
+      + `<div class="grid grid-3 mt16">
+        ${U.kpi({ label: 'Trống ở luôn', value: vNow.length, cap: 'phòng sẵn sàng, chưa có khách cọc', icon: 'door', tone: 'blue' })}
+        ${U.kpi({ label: 'Trống cuối tháng', value: vEnd.length, cap: 'khách hết HĐ / báo trả trong tháng', icon: 'calendar-clock', tone: 'amber' })}
+        ${U.kpi({ label: 'Đang chờ (đã cọc)', value: vWait.length, cap: 'khách đã cọc, chưa vào ở', icon: 'user-check', tone: 'purple' })}
+      </div>`
+      + `<div class="grid grid-4 mt16">
+        ${U.kpi({ label: 'Phải thu kỳ ' + F.periodShort(period), value: money ? F.vnd(due) : main.length + ' HĐ', cap: money ? main.length + ' hóa đơn (không gồm phá HĐ)' : 'hóa đơn đã phát hành', icon: 'receipt', tone: 'blue' })}
+        ${U.kpi({ label: 'Đã thu', value: money ? F.vnd(paid) : main.filter(i => Q.invState(i).remaining <= 0).length + ' HĐ', cap: F.pctv(pctNow) + ' số phải thu', icon: 'check-circle', tone: 'green', bar: Math.round(pctNow * 100) })}
+        ${U.kpi({ label: 'Còn nợ', value: money ? F.vnd(remain) : main.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', cap: debtors.length + ' hóa đơn đã thành công nợ (từ ngày 6)', icon: 'alert-triangle', tone: 'red' })}
+        ${U.kpi({ label: 'Phá HĐ / bỏ trốn', value: br.length, cap: money ? 'còn thu ' + F.vnd(sum(br, i => Q.invState(i).remaining)) + ' (tiền điện)' : 'giữ cọc, chỉ thu tiền điện', icon: 'file-x', tone: 'orange' })}
+      </div>`
+      + `<div class="two-col mt16"><div class="side-stack">
+        ${U.card({ title: 'Tiến độ thu theo mốc (ngày tiền thực nhận)', icon: 'activity', sub: `Mốc ${msDays.join('/')} (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu`, body: `<div class="ms-bars">${ms.map(m => { const v = due ? Math.min(1, m.amount / due) : 0; return `<div class="ms-bar"><div class="row between"><b>Đến hết ngày ${m.day}/${Number(period.slice(5))}</b><span>${money ? F.vnd(m.amount) + ' · ' : ''}${F.pctv(v)}</span></div><div class="progress"><i style="width:${Math.min(100, v * 100)}%"></i></div></div>`; }).join('')}</div>` })}
+        ${U.card({ title: 'Tòa cần chú ý', icon: 'building', sub: 'Xếp theo số còn nợ', body: '<div id="db-bld"></div>', bodyCls: 'flush' })}
+      </div><div class="side-stack">
+        ${U.card({ title: 'Việc cần xử lý', icon: 'clipboard-check', body: `<div class="todo">
+          <a class="todo-it" href="#/tenants?view=expiring">${I('calendar-clock')}<span>HĐ sắp hết hạn (≤ ${Q.param('expiryWarnDays')} ngày)</span><b>${exp.length}</b></a>
+          <a class="todo-it" href="#/billing/debts">${I('alert-triangle')}<span>Hóa đơn đã thành công nợ</span><b>${debtors.length}</b></a>
+          <a class="todo-it" href="#/zalo?tab=nhat-ky&status=failed">${I('message')}<span>Tin Zalo gửi lỗi</span><b>${zErr.length}</b></a>
+          <a class="todo-it" href="#/refunds?status=open">${I('hand-coins')}<span>Hoàn cọc đang xử lý</span><b>${refunds.length}</b></a>
+          <a class="todo-it" href="#/buildings?roomStatus=vacant_cleaning">${I('brush')}<span>Phòng trống cần kiểm tra/dọn</span><b>${cleaning.length}</b></a>
+        </div>` })}
+        ${U.card({ title: 'Hợp đồng sắp hết hạn', icon: 'calendar', body: exp.slice(0, 6).map(s => `<a class="mini-row" href="#/stays/${s.id}"><span class="code">${esc(Q.roomCode(s.roomId))}</span><span class="grow truncate">${esc((Q.customer(s.customerId) || {}).name || '')}</span><span class="muted">${F.date(s.endDate)} · còn ${F.daysBetween(F.today(), s.endDate)} ngày</span></a>`).join('') || U.empty({ title: 'Không có hợp đồng sắp hết hạn' }) })}
+      </div></div>`;
+    K.bindFilters(root, []);
+    const rows = bs.map(b => {
+      const bi = main.filter(i => i.buildingId === b.id);
+      const d = sum(bi, i => i.totalDue), r = sum(bi, i => Q.invState(i).remaining);
+      const bRooms = (Q.roomsByBuilding()[b.id] || []).filter(x => x.exploitation !== 'meter_common');
+      const occ = bRooms.filter(x => Q.currentStay(x.id)).length;
+      return { b, due: d, remain: r, pct: d ? (d - r) / d : 1, rooms: bRooms.length, occ, mgr: (Q.managerMap()[b.id] || {}).name || 'Chưa phân công' };
+    }).sort((a, b) => b.remain - a.remain);
+    U.table(root.querySelector('#db-bld'), { rows, pageSize: 8, rowHref: r => '#/buildings/' + r.b.id, cols: [
+      { key: 'b', label: 'Tòa', render: r => `<b>${esc(r.b.code)}</b> <span class="muted small">${r.b.group}</span>` },
+      { key: 'mgr', label: 'Quản lý', render: r => esc(r.mgr) },
+      { key: 'occ', label: 'Lấp đầy', num: true, render: r => `${r.occ}/${r.rooms}` },
+      { key: 'pct', label: '% thu', num: true, sortable: true, render: r => F.pctv(r.pct) },
+      { key: 'remain', label: 'Còn nợ', num: true, sortable: true, render: r => money ? F.vnd(r.remain) : (r.remain > 0 ? U.chip('Còn nợ', 'amber') : U.chip('Đủ', 'green')) },
+    ] });
+  });
 })(window.TH);

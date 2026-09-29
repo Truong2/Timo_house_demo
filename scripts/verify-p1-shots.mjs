@@ -1,0 +1,37 @@
+/* Ảnh minh chứng các mục P1 (nhập tay lương, điện chung, bấm số ra giao dịch gốc, báo cáo theo tòa, gắn cờ tháng lẻ, lượt thuê chờ nhận, import NCC)
+   → output/verify-p1/shots/. node scripts/verify-p1-shots.mjs – tự bật server tĩnh ở cổng ngẫu nhiên. */
+import { chromium } from 'playwright-core';
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PORT = 8980 + Math.floor(Math.random() * 9);
+const server = spawn(process.execPath, [path.join(ROOT, 'scripts', 'serve.mjs')], { env: { ...process.env, PORT: String(PORT) }, stdio: 'ignore' });
+await new Promise(r => setTimeout(r, 700));
+const b = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+const dir = path.join(ROOT, 'output', 'verify-p1', 'shots') + path.sep; fs.mkdirSync(dir, { recursive: true });
+const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } }); const p = await ctx.newPage();
+const errs = []; p.on('pageerror', e => errs.push(e.message));
+await p.goto(`http://localhost:${PORT}/#/login`); await p.waitForTimeout(600);
+await p.evaluate(() => { TH.auth.login('ketoan'); TH.layout.reset(); TH.router.render();
+  const S = TH.store, X = TH.actions; const sale = S.all('employees').find(e => X.SALE_TITLES.includes(e.title) && e.status === 'active'); const tech = S.all('employees').find(e => e.title === 'KỸ THUẬT');
+  X.setWorkdays('2026-09', sale.id, 22); X.addPayrollManual({ period: '2026-09', kind: 'building_salary', buildingId: 'b_G1', line: 'sal_clean', amount: 1500000, note: 'Vệ sinh G1 tháng 9' });
+  X.addPayrollManual({ period: '2026-09', kind: 'building_salary', buildingId: 'b_S43', line: 'sal_guard', amount: 2500000, note: 'Bảo vệ S43' });
+  X.addPayrollManual({ period: '2026-09', kind: 'repair_labor', employeeId: tech.id, buildingId: 'b_G1', amount: 700000, note: 'Thay vòi P302' });
+  X.addPayrollManual({ period: '2026-09', kind: 'manual_pay', employeeId: tech.id, amount: 300000, note: 'Hỗ trợ xăng xe' }); });
+const go = async (h, f, opt = {}) => { await p.evaluate(h => { location.hash = h; }, h); await p.waitForTimeout(700); await p.screenshot({ path: dir + f, fullPage: !!opt.full }); };
+await go('#/hr/payroll?period=2026-09&tab=nhap-tay', '1-bang-luong-nhap-tay.png', { full: true });
+await go('#/billing/readings?period=2026-10&tab=dien-chung&building=b_G1', '2-dien-chung.png');
+await go('#/reports/total?period=2026-09', '3a-bao-cao-tong-t9.png');
+await p.evaluate(() => { const td = document.querySelector('td.cell[data-code="rev_total"][data-col="TOTAL"]'); td.click(); }); await p.waitForTimeout(600);
+await p.screenshot({ path: dir + '3b-bam-so-doanh-thu.png' });
+await p.evaluate(() => { const a = document.querySelector('.drawer [data-b]'); a && a.click(); }); await p.waitForTimeout(600);
+await p.screenshot({ path: dir + '3c-bam-so-theo-toa.png' });
+await go('#/reports/buildings?period=2026-08&group=G', '4a-bao-cao-theo-toa.png');
+await p.evaluate(() => { const td = document.querySelector('td.cell[data-code="sal_gm"][data-b="b_G1"]'); td.click(); }); await p.waitForTimeout(600);
+await p.screenshot({ path: dir + '4b-bam-o-G1-luong-ql-tong.png' });
+await go('#/billing/invoices?period=2026-09&q=304T35', '5-hoa-don-co-lech-thang-le.png');
+await go('#/tenants/new', '6-tao-luot-thue-cho-nhan.png');
+await go('#/import?type=vendorBills', '7-import-hoa-don-ncc.png');
+await b.close(); server.kill(); console.log('Ảnh minh chứng P1: ' + fs.readdirSync(dir).length + ' file trong output/verify-p1/shots/' + (errs.length ? ' · lỗi trang: ' + errs.join(' | ') : ' · không có lỗi trang')); if (errs.length) process.exit(1);

@@ -3,82 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TimoHouse – Quản lý nhà cho thuê (Mockup Phase 1–3)</title>
+<title>TimoHouse – Phase 1</title>
 <link rel="icon" href="assets/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/print.css">
 </head>
 <body>
 <div id="app"></div>
-<div id="guide-root"></div>
 <div id="overlay-root"></div>
 <div id="toast-root" class="toasts"></div>
 
+<!-- core helpers -->
 <script src="js/core/format.js"></script>
-<script src="js/core/ocr-parser.js"></script>
-<script src="js/ui/icons.js"></script>
+<!-- domain (thuần, test bằng node) -->
+<script src="js/domain/dates.js"></script>
+<script src="js/domain/params.js"></script>
+<script src="js/domain/rbac-policy.js"></script>
+<script src="js/domain/billing.js"></script>
+<script src="js/domain/payments.js"></script>
+<script src="js/domain/refund.js"></script>
+<script src="js/domain/zalo-rules.js"></script>
+<script src="js/domain/import-validate.js"></script>
+<script src="js/domain/depreciation.js"></script>
+<script src="js/domain/payroll.js"></script>
+<script src="js/domain/allocation.js"></script>
+<script src="js/domain/report.js"></script>
+<!-- dữ liệu (sinh từ Excel + danh mục) -->
+<script src="js/data/catalog.js"></script>
+<script src="js/data/seed-master.js"></script>
+<script src="js/data/seed-2026-09.js"></script>
+<script src="js/data/seed-2026-08-bench.js"></script>
+<script src="js/data/seed.js"></script>
+<script src="js/data/seed-1b.js"></script>
+<!-- store, quyền, route -->
 <script src="js/core/store.js"></script>
-<script src="js/core/phase.js"></script>
-<script src="js/core/seed.js"></script>
-<script src="js/core/seed-p2.js"></script>
-<script src="js/core/seed-p3.js"></script>
-<script src="js/core/seed-wb.js"></script>
-<script src="js/core/selectors.js"></script>
-<script src="js/core/selectors-p2.js"></script>
-<script src="js/core/selectors-p3.js"></script>
-<script src="js/core/selectors-wb.js"></script>
-<script src="js/core/metrics.js"></script>
+<script src="js/core/milestone.js"></script>
 <script src="js/core/auth.js"></script>
-<script src="js/core/actions.js"></script>
-<script src="js/core/import.js"></script>
-<script src="js/core/actions-p2.js"></script>
-<script src="js/core/actions-p3.js"></script>
-<script src="js/core/router.js"></script>
+<script src="js/core/routes.js"></script>
+<!-- ui primitives -->
+<script src="js/ui/icons.js"></script>
 <script src="js/ui/components.js"></script>
 <script src="js/ui/table.js"></script>
 <script src="js/ui/chart.js"></script>
-<script src="js/ui/components-p2.js"></script>
-<script src="js/ui/components-p3.js"></script>
-<script src="js/ui/components-wb.js"></script>
-<script src="js/core/demo-data-p1.js"></script>
+<!-- services -->
+<script src="js/services/q.js"></script>
+<script src="js/services/act-core.js"></script>
+<script src="js/services/act-master.js"></script>
+<script src="js/services/act-stays.js"></script>
+<script src="js/services/act-billing.js"></script>
+<script src="js/services/act-receipts.js"></script>
+<script src="js/services/act-refunds.js"></script>
+<script src="js/services/act-expenses.js"></script>
+<script src="js/services/act-zalo.js"></script>
+<script src="js/services/act-hr.js"></script>
+<script src="js/services/act-import.js"></script>
+<script src="js/services/act-periods.js"></script>
+<script src="js/services/act-payroll.js"></script>
+<script src="js/services/act-allocation.js"></script>
+<script src="js/services/q-report.js"></script>
+<!-- router, layout, pages -->
+<script src="js/core/router.js"></script>
 <script src="js/ui/layout.js"></script>
-<script src="js/ui/forms.js"></script>
+<script src="js/ui/kit.js"></script>
+<script src="js/ui/print.js"></script>
 <script src="js/pages/login.js"></script>
 <script src="js/pages/dashboard.js"></script>
 <script src="js/pages/buildings.js"></script>
-<script src="js/pages/rooms.js"></script>
-<script src="js/pages/landlords.js"></script>
+<script src="js/pages/owners.js"></script>
 <script src="js/pages/tenants.js"></script>
-<script src="js/pages/ocr.js"></script>
-<script src="js/pages/contracts.js"></script>
-<script src="js/pages/invoices.js"></script>
-<script src="js/pages/receivables.js"></script>
-<script src="js/pages/refunds.js"></script>
+<script src="js/pages/stay.js"></script>
+<script src="js/pages/billing-readings.js"></script>
+<script src="js/pages/billing-invoices.js"></script>
+<script src="js/pages/billing-receipts.js"></script>
+<script src="js/pages/billing-debts.js"></script>
 <script src="js/pages/expenses.js"></script>
-<script src="js/pages/zalo.js"></script>
-<script src="js/pages/zalo2.js"></script>
-<script src="js/pages/settings.js"></script>
-<script src="js/pages/tools.js"></script>
-<script src="js/pages/reports.js"></script>
-<script src="js/pages/misc.js"></script>
-<script src="js/pages/crm.js"></script>
-<script src="js/pages/finance2.js"></script>
-<script src="js/pages/maintenance.js"></script>
-<script src="js/pages/reportHub.js"></script>
-<script src="js/pages/reportRuns.js"></script>
-<script src="js/pages/jobs.js"></script>
-<script src="js/pages/assets.js"></script>
+<script src="js/pages/refunds.js"></script>
 <script src="js/pages/hr.js"></script>
-<script src="js/pages/investment.js"></script>
-<script src="js/pages/bank.js"></script>
-<script src="js/pages/documents.js"></script>
-<script src="js/core/guide.js"></script>
-<script src="js/core/guide-p2.js"></script>
-<script src="js/core/guide-p3.js"></script>
+<script src="js/pages/zalo.js"></script>
+<script src="js/pages/import.js"></script>
+<script src="js/pages/settings.js"></script>
+<script src="js/pages/allocation.js"></script>
+<script src="js/pages/payroll.js"></script>
+<script src="js/pages/reports.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,32 @@
+FAIL  P0-1  Không thu tiền điện hai lần cho cùng một phòng trong kỳ 10
+      1472 hóa đơn nháp kỳ 10; 29 phòng có ≥2 hóa đơn cùng thu điện. 206G6: 206G6A002 điện 580000 / 206G6A003 điện 391500 · ví dụ 402T14: 402T14A001 điện 768000 / 402T14A002 điện 768000 · 502T14: 502T14A001 điện 1004000 / 502T14A002 điện 1004000
+FAIL  P0-2  Khách đã nộp phiếu cọc không bị tính cọc lần nữa trên hóa đơn đầu
+      1421 hóa đơn nháp của khách đã có cọc trong sổ; 26 hóa đơn vẫn thu lại cọc · 206G6A003: đã nộp cọc 3800000, dòng 2 = 3800000 · 503T15A002: đã nộp cọc 4000000, dòng 2 = 4000000 · 201S26A002: đã nộp cọc 4700000, dòng 2 = 4700000
+FAIL  P0-3  Mọi hóa đơn: tổng in 13 dòng = tổng cần đóng; lệch Excel được gắn cờ
+      1471 hóa đơn, 9 hóa đơn tổng in ≠ tổng cần đóng (102T20A002, 103T25A001, 101S8A001…). 103T25: in 2888000, cần đóng 2120000, đã thu 2120000 → DU. Hóa đơn gắn cờ lệch Excel nguồn: 0
+FAIL  P0-4  Phòng có giá thuê/hóa đơn không bị xếp loại "đồng hồ chung"
+      86 phòng xếp sai (501T2 giá 4300000, 502T2 giá 3500000, Tầng 6 giá 5000000, 101T28 giá 2800000…); HS cao nhất kỳ 9: S4 = 2034.907012473176; tòa có tiền thu nhưng J=0: S48; mẫu số phân bổ kỳ 9 = 1353
+FAIL  P0-5a  Báo cáo KD T8: ô KPI LNR = dòng cuối cầu nối
+      KPI LNR 779688893 · cầu nối 790331663
+FAIL  P0-5b  Nghiệm thu Báo cáo tổng T8 tính trên số web, chênh Excel giải thích hết từng khoản
+      chưa có đối chiếu trên số web · Báo cáo tổng T8: doanh thu 7.036.256.236, giá vốn 5.316.928.772 (web = Excel) → PASS
+FAIL  P0-6a  Nhận cọc → "đang giữ"; đảo phiếu cọc → sổ cọc về 0
+      sau nhận: none; sau đảo: số dư sổ cọc 3000000, trạng thái none
+FAIL  P0-6b  Phiếu cọc không phân bổ được vào hóa đơn (tránh đếm hai lần)
+      cho phép
+FAIL  P0-6c  Bỏ cọc khi chưa nhận cọc không ghi doanh thu
+      ghi nhận doanh thu cọc bỏ: 3000000
+FAIL  P0-6d  Phiếu cọc giữ phòng vào dòng 4 "Cọc phòng mới" và dòng 3 doanh thu
+      dòng 4 tăng 0, dòng 3 tăng 3001000 (sau khi đảo phiếu 3tr và thu phiếu cọc 4tr)
+FAIL  P0-6e  Chuyển phòng: chặn lượt chờ nhận, bắt buộc khách xác nhận phương án cọc, theo dõi phần cọc thiếu
+      lượt chờ nhận: cho phép · chưa xác nhận: cho phép · sau chuyển: đã có undefined/undefined, trạng thái undefined · lỗi Phòng 402G5 đang có khách hoặc khách chờ nhận
+FAIL  script  Kịch bản chạy hết
+      page.evaluate: Error: Dữ liệu chưa hợp lệ
+    at X.addExpense (http://localhost:8924/js/services/act-expenses.js:15:47)
+    at http://localhost:8924/js/services/act-payroll.js:93:51
+    at Array.forEach (<anonymous>)
+    at X.closePayroll (http://localhost:8924/js/services/act-payroll.js:93:25)
+    at eval (eval at evaluate (:311:30), <anonymous>:7:7)
+    at UtilityScript.evaluate (<anonymous>:313:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+0/12 kiểm tra PASS · không có lỗi trang

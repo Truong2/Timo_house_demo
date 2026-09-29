@@ -1,0 +1,162 @@
+[
+{
+"code": "304T35",
+"reason": "nghỉ học về quê",
+"due": 536000.0,
+"paid": 500000.0,
+"start": null,
+"months": null
+},
+{
+"code": "505G6",
+"reason": "bỏ trốn",
+"due": 1068000.0,
+"paid": 0.0,
+"start": null,
+"months": null
+},
+{
+"code": "502T20",
+"reason": "về quê",
+"due": 144000.0,
+"paid": 0.0,
+"start": null,
+"months": null
+},
+{
+"code": "302T36",
+"reason": "khách thợ xong công trình k ở nưa",
+"due": 632000.0,
+"paid": 0.0,
+"start": "2026-07-06",
+"months": null
+},
+{
+"code": "502T11",
+"reason": "chuyển chỗ làm",
+"due": 936000.0,
+"paid": 0.0,
+"start": "2026-06-15",
+"months": null
+},
+{
+"code": "101T21",
+"reason": "k ở nữa chuyển chỗ làm",
+"due": 940000.0,
+"paid": 1664000.0,
+"start": "2026-01-31",
+"months": null
+},
+{
+"code": "109T42",
+"reason": "về quê",
+"due": 104000.0,
+"paid": 104000.0,
+"start": "2026-05-28",
+"months": null
+},
+{
+"code": "402G5",
+"reason": "bỏ trốn",
+"due": 2188000.0,
+"paid": 0.0,
+"start": "2026-05-03",
+"months": null
+},
+{
+"code": "403G5",
+"reason": "k đủ tài chính",
+"due": 1580000.0,
+"paid": 0.0,
+"start": "2026-07-16",
+"months": null
+},
+{
+"code": "502S42",
+"reason": "nghỉ học về quê",
+"due": 1424000.0,
+"paid": 0.0,
+"start": null,
+"months": null
+},
+{
+"code": "201T5",
+"reason": "bỏ trốn",
+"due": 144000.0,
+"paid": 0.0,
+"start": "2025-09-01",
+"months": null
+},
+{
+"code": "401S18",
+"reason": "bỏ trốn",
+"due": 1356000.0,
+"paid": 0.0,
+"start": "2026-02-01",
+"months": null
+},
+{
+"code": "404AS4",
+"reason": "bỏ trốn",
+"due": 944000.0,
+"paid": 0.0,
+"start": "2025-02-01",
+"months": null
+},
+{
+"code": "202S47",
+"reason": "chuyển cơ sở học",
+"due": 584000.0,
+"paid": 584000.0,
+"start": "2025-09-01",
+"months": null
+},
+{
+"code": "402S44",
+"reason": "vỡ nợ",
+"due": 560000.0,
+"paid": 0.0,
+"start": "2026-07-05",
+"months": null
+},
+{
+"code": "203S8",
+"reason": "báo tăng giá k ở",
+"due": 404000.0,
+"paid": 0.0,
+"start": null,
+"months": null
+},
+{
+"code": "403S47",
+"reason": "chuyển cơ sở học",
+"due": 1116000.0,
+"paid": 0.0,
+"start": "2026-07-06",
+"months": null
+},
+{
+"code": "401S47",
+"reason": "bỏ trốn",
+"due": 236000.0,
+"paid": 0.0,
+"start": null,
+"months": null
+},
+{
+"code": "301T7",
+"reason": "bỏ trốn",
+"due": 48000.0,
+"paid": 50000.0,
+"start": null,
+"months": null
+},
+{
+"code": "201S48A",
+"reason": "",
+"due": 1104000.0,
+"paid": 760000.0,
+"start": null,
+"months": null
+}
+]

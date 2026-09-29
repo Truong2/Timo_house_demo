@@ -57,10 +57,11 @@
       hidden: () => [...effectiveHidden()], visibleCols: () => st.opts.cols.filter(c => !effectiveHidden().has(c.key)), presets: () => opts.presets || {}, state: st,
     };
   };
-  function prefs(k) { if (!k) return []; try { return (TH.store.state.meta.columnPrefs || {})[k] || []; } catch (e) { return []; } }
-  function savePrefs(k, v) { if (!k) return; TH.store.state.meta.columnPrefs = TH.store.state.meta.columnPrefs || {}; TH.store.state.meta.columnPrefs[k] = v; TH.store.save(); }
-  function presetPref(k) { if (!k) return ''; try { return (((TH.store.state.meta.uiPrefs || {}).tablePreset || {})[k]) || ''; } catch (e) { return ''; } }
-  function savePreset(k, v) { if (!k) return; const m = TH.store.state.meta; m.uiPrefs = m.uiPrefs || {}; m.uiPrefs.tablePreset = m.uiPrefs.tablePreset || {}; m.uiPrefs.tablePreset[k] = v; TH.store.save(); }
+  const pf = () => { const m = TH.store.meta; m.prefs = m.prefs || {}; return m.prefs; };
+  function prefs(k) { if (!k) return []; try { return (pf().columns || {})[k] || []; } catch (e) { return []; } }
+  function savePrefs(k, v) { if (!k) return; const p = pf(); p.columns = p.columns || {}; p.columns[k] = v; TH.store.save(); }
+  function presetPref(k) { if (!k) return ''; try { return (pf().tablePreset || {})[k] || ''; } catch (e) { return ''; } }
+  function savePreset(k, v) { if (!k) return; const p = pf(); p.tablePreset = p.tablePreset || {}; p.tablePreset[k] = v; TH.store.save(); }
   function densityPref() { try { return localStorage.getItem('timohouse.table.density') || 'compact'; } catch (e) { return 'compact'; } }
   function saveDensity(v) { try { localStorage.setItem('timohouse.table.density', v); } catch (e) { } }
   U.columnMenu = (anchor, tbl, cols) => {

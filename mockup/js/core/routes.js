@@ -1,0 +1,62 @@
+/* Manifest route Phase 1 – dữ liệu thuần, là nguồn duy nhất cho router, sidebar và scripts/check-rbac.mjs.
+   ui = mã màn hình đặc tả; ms = mốc Phase 1 đầu tiên có màn (1A/1B); menu = mục sidebar được tô sáng. */
+(function (TH) {
+  const R = [
+    { path: '/dashboard', ui: 'UI-01', title: 'Tổng quan', menu: 'dashboard', perm: 'dashboard.view', ms: '1A' },
+    { path: '/buildings', ui: 'UI-02', title: 'Tòa nhà', menu: 'buildings', perm: 'buildings.view', ms: '1A' },
+    { path: '/buildings/:id', ui: 'UI-03', title: 'Chi tiết tòa nhà', menu: 'buildings', perm: 'buildings.view', ms: '1A' },
+    { path: '/owners/:id', ui: 'UI-04', title: 'Chủ nhà & hợp đồng đầu vào', menu: 'buildings', perm: 'owners.view', ms: '1A' },
+    { path: '/owner-payments', ui: 'UI-05', title: 'Lịch trả chủ nhà', menu: 'expenses', perm: 'ownerPayments.view', ms: '1A' },
+    { path: '/tenants', ui: 'UI-06', title: 'Khách thuê', menu: 'tenants', perm: 'tenants.view', ms: '1A' },
+    { path: '/tenants/new', ui: 'UI-07', title: 'Tạo khách & lượt thuê', menu: 'tenants', perm: 'tenants.manage', ms: '1A' },
+    { path: '/stays/:id', ui: 'UI-07', title: 'Chi tiết lượt thuê', menu: 'tenants', perm: 'tenants.view', ms: '1A', also: ['UI-08', 'UI-09'] },
+    { path: '/billing/readings', ui: 'UI-10', title: 'Chỉ số điện nước', menu: 'billing', perm: 'readings.view', ms: '1A' },
+    { path: '/billing/invoices', ui: 'UI-11', title: 'Hóa đơn', menu: 'billing', perm: 'invoices.view', ms: '1A' },
+    { path: '/billing/invoices/:id', ui: 'UI-12', title: 'Chi tiết hóa đơn', menu: 'billing', perm: 'invoices.view', ms: '1A' },
+    { path: '/print/invoice/:id', ui: 'UI-12', title: 'Bản in hóa đơn', menu: 'billing', perm: 'invoices.view', ms: '1A', print: true },
+    { path: '/billing/receipts', ui: 'UI-13', title: 'Phiếu thu', menu: 'billing', perm: 'payments.view', ms: '1A' },
+    { path: '/billing/receipts/new', ui: 'UI-13', title: 'Ghi nhận thu tiền', menu: 'billing', perm: 'payments.record', ms: '1A' },
+    { path: '/billing/receipts/:id', ui: 'UI-13', title: 'Chi tiết phiếu thu', menu: 'billing', perm: 'payments.view', ms: '1A' },
+    { path: '/billing/debts', ui: 'UI-14', title: 'Công nợ & tiến độ thu', menu: 'billing', perm: 'debts.viewStatus', ms: '1A' },
+    { path: '/expenses', ui: 'UI-15', title: 'Chi phí', menu: 'expenses', perm: 'expenses.view', ms: '1A' },
+    { path: '/expenses/allocation', ui: 'UI-16', title: 'Phân bổ chi phí chung', menu: 'expenses', perm: 'allocation.view', ms: '1B' },
+    { path: '/refunds', ui: 'UI-17', title: 'Hoàn cọc', menu: 'refunds', perm: 'refunds.view', ms: '1A' },
+    { path: '/refunds/:id', ui: 'UI-18', title: 'Phiếu hoàn cọc', menu: 'refunds', perm: 'refunds.view', ms: '1A' },
+    { path: '/print/refund/:id', ui: 'UI-18', title: 'Bản in phiếu hoàn cọc', menu: 'refunds', perm: 'refunds.view', ms: '1A', print: true },
+    { path: '/hr', ui: 'UI-23', title: 'Nhân sự', menu: 'hr', perm: 'hr.view', ms: '1A' },
+    { path: '/hr/staff/:id', ui: 'UI-23', title: 'Hồ sơ nhân viên', menu: 'hr', perm: 'hr.view', ms: '1A' },
+    { path: '/hr/assignments', ui: 'UI-24', title: 'Phân công & tổ chức', menu: 'hr', perm: 'hr.view', ms: '1A' },
+    { path: '/hr/payroll', ui: 'UI-25', title: 'Bảng lương', menu: 'hr', perm: 'payroll.view', ms: '1B' },
+    { path: '/reports', ui: 'UI-27', title: 'Báo cáo', menu: 'reports', perm: 'reports.view', ms: '1B' },
+    { path: '/reports/total', ui: 'UI-29', title: 'Báo cáo tổng (LN dòng tiền)', menu: 'reports', perm: 'reports.view', ms: '1B' },
+    { path: '/reports/business', ui: 'UI-30', title: 'Báo cáo kinh doanh', menu: 'reports', perm: 'reports.view', ms: '1B' },
+    { path: '/reports/buildings', ui: 'UI-28', title: 'Báo cáo theo tòa', menu: 'reports', perm: 'reports.view', ms: '1B' },
+    { path: '/zalo', ui: 'UI-39', title: 'Thông báo Zalo', menu: 'zalo', perm: 'zalo.view', ms: '1A' },
+    { path: '/zalo/batches/:id', ui: 'UI-39', title: 'Chi tiết đợt gửi', menu: 'zalo', perm: 'zalo.view', ms: '1A' },
+    { path: '/import', ui: 'UI-37', title: 'Import dữ liệu', menu: 'import', perm: 'import.view', ms: '1A' },
+    { path: '/settings', ui: 'UI-38', title: 'Cài đặt', menu: 'settings', perm: 'settings.view', ms: '1A' },
+  ];
+  /* Sidebar Phase 1 (đặc tả §1.2 rút gọn theo phạm vi Phase 1) */
+  const NAV = [
+    { key: 'dashboard', label: 'Tổng quan', icon: 'home', href: '#/dashboard' },
+    { group: 'Vận hành', icon: 'building', items: [
+      { key: 'buildings', label: 'Tòa nhà', href: '#/buildings' },
+      { key: 'tenants', label: 'Khách thuê', href: '#/tenants' },
+    ] },
+    { group: 'Tài chính', icon: 'wallet', items: [
+      { key: 'billing', label: 'Hóa đơn & thu tiền', href: '#/billing/invoices', alts: ['#/billing/readings', '#/billing/debts'] },
+      { key: 'expenses', label: 'Chi phí', href: '#/expenses', alts: ['#/owner-payments'] },
+      { key: 'refunds', label: 'Hoàn cọc', href: '#/refunds' },
+      { key: 'reports', label: 'Báo cáo', href: '#/reports' },
+    ] },
+    { group: 'Nhân sự', icon: 'users', items: [
+      { key: 'hr', label: 'Nhân sự & lương', href: '#/hr' },
+    ] },
+  ];
+  const FOOT = [
+    { key: 'zalo', label: 'Thông báo Zalo', icon: 'message', href: '#/zalo' },
+    { key: 'import', label: 'Import dữ liệu', icon: 'upload', href: '#/import' },
+    { key: 'settings', label: 'Cài đặt', icon: 'settings', href: '#/settings' },
+  ];
+  TH.routes = { ROUTES: R, NAV, FOOT, PHASE1_UI: ['UI-01', 'UI-02', 'UI-03', 'UI-04', 'UI-05', 'UI-06', 'UI-07', 'UI-08', 'UI-09', 'UI-10', 'UI-11', 'UI-12', 'UI-13', 'UI-14', 'UI-15', 'UI-16', 'UI-17', 'UI-18', 'UI-23', 'UI-24', 'UI-25', 'UI-27', 'UI-28', 'UI-29', 'UI-30', 'UI-37', 'UI-38', 'UI-39'] };
+})(window.TH);

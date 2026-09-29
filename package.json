@@ -1,8 +1,8 @@
 {
   "name": "timohouse-mockup",
   "private": true,
-  "version": "3.0.0",
-  "description": "TimoHouse – mockup tương tác (static SPA, vanilla JS). Build = copy mockup/ → dist/ kèm cache-busting cho Netlify.",
+  "version": "4.0.0",
+  "description": "TimoHouse – mockup tương tác Phase 1 (1A go-live hóa đơn & thu tiền, 1B chốt tháng lương/phân bổ/báo cáo). Static SPA vanilla JS; build = copy mockup/ → dist/.",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -10,21 +10,20 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "dev:dist": "node scripts/serve.mjs --dist",
-    "check": "node scripts/build.mjs --check-only && node scripts/check-rbac.mjs",
+    "test": "node --test \"tests/*.test.mjs\"",
+    "check": "node scripts/build.mjs --check-only && node scripts/check-rbac.mjs && node --test \"tests/*.test.mjs\"",
     "check:rbac": "node scripts/check-rbac.mjs",
+    "seed": "python -X utf8 scripts/seed/extract_seed.py",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:1a": "node scripts/smoke.mjs --flow=1a --shots",
+    "smoke:1b": "node scripts/smoke.mjs --flow=1b --shots",
+    "verify:p0": "node scripts/verify-p0.mjs --label=after && node scripts/verify-p0-shots.mjs",
+    "verify:p1": "node scripts/verify-p1-shots.mjs",
+    "verify:p1r": "node scripts/verify-p1-remaining.mjs",
     "build": "node scripts/build.mjs",
-    "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
-    "walkthrough:p1": "node scripts/capture_phase1_walkthrough.mjs",
-    "walkthrough:p2": "node scripts/capture_phase2_walkthrough.mjs",
-    "walkthrough:p3": "node scripts/capture_phase3_walkthrough.mjs",
-    "walkthrough:all": "node scripts/capture_all_walkthroughs.mjs",
-    "walkthrough:render": "node scripts/render_uat_docs.mjs",
-    "walkthrough:summary": "node scripts/build_uat_summary.mjs",
-    "walkthrough:docs": "node scripts/build_uat_docs.mjs",
-    "demo:phase1:pdf": "node scripts/generate_phase1_demo_pdf.mjs"
+    "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist ."
   },
   "devDependencies": {
-    "docx": "^9.7.1",
     "playwright-core": "^1.63.0"
   }
 }

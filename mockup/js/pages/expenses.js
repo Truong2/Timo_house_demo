@@ -1,27 +1,66 @@
+/* UI-15 Chi phí: khoản chi gốc gắn tòa hoặc quỹ chung + dòng báo cáo SRC-04 (E16). 1B mở rộng: hóa đơn nhà cung cấp, hoa hồng theo phòng, thiết bị có khấu hao. */
 (function (TH) {
-  const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, X = TH.actions, Fm = TH.forms, esc = F.esc;
-  TH.router.register('/expenses', (root, p, q) => {
-    TH.router.crumb([{ label: 'Tài chính' }, { label: 'Chi phí' }]);
-    const period = TH.router.periodOf(q);
-    const f = { s: q.s || '', parentCode: q.parentCode || '', categoryCode: q.categoryCode || '', areaId: q.areaId || '', buildingId: q.buildingId || '', opsId: q.opsId || '', leadId: q.leadId || '', type: q.type || '', period, createdBy: q.createdBy || '' }, scope = Q.scope({ period, areaId: q.areaId, buildingId: q.buildingId, opsId: q.opsId, leadId: q.leadId });
-    const all = St.where('expenses', e => !f.period || F.period(e.date) === f.period);
-    const rows = all.filter(e => (!f.s || F.norm(e.code + ' ' + e.desc + ' ' + (e.evidence || '')).includes(F.norm(f.s))) && (!f.parentCode || (e.categoryCode || '').startsWith(f.parentCode + '-')) && (!f.categoryCode || e.categoryCode === f.categoryCode) && (!f.buildingId || e.buildingId === f.buildingId || (f.buildingId === 'common' && !e.buildingId)) && (!e.buildingId || scope.buildingIds.includes(e.buildingId)) && (!f.type || e.recordType === f.type) && (!f.createdBy || e.createdBy === f.createdBy)).sort((a, b) => F.cmp(b.date, a.date) || F.cmp(b.code, a.code));
-    const tot = F.sum(all, e => e.amount), ops = F.sum(all.filter(e => e.recordType === 'ops'), e => e.amount), asset = F.sum(all.filter(e => e.recordType === 'asset'), e => e.amount), pend = F.sum(all.filter(e => e.status === 'pending_alloc'), e => e.amount);
-    root.innerHTML = `${U.pageHead({ title: 'Chi phí', sub: 'Quản lý và theo dõi các khoản chi phí vận hành, mua sắm, sửa chữa và chi phí khác.', acts: [U.btn({ label: 'Thêm chi phí', icon: 'plus', cls: 'btn-primary', act: 'add', attrs: { 'data-guide': 'expense-add' } })] })}
-    ${U.filterbar([U.field({ label: 'Tìm kiếm', input: U.input({ name: 's', value: f.s, placeholder: 'Tìm theo mã, diễn giải, chứng từ...', icon: 'search', attrs: { 'data-on': 'f' } }), cls: 'wide' }), U.field({ label: 'Nhóm cấp 1', input: U.select({ name: 'parentCode', value: f.parentCode, all: 'Tất cả nhóm', options: Q.expenseTree().map(g => [g.code, g.name]), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Mã chi phí', input: U.select({ name: 'categoryCode', value: f.categoryCode, all: 'Tất cả mã', options: Q.expenseTree().flatMap(g => g.children.map(c => [c.code, g.name + ' · ' + c.name])), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Tòa', input: U.select({ name: 'buildingId', value: f.buildingId, all: 'Tất cả tòa nhà', options: [...(TH.auth.can('expenses.manageCommon') ? [['common', 'Chi phí chung']] : []), ...St.where('buildings', b => !b.stub).map(b => [b.id, b.name])], attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Loại ghi nhận', input: U.select({ name: 'type', value: f.type, all: 'Tất cả', options: Object.entries(Q.L.recordType).filter(([k]) => k !== 'common' || TH.auth.can('expenses.manageCommon')), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Kỳ', input: U.select({ name: 'period', value: f.period, all: 'Tất cả kỳ', options: [...new Set(St.all('expenses').map(e => F.period(e.date)))].sort().reverse().map(x => [x, F.periodLabel(x)]), attrs: { 'data-on': 'f' } }) }), U.dimMore(f, ['areaId', 'opsId', 'leadId'])], U.btn({ label: 'Làm mới', icon: 'refresh', cls: 'btn-light', act: 'reset' }))}
-    <div class="grid grid-4 mb16">${Q.expenseRollup(scope).map((g, i) => U.kpi({ label: g.name, value: F.vnd(g.total), cap: g.children.length + ' mã chi phí', icon: ['layers', 'zap', 'settings', 'briefcase'][i], tone: ['blue', 'amber', 'green', 'purple'][i] })).join('')}</div>
-    ${U.card({ title: `Danh sách chi phí <span class="muted" style="font-weight:400">(${rows.length} khoản)</span>`, actions: U.btn({ label: 'Bộ cột', icon: 'columns', size: 'btn-sm', cls: 'btn-outline', act: 'cols' }) + U.btn({ label: 'Xuất file', icon: 'download', size: 'btn-sm', cls: 'btn-outline', act: 'export' }), body: null, id: 'tbl-card' })}`;
-    const wrap = document.createElement('div'); root.querySelector('#tbl-card').appendChild(wrap);
-    const tbl = U.table(wrap, { rows, selectable: true, unit: 'khoản', colPrefsKey: 'expenses', cols: [
-      { key: 'code', label: 'Mã', sortable: true, render: e => `<b>${esc(e.code)}</b>` }, { key: 'date', label: 'Ngày', sortable: true, render: e => F.date(e.date) }, { key: 'category', label: 'Mã chi phí', render: e => U.cell2(`<b>${esc(e.categoryCode || '-')}</b>`, esc((Q.expenseCategory(e.categoryCode) || {}).name || e.group)) }, { key: 'group', label: 'Nhóm chi', render: e => { const c = Q.expenseCategory(e.categoryCode); return esc((Q.expenseCategory(c.parentCode) || {}).name || e.group); } }, { key: 'desc', label: 'Diễn giải', render: e => esc(e.desc) },
-      { key: 'b', label: 'Tòa', render: e => e.buildingId ? esc(Q.building(e.buildingId).name) : `<span class="muted">${e.status === 'pending_alloc' ? 'Chờ phân bổ' : 'Chung (đã phân bổ)'}</span>` }, { key: 'amount', label: 'Số tiền (VND)', num: true, sortable: true, render: e => F.vnd(e.amount) },
-      { key: 'type', label: 'Loại ghi nhận', render: e => Q.L.recordType[e.recordType] + (e.method === 'depreciation' ? ' <span class="tag-p">KH</span>' : '') }, { key: 'ev', label: 'Chứng từ', render: e => e.evidence ? `<a class="link" data-act="dl" data-n="${esc(e.evidence)}">${I('file-text')} ${esc(e.evidence)}</a>` : '-' }, { key: 'by', label: 'Người tạo', render: e => esc(Q.userName(e.createdBy)) },
-      { key: 'actions', label: 'Thao tác', render: e => U.rowActions([U.actBtn({ icon: 'eye', label: 'Xem', act: 'view', attrs: { 'data-id': e.id } }), U.moreBtn(e.id)]) }] });
-    tbl.state.opts.presets = { doisoat: { label: 'Đối soát', cols: ['code', 'date', 'category', 'group', 'desc', 'b', 'amount', 'type', 'ev', 'by', 'actions'] } }; tbl.render();
-    U.onChange(root, { f: () => TH.router.applyFilter(f, U.formData(root.querySelector('.filterbar'))) });
-    root.querySelector('input[name=s]').addEventListener('keydown', e => { if (e.key === 'Enter') TH.router.applyFilter(f, { s: e.target.value }); });
-    const view = (e) => { const allocs = St.where('expenseAllocations', a => a.expenseId === e.id); U.modal({ title: 'Chi phí ' + e.code, body: U.kv([['Ngày', F.date(e.date)], ['Nhóm chi', U.chip(e.group, Q.L.expGroup[e.group] || 'gray')], ['Diễn giải', esc(e.desc)], ['Số tiền', F.vnd(e.amount) + ' đ'], ['Tòa', e.buildingId ? esc(Q.building(e.buildingId).name) : 'Chi phí chung'], ['Loại', Q.L.recordType[e.recordType]], ['Phương thức', e.method === 'depreciation' ? (TH.phase.on(2) ? 'Khấu hao ' + (e.depreciationMonths || 36) + ' tháng (đường thẳng, OI-11)' : 'Khấu hao (P2)') : 'Tiền mặt'], ['Chứng từ', esc(e.evidence || '-')], ['Ghi chú', esc(e.note || '-')], ['Người tạo', esc(Q.userName(e.createdBy))]], 'one') + (allocs.length ? `<div class="mt12 small bold">Phân bổ theo tòa</div><table class="tbl compact mt8">${allocs.map(a => `<tr><td>${esc(Q.building(a.buildingId).name)}</td><td class="num">${a.pct}%</td><td class="num">${F.vnd(a.amount)}</td></tr>`).join('')}</table>` : ''), footer: U.btn({ label: 'Sửa', icon: 'pencil', cls: 'btn-outline', act: 'e' }) + U.btn({ label: 'Đóng', cls: 'btn-primary', act: 'c' }), onMount: (m) => U.bind(m.el, { e: () => { m.close(); Fm.expense(e); }, c: () => m.close() }) }); };
-    U.bind(root, { add: () => Fm.expense(), reset: () => { TH.router.replaceQuery({}); TH.router.refresh(); }, view: (b) => view(St.get('expenses', b.dataset.id)), dl: (b) => U.fakePdf(b.dataset.n, ['Chứng từ chi phí mô phỏng']), cols: b => U.columnMenu(b, tbl, tbl.state.opts.cols), export: () => { F.download('chi-phi-' + (f.period || 'all') + '.csv', U.tableCsv(tbl, rows), 'text/csv'); U.toast('ok', 'Đã xuất file theo bộ cột đang chọn'); },
-      more: (b) => { const e = St.get('expenses', b.dataset.id); U.menu(b, [{ label: 'Xem', icon: 'eye', onClick: () => view(e) }, { label: 'Sửa', icon: 'pencil', onClick: () => Fm.expense(e) }, { label: 'Phân bổ theo tòa', icon: 'percent', disabled: !!e.buildingId, onClick: () => Fm.expense(e) }, '-', { label: 'Xóa', icon: 'trash', danger: true, disabled: e.source === 'seed', title: e.source === 'seed' ? 'Chỉ xóa chi phí tạo trong phiên demo' : '', onClick: async () => { if (await U.confirm({ title: 'Xóa chi phí ' + e.code + '?', ok: 'Xóa', danger: true })) { X.deleteExpense(e.id); U.toast('ok', 'Đã xóa'); } } }]); } });
-  }, { menu: 'expenses', permission: 'expenses.view' });
+  const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc, CAT = () => TH.data.catalog;
+  const catLabel = (k) => (CAT().expenseCategories.find(c => c.key === k) || { label: k }).label;
+  const lineLabel = (c) => (CAT().reportLines.find(l => l.code === c) || { label: c ? c : '—' }).label;
+  TH.pages.expTabs = (cur) => `<div class="subnav">${[['list', 'Chi phí', '#/expenses', 'expenses.view', '1A'], ['alloc', 'Phân bổ chung', '#/expenses/allocation', 'allocation.view', '1B'], ['owner', 'Lịch trả chủ nhà', '#/owner-payments', 'ownerPayments.view', '1A']]
+    .filter(x => TH.auth.can(x[3]) && TH.ms.on(x[4])).map(([k, l, h]) => `<a class="${k === cur ? 'on' : ''}" href="${h}">${l}</a>`).join('')}</div>`;
+  const form = () => {
+    const is1B = TH.ms.on('1B');
+    const cats = CAT().expenseCategories.filter(c => c.active !== false && c.key !== 'salary' && (is1B || !['equipment', 'commission', 'util_electric', 'util_water', 'util_internet', 'util_garbage', 'util_env', 'util_elevator'].includes(c.key)));
+    const d = K.formDrawer({ title: 'Thêm chi phí', sub: 'Mỗi khoản gắn một tòa hoặc một quỹ chung và một dòng báo cáo', wide: true, fields: [
+      { name: 'category', label: 'Loại chi phí', type: 'select', req: true, options: cats.map(c => [c.key, c.group + ' · ' + c.label]) },
+      { name: 'scope', label: 'Phạm vi chi', type: 'select', req: true, options: [['building', 'Một tòa'], ['fund', 'Quỹ chung (phân bổ theo số phòng)']], value: 'building' },
+      { name: 'buildingId', label: 'Tòa', type: 'select', options: K.buildingOpts(false) }, { name: 'fundCode', label: 'Quỹ chung', type: 'select', options: CAT().funds.map(f => [f.code, f.label]) },
+      { name: 'roomId', label: 'Phòng (hoa hồng / sửa chữa theo phòng)', type: 'select', options: [] },
+      { name: 'amount', label: 'Số tiền', type: 'money', req: true }, { name: 'date', label: 'Ngày chi', type: 'date', req: true, value: F.today() }, { name: 'period', label: 'Kỳ hưởng (YYYY-MM)', req: true, value: S.meta.period, help: 'Có thể khác tháng chi' },
+      { name: 'vendor', label: 'Nhà cung cấp / người nhận' }, { name: 'method', label: 'Phương thức', type: 'select', options: [['bank', 'Chuyển khoản'], ['cash', 'Tiền mặt']], value: 'bank' },
+      ...(is1B ? [{ name: 'depRate', label: 'Khấu hao/tháng (thiết bị)', value: Q.param('depRate'), help: 'Báo cáo tổng: nguyên giá một lần · Báo cáo KD: khấu hao cộng dồn (GĐ OQ-11)' }] : []),
+      { name: 'code', label: 'Mã chứng từ (để trống = tự sinh)' }, { name: 'note', label: 'Nội dung', type: 'textarea', span: true },
+      { type: 'html', span: true, html: '<div id="line-hint" class="small muted"></div>' }],
+      submit: 'Lưu chi phí', onSubmit: (x) => { X.addExpense(x); U.toast('ok', 'Đã lưu chi phí'); } });
+    const el = d.el;
+    const sync = () => {
+      const scope = el.querySelector('[name=scope]').value; const cat = CAT().expenseCategories.find(c => c.key === el.querySelector('[name=category]').value);
+      el.querySelector('[data-field=buildingId]').hidden = scope !== 'building'; el.querySelector('[data-field=fundCode]').hidden = scope !== 'fund';
+      const bid = el.querySelector('[name=buildingId]').value; const rs = el.querySelector('[name=roomId]');
+      el.querySelector('[data-field=roomId]').hidden = !(cat && ['commission', 'repair'].includes(cat.key) && scope === 'building');
+      if (bid && rs.dataset.b !== bid) { rs.dataset.b = bid; rs.innerHTML = '<option value="">–</option>' + (Q.roomsByBuilding()[bid] || []).map(r => `<option value="${r.id}">${esc(r.code)}</option>`).join(''); }
+      const fund = CAT().funds.find(f => f.code === el.querySelector('[name=fundCode]').value);
+      el.querySelector('#line-hint').innerHTML = 'Dòng báo cáo: <b>' + esc(scope === 'fund' && fund ? lineLabel(fund.reportLine) : cat ? lineLabel(cat.reportLine) : '–') + '</b>' + (cat && cat.key === 'owner_deposit' ? ' (không vào lợi nhuận)' : '');
+      const dep = el.querySelector('[data-field=depRate]'); if (dep) dep.hidden = !(cat && cat.equipment);
+    };
+    el.addEventListener('change', sync); sync();
+  };
+  TH.router.handle('/expenses', (root, p, q) => {
+    const period = q.period || S.meta.period;
+    let rows = S.all('expenses').filter(e => e.status !== 'void' && e.period === period);
+    if (q.cat) rows = rows.filter(e => e.category === q.cat);
+    if (q.scope === 'fund') rows = rows.filter(e => e.scope === 'fund'); else if (q.scope) rows = rows.filter(e => e.buildingId === q.scope);
+    if (q.line) rows = rows.filter(e => e.reportLine === q.line);
+    if (q.src) rows = rows.filter(e => e.source === q.src);
+    if (q.q) rows = rows.filter(e => K.match(q.q, e.code, e.note, e.vendor));
+    rows.sort((a, b) => b.date.localeCompare(a.date));
+    const sum = (arr) => arr.reduce((s, e) => s + e.amount, 0);
+    const byGroup = F.by(rows, e => (CAT().expenseCategories.find(c => c.key === e.category) || {}).group || 'Lương');
+    root.innerHTML = TH.pages.expTabs('list') + U.pageHead({ title: 'Chi phí', sub: `Kỳ hưởng ${F.periodLabel(period)} · nhập một lần, báo cáo tham chiếu theo dòng`, acts: [(S.get('periods', period) || {}).status === 'closed' ? U.btn({ label: 'Điều chỉnh sau khóa', icon: 'pencil', act: 'adj', perm: 'expenses.manage' }) : '', 
+      U.btn({ label: 'Xuất', icon: 'download', act: 'exp' }), U.btn({ label: 'Import chi phí', icon: 'upload', href: '#/import?type=expenses', perm: 'import.finance' }), TH.ms.on('1B') ? U.btn({ label: 'Import hoa hồng', icon: 'upload', href: '#/import?type=commissions', perm: 'import.finance' }) : '', U.btn({ label: 'Thêm chi phí', icon: 'plus', cls: 'btn-primary', act: 'add', perm: 'expenses.manage' })] })
+      + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Tổng chi kỳ', value: F.vnd(sum(rows)), cap: rows.length + ' khoản', icon: 'coins' })}${Object.entries(byGroup).slice(0, 3).map(([g, arr]) => U.kpi({ label: g, value: F.vnd(sum(arr)), cap: arr.length + ' khoản', icon: 'tag', tone: 'teal' })).join('')}</div>`
+      + K.filters([{ name: 'period', label: 'Kỳ hưởng', options: K.periodOpts(), value: period, all: false }, { name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã, nội dung, nhà cung cấp' }, { name: 'cat', label: 'Loại', options: CAT().expenseCategories.map(c => [c.key, c.label]) },
+        { name: 'scope', label: 'Tòa / quỹ', options: [['fund', 'Quỹ chung'], ...K.buildingOpts(false)] }, { name: 'line', label: 'Dòng báo cáo', options: CAT().reportLines.filter(l => !l.ratio && !l.count && !l.formula).map(l => [l.code, l.row + ' · ' + l.label]) },
+        { name: 'src', label: 'Nguồn', options: [['manual', 'Nhập tay'], ['import', 'Import'], ['payroll', 'Bảng lương'], ['ownerPayment', 'Lịch trả chủ nhà'], ['bench', 'Excel T8 (song song)']] }], q)
+      + '<div class="mt16">' + K.tableCard('t', rows.length + ' khoản chi') + '</div>';
+    K.bindFilters(root, ['period']);
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, cols: [
+      { key: 'code', label: 'Mã chi phí', render: e => `<b>${esc(e.code)}</b>` }, { key: 'note', label: 'Nội dung', render: e => U.cell2(esc(e.note || catLabel(e.category)), esc(e.vendor || '')) },
+      { key: 'cat', label: 'Loại', render: e => esc(catLabel(e.category)) }, { key: 'sc', label: 'Tòa / quỹ', render: e => e.scope === 'fund' ? U.chip((CAT().funds.find(f => f.code === e.fundCode) || {}).label || 'Quỹ chung', 'purple') : `<b>${esc((Q.building(e.buildingId) || {}).code || '')}</b>${e.roomId ? ' · ' + esc(Q.roomCode(e.roomId)) : ''}` },
+      { key: 'line', label: 'Dòng báo cáo', render: e => `<span class="small">${esc(lineLabel(e.reportLine))}</span>` }, { key: 'd', label: 'Ngày chi', sortable: true, sortVal: e => e.date, render: e => F.date(e.date) },
+      { key: 'p', label: 'Kỳ hưởng', render: e => F.periodShort(e.period) + (F.period(e.date) !== e.period ? ' ' + U.chip('khác tháng chi', 'amber') : '') },
+      { key: 'a', label: 'Số tiền', num: true, sortable: true, sortVal: e => e.amount, render: e => F.vnd(e.amount) + (e.isEquipment ? `<br><small class="muted">KH ${F.pctv(e.depRate)}/tháng</small>` : '') },
+      { key: 's', label: 'Nguồn', render: e => U.chip({ manual: 'Nhập tay', import: 'Import', payroll: 'Bảng lương', ownerPayment: 'Tiền nhà', bench: 'Excel T8' }[e.source] || e.source, 'gray') },
+      { key: 'x', label: '', render: e => e.source !== 'payroll' ? U.actBtn({ icon: 'trash', label: 'Hủy khoản chi', act: 'void', attrs: { 'data-id': e.id }, perm: 'expenses.manage' }) : '' }] });
+    U.bind(root, { adj: () => TH.pages.adjustDrawer(period, { reportLine: 'other' }), add: form, void: (el) => K.formDrawer({ title: 'Hủy khoản chi', modal: true, size: 'sm', fields: [{ name: 'reason', label: 'Lý do', type: 'textarea', req: true, span: true }], submit: 'Hủy khoản', onSubmit: (d) => { X.voidExpense(el.dataset.id, d.reason); U.toast('ok', 'Đã hủy'); } }),
+      exp: () => K.csv('chi-phi-' + period + '.csv', ['Mã', 'Ngày chi', 'Kỳ hưởng', 'Loại', 'Tòa/quỹ', 'Dòng báo cáo', 'Số tiền', 'Nhà cung cấp', 'Nội dung'], rows.map(e => [e.code, e.date, e.period, catLabel(e.category), e.scope === 'fund' ? e.fundCode : (Q.building(e.buildingId) || {}).code, lineLabel(e.reportLine), e.amount, e.vendor, e.note])) });
+    if (q.open === 'new') form();
+  });
 })(window.TH);

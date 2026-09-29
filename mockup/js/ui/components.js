@@ -4,32 +4,18 @@
   const U = {};
   U.el = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
   U.attrs = (o = {}) => Object.entries(o).filter(([k, v]) => v !== undefined && v !== null && v !== false).map(([k, v]) => v === true ? k : `${k}="${esc(v)}"`).join(' ');
-  /* Cờ phase dùng chung: p2:true ≡ phase:2. Phase tắt → disabled + tooltip (như bản P1); phase bật → enabled, giữ badge để nhận biết. */
-  U.phaseOf = (o) => o.phase || (o.p2 ? 2 : 0);
-  U.phaseOn = (n) => !n || (TH.phase && TH.phase.on(n));
-  U.phaseTag = (n) => n ? (TH.phase ? TH.phase.tag(n) : '<span class="tag-p">P' + n + '</span>') : '';
-  U.btn = ({ label = '', icon = '', cls = 'btn-ghost', act = '', size = '', disabled = false, title = '', attrs = {}, p2 = false, phase = 0, id = '' }) => {
-    const ph = phase || (p2 ? 2 : 0);
-    if (ph && !U.phaseOn(ph)) { disabled = true; title = title || 'Chức năng thuộc Phase ' + ph + ' – ngoài scope bản demo Phase 1'; }
-    return `<button type="button" class="btn ${cls} ${size}" ${act ? `data-act="${esc(act)}"` : ''} ${disabled ? 'disabled' : ''} ${title ? `title="${esc(title)}"` : ''} ${id ? `id="${id}"` : ''} ${U.attrs(attrs)}>${icon ? I(icon) : ''}${label ? `<span>${esc(label)}</span>` : ''}${U.phaseTag(ph)}</button>`;
-  };
+  U.btn = ({ label = '', icon = '', cls = 'btn-ghost', act = '', size = '', disabled = false, title = '', attrs = {}, id = '', perm = '', href = '' }) => href
+    ? `<a class="btn ${cls} ${size}" href="${esc(href)}" ${perm ? `data-perm="${esc(perm)}"` : ''} ${title ? `title="${esc(title)}"` : ''} ${U.attrs(attrs)}>${icon ? I(icon) : ''}${label ? `<span>${esc(label)}</span>` : ''}</a>`
+    : `<button type="button" class="btn ${cls} ${size}" ${act ? `data-act="${esc(act)}"` : ''} ${disabled ? 'disabled' : ''} ${title ? `title="${esc(title)}"` : ''} ${id ? `id="${id}"` : ''} ${perm ? `data-perm="${esc(perm)}"` : ''} ${U.attrs(attrs)}>${icon ? I(icon) : ''}${label ? `<span>${esc(label)}</span>` : ''}</button>`;
   U.iconBtn = (icon, act, title = '', attrs = {}, cls = '') => `<button type="button" class="btn-icon ${cls}" data-act="${esc(act)}" ${title ? `data-tip="${esc(title)}" aria-label="${esc(title)}"` : ''} ${U.attrs(attrs)}>${I(icon)}</button>`;
   /* Nút thao tác trên dòng: icon-only, tên thao tác hiện qua tooltip (data-tip). tone: ''|primary|success|danger */
-  U.actBtn = ({ icon = 'info', label = '', act = '', attrs = {}, tone = '', disabled = false, p2 = false, phase = 0, id = '' }) => {
-    const ph = phase || (p2 ? 2 : 0);
-    if (ph && !U.phaseOn(ph)) { disabled = true; label = (label ? label + ' – ' : '') + 'Chức năng thuộc Phase ' + ph; }
-    return `<button type="button" class="btn-icon act ${tone}" ${act ? `data-act="${esc(act)}"` : ''} ${disabled ? 'disabled' : ''} ${id ? `id="${id}"` : ''} data-tip="${esc(label)}" aria-label="${esc(label)}" ${U.attrs(attrs)}>${I(icon)}</button>`;
-  };
+  U.actBtn = ({ icon = 'info', label = '', act = '', attrs = {}, tone = '', disabled = false, id = '', perm = '' }) => `<button type="button" class="btn-icon act ${tone}" ${act ? `data-act="${esc(act)}"` : ''} ${disabled ? 'disabled' : ''} ${id ? `id="${id}"` : ''} ${perm ? `data-perm="${esc(perm)}"` : ''} data-tip="${esc(label)}" aria-label="${esc(label)}" ${U.attrs(attrs)}>${I(icon)}</button>`;
   U.chip = (text, color = 'gray', dot = false, extra = '') => `<span class="chip ${color} ${extra}">${dot ? '<span class="dot"></span>' : ''}${esc(text)}</span>`;
   U.delta = (v, dir) => { if (v == null) return ''; dir = dir || (v >= 0 ? 'up' : 'down'); return `<span class="delta ${dir}">${dir === 'up' ? '↑' : '↓'} ${esc(String(Math.abs(v)).replace('.', ','))}%</span>`; };
-  U.kpi = ({ label, value, cap = '', icon = 'info', tone = 'blue', tint = true, delta = null, deltaDir = null, bar = null, mini = false, cls = '', valueCls = '' }) => (cap = U.stripRefs(cap), `<div class="kpi ${tint ? 't-' + tone : ''} ${mini ? 'mini' : ''} ${cls}"><div class="ic ${tone}">${I(icon)}</div><div class="grow"><div class="lb">${esc(label)}</div><div class="vl ${valueCls}">${value}${delta != null ? U.delta(delta, deltaDir) : ''}</div>${cap ? `<div class="cap">${cap}</div>` : ''}${bar != null ? `<div class="bar"><i style="width:${bar}%"></i></div>` : ''}</div></div>`);
+  U.kpi = ({ label, value, cap = '', icon = 'info', tone = 'blue', tint = true, delta = null, deltaDir = null, bar = null, mini = false, cls = '', valueCls = '' }) => (`<div class="kpi ${tint ? 't-' + tone : ''} ${mini ? 'mini' : ''} ${cls}"><div class="ic ${tone}">${I(icon)}</div><div class="grow"><div class="lb">${esc(label)}</div><div class="vl ${valueCls}">${value}${delta != null ? U.delta(delta, deltaDir) : ''}</div>${cap ? `<div class="cap">${cap}</div>` : ''}${bar != null ? `<div class="bar"><i style="width:${bar}%"></i></div>` : ''}</div></div>`);
   U.stat = (label, value, cap = '', cls = '') => `<div class="stat-tile ${cls}"><div class="lb">${esc(label)}</div><div class="vl">${value}</div>${cap ? `<div class="cap">${cap}</div>` : ''}</div>`;
   U.avatar = (name, cls = '', img = '') => `<div class="avatar ${cls}">${img ? `<img src="${img}" alt="">` : esc(F.initials(name))}</div>`;
-  /* Chú thích demo/BA (mã FR/BR/OI, chip "Giả định", "Tự thiết kế"…): mặc định ẩn với người dùng cuối, bật tại Công cụ hệ thống → meta.uiPrefs.demoNotes */
-  U.demoNotes = () => { try { return !!((TH.store.state.meta.uiPrefs || {}).demoNotes); } catch (e) { return false; } };
-  U.demoNote = (html) => U.demoNotes() ? html : '';
-  U.stripRefs = (s) => U.demoNotes() || !s ? s : String(s).replace(/\s*\((?:FR|BR|AC|OI|UC|NFR)-[A-Za-z0-9/–\-, .§]+\)/g, '').replace(/\s*\(00_SCOPE[^)]*\)/g, '').replace(/\s*\(Phase \d[^)]*\)/g, '');
-  U.pageHead = ({ title, sub = '', acts = [], back = '', chips = '', phase = 0 }) => { sub = U.stripRefs(sub); if (!U.demoNotes()) phase = 0; return `<div class="page-head"><div class="row start gap12">${back ? `<a class="back-btn" href="${back}" title="Quay lại">${I('arrow-left')}</a>` : ''}<div><h1>${title}${chips}${phase ? ` <span class="chip-phase" title="${esc(TH.phase.info(phase).label + ' – ' + TH.phase.info(phase).name)}">${esc(TH.phase.info(phase).short)}</span>` : ''}</h1>${sub ? `<div class="sub">${sub}</div>` : ''}</div></div><div class="acts">${acts.join('')}</div></div>`; };
+  U.pageHead = ({ title, sub = '', acts = [], back = '', chips = '' }) => `<div class="page-head"><div class="row start gap12">${back ? `<a class="back-btn" href="${back}" title="Quay lại">${I('arrow-left')}</a>` : ''}<div><h1>${title}${chips}</h1>${sub ? `<div class="sub">${sub}</div>` : ''}</div></div><div class="acts">${acts.join('')}</div></div>`;
   const cardCollapseStorageKey = (key) => {
     const route = (location.hash || '#/dashboard').replace(/^#/, '').split('?')[0] || '/dashboard';
     return `timehouse:side-card:${route}:${key}`;
@@ -45,10 +31,6 @@
     const collapsed = canCollapse && cardCollapsed(key);
     const toggle = canCollapse ? cardCollapseToggle(key, collapsed) : '';
     return `<div class="card ${canCollapse ? 'collapsible' : ''} ${collapsed ? 'collapsed' : ''} ${cls}" ${id ? `id="${id}"` : ''} ${canCollapse ? `data-collapse-key="${esc(key)}" data-collapse-ready="1"` : ''} ${attrs}>${title ? `<div class="card-h"><div><h3>${icon ? I(icon) : ''}${title}</h3>${sub ? `<div class="sub">${sub}</div>` : ''}</div><div class="row">${actions}${toggle}</div></div>` : ''}${body !== null ? `<div class="card-b ${bodyCls}">${body}</div>` : ''}${footer ? `<div class="card-f">${footer}</div>` : ''}</div>`;
-  };
-  U.relatedStrip = ({ id = 'related', title = 'Thông tin liên quan', items = [], cls = '' }) => {
-    const safeId = F.slug(id) || 'related'; const cols = Math.min(Math.max(items.length, 1), 4);
-    return `<section class="related-section ${cls}" data-related-strip aria-labelledby="${safeId}-title"><div id="${safeId}-title" class="small bold muted related-section-title">${esc(title)}</div><div class="related-strip cols-${cols}">${items.map(x => `<button type="button" id="${safeId}-${esc(x.key)}" class="related-tile" data-related-toggle data-related-key="${esc(x.key)}" aria-expanded="false" aria-controls="${safeId}-panel"><span class="related-icon">${I(x.icon || 'info')}</span><span class="related-copy"><span class="related-label">${esc(x.title)}</span><span class="related-value">${x.summary || '-'}</span><span class="related-meta">${x.meta || ''}</span></span><span class="related-chevron" aria-hidden="true">${I('chevron-down')}</span></button>`).join('')}</div><div id="${safeId}-panel" class="related-panel" role="region" hidden></div>${items.map(x => `<template data-related-template="${esc(x.key)}">${U.card({ title: x.title, icon: x.icon || 'info', actions: x.actions || '', body: x.body || '', cls: 'related-detail' })}</template>`).join('')}</section>`;
   };
   U.enhanceSideCards = (root = document) => {
     root.querySelectorAll('.two-col > .side-stack:last-child .card:not([data-collapse-ready])').forEach((card, index) => {
@@ -103,7 +85,7 @@
   U.radioCard = ({ name, value, checked, title, text, icon, iconCls = 'blue' }) => `<label class="radio-card ${checked ? 'on' : ''}"><input type="radio" name="${name}" value="${esc(value)}" ${checked ? 'checked' : ''} hidden><div class="ic ${iconCls}" style="background:var(--${iconCls}-bg);color:var(--${iconCls})">${I(icon)}</div><div><b>${esc(title)}</b><span>${esc(text)}</span></div><span class="dot"></span></label>`;
   U.filterbar = (fields, actions = '') => `<div class="card filters"><div class="filterbar">${fields.join('')}${actions}</div></div>`;
   U.statusTabs = (items, current, act = 'stab') => `<div class="status-tabs">${items.map(it => `<button type="button" class="status-tab ${String(it.key) === String(current) ? 'on' : ''}" data-act="${act}" data-key="${esc(it.key)}">${it.color ? `<span class="dot" style="background:var(--${it.color}-500,var(--${it.color}))"></span>` : ''}${esc(it.label)}${it.count != null ? `<span class="cnt">${it.count}</span>` : ''}</button>`).join('')}</div>`;
-  U.tabs = (items, current, cls = '', act = 'tab') => `<div class="tabs ${cls}">${items.map(it => { const ph = U.phaseOf(it), off = ph && !U.phaseOn(ph); return `<button type="button" class="${it.key === current ? 'on' : ''} ${off ? 'disabled-p2' : ''}" data-act="${act}" data-key="${esc(it.key)}" ${off ? `title="Phase ${ph} – ngoài scope demo"` : ''} ${off ? 'data-phase-off="1"' : ''}>${it.icon ? I(it.icon) : ''}${esc(it.label)}${it.count != null ? ` <span class="cnt muted">(${it.count})</span>` : ''}${U.phaseTag(ph)}</button>`; }).join('')}</div>`;
+  U.tabs = (items, current, cls = '', act = 'tab') => `<div class="tabs ${cls}">${items.map(it => `<button type="button" class="${it.key === current ? 'on' : ''}" data-act="${act}" data-key="${esc(it.key)}" ${it.perm ? `data-perm="${esc(it.perm)}"` : ''}>${it.icon ? I(it.icon) : ''}${esc(it.label)}${it.count != null ? ` <span class="cnt muted">(${it.count})</span>` : ''}</button>`).join('')}</div>`;
   U.wizard = (steps, cur) => `<div class="card mb16"><div class="wizard">${steps.map((s, i) => `<div class="wz-step ${i < cur ? 'done' : ''} ${i === cur ? 'on' : ''}"><div class="n">${i < cur ? I('check') : i + 1}</div><div class="txt"><b>${esc(s.title)}</b><small>${esc(s.sub || '')}</small></div></div>${i < steps.length - 1 ? `<div class="wz-line ${i < cur ? 'done' : ''}"></div>` : ''}`).join('')}</div></div>`;
   U.empty = ({ icon = 'inbox', title = 'Chưa có dữ liệu', text = '', action = '' }) => `<div class="empty">${I(icon)}<b>${esc(title)}</b>${text ? `<p>${text}</p>` : ''}${action}</div>`;
   U.note = (type, title, text, icon) => `<div class="note-box ${type}">${I(icon || ({ info: 'info', warn: 'alert-triangle', danger: 'alert-circle', ok: 'check-circle' }[type]))}<div>${title ? `<b>${title}</b>` : ''}${text}</div></div>`;
@@ -124,7 +106,6 @@
     });
   };
   U.dzFiles = (root, name) => { const dz = root.querySelector(`[data-dz="${name}"]`); return dz ? (dz._files || []) : []; };
-  U.phone = (content, time = 'Hôm nay, 09:00') => `<div class="phone"><div class="ph-h"><div class="zl">Z</div><div><b>TimoHouse ${I('check-circle', 'blue')}</b><small>Tài khoản OA</small></div></div><div class="time">${esc(time)}</div><div class="bubble">${esc(content)}<div class="ts">09:00</div></div></div>`;
   U.pager = ({ page, pages, total, from, to, unit = 'bản ghi', size = 10 }) => {
     let btns = ''; const add = (p) => btns += `<button type="button" data-act="page" data-p="${p}" class="${p === page ? 'on' : ''}">${p}</button>`;
     const rng = []; for (let p = 1; p <= pages; p++) if (p <= 1 || p > pages - 1 || Math.abs(p - page) <= 1 || (page <= 3 && p <= 5) || (page >= pages - 2 && p >= pages - 4)) rng.push(p);
@@ -148,7 +129,7 @@
   U.openCount = 0;
   U.drawer = ({ title, sub = '', body = '', footer = '', wide = false, modal = false, size = '', onMount, onClose }) => {
     const returnFocus = document.activeElement;
-    const ov = U.el(`<div class="overlay ${modal ? 'center' : ''}"><div class="${modal ? 'modal ' + size : 'drawer ' + (wide ? 'wide' : '')}" role="dialog" aria-modal="true"><div class="drawer-h"><div><h2>${title}</h2>${sub ? `<div class="sub">${sub}</div>` : ''}</div><button type="button" class="close-x" data-act="close" aria-label="Đóng">${I('x')}</button></div><div class="drawer-b">${body}</div>${footer ? `<div class="drawer-f">${footer}</div>` : ''}</div></div>`);
+    const ov = U.el(`<div class="overlay ${modal ? 'center' : ''}"><div class="${modal ? 'modal ' + size : 'drawer ' + (wide ? 'wide' + (wide === 'x' ? ' xwide' : '') : '')}" role="dialog" aria-modal="true"><div class="drawer-h"><div><h2>${title}</h2>${sub ? `<div class="sub">${sub}</div>` : ''}</div><button type="button" class="close-x" data-act="close" aria-label="Đóng">${I('x')}</button></div><div class="drawer-b">${body}</div>${footer ? `<div class="drawer-f">${footer}</div>` : ''}</div></div>`);
     const close = (res) => { if (!ov.parentNode) return; ov.remove(); U.openCount--; if (U.openCount <= 0) { U.openCount = 0; document.body.classList.remove('modal-open'); } onClose && onClose(res); if (returnFocus && document.contains(returnFocus) && returnFocus.focus) setTimeout(() => returnFocus.focus(), 0); };
     ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
     ov.querySelector('[data-act=close]').onclick = () => close();
@@ -167,7 +148,7 @@
   });
   U.menu = (anchor, items) => {
     document.querySelectorAll('.menu').forEach(m => m.remove());
-    const menu = U.el(`<div class="menu" role="menu">${items.map(it => { if (it === '-') return '<hr>'; if (it.header) return `<div class="mh">${esc(it.header)}</div>`; const ph = U.phaseOf(it), off = ph && !U.phaseOn(ph); return `<button type="button" role="menuitem" class="${it.danger ? 'danger' : ''}" ${it.disabled || off ? 'disabled' : ''} title="${esc(it.title || (off ? 'Phase ' + ph + ' – ngoài scope demo' : ''))}" data-mi="${items.indexOf(it)}">${it.icon ? I(it.icon) : ''}${esc(it.label)}${U.phaseTag(ph)}</button>`; }).join('')}</div>`);
+    const menu = U.el(`<div class="menu" role="menu">${items.map(it => { if (it === '-') return '<hr>'; if (it.header) return `<div class="mh">${esc(it.header)}</div>`; return `<button type="button" role="menuitem" class="${it.danger ? 'danger' : ''}" ${it.disabled ? 'disabled' : ''} title="${esc(it.title || '')}" data-mi="${items.indexOf(it)}">${it.icon ? I(it.icon) : ''}${esc(it.label)}</button>`; }).join('')}</div>`);
     document.body.appendChild(menu);
     const r = anchor.getBoundingClientRect(); const mw = menu.offsetWidth, mh = menu.offsetHeight;
     let left = r.right - mw, top = r.bottom + 4; if (left < 8) left = 8; if (top + mh > window.innerHeight - 8) top = r.top - mh - 4;
@@ -178,9 +159,7 @@
     return menu;
   };
   U.toast = (type, title, sub = '', ms = 3800) => { const t = U.el(`<div class="toast ${type}">${I({ ok: 'check-circle', err: 'x-circle', warn: 'alert-triangle', info: 'info' }[type] || 'info')}<div><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`); document.getElementById('toast-root').appendChild(t); setTimeout(() => t.remove(), ms); return t; };
-  U.p2Toast = (name) => U.toast('info', name || 'Chức năng Phase 2', TH.phase && TH.phase.available(2) ? 'Bật Phase 2 trong Công cụ nâng cao (sidebar, Admin) để dùng' : 'Ngoài scope demo Phase 1 – xem 00_SCOPE_3_PHASE.md');
   U.highlight = (sel) => { const el = typeof sel === 'string' ? document.querySelector(sel) : sel; if (!el) return; el.classList.add('hl-guide'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el.classList.remove('hl-guide'), 4000); };
-  U.fakePdf = (title, lines) => { const txt = ['TIMOHOUSE – ' + title, '='.repeat(48), ...lines, '', 'Tài liệu mô phỏng cho mục đích demo.'].join('\n'); F.download(F.slug(title) + '.txt', txt); U.toast('ok', 'Đã tải ' + title, 'File mô phỏng (.txt) – bản thật sẽ là PDF'); };
   /* Tooltip dùng chung cho [data-tip]: 1 element fixed trong body (không bị .tbl-wrap overflow cắt), delegation trên document */
   (function tooltip() {
     let tip = null, cur = null;

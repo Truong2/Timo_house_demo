@@ -1,106 +1,208 @@
+/* UI-02 Danh sách tòa (E01) · UI-03 Chi tiết tòa (tab phòng E02, chủ nhà/HĐ, lịch trả, nhân sự, dịch vụ đầu vào, tài chính). */
 (function (TH) {
-  const F = TH.f, U = TH.ui, I = TH.icon, Q = TH.q, St = TH.store, X = TH.actions, Fm = TH.forms, esc = F.esc;
-  const cycleChip = (b) => { const p = Q.buildingNextDue(b.id); if (!p) return '<span class="muted">-</span>'; const d = F.daysUntil(p.dueDate); return U.chip(d + ' ngày', d <= 22 ? 'red' : d <= 45 ? 'amber' : 'blue'); };
-  // Chủ nhà + HĐ đầu vào phủ tòa (đỏ khi không có HĐ hiệu lực → không thể cho thuê)
-  const landlordCell = (b) => { const l = St.get('landlords', b.landlordId); const lc = Q.landlordContractOf(b.id); return U.cell2(l ? U.link('#/landlords/' + l.id, esc(l.name)) : '<span class="red">Chưa gán chủ nhà</span>', lc ? esc(lc.code) + ' · đến ' + F.date(lc.end) + ' ' + Q.chip('lcontract', Q.lcStatus(lc)) : U.chip('Chưa có HĐ đầu vào', 'red')); };
-  const buildingMenu = (btn, b) => {
-    const items = [{ label: 'Xem', icon: 'eye', onClick: () => TH.go('#/buildings/' + b.id) }];
-    if (TH.auth.can('buildings.manage')) items.push({ label: 'Sửa', icon: 'pencil', onClick: () => Fm.building(b) });
-    if (TH.auth.can('landlordPayments.manage')) items.push({ label: 'Ghi nhận trả chủ nhà', icon: 'banknote', onClick: () => { const p = Q.buildingNextDue(b.id); if (!p) return U.toast('info', 'Không có kỳ thanh toán chờ'); Fm.landlordPaid(p); } });
-    if (TH.auth.can('buildings.manage')) items.push('-', b.status === 'inactive' ? { label: 'Kích hoạt lại', icon: 'check', onClick: () => { X.setBuildingStatus(b.id, 'active'); U.toast('ok', 'Đã kích hoạt tòa'); } } : { label: 'Ngừng sử dụng', icon: 'minus-circle', danger: true, onClick: async () => { if (await U.confirm({ title: 'Ngừng sử dụng ' + b.name + '?', text: 'Tòa có hợp đồng hiệu lực sẽ bị chặn (FR-BLD-02). Không xóa vật lý dữ liệu.', ok: 'Ngừng sử dụng', danger: true })) { X.deactivateBuilding(b.id); U.toast('ok', 'Đã ngừng sử dụng tòa'); } } });
-    U.menu(btn, items);
-  };
-  /* ---------- Danh sách tòa ---------- */
-  TH.router.register('/buildings', (root, p, q) => {
-    TH.router.crumb([{ label: 'Quản lý cho thuê' }, { label: 'Tòa nhà' }]);
-    const f = { s: q.s || '', areaId: q.areaId || '', buildingType: q.buildingType || '', managerId: q.managerId || '', status: q.status || '', view: q.view || 'table' };
-    const all = St.all('buildings');
-    const rows = all.filter(b => (!f.s || F.norm(b.name + b.code + b.address).includes(F.norm(f.s))) && (!f.areaId || b.areaId === f.areaId) && (!f.buildingType || b.buildingType === f.buildingType) && (!f.managerId || b.managerId === f.managerId) && (!f.status || b.status === f.status));
-    const totalRooms = F.sum(all, b => b.stub ? b.roomCount : Q.roomsOf(b.id).length); const ready = St.where('rooms', r => r.status === 'ready').length;
-    const due30 = all.filter(b => { const p = Q.buildingNextDue(b.id); return p && F.daysUntil(p.dueDate) <= 30; }).length;
-    root.innerHTML = `${U.pageHead({ title: 'Tòa nhà', sub: 'Mỗi tòa thuộc một chủ nhà và được khai thác theo hợp đồng đầu vào; thêm tòa mới qua onboarding chủ nhà.', acts: [U.btn({ label: 'Thêm tòa', icon: 'plus', cls: 'btn-primary', act: 'add' }), U.btn({ label: 'Import phòng', icon: 'upload', cls: 'btn-outline', act: 'import' })] })}
-    ${U.filterbar([U.field({ label: 'Tìm kiếm', input: U.input({ name: 's', value: f.s, placeholder: 'Tìm theo mã, tên tòa, địa chỉ...', icon: 'search', attrs: { 'data-on': 'f' } }), cls: 'wide' }), U.field({ label: 'Khu nhà', input: U.select({ name: 'areaId', value: f.areaId, all: 'Tất cả khu nhà', options: Q.areas().map(a => [a.id, a.name]), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Loại nhà', input: U.select({ name: 'buildingType', value: f.buildingType, all: 'Tất cả loại nhà', options: Object.entries(Q.L.buildingType).map(([k, v]) => [k, v[0]]), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Người phụ trách', input: U.select({ name: 'managerId', value: f.managerId, all: 'Tất cả người phụ trách', options: Q.managers().map(u => [u.id, u.name]), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Trạng thái', input: U.select({ name: 'status', value: f.status, all: 'Tất cả trạng thái', options: Object.entries(Q.L.building).map(([k, v]) => [k, v[0]]), attrs: { 'data-on': 'f' } }) }), U.field({ label: 'Hiển thị', input: `<div class="seg"><button type="button" class="${f.view === 'table' ? 'on' : ''}" data-act="view" data-v="table">${I('table')} Bảng</button><button type="button" class="${f.view === 'card' ? 'on' : ''}" data-act="view" data-v="card">${I('grid')} Thẻ</button></div>` })])}
-    <div class="grid grid-4 mb16">${U.kpi({ label: 'Tổng số tòa', value: all.length, cap: 'Tăng 3 tòa so với tháng trước', icon: 'building', tone: 'blue' })}${U.kpi({ label: 'Tổng số phòng', value: totalRooms, cap: 'Thuộc ' + all.length + ' tòa nhà', icon: 'door', tone: 'amber' })}${U.kpi({ label: 'Phòng sẵn sàng', value: ready, cap: 'Đang trống, sẵn sàng cho thuê', icon: 'check-circle', tone: 'green' })}${U.kpi({ label: 'Tòa sắp đến kỳ trả chủ nhà', value: due30, cap: 'Trong 30 ngày tới', icon: 'clock', tone: 'amber' })}</div>
-    ${f.view === 'card' ? `<div class="card-grid">${rows.map(b => { const s = Q.roomStats(Q.roomsOf(b.id)); return `<div class="card bcard"><div class="t"><div><h4><a class="link" href="#/buildings/${b.id}">${esc(b.name)}</a></h4><div class="xs muted">${esc(b.code)}</div></div>${Q.chip('building', b.status)}</div><div class="addr">${I('map-pin')} ${esc(b.address)}</div><div class="stats"><span><b>${b.stub ? b.roomCount : s.total}</b>Phòng</span><span><b>${s.ready}</b>Sẵn sàng</span><span><b>${s.occupied}</b>Đang thuê</span><span><b>${b.payCycle} th</b>Chu kỳ</span></div><div class="row between mt8"><span class="small muted">${esc(Q.userName(b.managerId))}</span>${cycleChip(b)}</div></div>`; }).join('')}</div>` : U.card({ title: 'Danh sách tòa nhà', actions: U.btn({ label: 'Lưu bộ lọc', icon: 'bookmark', size: 'btn-sm', p2: true, act: 'save-filter' }) + U.btn({ label: 'Tùy chỉnh cột', icon: 'columns', size: 'btn-sm', act: 'cols' }) + U.iconBtn('more', 'more-h', 'Thêm'), body: null, id: 'tbl-card' })}`;
-    if (f.view === 'table') {
-      const wrap = document.createElement('div'); root.querySelector('#tbl-card').appendChild(wrap);
-      const cols = [
-        { key: 'n', label: '#', render: (r, i) => i + 1, width: '40px', hideable: false },
-        { key: 'code', label: 'Mã tòa', sortable: true, render: b => U.link('#/buildings/' + b.id, esc(b.code), 'bold') },
-        { key: 'name', label: 'Tên tòa / Địa chỉ', sortable: true, render: b => U.cell2(`<b>${esc(b.name)}</b>`, I('map-pin') + ' ' + esc(b.address)) },
-        { key: 'area', label: 'Khu nhà', sortable: true, sortVal: b => Q.area(b.areaId).name, render: b => esc(Q.area(b.areaId).name || b.district || '-') },
-        { key: 'landlord', label: 'Chủ nhà / HĐ đầu vào', sortable: true, sortVal: b => (St.get('landlords', b.landlordId) || {}).name || '', render: b => landlordCell(b) },
-        { key: 'buildingType', label: 'Loại nhà', render: b => Q.chip('buildingType', b.buildingType) + ' ' + U.assume() },
-        { key: 'rooms', label: 'Số phòng', num: true, sortable: true, sortVal: b => b.stub ? b.roomCount : Q.roomsOf(b.id).length, render: b => b.stub ? b.roomCount : Q.roomsOf(b.id).length },
-        { key: 'ready', label: 'Phòng sẵn sàng', num: true, render: b => { const rs = Q.roomsOf(b.id); const n = rs.filter(r => r.status === 'ready').length; return rs.length ? n + ' <span class="muted">(' + F.pct(n, rs.length) + '%)</span>' : '-'; } },
-        { key: 'cycle', label: 'Chu kỳ trả chủ nhà', render: b => cycleChip(b) + ` <span class="xs muted">${b.payCycle} tháng</span>` },
-        { key: 'manager', label: 'Quản lý phụ trách', render: b => `<span class="row">${U.avatar(Q.userName(b.managerId), 'sm')}${esc(Q.userName(b.managerId))}</span>` },
-        { key: 'status', label: 'Trạng thái', sortable: true, render: b => Q.chip('building', b.status) },
-        { key: 'actions', label: 'Thao tác', render: b => U.rowActions([U.moreBtn(b.id)]), hideable: false },
-      ];
-      const tbl = U.table(wrap, { rows, cols, unit: 'tòa nhà', colPrefsKey: 'buildings', sortKey: 'code' });
-      root._tbl = tbl; root._cols = cols;
-    }
-    U.onChange(root, { f: () => { const d = U.formData(root.querySelector('.filterbar')); TH.router.replaceQuery(Object.assign({}, f, d)); TH.router.refresh(); } });
-    root.querySelector('input[name=s]').addEventListener('keydown', e => { if (e.key === 'Enter') { TH.router.replaceQuery(Object.assign({}, f, { s: e.target.value })); TH.router.refresh(); } });
-    U.bind(root, { add: () => Fm.building(), import: () => TH.go('#/settings/import?type=room'), view: (b) => { TH.router.replaceQuery(Object.assign({}, f, { view: b.dataset.v })); TH.router.refresh(); }, cols: (b) => U.columnMenu(b, root._tbl, root._cols), 'more-h': (b) => U.menu(b, [{ label: 'Xuất danh sách (CSV)', icon: 'download', onClick: () => { F.download('toa-nha.csv', F.csv(rows.map(x => [x.code, x.name, x.address, x.district, (St.get('landlords', x.landlordId) || {}).name || '', (Q.landlordContractOf(x.id) || {}).code || '', Q.roomsOf(x.id).length, x.payCycle, Q.userName(x.managerId), Q.label('building', x.status)]), ['Mã', 'Tên', 'Địa chỉ', 'Khu vực', 'Chủ nhà', 'HĐ đầu vào', 'Số phòng', 'Chu kỳ', 'Quản lý', 'Trạng thái']), 'text/csv'); } }]), more: (b) => buildingMenu(b, St.get('buildings', b.dataset.id)) });
-  }, { menu: 'buildings', permission: 'buildings.view' });
+  const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, I = TH.icon, X = TH.actions, esc = F.esc;
+  const cat = () => TH.data.catalog;
 
-  /* ---------- Chi tiết tòa ---------- */
-  TH.router.register('/buildings/:id', (root, p, q) => {
-    const b = St.get('buildings', p.id); if (!b) { root.innerHTML = U.empty({ title: 'Không tìm thấy tòa' }); return; }
-    const tab = q.tab || 'rooms'; const l = St.get('landlords', b.landlordId) || {}; const rooms = Q.roomsOf(b.id); const rs = Q.roomStats(rooms); const mgr = Q.user(b.managerId);
-    TH.router.crumb([{ label: 'Quản lý cho thuê' }, { label: 'Tòa nhà', href: '#/buildings' }, { label: b.code }]);
-    const nextDue = Q.buildingNextDue(b.id); const bLcs = Q.buildingContracts(b.id); const lc = Q.landlordContractOf(b.id); const lcIds = new Set(bLcs.map(c => c.id)); const lastPaid = St.where('landlordPayments', x => lcIds.has(x.landlordContractId) && x.status === 'paid').sort((a, c) => F.cmp(a.paidDate, c.paidDate)).slice(-1)[0];
-    const tabs = [{ key: 'overview', label: 'Tổng quan' }, { key: 'landlord', label: 'Chủ nhà & HĐ đầu vào' }, { key: 'rooms', label: 'Phòng' }, { key: 'staff', label: 'Nhân sự phụ trách' }, { key: 'services', label: 'Dịch vụ' }, { key: 'assets', label: 'Tài sản', phase: 3 }, { key: 'expenses', label: 'Chi phí' }, { key: 'perf', label: 'Hiệu suất', p2: true }, { key: 'docs', label: 'Tài liệu' }, { key: 'history', label: 'Lịch sử' }];
-    root.innerHTML = `<div class="card mb16"><div class="card-b"><div class="detail-head" style="margin:0"><img class="thumb" src="assets/login-hero.svg" alt=""><div><h1>${esc(b.name)} <span class="chip gray lg">${esc(b.code)}</span> ${Q.chipDot('building', b.status)}</h1><div class="meta"><span>${I('map-pin')} ${esc(b.address)}</span></div></div><div class="acts">${U.btn({ label: 'Hành động', icon: 'chevron-down', cls: 'btn-outline', act: 'actions' })}${U.iconBtn('more', 'more2', 'Thêm', {}, 'bordered')}</div></div></div>
-      <div class="info-strip">${[['map-pin', 'Địa chỉ', b.address], ['layers', 'Khu vực', b.district], ['building', 'Số tầng', b.floors + ' tầng'], ['door', 'Số phòng', (b.stub ? b.roomCount : rooms.length) + ' phòng'], ['user', 'Người phụ trách', (mgr.name || '-') + (mgr.phone ? '<br><span class="muted">' + mgr.phone + '</span>' : '')]].map(([ic, k, v]) => `<div class="it">${I(ic)}<div><small>${k}</small><b>${v}</b></div></div>`).join('')}</div></div>
-    ${U.tabs(tabs, tab)}<div id="tab-body"></div>`;
-    const body = root.querySelector('#tab-body');
-    if (tab === 'rooms') {
-      const related = [
-        { key: 'payment-cycle', title: 'Chu kỳ trả chủ nhà', icon: 'clock', summary: b.payCycle + ' tháng/lần', meta: 'Ngày thanh toán: ' + F.pad(b.payDay), body: `<div class="vl" style="font-size:20px;font-weight:700;color:var(--text)">${b.payCycle} tháng/lần</div><div class="small muted mt4">Ngày thanh toán: ${F.pad(b.payDay)} · Kỳ tới: ${nextDue ? F.date(nextDue.dueDate) + ' (' + F.daysUntil(nextDue.dueDate) + ' ngày)' : '-'}</div>` },
-        { key: 'landlord', title: 'Chủ nhà & HĐ đầu vào', icon: 'user-check', summary: l.id ? esc(l.name) : 'Chưa gán chủ nhà', meta: lc ? esc(lc.code) + ' · đến ' + F.date(lc.end) : 'Chưa có HĐ đầu vào hiệu lực', actions: l.id ? U.btn({ label: lc ? 'Xem HĐ' : 'Thêm HĐ', icon: lc ? 'file-text' : 'plus', cls: 'btn-outline', size: 'btn-sm', act: lc ? 'go-lc' : 'add-lc' }) : '', body: l.id ? `<b style="font-size:15px;color:var(--text)">${esc(l.name)}</b> ${Q.chip('landlord', Q.landlordStatus(l))}<div class="small muted mt4">${I('phone')} ${esc(l.phone)}<br>${lc ? I('file-text') + ' ' + esc(lc.code) + ' · ' + F.date(lc.start) + ' – ' + F.date(lc.end) + ' ' + Q.chip('lcontract', Q.lcStatus(lc)) : '<span class="red">' + I('alert-circle') + ' Chưa có HĐ đầu vào hiệu lực – phòng chưa thể cho thuê</span>'}</div>` : U.empty({ title: 'Chưa gán chủ nhà', text: 'Tòa cần thuộc một chủ nhà có hợp đồng đầu vào.', action: U.btn({ label: 'Onboarding chủ nhà', size: 'btn-sm', act: 'onboard' }) }) },
-        { key: 'latest-payment', title: 'Thu tiền gần nhất', icon: 'calendar-check', summary: lastPaid ? F.vnd(lastPaid.amount) + ' VND' : 'Chưa có thanh toán', meta: lastPaid ? F.date(lastPaid.paidDate) : nextDue ? 'Kỳ tới ' + F.date(nextDue.dueDate) : 'Chưa có lịch trả', actions: l.id ? `<a class="link small" href="#/landlords/${l.id}?tab=payments">Xem lịch sử →</a>` : '', body: lastPaid ? `${Q.chip('lpay', 'paid')}<div style="font-size:20px;font-weight:700;color:var(--text);margin-top:8px">${F.vnd(lastPaid.amount)} VND</div><div class="small muted mt4">Kỳ thanh toán: ${esc(lastPaid.periodLabel)}<br>Ngày thanh toán: ${F.date(lastPaid.paidDate)}</div>` : '<div class="muted small">Chưa có kỳ đã thanh toán</div>' + (nextDue ? `<div class="mt8">${Q.chip('lpay', nextDue.status)} ${F.vnd(nextDue.amount)} – hạn ${F.date(nextDue.dueDate)}</div>` : '') }
-      ];
-      body.innerHTML = `${U.section('Danh sách phòng', 'Quản lý thông tin phòng, trạng thái, khách thuê và hợp đồng của tòa nhà.', U.btn({ label: 'Thêm phòng', icon: 'plus', cls: 'btn-primary', act: 'add-room' }) + U.btn({ label: 'Import phòng', icon: 'upload', cls: 'btn-outline', act: 'import-rooms' }) + U.btn({ label: 'Tạo nhiều phòng', icon: 'grid', cls: 'btn-outline', act: 'bulk' }))}
-        ${U.relatedStrip({ id: 'building-room-related', items: related, cls: 'mb16' })}
-        <div class="grid grid-4 mb16">${U.kpi({ mini: true, label: 'Tổng số phòng', value: rs.total, cap: '100% tổng quỹ phòng', icon: 'door', tone: 'blue' })}${U.kpi({ mini: true, label: 'Đang thuê', value: rs.occupied, cap: F.pct(rs.occupied, rs.total) + '%', icon: 'users', tone: 'green' })}${U.kpi({ mini: true, label: 'Sẵn sàng', value: rs.ready, cap: F.pct(rs.ready, rs.total) + '%', icon: 'check-circle', tone: 'blue' })}${U.kpi({ mini: true, label: 'Chờ dọn', value: rs.cleaning, cap: F.pct(rs.cleaning, rs.total) + '%', icon: 'brush', tone: 'amber' })}</div>
-        <div class="card"><div class="filterbar" style="border-bottom:1px solid var(--border)">${U.field({ input: U.input({ name: 'rs', placeholder: 'Tìm kiếm theo mã phòng, khách thuê...', icon: 'search', value: q.rs || '', attrs: { 'data-on': 'rf' } }), cls: 'wide' })}${U.field({ input: U.select({ name: 'floor', value: q.floor || '', all: 'Tất cả tầng', options: [...new Set(rooms.map(r => r.floor))].sort((a, c) => a - c).map(fl => [fl, 'Tầng ' + fl]), attrs: { 'data-on': 'rf' } }) })}${U.field({ input: U.select({ name: 'rstatus', value: q.rstatus || '', all: 'Tất cả trạng thái', options: Object.entries(Q.L.room).map(([k, v]) => [k, v[0]]), attrs: { 'data-on': 'rf' } }) })}${U.btn({ label: 'Bộ lọc', icon: 'filter', cls: 'btn-outline' })}</div><div id="room-tbl"></div></div>`;
-      const rrows = rooms.filter(r => (!q.rs || F.norm(r.code + (Q.roomTenant(r.id) || {}).name).includes(F.norm(q.rs))) && (!q.floor || String(r.floor) === q.floor) && (!q.rstatus || r.status === q.rstatus)).sort((a, c) => a.code.localeCompare(c.code));
-      U.table(body.querySelector('#room-tbl'), { rows: rrows, selectable: true, unit: 'phòng', cols: [
-        { key: 'code', label: 'Mã phòng', sortable: true, render: r => U.link('#/rooms/' + r.id, esc(r.code), 'bold') }, { key: 'floor', label: 'Tầng', sortable: true },
-        { key: 'status', label: 'Trạng thái', sortable: true, render: r => Q.chipDot('room', r.status) }, { key: 'price', label: 'Giá tham chiếu', num: true, sortable: true, render: r => F.vnd(r.price) },
-        { key: 'tenant', label: 'Khách hiện tại', render: r => { const t = Q.roomTenant(r.id); return t ? U.link('#/tenants/' + t.id, esc(t.name)) : '-'; } },
-        { key: 'contract', label: 'HĐ hiện tại', render: r => { const c = Q.activeContractOfRoom(r.id); return c ? U.cell2(U.link('#/contracts/' + c.id, c.code), F.date(c.start) + ' - ' + F.date(c.end)) : '-'; } },
-        { key: 'debt', label: 'Công nợ', num: true, render: r => { const d = Q.roomDebt(r.id); return `<span class="${d ? 'red bold' : 'green'}">${F.vnd(d)}</span>`; } },
-        { key: 'actions', label: 'Thao tác', render: r => U.rowActions([U.moreBtn(r.id)]) }] });
-    }
-    if (tab === 'overview') body.innerHTML = `<div class="grid grid-2">${U.card({ title: 'Thông tin tòa', icon: 'building', actions: U.btn({ label: 'Chỉnh sửa', icon: 'pencil', size: 'btn-sm', cls: 'btn-outline', act: 'edit' }), body: U.kv([['Mã tòa', esc(b.code)], ['Tên tòa', esc(b.name)], ['Địa chỉ', esc(b.address)], ['Khu nhà', esc(Q.area(b.areaId).name || b.district)], ['Loại nhà', Q.chip('buildingType', b.buildingType) + ' ' + U.assume()], ['Diện tích', F.vnd(b.areaM2 || 0) + ' m²'], ['Tình trạng', ({ new: 'Mới', medium: 'Trung bình', old: 'Cũ' })[b.condition] || '-'], ['Vận hành từ', F.date(b.operatingSince) + ' · ' + F.monthsSince(b.operatingSince) + ' tháng'], ['Số tầng', b.floors], ['Số phòng', rooms.length], ['Tiền tố mã phòng', esc(b.prefix)], ['Tiện ích', (b.amenities || []).join(', ') || '-'], ['ĐKKD', esc(b.license || 'Đã đăng ký') + (b.licenseExpiry ? ' · hết hạn ' + F.date(b.licenseExpiry) : '')], ['PCCC', U.chip((b.pccc || {}).status === 'valid' ? 'Còn hiệu lực' : (b.pccc || {}).status === 'expired' ? 'Hết hạn' : 'Thiếu hồ sơ', (b.pccc || {}).status === 'valid' ? 'green' : 'red') + ((b.pccc || {}).expiry ? ' · ' + F.date(b.pccc.expiry) : '')], ['Người phụ trách', esc(mgr.name || '-')], ['Trạng thái', Q.chip('building', b.status)]]) })}${U.card({ title: 'Tình trạng phòng', icon: 'door', body: `<div class="grid grid-3">${Object.entries(Q.L.room).map(([k, v]) => U.stat(v[0], rs[k] || 0)).join('')}</div>${TH.chart.stackedBar({ groups: [{ label: b.name, values: [rs.occupied, rs.ready, rs.held, rs.maintenance, rs.cleaning + rs.inactive] }], series: [{ color: '#1D4ED8' }, { color: '#BFDBFE', dark: true }, { color: '#FCD34D', dark: true }, { color: '#F97316' }, { color: '#CBD5E1', dark: true }], height: 180 })}` })}</div>`;
-    if (tab === 'staff') {
-      const roleLabels = { lead: 'Trưởng nhóm', ops: 'Vận hành', cleaning: 'Vệ sinh', tech: 'Kỹ thuật' };
-      const rows = St.where('buildingAssignments', a => a.buildingId === b.id).sort((a, c) => F.cmp(c.start, a.start));
-      body.innerHTML = U.card({ title: 'Nhân sự phụ trách', icon: 'users', sub: 'Phân công có hiệu lực theo thời gian; một nhân sự có thể kiêm nhiệm.', body: null, id: 'staff-card' });
-      U.table(body.querySelector('#staff-card'), { rows, noPager: true, cols: [{ key: 'role', label: 'Vai trò', render: a => esc(roleLabels[a.role] || a.role) }, { key: 'employee', label: 'Nhân viên', render: a => { const e = St.get('employees', a.employeeId) || {}; return U.cell2(`<b>${esc(e.name || '-')}</b>`, esc(e.title || '')); } }, { key: 'start', label: 'Từ ngày', render: a => F.date(a.start) }, { key: 'end', label: 'Đến ngày', render: a => a.end ? F.date(a.end) : 'Hiện tại' }, { key: 'primary', label: 'Chính', render: a => a.primary ? U.chip('Chính', 'blue') : '-' }, { key: 'status', label: 'Hiệu lực', render: a => a.start <= F.today() && (!a.end || a.end >= F.today()) ? U.chip('Đang hiệu lực', 'green') : U.chip('Đã kết thúc', 'gray') }] });
-    }
-    if (tab === 'landlord') { body.innerHTML = `${lc ? '' : U.note('warn', 'Chưa có HĐ đầu vào hiệu lực cho tòa này', 'Phòng của tòa không thể giữ chỗ / kích hoạt hợp đồng khách thuê cho đến khi có hợp đồng với chủ nhà.') + '<div class="mb16"></div>'}<div class="grid grid-2">${U.card({ title: 'Chủ nhà', icon: 'user-check', actions: l.id ? U.btn({ label: 'Xem chủ nhà', icon: 'external-link', size: 'btn-sm', cls: 'btn-outline', act: 'go-landlord' }) : U.btn({ label: 'Onboarding chủ nhà', icon: 'plus', size: 'btn-sm', cls: 'btn-primary', act: 'onboard' }), body: l.id ? U.kv([['Tên', esc(l.name)], ['Loại', l.type === 'company' ? 'Công ty' : 'Cá nhân'], ['SĐT', esc(l.phone)], ['Email', esc(l.email)], ['MST', esc(l.taxCode || '-')], ['Tài khoản nhận tiền', esc(l.bankAccount || '-')], ['Trạng thái', Q.chip('landlord', Q.landlordStatus(l))], ['Tòa khác của chủ nhà', (l.buildingIds || []).filter(id => id !== b.id).map(id => U.link('#/buildings/' + id, esc(Q.building(id).name))).join(', ') || '-']], 'one') : U.empty({ title: 'Chưa gán chủ nhà', text: 'Tòa cần thuộc một chủ nhà có hợp đồng đầu vào.' }) })}${U.card({ title: 'Hợp đồng đầu vào của tòa', icon: 'file-text', sub: 'Chỉ các HĐ có phạm vi gồm tòa này.', actions: l.id ? U.btn({ label: 'Thêm HĐ', icon: 'plus', size: 'btn-sm', cls: 'btn-outline', act: 'add-lc' }) : '', body: bLcs.length ? bLcs.map(c => { const st = Q.lcStatus(c); const nd = st !== 'ended' ? St.where('landlordPayments', x => x.landlordContractId === c.id && x.status !== 'paid' && x.dueDate >= F.today()).sort((a, z) => F.cmp(a.dueDate, z.dueDate))[0] : null; return U.kv([['Mã HĐ', esc(c.code) + ' ' + Q.chip('lcontract', st)], ['Thời gian', F.date(c.start) + ' – ' + F.date(c.end) + (st === 'expiring' ? ' <span class="amber">(còn ' + F.daysUntil(c.end) + ' ngày)</span>' : '')], ['Giá thuê', F.vnd(c.rent) + ' đ/tháng'], ['Cọc', F.vnd(c.deposit) + ' đ'], ['Thời gian giữ giá', '<span title="Chủ nhà cam kết không tăng giá trong khoảng thời gian này kể từ ngày bắt đầu HĐ">' + c.priceHoldMonths + ' tháng' + (c.priceHoldMonths ? ' · đến ' + F.date(F.addMonths(c.start, c.priceHoldMonths)) : '') + ' ' + I('info') + '</span>'], ['Chu kỳ trả', c.cycleMonths + ' tháng/lần'], ['Kỳ trả tới', nd ? F.date(nd.dueDate) + ' · ' + F.vnd(nd.amount) + ' đ ' + Q.chip('lpay', nd.status) : '-'], ['Phạm vi', (c.buildingIds || []).map(id => U.chip(Q.building(id).name, id === b.id ? 'blue' : 'gray')).join(' ')], ['', `<a class="link small" href="#/landlords/${l.id}?tab=contracts">Xem tại chủ nhà →</a>`]], 'one'); }).join('<hr class="mt12 mb12" style="border:0;border-top:1px solid var(--border)">') : U.empty({ icon: 'file-text', title: 'Chưa có hợp đồng đầu vào', text: 'Tòa chưa thuộc phạm vi HĐ nào – không thể đưa phòng vào khai thác.', action: l.id ? U.btn({ label: 'Thêm HĐ đầu vào', icon: 'plus', size: 'btn-sm', cls: 'btn-primary', act: 'add-lc' }) : '' }) })}</div>`; }
-    if (tab === 'services') { const svcs = St.where('services', s => s.status === 'active' && (s.scope === 'all' || (s.buildingIds || []).includes(b.id))); body.innerHTML = U.card({ title: 'Bảng giá áp dụng cho tòa', icon: 'sliders', actions: U.btn({ label: 'Danh mục dùng chung', icon: 'external-link', size: 'btn-sm', cls: 'btn-outline', act: 'go-catalog' }), body: null, id: 'svc-card' }); const w = document.createElement('div'); body.querySelector('#svc-card').appendChild(w); U.table(w, { rows: svcs, noPager: true, cols: [{ key: 'name', label: 'Dịch vụ', render: s => `<span class="row"><span class="svc-icon">${I(s.icon || 'package')}</span><b>${esc(s.name)}</b></span>` }, { key: 'unit', label: 'Đơn vị' }, { key: 'method', label: 'Cách tính', render: s => ({ fixed: 'Theo gói cố định', meter: 'Theo chỉ số', per_room: 'Theo phòng', per_vehicle: 'Theo xe' })[s.method] }, { key: 'price', label: 'Giá', num: true, render: s => F.vnd(s.price) }, { key: 'eff', label: 'Hiệu lực', render: s => F.date(s.effectiveFrom) }, { key: 'rooms', label: 'Phòng áp dụng mặc định', num: true, render: s => rooms.filter(r => (r.defaultServiceIds || []).includes(s.id)).length || (s.method === 'meter' ? 'Tất cả' : 0) }] }); }
-    if (tab === 'expenses') { const exs = St.where('expenses', e => e.buildingId === b.id || St.one('expenseAllocations', a => a.expenseId === e.id && a.buildingId === b.id)); body.innerHTML = U.card({ title: 'Chi phí liên quan tòa', icon: 'credit-card', sub: 'Gồm chi phí riêng và phần được phân bổ từ chi phí chung (FR-FIN-05)', actions: U.btn({ label: 'Thêm chi phí', icon: 'plus', size: 'btn-sm', cls: 'btn-primary', act: 'add-exp' }), body: null, id: 'exp-card' }); const w = document.createElement('div'); body.querySelector('#exp-card').appendChild(w); U.table(w, { rows: exs, unit: 'khoản', cols: [{ key: 'code', label: 'Mã', render: e => U.link('#/expenses?s=' + e.code, e.code) }, { key: 'date', label: 'Ngày', render: e => F.date(e.date) }, { key: 'group', label: 'Nhóm chi', render: e => U.chip(e.group, Q.L.expGroup[e.group] || 'gray') }, { key: 'desc', label: 'Diễn giải' }, { key: 'amt', label: 'Số tiền tòa chịu', num: true, render: e => { if (e.buildingId === b.id) return F.vnd(e.amount); const a = St.one('expenseAllocations', x => x.expenseId === e.id && x.buildingId === b.id); return F.vnd(a ? a.amount : 0) + ' <span class="xs muted">(' + (a ? a.pct : 0) + '% chung)</span>'; } }, { key: 'type', label: 'Loại', render: e => Q.L.recordType[e.recordType] }] }); }
-    if (tab === 'docs') { const docs = St.where('documents', d => (d.entityType === 'building' && d.entityId === b.id) || (d.entityType === 'landlord' && d.entityId === b.landlordId)); const reqs = [['Sổ đỏ', 'Sổ đỏ'], ['PCCC', 'PCCC'], ['ĐKKD', 'ĐKKD'], ['Hợp đồng chủ nhà', 'Hợp đồng']]; const checklist = reqs.map(([label, key]) => { const d = docs.find(x => F.norm(x.name).includes(F.norm(key))); const st = !d ? 'missing' : d.expiry && d.expiry < F.today() ? 'expired' : d.expiry && F.daysUntil(d.expiry) <= 30 ? 'expiring' : 'valid'; return `<div class="legal-item ${st}"><span>${I(st === 'valid' ? 'check-circle' : 'alert-circle')}</span><div><b>${label}</b><small>${!d ? 'Thiếu hồ sơ' : st === 'expired' ? 'Hết hạn ' + F.date(d.expiry) : st === 'expiring' ? 'Sắp hết hạn ' + F.date(d.expiry) : d.expiry ? 'Đủ · hết hạn ' + F.date(d.expiry) : 'Đủ'}</small></div></div>`; }).join(''); body.innerHTML = `${U.card({ title: 'Hồ sơ pháp lý', icon: 'shield', sub: 'Theo dõi đủ, thiếu và ngày hết hạn của hồ sơ bắt buộc.', body: `<div class="legal-grid">${checklist}</div>` })}${U.card({ title: 'Hồ sơ & tài liệu', icon: 'folder', sub: 'Gồm tài liệu tòa và hồ sơ chủ nhà liên kết', actions: U.btn({ label: 'Tải lên', icon: 'upload', size: 'btn-sm', cls: 'btn-primary', act: 'upload' }), body: docs.length ? `<div class="file-list">${docs.map(d => U.fileItem(d, U.iconBtn('download', 'dl', 'Tải', { 'data-name': d.fileName }) + (d.source === 'user' ? U.iconBtn('trash', 'rm-doc', 'Xóa', { 'data-id': d.id }) : ''))).join('')}</div>` : U.empty({ icon: 'folder', title: 'Chưa có tài liệu' }) })}`; }
-    if (tab === 'history') { const logs = St.where('auditLog', x => (x.entityType === 'building' && x.entityId === b.id) || (x.entityType === 'room' && rooms.some(r => r.id === x.entityId))).slice(0, 40); body.innerHTML = U.card({ title: 'Lịch sử thao tác', icon: 'history', body: logs.length ? U.timeline(logs.map(x => ({ when: F.datetime(x.at), title: x.summary, sub: x.userName, color: 'blue' }))) : U.empty({ title: 'Chưa có lịch sử' }) }); }
-    if (tab === 'perf' && TH.phase.on(2)) { const per = St.state.meta.period; const occ = Q.occupancy(per, b.id); const cf = Q.cashflow(per, { buildingId: b.id }); const op = Q.operatingResult(per, { buildingId: b.id }); body.innerHTML = `<div class="grid grid-4 mb16">${U.kpi({ label: 'Hiệu suất (tạm tính)', value: occ.na ? 'N/A' : occ.pct + '%', cap: occ.na ? 'Tòa bảo trì/ngừng – không đủ điều kiện (OI-12)' : occ.days + ' / ' + occ.total + ' ngày có khách (BR-09)', icon: 'gauge', tone: 'blue' })}${U.kpi({ label: 'Thu trong kỳ', value: F.vnd(cf.income), cap: F.periodLabel(per), icon: 'arrow-up', tone: 'green' })}${U.kpi({ label: 'Chi trong kỳ', value: F.vnd(cf.expense), cap: 'Không gồm khấu hao', icon: 'arrow-down', tone: 'red' })}${U.kpi({ label: 'Lợi nhuận vận hành', value: F.vnd(op.result), cap: 'BR-10 – tạm tính', icon: 'trending-up', tone: 'purple' })}</div>` + U.card({ title: 'Hiệu suất tòa ' + TH.phase.tag(2), icon: 'gauge', sub: 'Hiệu suất = ngày có khách / ngày trong kỳ (BR-09, OI-12); tòa bảo trì = N/A', actions: `<a class="link small" href="#/reports/r/occupancy?buildingId=${b.id}">Báo cáo tỷ lệ lấp đầy →</a>`, bodyCls: 'tight', body: `<table class="tbl compact"><thead><tr><th>Kỳ</th><th class="num">Ngày có khách</th><th class="num">Ngày kỳ</th><th class="num">Hiệu suất</th><th class="num">Thu</th><th class="num">Chi</th><th class="num">Lợi nhuận VH</th></tr></thead><tbody>${['2026-08', '2026-09', '2026-10'].map(p => { const o = Q.occupancy(p, b.id); const c2 = Q.cashflow(p, { buildingId: b.id }); const r2 = Q.operatingResult(p, { buildingId: b.id }); return `<tr><td>${F.periodLabel(p)}</td><td class="num">${o.na ? '-' : o.days}</td><td class="num">${o.na ? '-' : o.total}</td><td class="num bold">${o.na ? 'N/A' : o.pct + '%'}</td><td class="num">${F.vnd(c2.income)}</td><td class="num">${F.vnd(c2.expense)}</td><td class="num">${F.vnd(r2.result)}</td></tr>`; }).join('')}</tbody></table>` }); }
-    else if (tab === 'assets' && TH.phase.on(3) && TH.pages.buildingAssetsTab) TH.pages.buildingAssetsTab(body, b);
-    else if (['assets', 'perf'].includes(tab)) body.innerHTML = U.card({ body: U.empty({ icon: 'package', title: tab === 'assets' ? 'Tài sản theo tòa – Phase 3' : 'Hiệu suất tòa – Phase 2', text: tab === 'assets' ? 'Danh mục tài sản, QR, kiểm kê hàng tháng (FR-BLD-04, FR-MNT-02).' : 'Hiệu suất = ngày có khách / ngày trong kỳ; công thức chờ chốt OI-12.', action: U.btn({ label: 'Xem scope Phase 2/3', act: 'p2', size: 'btn-sm', cls: 'btn-outline', attrs: { 'data-key': tab === 'assets' ? 'assets' : 'cashbook' } }) }) });
-    U.onChange(root, { rf: () => { const d = U.formData(body.querySelector('.filterbar')); TH.router.replaceQuery(Object.assign({}, q, d, { tab })); TH.router.refresh(); } });
-    U.bind(root, {
-      tab: (el) => { TH.router.replaceQuery({ tab: el.dataset.key }); TH.router.refresh(); }, edit: () => Fm.building(b), 'add-room': () => Fm.room({}, b.id), bulk: () => Fm.roomsBulk(b.id), 'import-rooms': () => TH.go('#/settings/import?type=room'), 'go-landlord': () => TH.go('#/landlords/' + l.id), 'go-catalog': () => TH.go('#/settings/catalog'), 'add-lc': () => Fm.landlordContract(l.id, { buildingIds: [b.id] }), 'go-lc': () => TH.go('#/buildings/' + b.id + '?tab=landlord'), onboard: () => Fm.building(), 'add-exp': () => Fm.expense({ buildingId: b.id }), upload: () => Fm.upload('building', b.id), dl: (el) => U.fakePdf(el.dataset.name, ['Tòa: ' + b.name]), 'rm-doc': (el) => { X.removeDocument(el.dataset.id); }, p2: (el) => TH.go('#/coming-soon/' + el.dataset.key),
-      actions: (el) => U.menu(el, [{ label: 'Sửa tòa', icon: 'pencil', onClick: () => Fm.building(b) }, { label: 'Ghi nhận trả chủ nhà', icon: 'banknote', onClick: () => { if (!nextDue) return U.toast('info', 'Không có kỳ chờ thanh toán'); Fm.landlordPaid(nextDue); } }, { label: 'Tải lên tài liệu', icon: 'upload', onClick: () => Fm.upload('building', b.id) }, '-', { label: 'Ngừng sử dụng', icon: 'minus-circle', danger: true, disabled: !TH.auth.can('deactivateBuilding'), title: TH.auth.can('deactivateBuilding') ? '' : 'Cần vai trò Quản trị viên (FR-BLD-02)', onClick: async () => { if (await U.confirm({ title: 'Ngừng sử dụng tòa?', text: 'Chặn nếu còn phòng đang thuê/giữ chỗ hoặc HĐ dự thảo (FR-BLD-02). Phòng trống sẽ chuyển Ngừng sử dụng.', ok: 'Ngừng', danger: true })) { try { X.deactivateBuilding(b.id); U.toast('ok', 'Đã ngừng sử dụng tòa'); } catch (e) { U.toast('err', 'Không thể ngừng', e.message); } } } }]),
-      more2: (el) => U.menu(el, [{ label: 'Tạo hợp đồng cho phòng trống', icon: 'file-plus', onClick: () => TH.go('#/rooms?buildingId=' + b.id + '&status=ready') }, { label: 'Tạo hóa đơn theo kỳ cho tòa', icon: 'receipt', onClick: () => TH.go('#/invoices/batch?buildingId=' + b.id) }]),
-      more: (el) => TH.pages.roomMenu(el, St.get('rooms', el.dataset.id)),
+  const addBuilding = () => K.formDrawer({ title: 'Thêm tòa', sub: 'Loại T/S/G lấy theo tiền tố mã tòa (T2, S43, G1)', fields: [
+    { name: 'code', label: 'Mã tòa', req: true, placeholder: 'VD: S50', help: 'Mã phòng hiển thị = số phòng + mã tòa (501S50)' },
+    { name: 'areaId', label: 'Khu vực', type: 'select', req: true, options: K.areaOpts() },
+    { name: 'address', label: 'Địa chỉ', req: true, span: true },
+    { name: 'managerId', label: 'Quản lý vận hành', type: 'select', req: true, options: S.all('employees').filter(e => ['NVVH', 'TNVH', 'TPVH'].includes(e.title)).map(e => [e.id, e.name]) },
+    { name: 'operatedFrom', label: 'Ngày nhận nhà', type: 'date', value: F.today() },
+    { name: 'floors', label: 'Số tầng', type: 'number' }, { name: 'rooms', label: 'Số phòng tạo sẵn', type: 'number', help: 'Có thể thêm/sửa phòng sau' },
+    { name: 'note', label: 'Ghi chú', type: 'textarea', span: true },
+  ], submit: 'Lưu tòa', onSubmit: (d) => { const b = X.addBuilding(d); U.toast('ok', 'Đã thêm tòa ' + b.code); TH.go('#/buildings/' + b.id); } });
+
+  /* Trạng thái HĐ chủ nhà tại hôm nay (UI-02 cột "trạng thái HĐ chủ nhà") */
+  const ocStatus = (oc) => !oc ? U.chip('Chưa có HĐ', 'amber') : oc.startDate > F.today() ? U.chip('Chưa hiệu lực', 'blue') : oc.endDate && oc.endDate < F.today() ? U.chip('Hết hạn', 'gray') : F.daysBetween(F.today(), oc.endDate) <= 90 ? U.chip('Sắp hết hạn', 'amber') : U.chip('Hiệu lực', 'green');
+  const LEVELS = ['Mới', 'Trung bình', 'Cũ'];
+  /* UI-02 sửa hồ sơ tòa */
+  const editBuilding = (b) => K.formDrawer({ title: 'Sửa hồ sơ tòa ' + b.code, sub: 'Mã tòa không đổi; ngừng khai thác thay cho xóa', fields: [
+    { name: 'areaId', label: 'Khu vực', type: 'select', req: true, options: K.areaOpts(), value: b.areaId }, { name: 'group', label: 'Nhóm T/S/G', type: 'select', options: [['T', 'Nhà T'], ['S', 'Nhà S'], ['G', 'Nhà G']], value: b.group, help: 'Mặc định theo tiền tố mã tòa' },
+    { name: 'address', label: 'Địa chỉ', req: true, span: true, value: b.address },
+    { name: 'floors', label: 'Số tầng', type: 'number', value: b.floors || '' }, { name: 'operatedFrom', label: 'Ngày nhận vận hành', type: 'date', value: b.operatedFrom || '' },
+    { name: 'level', label: 'Tình trạng nhà', type: 'select', options: [...new Set([...LEVELS, b.level].filter(Boolean))].map(x => [x, x]), value: b.level || '' },
+    { name: 'status', label: 'Trạng thái', type: 'select', options: [['active', 'Đang khai thác'], ['inactive', 'Ngừng khai thác']], value: b.status, help: 'Ngừng khai thác chỉ khi không còn lượt thuê hiệu lực' },
+    { name: 'note', label: 'Ghi chú', type: 'textarea', span: true, value: b.note || '' }],
+    submit: 'Lưu', onSubmit: (d) => { X.updateBuilding(b.id, d); U.toast('ok', 'Đã lưu hồ sơ tòa'); } });
+  /* UI-03 E02 sửa phòng */
+  const editRoom = (room, after) => K.formDrawer({ title: 'Sửa phòng ' + room.code, sub: 'Đổi giá cần ngày hiệu lực – giữ lịch sử giá', fields: [
+    { name: 'floor', label: 'Tầng', type: 'number', value: room.floor ?? '' }, { name: 'type', label: 'Loại phòng', type: 'select', options: [...new Set(['Phòng đơn', 'Studio', 'Phòng đôi', room.type].filter(Boolean))].map(x => [x, x]), value: room.type || '' },
+    { name: 'area', label: 'Diện tích (m²)', type: 'number', value: room.area ?? '' }, { name: 'exploitation', label: 'Loại khai thác', type: 'select', options: Object.entries(TH.data.catalog.exploitation), value: room.exploitation },
+    { name: 'listPrice', label: 'Giá niêm yết', type: 'money', value: room.listPrice || 0 }, { name: 'mgmtPrice', label: 'Giá quản lý', type: 'money', value: room.mgmtPrice || 0 }, { name: 'price', label: 'Giá đang cho thuê', type: 'money', value: room.price || 0 },
+    { name: 'readyDate', label: 'Ngày sẵn sàng', type: 'date', value: room.readyDate || '' },
+    { name: 'effectiveFrom', label: 'Giá mới hiệu lực từ', type: 'date', help: 'Bắt buộc khi đổi giá; không vào kỳ đã khóa' }, { name: 'reason', label: 'Lý do đổi giá', value: '' }],
+    submit: 'Lưu phòng', onSubmit: (d) => { X.updateRoom(room.id, d); U.toast('ok', 'Đã lưu phòng'); after && after(); } });
+
+  TH.router.handle('/buildings', (root, p, q) => {
+    const mgr = Q.managerMap();
+    // LN kỳ gần nhất theo tòa (UI-02 "hiệu suất/lợi nhuận kỳ"): chỉ khi có quyền báo cáo và mốc 1B
+    const rep = TH.auth.can('reports.view') && TH.ms.on('1B') ? TH.qr.build(S.meta.period, 'total') : null;
+    let rows = Q.scopedBuildings().map(b => {
+      const rooms = (Q.roomsByBuilding()[b.id] || []).filter(r => r.exploitation !== 'meter_common');
+      const occ = rooms.filter(r => Q.currentStay(r.id)).length;
+      const oc = S.one('ownerContracts', c => c.buildingId === b.id && (!c.endDate || c.endDate >= F.today())) || S.one('ownerContracts', c => c.buildingId === b.id);
+      return { b, rooms: rooms.length, occ, vac: rooms.filter(r => !Q.currentStay(r.id) && !Q.pendingStay(r.id)).length, clean: rooms.filter(r => r.status === 'vacant_cleaning').length, mgr: mgr[b.id], area: (S.get('areas', b.areaId) || {}).name,
+        oc, owner: oc ? (S.get('owners', oc.ownerId) || {}).name : '', lnr: rep && rep.byBuilding[b.id] ? rep.byBuilding[b.id].lnr : null,
+        // tiền thuê nhà theo giá hiệu lực hôm nay của HĐ đầu vào (phụ lục có hiệu lực thì đổi theo)
+        rent: S.where('ownerContracts', c => c.buildingId === b.id).reduce((s, c) => s + X.ownerRentAt(c.id, F.today()), 0) };
     });
-  }, { menu: 'buildings', permission: 'buildings.view', resource: { type: 'building' } });
-  /* Phase 2: lưu bộ lọc (meta.savedFilters[route]) – dùng chung cho Tòa nhà / Khách thuê */
-  TH.pages.saveFilter = async (route) => { const q = TH.router.current.query || {}; const r = await U.confirm({ title: 'Lưu bộ lọc hiện tại', body: U.field({ label: 'Tên bộ lọc', req: true, input: U.input({ name: 'name', placeholder: 'VD: Tòa HCM đang hoạt động' }) }) + `<div class="xs muted mt8">Điều kiện: ${esc(Object.entries(q).map(([k, v]) => k + '=' + v).join(', ') || '(không có)')}</div>`, ok: 'Lưu' }); if (r && r.name) { X.saveFilterPreset(route, r.name, q); U.toast('ok', 'Đã lưu bộ lọc "' + r.name + '"'); TH.router.refresh(); } };
-  TH.pages.filterMenu = (el, route) => { const list = ((St.state.meta.savedFilters || {})[route] || []); U.menu(el, [{ header: 'Bộ lọc đã lưu' }, ...(list.length ? list.map(x => ({ label: x.name, icon: 'bookmark', onClick: () => { TH.router.replaceQuery(x.query); TH.router.refresh(); } })) : [{ label: 'Chưa có bộ lọc', disabled: true }]), '-', { label: 'Lưu bộ lọc hiện tại…', icon: 'plus', onClick: () => TH.pages.saveFilter(route) }, ...(list.length ? [{ label: 'Xóa tất cả bộ lọc đã lưu', icon: 'trash', danger: true, onClick: () => { list.forEach(x => X.removeFilterPreset(route, x.id)); U.toast('ok', 'Đã xóa'); } }] : [])]); };
-  document.addEventListener('click', (e) => { const el = e.target.closest('[data-act="save-filter"]'); if (!el || el.disabled) return; e.preventDefault(); TH.pages.filterMenu(el, TH.router.current.path); });
+    if (q.group) rows = rows.filter(r => r.b.group === q.group);
+    if (q.area) rows = rows.filter(r => r.b.areaId === q.area);
+    if (q.manager) rows = rows.filter(r => r.mgr && r.mgr.id === q.manager);
+    if (q.roomStatus === 'vacant_cleaning') rows = rows.filter(r => r.clean > 0);
+    if (q.q) rows = rows.filter(r => K.match(q.q, r.b.code, r.b.address, r.mgr && r.mgr.name));
+    const all = Q.scopedBuildings();
+    root.innerHTML = U.pageHead({ title: 'Tòa nhà', sub: `${all.length} tòa · ${all.reduce((s, b) => s + (Q.roomsByBuilding()[b.id] || []).length, 0)} phòng trong phạm vi`, acts: [
+      U.btn({ label: 'Xuất', icon: 'download', act: 'export' }), U.btn({ label: 'Import', icon: 'upload', href: '#/import?type=buildings', perm: 'import.master' }), U.btn({ label: 'Thêm tòa', icon: 'plus', cls: 'btn-primary', act: 'add', perm: 'buildings.manage' })] })
+      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã tòa, địa chỉ, quản lý…' }, { name: 'group', label: 'Loại T/S/G', options: K.groupOpts() }, { name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'manager', label: 'Quản lý', options: K.managerOpts() },
+        { name: 'roomStatus', label: 'Phòng', options: [['vacant_cleaning', 'Có phòng cần kiểm tra/dọn']] }], q)
+      + `<div class="mt16">${K.tableCard('tbl', `Tổng ${rows.length} tòa`)}</div>`;
+    K.bindFilters(root);
+    const t = U.table(root.querySelector('#tbl'), { rows, pageSize: 20, rowHref: r => '#/buildings/' + r.b.id, cols: [
+      { key: 'code', label: 'Mã tòa', sortable: true, sortVal: r => r.b.code, render: r => `<b>${esc(r.b.code)}</b>` },
+      { key: 'group', label: 'T/S/G', render: r => U.chip('Nhà ' + r.b.group, { T: 'blue', S: 'teal', G: 'purple' }[r.b.group]) },
+      { key: 'addr', label: 'Địa chỉ', render: r => `<span class="small">${esc(r.b.address)}</span>` },
+      { key: 'area', label: 'Khu vực', render: r => esc(r.area || '') },
+      { key: 'own', label: 'Chủ nhà', render: r => TH.auth.can('owners.view') ? esc(r.owner || '–') : '•••' },
+      { key: 'fl', label: 'Tầng', num: true, render: r => r.b.floors || '–' }, { key: 'lv', label: 'Tình trạng', render: r => r.b.level ? U.chip(r.b.level, 'gray') : '–' },
+      { key: 'mgr', label: 'Quản lý', render: r => r.mgr ? esc(r.mgr.name) : U.chip('Chưa phân công', 'amber') },
+      { key: 'op', label: 'Nhận vận hành', sortable: true, sortVal: r => r.b.operatedFrom || '', render: r => F.date(r.b.operatedFrom) },
+      { key: 'ocs', label: 'HĐ chủ nhà', render: r => TH.auth.can('owners.view') ? ocStatus(r.oc) : '•••' },
+      { key: 'rooms', label: 'Số phòng', num: true, sortable: true, render: r => r.rooms },
+      { key: 'occ', label: 'Đang ở', num: true, sortable: true, render: r => r.occ },
+      { key: 'vac', label: 'Trống', num: true, sortable: true, render: r => r.vac ? `<b class="amber">${r.vac}</b>` : 0 },
+      { key: 'rent', label: 'Tiền thuê nhà/tháng', num: true, sortable: true, sortVal: r => r.rent, render: r => TH.auth.can('owners.view') ? F.vnd(r.rent) : '•••' },
+      ...(rep ? [{ key: 'lnr', label: 'LN ' + F.periodShort(S.meta.period), num: true, sortable: true, sortVal: r => r.lnr || 0, render: r => r.lnr == null ? '–' : `<b class="${r.lnr < 0 ? 'red' : ''}">${F.vnd(r.lnr)}</b>` }] : []),
+      { key: 'st', label: 'Trạng thái', render: r => r.b.status === 'active' ? U.chip('Đang khai thác', 'green', true) : U.chip('Ngừng khai thác', 'gray', true) },
+    ] });
+    U.bind(root, { add: addBuilding, export: () => K.csv('toa-nha.csv', ['Mã tòa', 'Loại', 'Địa chỉ', 'Quản lý', 'Số phòng', 'Đang ở', 'Trống'], rows.map(r => [r.b.code, r.b.group, r.b.address, r.mgr ? r.mgr.name : '', r.rooms, r.occ, r.vac])) });
+    if (q.open === 'new') addBuilding();
+  });
+
+  /* E02: drawer phòng */
+  const roomDrawer = (room) => {
+    const stays = (Q.staysByRoom()[room.id] || []).slice().sort((a, b) => String(b.rentStart || '').localeCompare(String(a.rentStart || '')));
+    const cur = stays.find(s => s.status === 'active'), pend = stays.find(s => s.status === 'pending');
+    const d = U.drawer({ title: 'Phòng ' + room.code, sub: (TH.data.catalog.exploitation[room.exploitation] || '') + ' · ' + room.type, wide: true, body: `
+      <div class="row wrap gap12 mb16">${K.roomChip(room.status)}${room.statusReason ? `<span class="small muted">${esc(room.statusReason)} (${F.date(room.statusAt)})</span>` : ''}</div>
+      ${U.kv([['Giá niêm yết', F.vndd(room.listPrice)], ['Giá cho thuê', F.vndd(room.price)], ['Tầng', room.floor || '–'], ['Khách hiện tại', cur ? `<a href="#/stays/${cur.id}">${esc(Q.stayLabel(cur))}</a>` : '–'],
+        ['Khách chờ nhận', pend ? `<a href="#/stays/${pend.id}">${esc(Q.stayLabel(pend))}</a>` : '–'], ['Hết hạn HĐ', cur ? F.date(cur.endDate) : '–']])}
+      <h4 class="mt16 mb8">Lịch sử lượt thuê (${stays.length})</h4>
+      <table class="tbl compact"><thead><tr><th>Mã KH</th><th>Khách</th><th>Từ</th><th>Đến</th><th>Trạng thái / loại kết thúc</th></tr></thead><tbody>
+      ${stays.map(s => `<tr><td><a href="#/stays/${s.id}">${esc(s.code)}</a></td><td>${esc((Q.customer(s.customerId) || {}).name || '')}</td><td>${F.date(s.rentStart)}</td><td>${F.date(s.endDate)}</td><td>${K.stayChip(s)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Chưa có</td></tr>'}</tbody></table>`,
+      footer: [U.btn({ label: 'Sửa phòng', icon: 'pencil', act: 'editroom', perm: 'buildings.manage' }), U.btn({ label: 'Đổi trạng thái phòng', icon: 'refresh', act: 'status', perm: 'rooms.status' }), U.btn({ label: 'Tạo lượt thuê', icon: 'user-plus', cls: 'btn-primary', href: '#/tenants/new?room=' + room.id, perm: 'tenants.manage' })].join('') });
+    TH.auth.enforceUI(d.el);
+    U.bind(d.el, { editroom: () => editRoom(room, () => d.close()), status: () => K.formDrawer({ title: 'Đổi trạng thái ' + room.code, modal: true, size: 'sm', fields: [
+      { name: 'status', label: 'Trạng thái mới', type: 'select', req: true, options: Object.entries(TH.data.catalog.roomStatuses).filter(([k]) => !['occupied', 'reserved'].includes(k)).map(([k, v]) => [k, v.label]) },
+      { name: 'reason', label: 'Lý do', req: true, type: 'textarea', span: true, help: 'VD: đã kiểm tra, dọn xong (CH-21); sửa chữa; chủ nhà lấy lại' }],
+      onSubmit: (x) => { X.setRoomStatus(room.id, x.status, x.reason); d.close(); U.toast('ok', 'Đã cập nhật trạng thái phòng'); } }) });
+  };
+
+  TH.router.handle('/buildings/:id', (root, p, q) => {
+    const b = Q.building(p.id); if (!b) { root.innerHTML = U.empty({ title: 'Không tìm thấy tòa' }); return; }
+    if (!TH.auth.inScope(b.id)) { root.innerHTML = U.card({ body: U.empty({ icon: 'lock', title: 'Tòa ngoài phạm vi được giao' }) }); return; }
+    TH.layout.crumb([{ label: 'Tòa nhà', href: '#/buildings' }, { label: b.code }]);
+    const rooms = (Q.roomsByBuilding()[b.id] || []).slice().sort((a, c) => a.number - c.number);
+    const oc = S.one('ownerContracts', c => c.buildingId === b.id);
+    const mgr = Q.managerOf(b.id);
+    const realRooms = rooms.filter(r => r.exploitation !== 'meter_common'); const occ = realRooms.filter(r => Q.currentStay(r.id)).length, real = realRooms.length;
+    const period = S.meta.period; const invs = Q.invoicesOf(period).filter(i => i.buildingId === b.id && i.lifecycle !== 'draft');
+    const due = invs.reduce((s, i) => s + i.totalDue, 0), rem = invs.reduce((s, i) => s + Q.invState(i).remaining, 0);
+    const tabs = [{ key: 'tong-quan', label: 'Tổng quan' }, { key: 'phong', label: 'Phòng', count: rooms.length }, { key: 'chu-nha-hd', label: 'Chủ nhà & HĐ', perm: 'owners.view' }, { key: 'lich-tra', label: 'Lịch trả chủ nhà', perm: 'ownerPayments.view' },
+      { key: 'nhan-su', label: 'Nhân sự' }, { key: 'dich-vu-dau-vao', label: 'Dịch vụ đầu vào', perm: 'expenses.view' }, { key: 'tai-chinh', label: 'Tài chính', perm: 'debts.viewAmounts' }];
+    const tab = K.pickTab(tabs, q.tab || 'tong-quan', 'tong-quan');
+    root.innerHTML = U.pageHead({ title: 'Tòa ' + esc(b.code) + ' ' + U.chip('Nhà ' + b.group, 'blue') + (b.level ? ' ' + U.chip(b.level, 'gray') : ''), back: '#/buildings', sub: `${esc(b.address)} · Quản lý: ${mgr ? esc(mgr.name) : 'chưa phân công'} · Nhận nhà ${F.date(b.operatedFrom)}`,
+      acts: [U.btn({ label: 'Chủ nhà / HĐ', icon: 'file-text', href: oc ? '#/owners/' + oc.id : '#', perm: 'owners.view' }), U.btn({ label: 'Sửa hồ sơ tòa', icon: 'pencil', act: 'editb', perm: 'buildings.manage' }), U.btn({ label: 'Thêm phòng', icon: 'plus', cls: 'btn-primary', act: 'addroom', perm: 'buildings.manage' })] })
+      + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Lấp đầy', value: F.pctv(real ? occ / real : 0), cap: `${occ}/${real} phòng có khách`, icon: 'door', tone: 'blue' })}
+        ${U.kpi({ label: 'Phải thu ' + F.periodShort(period), value: TH.auth.can('debts.viewAmounts') ? F.vnd(due) : invs.length + ' HĐ', icon: 'receipt', tone: 'teal' })}
+        ${U.kpi({ label: 'Còn nợ', value: TH.auth.can('debts.viewAmounts') ? F.vnd(rem) : invs.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', icon: 'alert-triangle', tone: rem > 0 ? 'red' : 'green' })}
+        ${U.kpi({ label: 'Mẫu hóa đơn', value: TH.calc.billing.TEMPLATES[b.template].name, cap: TH.auth.can('settings.view') ? ((Q.account(b.accountId) || {}).bank || '') + ' ' + ((Q.account(b.accountId) || {}).number || '') : '', icon: 'printer', tone: 'purple', valueCls: 'sm' })}</div>`
+      + U.tabs(tabs, tab) + '<div id="tab-body" class="mt16"></div>';
+    const body = root.querySelector('#tab-body');
+    U.bind(root, { tab: (el) => TH.router.setQuery({ tab: el.dataset.key }), editb: () => editBuilding(b), addroom: () => K.formDrawer({ title: 'Thêm phòng – ' + b.code, fields: [
+      { name: 'number', label: 'Số phòng', req: true, type: 'number', help: 'Mã phòng = số phòng + mã tòa' }, { name: 'floor', label: 'Tầng', type: 'number', help: 'Mặc định = số phòng ÷ 100' }, { name: 'type', label: 'Loại phòng', type: 'select', options: [['Phòng đơn', 'Phòng đơn'], ['Studio', 'Studio'], ['Phòng đôi', 'Phòng đôi']], value: 'Phòng đơn' }, { name: 'area', label: 'Diện tích (m²)', type: 'number' },
+      { name: 'listPrice', label: 'Giá niêm yết', type: 'money', req: true }, { name: 'mgmtPrice', label: 'Giá quản lý', type: 'money' }, { name: 'price', label: 'Giá cho thuê', type: 'money' }, { name: 'readyDate', label: 'Ngày sẵn sàng', type: 'date' },
+      { name: 'exploitation', label: 'Loại khai thác', type: 'select', options: Object.entries(TH.data.catalog.exploitation), value: 'timehouse' }],
+      onSubmit: (d) => { X.addRoom(b.id, d); U.toast('ok', 'Đã thêm phòng'); } }) });
+    if (tab === 'tong-quan') {
+      const byStatus = {}; rooms.forEach(r => { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
+      body.innerHTML = `<div class="two-col"><div class="side-stack">${U.card({ title: 'Tình trạng phòng', icon: 'door', body: `<div class="row wrap gap12">${Object.entries(byStatus).map(([k, v]) => `<div class="stat-tile">${K.roomChip(k)}<b class="mt4" style="display:block;font-size:20px">${v}</b></div>`).join('')}</div>` })}
+        ${U.card({ title: 'Hóa đơn kỳ ' + F.periodShort(period), icon: 'receipt', body: `<div class="row wrap gap12">${Object.entries(TH.calc.payments.STATUS).map(([k]) => { const n = invs.filter(i => Q.invState(i).status === k).length; return n ? `<div class="stat-tile">${K.payChip(k)}<b class="mt4" style="display:block;font-size:20px">${n}</b></div>` : ''; }).join('')}</div><a class="btn btn-ghost btn-sm mt12" href="#/billing/invoices?building=${b.id}&period=${period}">Xem hóa đơn tòa</a>` })}</div>
+        <div class="side-stack">${U.card({ title: 'Thông tin tòa', icon: 'info', body: U.kv([['Mã tòa', esc(b.code)], ['Loại', 'Nhà ' + b.group + ' (tiền tố mã)'], ['Khu vực', esc((S.get('areas', b.areaId) || {}).name || '')], ['Số tầng', b.floors || '–'], ['Nhận nhà', F.date(b.operatedFrom)], ['Mức tòa', b.level || '–']]) })}</div></div>`;
+    }
+    if (tab === 'phong') {
+      body.innerHTML = K.filters([{ name: 'rs', label: 'Trạng thái', options: Object.entries(TH.data.catalog.roomStatuses).map(([k, v]) => [k, v.label]) }], q, '') + '<div class="mt12">' + K.tableCard('rt', 'Danh sách phòng') + '</div>';
+      K.bindFilters(body, ['tab']);
+      let rr = rooms; if (q.rs) rr = rr.filter(r => r.status === q.rs);
+      U.table(body.querySelector('#rt'), { rows: rr, pageSize: 50, onRowOpen: roomDrawer, cols: [
+        { key: 'code', label: 'Mã phòng', sortable: true, render: r => `<b class="code">${esc(r.code)}</b>` }, { key: 'fl', label: 'Tầng', num: true, sortable: true, sortVal: r => r.floor || 0, render: r => r.floor ?? '–' },
+        { key: 'type', label: 'Loại', render: r => esc(TH.data.catalog.exploitation[r.exploitation] === undefined ? r.type : r.exploitation === 'timehouse' ? r.type : TH.data.catalog.exploitation[r.exploitation]) },
+        { key: 'area', label: 'm²', num: true, render: r => r.area || '–' },
+        { key: 'listPrice', label: 'Giá niêm yết', num: true, sortable: true, render: r => F.vnd(r.listPrice) }, { key: 'mgmtPrice', label: 'Giá quản lý', num: true, sortable: true, render: r => F.vnd(r.mgmtPrice) },
+        { key: 'price', label: 'Giá cho thuê', num: true, sortable: true, render: r => F.vnd(r.price) },
+        { key: 'st', label: 'Trạng thái', render: r => K.roomChip(r.status) }, { key: 'rd', label: 'Sẵn sàng', render: r => r.readyDate ? F.date(r.readyDate) : '–' },
+        { key: 'lastrd', label: 'Chỉ số gần nhất', render: r => { const x = S.where('meterReadings', m => m.roomId === r.id && !m.vacant && !m.groupId).sort((a, c) => String(c.period).localeCompare(String(a.period)))[0]; return x ? `<span class="small">${F.periodShort(x.period)}: điện ${x.elCurr}${x.waCurr != null ? ' · nước ' + x.waCurr : ''}</span>` : '–'; } },
+        { key: 'cur', label: 'Khách hiện tại', render: r => { const s = Q.currentStay(r.id); return s ? `<a href="#/stays/${s.id}">${esc((Q.customer(s.customerId) || {}).name || '')}</a> <small class="muted">${esc(s.code)}</small>` : '–'; } },
+        { key: 'end', label: 'Hết hạn HĐ', render: r => { const s = Q.currentStay(r.id); return s ? F.date(s.endDate) : '–'; } },
+        { key: 'pend', label: 'Khách chờ nhận', render: r => { const s = Q.pendingStay(r.id); return s ? U.chip('Từ ' + F.date(s.rentStart), 'purple') : ''; } },
+      ] });
+      if (q.room) { const r = Q.room(q.room); if (r) roomDrawer(r); }
+    }
+    if (tab === 'chu-nha-hd') {
+      const own = oc ? S.get('owners', oc.ownerId) : null;
+      const vs = oc ? S.where('ownerRateVersions', v => v.contractId === oc.id).sort((a, c) => a.from.localeCompare(c.from)) : [];
+      const addOc = () => K.formDrawer({ title: 'Tạo chủ nhà & HĐ đầu vào – ' + b.code, wide: true, fields: [
+        { name: 'ownerId', label: 'Chủ nhà có sẵn', type: 'select', options: S.all('owners').map(o => [o.id, o.name]), help: 'Để trống để tạo chủ nhà mới' }, { name: 'ownerName', label: 'Tên chủ nhà mới' },
+        { name: 'ownerPhone', label: 'SĐT chủ nhà' }, { name: 'ownerBank', label: 'Tài khoản nhận tiền' },
+        { name: 'startDate', label: 'Ngày bắt đầu', type: 'date', req: true, value: F.today() }, { name: 'endDate', label: 'Ngày kết thúc', type: 'date', req: true, value: F.addDays(F.addMonths(F.today(), 60), -1) },
+        { name: 'monthlyRent', label: 'Giá thuê/tháng', type: 'money', req: true }, { name: 'deposit', label: 'Cọc chủ nhà', type: 'money' },
+        { name: 'payCycleMonths', label: 'Kỳ trả', type: 'select', req: true, value: '3', options: [['1', '1 tháng'], ['2', '2 tháng'], ['3', '3 tháng'], ['6', '6 tháng'], ['12', '12 tháng']] }, { name: 'payDay', label: 'Hạn trả (ngày đầu kỳ)', type: 'number', value: 5 }],
+        submit: 'Tạo HĐ', onSubmit: (x) => { const c = X.addOwnerContract(Object.assign(x, { buildingId: b.id })); U.toast('ok', 'Đã tạo ' + c.code); TH.go('#/owners/' + c.id); } });
+      U.bind(body, { addoc: addOc });
+      body.innerHTML = oc ? `<div class="two-col"><div>${U.card({ title: 'Hợp đồng thuê đầu vào ' + esc(oc.code), icon: 'file-text', actions: `<a class="btn btn-ghost btn-sm" href="#/owners/${oc.id}">Mở chi tiết</a>`, body: U.kv([['Chủ nhà', esc(own.name)], ['Hiệu lực', F.date(oc.startDate) + ' → ' + F.date(oc.endDate)], ['Giá thuê hiện hành', F.vndd(X.ownerRentAt(oc.id, F.today()))], ['Cọc chủ nhà', F.vndd(oc.deposit)], ['Kỳ trả', oc.payCycleMonths + ' tháng/lần, hạn ngày ' + oc.payDay]]) })}</div>
+        <div>${U.card({ title: 'Lịch sử giá', icon: 'history', body: vs.map(v => `<div class="mini-row"><span>${F.date(v.from)} → ${v.to ? F.date(v.to) : 'nay'}</span><b class="grow tr">${F.vndd(v.monthlyRent)}</b></div>`).join('') })}</div></div>` : U.empty({ title: 'Chưa có hợp đồng đầu vào', action: TH.auth.can('owners.manage') ? U.btn({ label: 'Tạo chủ nhà & HĐ đầu vào', icon: 'plus', cls: 'btn-primary', act: 'addoc' }) : '' });
+    }
+    if (tab === 'lich-tra') {
+      const ops = S.where('ownerPayments', o => o.buildingId === b.id).sort((a, c) => a.dueDate.localeCompare(c.dueDate));
+      body.innerHTML = K.tableCard('ot', 'Lịch trả tiền nhà', `<a class="btn btn-ghost btn-sm" href="#/owner-payments?building=${b.id}">Mở lịch trả</a>`);
+      U.table(body.querySelector('#ot'), { rows: ops, noPager: true, cols: ownerPayCols() });
+      U.bind(body, { 'op-pay': (el) => TH.pages.ownerPayDrawer(el.dataset.id) });
+    }
+    if (tab === 'nhan-su') {
+      const as = S.where('assignments', a => a.buildingId === b.id).sort((a, c) => String(c.from).localeCompare(String(a.from)));
+      body.innerHTML = K.tableCard('nt', 'Phân công theo thời gian', `<a class="btn btn-ghost btn-sm" href="#/hr/assignments?building=${b.id}">Chuyển phân công</a>`);
+      U.table(body.querySelector('#nt'), { rows: as, noPager: true, cols: [
+        { key: 'e', label: 'Nhân viên', render: a => `<a href="#/hr/staff/${a.employeeId}">${esc((Q.emp(a.employeeId) || {}).name || '')}</a>` },
+        { key: 't', label: 'Chức danh', render: a => esc((TH.data.catalog.titles[(Q.emp(a.employeeId) || {}).title]) || '') },
+        { key: 'sc', label: 'Phạm vi', render: a => a.roomId ? U.chip('Phòng ' + Q.roomCode(a.roomId), 'purple') : U.chip('Cả tòa', 'gray') }, { key: 'r', label: 'Trách nhiệm', render: a => esc(TH.data.catalog.responsibilities[a.responsibility] || a.responsibility) },
+        { key: 'f', label: 'Từ', render: a => F.date(a.from) }, { key: 'to', label: 'Đến', render: a => a.to ? F.date(a.to) : U.chip('Hiệu lực', 'green') },
+        { key: 'l', label: 'Leader', render: a => esc((Q.leaderOf(a.employeeId, a.to || F.today()) || {}).name || '–') },
+      ] });
+    }
+    if (tab === 'dich-vu-dau-vao') {
+      const v = b.vendor || {};
+      const bills = (k) => Object.entries((v[k] || {}).bills || {}).sort().map(([m, a]) => `<div class="mini-row"><span>${F.periodShort(m)}</span><b class="grow tr">${F.vnd(a)}</b></div>`).join('') || '<span class="muted small">Chưa có hóa đơn</span>';
+      body.innerHTML = `<div class="grid grid-3">${[['electric', 'Điện', 'zap'], ['water', 'Nước', 'droplet'], ['internet', 'Mạng', 'wifi']].map(([k, l, ic]) => U.card({ title: l, icon: ic, sub: `Mã KH: ${esc((v[k] || {}).code || 'chưa có')} · Chủ HĐ: ${esc((v[k] || {}).holder || '–')}`, body: bills(k) })).join('')}</div>
+        ${U.note('info', 'Nguồn', 'Mã khách hàng nhà cung cấp và số tiền hóa đơn 2026 từ file "Danh sách mã HĐ điện nước mạng" (mã đã che). Hóa đơn nhà cung cấp ghi vào Chi phí theo tòa ở mốc 1B.')}`;
+    }
+    if (tab === 'tai-chinh') {
+      const exps = S.where('expenses', e => e.buildingId === b.id && e.status !== 'void');
+      body.innerHTML = `<div class="grid grid-2">${U.card({ title: 'Hóa đơn theo kỳ', icon: 'receipt', body: S.all('periods').map(pp => { const iv = Q.invoicesOf(pp.id).filter(i => i.buildingId === b.id && i.lifecycle !== 'draft'); if (!iv.length) return ''; const d = iv.reduce((s, i) => s + i.totalDue, 0), r = iv.reduce((s, i) => s + Q.invState(i).remaining, 0); return `<div class="mini-row"><span>${F.periodLabel(pp.id)}</span><span class="grow tr">Phải thu ${F.vnd(d)}</span><b class="tr" style="width:160px">Còn nợ ${F.vnd(r)}</b></div>`; }).join('') })}
+        ${U.card({ title: 'Chi phí gắn tòa', icon: 'coins', body: exps.length ? exps.slice(-8).map(e => `<div class="mini-row"><span>${esc(e.code)}</span><span class="grow truncate">${esc(e.note || e.category)}</span><b>${F.vnd(e.amount)}</b></div>`).join('') : '<span class="muted small">Chưa có chi phí</span>' })}</div>`;
+    }
+  });
+
+  const ownerPayCols = () => [
+    { key: 'b', label: 'Tòa', render: o => esc((Q.building(o.buildingId) || {}).code) },
+    { key: 'from', label: 'Kỳ từ', render: o => F.date(o.from) }, { key: 'm', label: 'Số tháng', num: true, render: o => o.months },
+    { key: 'due', label: 'Hạn trả', render: o => F.date(o.dueDate) },
+    { key: 'amt', label: 'Phải trả', num: true, render: o => F.vnd(o.amountDue) },
+    { key: 'off', label: 'Bù trừ khách chủ nhà', num: true, render: o => { const v = (o.offsets || []).reduce((s, x) => s + x.amount, 0); return v ? `<span data-tip="${esc((o.offsets || []).map(x => (Q.invoice(x.invoiceId) || {}).customerCode + ' ' + F.vnd(x.amount)).join(' · '))}">${F.vnd(v)}</span>` : '–'; } },
+    { key: 'paid', label: 'Đã chi (gồm bù trừ)', num: true, render: o => F.vnd(o.paid) },
+    { key: 'rem', label: 'Còn phải trả', num: true, render: o => F.vnd(Math.max(0, o.amountDue - o.paid)) },
+    { key: 'st', label: 'Trạng thái', render: o => o.paid >= o.amountDue ? U.chip('Đã trả', 'green') : o.dueDate < F.today() ? U.chip('Quá hạn', 'red') : F.daysBetween(F.today(), o.dueDate) <= 7 ? U.chip('Đến hạn ≤ 7 ngày', 'amber') : U.chip('Chưa đến hạn', 'gray') },
+    { key: 'a', label: '', render: o => o.paid < o.amountDue ? U.actBtn({ icon: 'banknote', label: 'Ghi chi', act: 'op-pay', attrs: { 'data-id': o.id }, perm: 'ownerPayments.record' }) : '' },
+  ];
+  TH.pages.ownerPayCols = ownerPayCols;
 })(window.TH);

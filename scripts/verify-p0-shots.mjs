@@ -1,0 +1,36 @@
+/* Ảnh minh chứng cho các lỗi P0 đã sửa → output/verify-p0/shots/. node scripts/verify-p0-shots.mjs
+   Tự bật server tĩnh ở cổng ngẫu nhiên; mỗi vai trò một browser context sạch. */
+import { chromium } from 'playwright-core';
+import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const PORT = 8990 + Math.floor(Math.random() * 9);
+const server = spawn(process.execPath, [path.join(ROOT, 'scripts', 'serve.mjs')], { env: { ...process.env, PORT: String(PORT) }, stdio: 'ignore' });
+await new Promise(r => setTimeout(r, 700));
+const b = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
+const dir = path.join(ROOT, 'output', 'verify-p0', 'shots') + path.sep; fs.mkdirSync(dir, { recursive: true });
+const session = async (u) => { const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } }); const p = await ctx.newPage(); await p.goto(`http://localhost:${PORT}/#/login`); await p.waitForTimeout(600); await p.evaluate(u => { TH.auth.login(u); TH.layout.reset(); TH.router.render(); }, u); return { ctx, p }; };
+const go = async (p, h, file, opt = {}) => { await p.evaluate(h => { location.hash = h; }, h); await p.waitForTimeout(700); if (opt.scroll) await p.evaluate(sel => { const el = [...document.querySelectorAll('.card')].find(c => c.innerText.includes(sel)); if (el) el.scrollIntoView(); }, opt.scroll); await p.waitForTimeout(200); await p.screenshot({ path: dir + file, fullPage: !!opt.full }); };
+let { ctx, p } = await session('admin');
+await go(p, '#/reports/business?period=2026-08', 'P0-5a-bao-cao-kd-cau-noi-so-web.png', { scroll: 'Cầu nối' });
+await go(p, '#/reports/total?period=2026-08', 'P0-5b-bao-cao-tong-doi-chieu-web-excel.png', { scroll: 'Đối chiếu tổng chi phí' });
+await go(p, '#/billing/invoices/inv_INV-2026-09-103T25A001', 'P0-3-hoa-don-103T25-tong-in-bang-can-dong.png');
+await go(p, '#/settings?tab=doi-chieu', 'nghiem-thu-12-tieu-chi.png', { full: true });
+await p.evaluate(() => { const S = TH.store; const st = S.all('stays').find(s => s.status === 'active' && s.depositAmount > 0); location.hash = '#/stays/' + st.id; });
+await p.waitForTimeout(600); await p.evaluate(() => document.querySelector('[data-act=transfer]').click()); await p.waitForTimeout(500);
+await p.screenshot({ path: dir + 'P0-6e-chuyen-phong-phuong-an-coc.png' });
+await ctx.close();
+({ ctx, p } = await session('leader'));
+await go(p, '#/buildings/b_G1?tab=chu-nha-hd', 'P0-9a-leader-tab-chu-nha-bi-chan.png');
+await ctx.close();
+({ ctx, p } = await session('vanhanh'));
+const id = await p.evaluate(() => { const sc = TH.auth.buildingScope(); return TH.store.all('invoices').find(i => !sc.has(i.buildingId)).id; });
+await go(p, '#/print/invoice/' + id, 'P0-9b-van-hanh-in-hoa-don-ngoai-pham-vi.png');
+await ctx.close();
+({ ctx, p } = await session('admin'));
+await p.evaluate(() => { const X = TH.actions; const run = X.computePayroll('2026-08'); run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'demo'))); X.closePayroll(run.id); const al = X.saveAllocation('2026-08'); X.closeAllocation(al.id); X.closePeriod('2026-08'); X.addPeriodAdjustment({ period: '2026-08', buildingId: 'b_G1', reportLine: 'other', amount: 1000000, reason: 'Hóa đơn sửa chữa về muộn' }); });
+await go(p, '#/settings?tab=ky', 'P0-7-khoa-ky-dieu-chinh-sau-khoa.png', { full: true });
+await go(p, '#/reports/total?period=2026-08', 'P0-7-bao-cao-ky-da-khoa.png');
+await ctx.close(); await b.close(); server.kill(); console.log('Ảnh minh chứng: ' + fs.readdirSync(dir).length + ' file trong output/verify-p0/shots/');

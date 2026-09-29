@@ -31,6 +31,15 @@ for (const f of jsFiles) {
 }
 if (bad) { console.error(`\nBuild dừng: ${bad} file JS lỗi cú pháp.`); process.exit(1); }
 console.log(`✓ Cú pháp OK: ${jsFiles.length} file JS`);
+/* 1b. Module domain phải thuần (không DOM/storage/store/ui) để test được bằng node */
+const impure = [];
+for (const f of walk(path.join(SRC, 'js', 'domain'), p => p.endsWith('.js'))) {
+  const src = fs.readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '').replace(/\}\)\(window\.TH\);\s*$/, '');
+  const hit = ['document', 'window.', 'localStorage', 'sessionStorage', 'TH.store', 'TH.ui', 'TH.auth', 'TH.q'].filter(k => src.includes(k));
+  if (hit.length) impure.push(`${path.relative(ROOT, f)}: ${hit.join(', ')}`);
+}
+if (impure.length) { console.error('Build dừng: module domain không thuần\n - ' + impure.join('\n - ')); process.exit(1); }
+console.log('✓ Domain thuần: không dùng DOM/storage/store/ui');
 if (checkOnly) process.exit(0);
 
 /* 2. Stamp phiên bản */

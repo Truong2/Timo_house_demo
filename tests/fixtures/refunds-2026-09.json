@@ -1,0 +1,6700 @@
+[
+{
+"code": "HC-202609-0001",
+"stay": "302G3A001",
+"room": "302G3",
+"b": "G3",
+"deposit": 4500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 415.0,
+"curr": 520.0,
+"qty": 105.0,
+"unit": 4000.0,
+"amount": 420000.0
+},
+{
+"kind": "water",
+"prev": 11.0,
+"curr": 15.0,
+"qty": 4.0,
+"unit": 35000.0,
+"amount": 140000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 760000.0,
+"excelBD": 3740000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!5"
+},
+{
+"code": "HC-202609-0002",
+"stay": "501T17A001",
+"room": "501T17",
+"b": "T17",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7777.0,
+"curr": 7877.0,
+"qty": 100.0,
+"unit": 4000.0,
+"amount": 400000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+}
+],
+"excelBC": 1200000.0,
+"excelBD": 2600000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "150k tiền sơn",
+"src": "HOÀN CỌC!6"
+},
+{
+"code": "HC-202609-0003",
+"stay": "301T41A001",
+"room": "301T41",
+"b": "T41",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 9070.0,
+"curr": 9275.0,
+"qty": 205.0,
+"unit": 4000.0,
+"amount": 820000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 50000.0,
+"amount": 50000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1270000.0,
+"excelBD": 2530000.0,
+"extraDays": 9,
+"extraDaysDenom": 31,
+"extraRent": 1103225.81,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!7"
+},
+{
+"code": "HC-202609-0004",
+"stay": "102T28A001",
+"room": "102T28",
+"b": "T28",
+"deposit": 3100000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 5853.0,
+"curr": 6000.0,
+"qty": 147.0,
+"unit": 4000.0,
+"amount": 588000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 888000.0,
+"excelBD": 2212000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!8"
+},
+{
+"code": "HC-202609-0005",
+"stay": "201S19AA001",
+"room": "201S19A",
+"b": "S19A",
+"deposit": 2925000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4657.0,
+"curr": 4896.0,
+"qty": 239.0,
+"unit": 4000.0,
+"amount": 956000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1156000.0,
+"excelBD": 1769000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!9"
+},
+{
+"code": "HC-202609-0006",
+"stay": "203S30A001",
+"room": "203S30",
+"b": "S30",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2121.0,
+"curr": 2246.0,
+"qty": 125.0,
+"unit": 4000.0,
+"amount": 500000.0
+},
+{
+"kind": "water",
+"prev": 69.0,
+"curr": 71.0,
+"qty": 2.0,
+"unit": 35000.0,
+"amount": 70000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 770000.0,
+"excelBD": 3230000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!10"
+},
+{
+"code": "HC-202609-0007",
+"stay": "104T28A001",
+"room": "104T28",
+"b": "T28",
+"deposit": 2900000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8449.0,
+"curr": 8532.0,
+"qty": 83.0,
+"unit": 4000.0,
+"amount": 332000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 632000.0,
+"excelBD": 2268000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!11"
+},
+{
+"code": "HC-202609-0008",
+"stay": "304G1A001",
+"room": "304G1",
+"b": "G1",
+"deposit": 4100000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 938.0,
+"curr": 1154.0,
+"qty": 216.0,
+"unit": 4000.0,
+"amount": 864000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1164000.0,
+"excelBD": 2936000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!12"
+},
+{
+"code": "HC-202609-0009",
+"stay": "404S13A001",
+"room": "404S13",
+"b": "S13",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 3056.0,
+"curr": 3168.0,
+"qty": 112.0,
+"unit": 4000.0,
+"amount": 448000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 80000.0,
+"amount": 80000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 928000.0,
+"excelBD": 2872000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!13"
+},
+{
+"code": "HC-202609-0010",
+"stay": "604T3A001",
+"room": "604T3",
+"b": "T3",
+"deposit": 4600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 16105.0,
+"curr": 16583.0,
+"qty": 478.0,
+"unit": 4000.0,
+"amount": 1912000.0
+},
+{
+"kind": "water",
+"prev": 481.0,
+"curr": 495.0,
+"qty": 14.0,
+"unit": 35000.0,
+"amount": 490000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 250000.0,
+"amount": 250000.0
+}
+],
+"excelBC": 2852000.0,
+"excelBD": 1748000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!14"
+},
+{
+"code": "HC-202609-0011",
+"stay": "404S39A001",
+"room": "404S39",
+"b": "S39",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1587.0,
+"curr": 1663.0,
+"qty": 76.0,
+"unit": 4000.0,
+"amount": 304000.0
+},
+{
+"kind": "water",
+"prev": 53.0,
+"curr": 56.0,
+"qty": 3.0,
+"unit": 35000.0,
+"amount": 105000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 909000.0,
+"excelBD": 3291000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!15"
+},
+{
+"code": "HC-202609-0012",
+"stay": "201T10A001",
+"room": "201T10",
+"b": "T10",
+"deposit": 3900000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6927.0,
+"curr": 7068.0,
+"qty": 141.0,
+"unit": 4000.0,
+"amount": 564000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 385000.0,
+"amount": 385000.0
+}
+],
+"excelBC": 1449000.0,
+"excelBD": 2451000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!16"
+},
+{
+"code": "HC-202609-0013",
+"stay": "302T10A001",
+"room": "302T10",
+"b": "T10",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1511.0,
+"curr": 1684.0,
+"qty": 173.0,
+"unit": 4000.0,
+"amount": 692000.0
+},
+{
+"kind": "water",
+"prev": 0,
+"curr": 0,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaningSvc",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 30000.0,
+"amount": 30000.0
+},
+{
+"kind": "washer",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 60000.0,
+"amount": 60000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1082000.0,
+"excelBD": 2918000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!17"
+},
+{
+"code": "HC-202609-0014",
+"stay": "101G3A001",
+"room": "101G3",
+"b": "G3",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1013.0,
+"curr": 1147.0,
+"qty": 134.0,
+"unit": 4000.0,
+"amount": 536000.0
+},
+{
+"kind": "water",
+"prev": 34.0,
+"curr": 40.0,
+"qty": 6.0,
+"unit": 35000.0,
+"amount": 210000.0
+}
+],
+"excelBC": 746000.0,
+"excelBD": 3554000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!18"
+},
+{
+"code": "HC-202609-0015",
+"stay": "101S28A001",
+"room": "101S28",
+"b": "S28",
+"deposit": 3300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 11839.0,
+"curr": 11883.0,
+"qty": 44.0,
+"unit": 4000.0,
+"amount": 176000.0
+}
+],
+"excelBC": 176000.0,
+"excelBD": 3124000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!19"
+},
+{
+"code": "HC-202609-0016",
+"stay": "504t25A001",
+"room": "504t25",
+"b": "T25",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12563.0,
+"curr": 12731.0,
+"qty": 168.0,
+"unit": 4000.0,
+"amount": 672000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1072000.0,
+"excelBD": 2528000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!20"
+},
+{
+"code": "HC-202609-0017",
+"stay": "202T24A001",
+"room": "202T24",
+"b": "T24",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7494.0,
+"curr": 7839.0,
+"qty": 345.0,
+"unit": 4000.0,
+"amount": 1380000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 2180000.0,
+"excelBD": 1320000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!21"
+},
+{
+"code": "HC-202609-0018",
+"stay": "201T38A001",
+"room": "201T38",
+"b": "T38",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 13898.0,
+"curr": 14193.0,
+"qty": 295.0,
+"unit": 4000.0,
+"amount": 1180000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1730000.0,
+"excelBD": 1470000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!22"
+},
+{
+"code": "HC-202609-0019",
+"stay": "101T26A001",
+"room": "101T26",
+"b": "T26",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 5332.0,
+"curr": 5386.0,
+"qty": 54.0,
+"unit": 4000.0,
+"amount": 216000.0
+},
+{
+"kind": "water",
+"prev": 141.0,
+"curr": 144.0,
+"qty": 3.0,
+"unit": 35000.0,
+"amount": 105000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 921000.0,
+"excelBD": 2879000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!23"
+},
+{
+"code": "HC-202609-0020",
+"stay": "304T31A001",
+"room": "304T31",
+"b": "T31",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 20068.0,
+"curr": 20316.0,
+"qty": 248.0,
+"unit": 4000.0,
+"amount": 992000.0
+},
+{
+"kind": "water",
+"prev": 819.0,
+"curr": 831.0,
+"qty": 12.0,
+"unit": 35000.0,
+"amount": 420000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+}
+],
+"excelBC": 2462000.0,
+"excelBD": 1138000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "100k tiền sơn",
+"src": "HOÀN CỌC!24"
+},
+{
+"code": "HC-202609-0021",
+"stay": "203S45A001",
+"room": "203S45",
+"b": "S45",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4422.0,
+"curr": 4612.0,
+"qty": 190.0,
+"unit": 4000.0,
+"amount": 760000.0
+},
+{
+"kind": "water",
+"prev": 91.0,
+"curr": 93.0,
+"qty": 2.0,
+"unit": 35000.0,
+"amount": 70000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1030000.0,
+"excelBD": 3170000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!25"
+},
+{
+"code": "HC-202609-0022",
+"stay": "501T30A001",
+"room": "501T30",
+"b": "T30",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12115.0,
+"curr": 12310.0,
+"qty": 195.0,
+"unit": 4000.0,
+"amount": 780000.0
+},
+{
+"kind": "water",
+"prev": 570.0,
+"curr": 574.0,
+"qty": 4.0,
+"unit": 35000.0,
+"amount": 140000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1320000.0,
+"excelBD": 2480000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!26"
+},
+{
+"code": "HC-202609-0023",
+"stay": "601T13A001",
+"room": "601T13",
+"b": "T13",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1082.0,
+"curr": 1090.0,
+"qty": 8.0,
+"unit": 4000.0,
+"amount": 32000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 232000.0,
+"excelBD": 3368000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!27"
+},
+{
+"code": "HC-202609-0024",
+"stay": "201T13A001",
+"room": "201T13",
+"b": "T13",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 13512.0,
+"curr": 13929.0,
+"qty": 417.0,
+"unit": 4000.0,
+"amount": 1668000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1868000.0,
+"excelBD": 1332000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!28"
+},
+{
+"code": "HC-202609-0025",
+"stay": "103T28A001",
+"room": "103T28",
+"b": "T28",
+"deposit": 3000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 5926.0,
+"curr": 5995.0,
+"qty": 69.0,
+"unit": 4000.0,
+"amount": 276000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 476000.0,
+"excelBD": 2524000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!29"
+},
+{
+"code": "HC-202609-0026",
+"stay": "205T25A001",
+"room": "205T25",
+"b": "T25",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 15062.0,
+"curr": 15356.0,
+"qty": 294.0,
+"unit": 4000.0,
+"amount": 1176000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 2676000.0,
+"excelBD": 924000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "tiền sơn 100k",
+"src": "HOÀN CỌC!30"
+},
+{
+"code": "HC-202609-0027",
+"stay": "404S12A001",
+"room": "404S12",
+"b": "S12",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 13137.0,
+"curr": 13452.0,
+"qty": 315.0,
+"unit": 4000.0,
+"amount": 1260000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1660000.0,
+"excelBD": 2040000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!31"
+},
+{
+"code": "HC-202609-0028",
+"stay": "302S28A001",
+"room": "302S28",
+"b": "S28",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 545.0,
+"curr": 705.0,
+"qty": 160.0,
+"unit": 4000.0,
+"amount": 640000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 600000.0,
+"amount": 600000.0
+}
+],
+"excelBC": 1240000.0,
+"excelBD": 2460000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!32"
+},
+{
+"code": "HC-202609-0029",
+"stay": "203T26A001",
+"room": "203T26",
+"b": "T26",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6275.0,
+"curr": 6438.0,
+"qty": 163.0,
+"unit": 4000.0,
+"amount": 652000.0
+},
+{
+"kind": "water",
+"prev": 135.0,
+"curr": 138.0,
+"qty": 3.0,
+"unit": 35000.0,
+"amount": 105000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1157000.0,
+"excelBD": 2843000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!33"
+},
+{
+"code": "HC-202609-0030",
+"stay": "401S19BA001",
+"room": "401S19B",
+"b": "S19B",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2887.0,
+"curr": 3102.0,
+"qty": 215.0,
+"unit": 4000.0,
+"amount": 860000.0
+},
+{
+"kind": "water",
+"prev": 108.0,
+"curr": 116.0,
+"qty": 8.0,
+"unit": 35000.0,
+"amount": 280000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1340000.0,
+"excelBD": 2960000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!34"
+},
+{
+"code": "HC-202609-0031",
+"stay": "601T26A001",
+"room": "601T26",
+"b": "T26",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 3864.0,
+"curr": 4041.0,
+"qty": 177.0,
+"unit": 4000.0,
+"amount": 708000.0
+},
+{
+"kind": "water",
+"prev": 69.0,
+"curr": 73.0,
+"qty": 4.0,
+"unit": 35000.0,
+"amount": 140000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1048000.0,
+"excelBD": 2652000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!35"
+},
+{
+"code": "HC-202609-0032",
+"stay": "205T42A001",
+"room": "205T42",
+"b": "T42",
+"deposit": 3000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12469.0,
+"curr": 12749.0,
+"qty": 280.0,
+"unit": 4000.0,
+"amount": 1120000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1320000.0,
+"excelBD": 1680000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!36"
+},
+{
+"code": "HC-202609-0033",
+"stay": "601T41A001",
+"room": "601T41",
+"b": "T41",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 9969.0,
+"curr": 10082.0,
+"qty": 113.0,
+"unit": 4000.0,
+"amount": 452000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 50000.0,
+"amount": 50000.0
+}
+],
+"excelBC": 702000.0,
+"excelBD": 3098000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!37"
+},
+{
+"code": "HC-202609-0034",
+"stay": "301T24A001",
+"room": "301T24",
+"b": "T24",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 22170.0,
+"curr": 22512.0,
+"qty": 342.0,
+"unit": 4000.0,
+"amount": 1368000.0
+},
+{
+"kind": "water",
+"prev": 507.0,
+"curr": 515.0,
+"qty": 8.0,
+"unit": 35000.0,
+"amount": 280000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1948000.0,
+"excelBD": 2052000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!38"
+},
+{
+"code": "HC-202609-0035",
+"stay": "302T13A001",
+"room": "302T13",
+"b": "T13",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 15172.0,
+"curr": 15526.0,
+"qty": 354.0,
+"unit": 4000.0,
+"amount": 1416000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1616000.0,
+"excelBD": 1984000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "",
+"src": "HOÀN CỌC!39"
+},
+{
+"code": "HC-202609-0036",
+"stay": "402T44A001",
+"room": "402T44",
+"b": "T44",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12471.0,
+"curr": 12744.0,
+"qty": 273.0,
+"unit": 4000.0,
+"amount": 1092000.0
+},
+{
+"kind": "water",
+"prev": 842.0,
+"curr": 848.0,
+"qty": 6.0,
+"unit": 35000.0,
+"amount": 210000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1702000.0,
+"excelBD": 2498000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!40"
+},
+{
+"code": "HC-202609-0037",
+"stay": "402T25A001",
+"room": "402T25",
+"b": "T25",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 11721.0,
+"curr": 11764.0,
+"qty": 43.0,
+"unit": 4000.0,
+"amount": 172000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 372000.0,
+"excelBD": 3228000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!41"
+},
+{
+"code": "HC-202609-0038",
+"stay": "302S29A001",
+"room": "302S29",
+"b": "S29",
+"deposit": 2300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7302.0,
+"curr": 7509.0,
+"qty": 207.0,
+"unit": 4000.0,
+"amount": 828000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1028000.0,
+"excelBD": 1272000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!42"
+},
+{
+"code": "HC-202609-0039",
+"stay": "201S17A001",
+"room": "201S17",
+"b": "S17",
+"deposit": 2200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8158.0,
+"curr": 8230.0,
+"qty": 72.0,
+"unit": 4000.0,
+"amount": 288000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 488000.0,
+"excelBD": 1712000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!43"
+},
+{
+"code": "HC-202609-0040",
+"stay": "503S18A001",
+"room": "503S18",
+"b": "S18",
+"deposit": 3400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1906.0,
+"curr": 1987.0,
+"qty": 81.0,
+"unit": 4000.0,
+"amount": 324000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 524000.0,
+"excelBD": 2876000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!44"
+},
+{
+"code": "HC-202609-0041",
+"stay": "202S17A001",
+"room": "202S17",
+"b": "S17",
+"deposit": 2300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4890.0,
+"curr": 4971.0,
+"qty": 81.0,
+"unit": 4000.0,
+"amount": 324000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 624000.0,
+"excelBD": 1676000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!45"
+},
+{
+"code": "HC-202609-0042",
+"stay": "204S13A001",
+"room": "204S13",
+"b": "S13",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 3219.0,
+"curr": 3516.0,
+"qty": 297.0,
+"unit": 4000.0,
+"amount": 1188000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1388000.0,
+"excelBD": 2412000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!46"
+},
+{
+"code": "HC-202609-0043",
+"stay": "102S13A001",
+"room": "102S13",
+"b": "S13",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 3790.0,
+"curr": 4193.0,
+"qty": 403.0,
+"unit": 4000.0,
+"amount": 1612000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1912000.0,
+"excelBD": 2088000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!47"
+},
+{
+"code": "HC-202609-0044",
+"stay": "402T43A001",
+"room": "402T43",
+"b": "T43",
+"deposit": 3300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8433.0,
+"curr": 8448.0,
+"qty": 15.0,
+"unit": 4000.0,
+"amount": 60000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 260000.0,
+"excelBD": 3040000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!48"
+},
+{
+"code": "HC-202609-0045",
+"stay": "103G5A001",
+"room": "103G5",
+"b": "G5",
+"deposit": 5000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 0,
+"curr": 0,
+"qty": 1.0,
+"unit": 1240000.0,
+"amount": 1240000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 50000.0,
+"amount": 50000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+}
+],
+"excelBC": 1640000.0,
+"excelBD": 3360000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!49"
+},
+{
+"code": "HC-202609-0046",
+"stay": "201S43A001",
+"room": "201S43",
+"b": "S43",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4754.0,
+"curr": 4920.0,
+"qty": 166.0,
+"unit": 4000.0,
+"amount": 664000.0
+}
+],
+"excelBC": 664000.0,
+"excelBD": 3136000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!50"
+},
+{
+"code": "HC-202609-0047",
+"stay": "204G5A001",
+"room": "204G5",
+"b": "G5",
+"deposit": 8200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1843.0,
+"curr": 2023.0,
+"qty": 180.0,
+"unit": 4000.0,
+"amount": 720000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1220000.0,
+"excelBD": 6980000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!51"
+},
+{
+"code": "HC-202609-0048",
+"stay": "602G5A001",
+"room": "602G5",
+"b": "G5",
+"deposit": 6500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 751.0,
+"curr": 974.0,
+"qty": 223.0,
+"unit": 4000.0,
+"amount": 892000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1092000.0,
+"excelBD": 5408000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!52"
+},
+{
+"code": "HC-202609-0049",
+"stay": "604G1A001",
+"room": "604G1",
+"b": "G1",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1979.0,
+"curr": 2029.0,
+"qty": 50.0,
+"unit": 4000.0,
+"amount": 200000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 400000.0,
+"excelBD": 3100000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!53"
+},
+{
+"code": "HC-202609-0050",
+"stay": "303G1A001",
+"room": "303G1",
+"b": "G1",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1299.0,
+"curr": 1576.0,
+"qty": 277.0,
+"unit": 4000.0,
+"amount": 1108000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1308000.0,
+"excelBD": 2692000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!54"
+},
+{
+"code": "HC-202609-0051",
+"stay": "302S27A001",
+"room": "302S27",
+"b": "S27",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1222.0,
+"curr": 1333.0,
+"qty": 111.0,
+"unit": 4000.0,
+"amount": 444000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 644000.0,
+"excelBD": 2856000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!55"
+},
+{
+"code": "HC-202609-0052",
+"stay": "401T18A001",
+"room": "401T18",
+"b": "T18",
+"deposit": 3300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 15303.0,
+"curr": 15570.0,
+"qty": 267.0,
+"unit": 4000.0,
+"amount": 1068000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1668000.0,
+"excelBD": 1632000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "50k tiền sơn",
+"src": "HOÀN CỌC!56"
+},
+{
+"code": "HC-202609-0053",
+"stay": "203S50A001",
+"room": "203S50",
+"b": "S50",
+"deposit": 2800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1148.0,
+"curr": 1175.0,
+"qty": 27.0,
+"unit": 4000.0,
+"amount": 108000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 408000.0,
+"excelBD": 2392000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!57"
+},
+{
+"code": "HC-202609-0054",
+"stay": "602S27A001",
+"room": "602S27",
+"b": "S27",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 3156.0,
+"curr": 3589.0,
+"qty": 433.0,
+"unit": 4000.0,
+"amount": 1732000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2132000.0,
+"excelBD": 1568000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!58"
+},
+{
+"code": "HC-202609-0055",
+"stay": "304T33A001",
+"room": "304T33",
+"b": "T33",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 17345.0,
+"curr": 17692.0,
+"qty": 347.0,
+"unit": 4000.0,
+"amount": 1388000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2188000.0,
+"excelBD": 1312000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!59"
+},
+{
+"code": "HC-202609-0056",
+"stay": "401S25AA001",
+"room": "401S25A",
+"b": "S25A",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 19312.0,
+"curr": 19750.0,
+"qty": 438.0,
+"unit": 4000.0,
+"amount": 1752000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 50000.0,
+"amount": 50000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+}
+],
+"excelBC": 2402000.0,
+"excelBD": 1898000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!60"
+},
+{
+"code": "HC-202609-0057",
+"stay": "502T42A001",
+"room": "502T42",
+"b": "T42",
+"deposit": 2800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 10178.0,
+"curr": 10378.0,
+"qty": 200.0,
+"unit": 4000.0,
+"amount": 800000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1000000.0,
+"excelBD": 1800000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!61"
+},
+{
+"code": "HC-202609-0058",
+"stay": "401T8A001",
+"room": "401T8",
+"b": "T8",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7316.0,
+"curr": 7513.0,
+"qty": 197.0,
+"unit": 4000.0,
+"amount": 788000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 988000.0,
+"excelBD": 2712000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!62"
+},
+{
+"code": "HC-202609-0059",
+"stay": "502S39A001",
+"room": "502S39",
+"b": "S39",
+"deposit": 4400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1817.0,
+"curr": 2117.0,
+"qty": 300.0,
+"unit": 4000.0,
+"amount": 1200000.0
+},
+{
+"kind": "water",
+"prev": 86.0,
+"curr": 90.0,
+"qty": 4.0,
+"unit": 35000.0,
+"amount": 140000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1540000.0,
+"excelBD": 2860000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!63"
+},
+{
+"code": "HC-202609-0060",
+"stay": "302S19AA001",
+"room": "302S19A",
+"b": "S19A",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2370.0,
+"curr": 2580.0,
+"qty": 210.0,
+"unit": 4000.0,
+"amount": 840000.0
+},
+{
+"kind": "water",
+"prev": 75.0,
+"curr": 83.0,
+"qty": 8.0,
+"unit": 35000.0,
+"amount": 280000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1320000.0,
+"excelBD": 2880000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!64"
+},
+{
+"code": "HC-202609-0061",
+"stay": "501S42A001",
+"room": "501S42",
+"b": "S42",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 994.0,
+"curr": 1053.0,
+"qty": 59.0,
+"unit": 4000.0,
+"amount": 236000.0
+},
+{
+"kind": "water",
+"prev": 24.0,
+"curr": 25.0,
+"qty": 1.0,
+"unit": 35000.0,
+"amount": 35000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 571000.0,
+"excelBD": 3029000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!65"
+},
+{
+"code": "HC-202609-0062",
+"stay": "201G9A001",
+"room": "201G9",
+"b": "G9",
+"deposit": 2500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1021.0,
+"curr": 1127.0,
+"qty": 106.0,
+"unit": 4000.0,
+"amount": 424000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "other",
+"prev": null,
+"curr": null,
+"qty": 8.0,
+"unit": 4000.0,
+"amount": 32000.0
+}
+],
+"excelBC": 656000.0,
+"excelBD": 1844000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!66"
+},
+{
+"code": "HC-202609-0063",
+"stay": "101S32A001",
+"room": "101S32",
+"b": "S32",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 10145.0,
+"curr": 10285.0,
+"qty": 140.0,
+"unit": 4000.0,
+"amount": 560000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1060000.0,
+"excelBD": 2140000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!67"
+},
+{
+"code": "HC-202609-0064",
+"stay": "201T26A001",
+"room": "201T26",
+"b": "T26",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 3852.0,
+"curr": 3882.0,
+"qty": 30.0,
+"unit": 4000.0,
+"amount": 120000.0
+},
+{
+"kind": "water",
+"prev": 69.0,
+"curr": 70.0,
+"qty": 1.0,
+"unit": 35000.0,
+"amount": 35000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 655000.0,
+"excelBD": 3045000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!68"
+},
+{
+"code": "HC-202609-0065",
+"stay": "503T26A001",
+"room": "503T26",
+"b": "T26",
+"deposit": 4100000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6538.0,
+"curr": 6779.0,
+"qty": 241.0,
+"unit": 4000.0,
+"amount": 964000.0
+},
+{
+"kind": "water",
+"prev": 112.0,
+"curr": 114.0,
+"qty": 2.0,
+"unit": 35000.0,
+"amount": 70000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+}
+],
+"excelBC": 1934000.0,
+"excelBD": 2166000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!69"
+},
+{
+"code": "HC-202609-0066",
+"stay": "404S30A001",
+"room": "404S30",
+"b": "S30",
+"deposit": 4400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2969.0,
+"curr": 3173.0,
+"qty": 204.0,
+"unit": 4000.0,
+"amount": 816000.0
+},
+{
+"kind": "water",
+"prev": 56.0,
+"curr": 61.0,
+"qty": 5.0,
+"unit": 35000.0,
+"amount": 175000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1191000.0,
+"excelBD": 3209000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!70"
+},
+{
+"code": "HC-202609-0067",
+"stay": "105T42A001",
+"room": "105T42",
+"b": "T42",
+"deposit": 2800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 13867.0,
+"curr": 14022.0,
+"qty": 155.0,
+"unit": 4000.0,
+"amount": 620000.0
+},
+{
+"kind": "water",
+"prev": 1047.0,
+"curr": 1048.0,
+"qty": 1.0,
+"unit": 35000.0,
+"amount": 35000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1055000.0,
+"excelBD": 1745000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!71"
+},
+{
+"code": "HC-202609-0068",
+"stay": "201T25A001",
+"room": "201T25",
+"b": "T25",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 21318.0,
+"curr": 21517.0,
+"qty": 199.0,
+"unit": 4000.0,
+"amount": 796000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1996000.0,
+"excelBD": 1804000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!72"
+},
+{
+"code": "HC-202609-0069",
+"stay": "101T38A001",
+"room": "101T38",
+"b": "T38",
+"deposit": 5500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12167.0,
+"curr": 12470.0,
+"qty": 303.0,
+"unit": 4000.0,
+"amount": 1212000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 250000.0,
+"amount": 250000.0
+}
+],
+"excelBC": 1662000.0,
+"excelBD": 3838000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!73"
+},
+{
+"code": "HC-202609-0070",
+"stay": "301S13A001",
+"room": "301S13",
+"b": "S13",
+"deposit": 3300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2268.0,
+"curr": 2500.0,
+"qty": 232.0,
+"unit": 4000.0,
+"amount": 928000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1228000.0,
+"excelBD": 2072000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!74"
+},
+{
+"code": "HC-202609-0071",
+"stay": "101T11A001",
+"room": "101T11",
+"b": "T11",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8150.0,
+"curr": 8300.0,
+"qty": 150.0,
+"unit": 4000.0,
+"amount": 600000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1000000.0,
+"excelBD": 2500000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!75"
+},
+{
+"code": "HC-202609-0072",
+"stay": "101S13A001",
+"room": "101S13",
+"b": "S13",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1678.0,
+"curr": 1785.0,
+"qty": 107.0,
+"unit": 4000.0,
+"amount": 428000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1228000.0,
+"excelBD": 2772000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!76"
+},
+{
+"code": "HC-202609-0073",
+"stay": "301S30A001",
+"room": "301S30",
+"b": "S30",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2238.0,
+"curr": 2418.0,
+"qty": 180.0,
+"unit": 4000.0,
+"amount": 720000.0
+},
+{
+"kind": "water",
+"prev": 66.0,
+"curr": 72.0,
+"qty": 6.0,
+"unit": 35000.0,
+"amount": 210000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1230000.0,
+"excelBD": 2970000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!77"
+},
+{
+"code": "HC-202609-0074",
+"stay": "403T26A001",
+"room": "403T26",
+"b": "T26",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4756.0,
+"curr": 4951.0,
+"qty": 195.0,
+"unit": 4000.0,
+"amount": 780000.0
+},
+{
+"kind": "water",
+"prev": 112.0,
+"curr": 113.0,
+"qty": 1.0,
+"unit": 35000.0,
+"amount": 35000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1215000.0,
+"excelBD": 2985000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!78"
+},
+{
+"code": "HC-202609-0075",
+"stay": "601S18A001",
+"room": "601S18",
+"b": "S18",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4303.0,
+"curr": 4503.0,
+"qty": 200.0,
+"unit": 4000.0,
+"amount": 800000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1200000.0,
+"excelBD": 2300000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!79"
+},
+{
+"code": "HC-202609-0076",
+"stay": "302S22A001",
+"room": "302S22",
+"b": "S22",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 16242.0,
+"curr": 16437.0,
+"qty": 195.0,
+"unit": 4000.0,
+"amount": 780000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 980000.0,
+"excelBD": 2620000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!80"
+},
+{
+"code": "HC-202609-0077",
+"stay": "305S50A001",
+"room": "305S50",
+"b": "S50",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 839.0,
+"curr": 1004.0,
+"qty": 165.0,
+"unit": 4000.0,
+"amount": 660000.0
+},
+{
+"kind": "water",
+"prev": 34.0,
+"curr": 41.0,
+"qty": 7.0,
+"unit": 35000.0,
+"amount": 245000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 250000.0,
+"amount": 250000.0
+}
+],
+"excelBC": 1355000.0,
+"excelBD": 2445000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "",
+"src": "HOÀN CỌC!81"
+},
+{
+"code": "HC-202609-0078",
+"stay": "401G2A001",
+"room": "401G2",
+"b": "G2",
+"deposit": 5300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1748.0,
+"curr": 2101.0,
+"qty": 353.0,
+"unit": 4000.0,
+"amount": 1412000.0
+},
+{
+"kind": "water",
+"prev": 44.0,
+"curr": 56.0,
+"qty": 12.0,
+"unit": 35000.0,
+"amount": 420000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 2332000.0,
+"excelBD": 2968000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!82"
+},
+{
+"code": "HC-202609-0079",
+"stay": "205S50A001",
+"room": "205S50",
+"b": "S50",
+"deposit": 5500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 936.0,
+"curr": 1141.0,
+"qty": 205.0,
+"unit": 4000.0,
+"amount": 820000.0
+},
+{
+"kind": "water",
+"prev": 25.0,
+"curr": 28.0,
+"qty": 3.0,
+"unit": 35000.0,
+"amount": 105000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1125000.0,
+"excelBD": 4375000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!83"
+},
+{
+"code": "HC-202609-0080",
+"stay": "501S45A001",
+"room": "501S45",
+"b": "S45",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 11800.0,
+"curr": 11984.0,
+"qty": 184.0,
+"unit": 4000.0,
+"amount": 736000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 936000.0,
+"excelBD": 3364000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!84"
+},
+{
+"code": "HC-202609-0081",
+"stay": "102S19CA001",
+"room": "102S19C",
+"b": "S19C",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1685.0,
+"curr": 1896.0,
+"qty": 211.0,
+"unit": 4000.0,
+"amount": 844000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 180000.0,
+"amount": 180000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1424000.0,
+"excelBD": 2376000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!85"
+},
+{
+"code": "HC-202609-0082",
+"stay": "302S19CA001",
+"room": "302S19C",
+"b": "S19C",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12005.0,
+"curr": 12364.0,
+"qty": 359.0,
+"unit": 4000.0,
+"amount": 1436000.0
+},
+{
+"kind": "water",
+"prev": 549.0,
+"curr": 557.0,
+"qty": 8.0,
+"unit": 35000.0,
+"amount": 280000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 2166000.0,
+"excelBD": 1834000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!86"
+},
+{
+"code": "HC-202609-0083",
+"stay": "303T15A001",
+"room": "303T15",
+"b": "T15",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7234.0,
+"curr": 7690.0,
+"qty": 456.0,
+"unit": 4000.0,
+"amount": 1824000.0
+},
+{
+"kind": "water",
+"prev": 457.0,
+"curr": 479.0,
+"qty": 22.0,
+"unit": 35000.0,
+"amount": 770000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2994000.0,
+"excelBD": 1006000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!87"
+},
+{
+"code": "HC-202609-0084",
+"stay": "701T15A001",
+"room": "701T15",
+"b": "T15",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6801.0,
+"curr": 7223.0,
+"qty": 422.0,
+"unit": 4000.0,
+"amount": 1688000.0
+},
+{
+"kind": "water",
+"prev": 285.0,
+"curr": 300.0,
+"qty": 15.0,
+"unit": 35000.0,
+"amount": 525000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 50000.0,
+"amount": 50000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 2763000.0,
+"excelBD": 1237000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!88"
+},
+{
+"code": "HC-202609-0085",
+"stay": "408T42A001",
+"room": "408T42",
+"b": "T42",
+"deposit": 2900000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 13206.0,
+"curr": 13520.0,
+"qty": 314.0,
+"unit": 4000.0,
+"amount": 1256000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 700000.0,
+"amount": 700000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+}
+],
+"excelBC": 2556000.0,
+"excelBD": 344000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!89"
+},
+{
+"code": "HC-202609-0086",
+"stay": "404S45A001",
+"room": "404S45",
+"b": "S45",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7986.0,
+"curr": 8108.0,
+"qty": 122.0,
+"unit": 4000.0,
+"amount": 488000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 688000.0,
+"excelBD": 3612000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!90"
+},
+{
+"code": "HC-202609-0087",
+"stay": "501T14A001",
+"room": "501T14",
+"b": "T14",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 10389.0,
+"curr": 10527.0,
+"qty": 138.0,
+"unit": 4000.0,
+"amount": 552000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 380000.0,
+"amount": 380000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 250000.0,
+"amount": 250000.0
+}
+],
+"excelBC": 1582000.0,
+"excelBD": 2018000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!91"
+},
+{
+"code": "HC-202609-0088",
+"stay": "103T14A001",
+"room": "103T14",
+"b": "T14",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 14186.0,
+"curr": 14418.0,
+"qty": 232.0,
+"unit": 4000.0,
+"amount": 928000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+}
+],
+"excelBC": 1678000.0,
+"excelBD": 1522000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!92"
+},
+{
+"code": "HC-202609-0089",
+"stay": "104T14A001",
+"room": "104T14",
+"b": "T14",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 16756.0,
+"curr": 16882.0,
+"qty": 126.0,
+"unit": 4000.0,
+"amount": 504000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+}
+],
+"excelBC": 1404000.0,
+"excelBD": 1796000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!93"
+},
+{
+"code": "HC-202609-0090",
+"stay": "202S27A001",
+"room": "202S27",
+"b": "S27",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2097.0,
+"curr": 2322.0,
+"qty": 225.0,
+"unit": 4000.0,
+"amount": 900000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 130000.0,
+"amount": 130000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1530000.0,
+"excelBD": 2170000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!94"
+},
+{
+"code": "HC-202609-0091",
+"stay": "301S27A001",
+"room": "301S27",
+"b": "S27",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2268.0,
+"curr": 2376.0,
+"qty": 108.0,
+"unit": 4000.0,
+"amount": 432000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 832000.0,
+"excelBD": 3168000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!95"
+},
+{
+"code": "HC-202609-0092",
+"stay": "403T42A001",
+"room": "403T42",
+"b": "T42",
+"deposit": 3000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 14393.0,
+"curr": 14586.0,
+"qty": 193.0,
+"unit": 4000.0,
+"amount": 772000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 310000.0,
+"amount": 310000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1682000.0,
+"excelBD": 1318000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!96"
+},
+{
+"code": "HC-202609-0093",
+"stay": "405T42A001",
+"room": "405T42",
+"b": "T42",
+"deposit": 3400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12533.0,
+"curr": 12681.0,
+"qty": 148.0,
+"unit": 4000.0,
+"amount": 592000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 792000.0,
+"excelBD": 2608000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "check quản lý phí dọn phòng",
+"src": "HOÀN CỌC!97"
+},
+{
+"code": "HC-202609-0094",
+"stay": "402S27A001",
+"room": "402S27",
+"b": "S27",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2304.0,
+"curr": 2819.0,
+"qty": 515.0,
+"unit": 4000.0,
+"amount": 2060000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 2760000.0,
+"excelBD": 1240000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!98"
+},
+{
+"code": "HC-202609-0095",
+"stay": "201S27A001",
+"room": "201S27",
+"b": "s27",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2017.0,
+"curr": 2123.0,
+"qty": 106.0,
+"unit": 4000.0,
+"amount": 424000.0
+},
+{
+"kind": "water",
+"prev": 140.0,
+"curr": 144.0,
+"qty": 4.0,
+"unit": 35000.0,
+"amount": 140000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1064000.0,
+"excelBD": 2936000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!99"
+},
+{
+"code": "HC-202609-0096",
+"stay": "303T18A001",
+"room": "303T18",
+"b": "T18",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 16569.0,
+"curr": 16601.0,
+"qty": 32.0,
+"unit": 4000.0,
+"amount": 128000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+}
+],
+"excelBC": 1028000.0,
+"excelBD": 2172000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "200K tiền sơn",
+"src": "HOÀN CỌC!100"
+},
+{
+"code": "HC-202609-0097",
+"stay": "201T18A001",
+"room": "201T18",
+"b": "T18",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 13649.0,
+"curr": 13862.0,
+"qty": 213.0,
+"unit": 4000.0,
+"amount": 852000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 250000.0,
+"amount": 250000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+}
+],
+"excelBC": 2102000.0,
+"excelBD": 1098000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!101"
+},
+{
+"code": "HC-202609-0098",
+"stay": "502S24A001",
+"room": "502S24",
+"b": "S24",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7984.0,
+"curr": 8381.0,
+"qty": 397.0,
+"unit": 4000.0,
+"amount": 1588000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 2088000.0,
+"excelBD": 2112000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!102"
+},
+{
+"code": "HC-202609-0099",
+"stay": "502S14A001",
+"room": "502S14",
+"b": "S14",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4600.0,
+"curr": 4942.0,
+"qty": 342.0,
+"unit": 4000.0,
+"amount": 1368000.0
+},
+{
+"kind": "water",
+"prev": 176.0,
+"curr": 187.0,
+"qty": 11.0,
+"unit": 35000.0,
+"amount": 385000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 2253000.0,
+"excelBD": 1947000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "",
+"src": "HOÀN CỌC!103"
+},
+{
+"code": "HC-202609-0100",
+"stay": "201T32A001",
+"room": "201T32",
+"b": "T32",
+"deposit": 7200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 9222.0,
+"curr": 9431.0,
+"qty": 209.0,
+"unit": 4000.0,
+"amount": 836000.0
+},
+{
+"kind": "water",
+"prev": 149.0,
+"curr": 153.0,
+"qty": 4.0,
+"unit": 35000.0,
+"amount": 140000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1776000.0,
+"excelBD": 5424000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!104"
+},
+{
+"code": "HC-202609-0101",
+"stay": "202S29A001",
+"room": "202S29",
+"b": "S29",
+"deposit": 2300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 5596.0,
+"curr": 5976.0,
+"qty": 380.0,
+"unit": 4000.0,
+"amount": 1520000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "other",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2020000.0,
+"excelBD": 280000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "",
+"src": "HOÀN CỌC!105"
+},
+{
+"code": "HC-202609-0102",
+"stay": "403t20A001",
+"room": "403t20",
+"b": "T20",
+"deposit": 2600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 10717.0,
+"curr": 10932.0,
+"qty": 215.0,
+"unit": 4000.0,
+"amount": 860000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "other",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 26000.0,
+"amount": 26000.0
+}
+],
+"excelBC": 1086000.0,
+"excelBD": 1514000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!106"
+},
+{
+"code": "HC-202609-0103",
+"stay": "401S48AA001",
+"room": "401S48A",
+"b": "S48A",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 762.0,
+"curr": 827.0,
+"qty": 65.0,
+"unit": 4000.0,
+"amount": 260000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 460000.0,
+"excelBD": 3340000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!107"
+},
+{
+"code": "HC-202609-0104",
+"stay": "302S9AA001",
+"room": "302S9A",
+"b": "S9",
+"deposit": 4600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6244.0,
+"curr": 6675.0,
+"qty": 431.0,
+"unit": 4000.0,
+"amount": 1724000.0
+},
+{
+"kind": "water",
+"prev": 242.0,
+"curr": 251.0,
+"qty": 9.0,
+"unit": 35000.0,
+"amount": 315000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2439000.0,
+"excelBD": 2161000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!108"
+},
+{
+"code": "HC-202609-0105",
+"stay": "101S6A001",
+"room": "101S6",
+"b": "S6",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 11273.0,
+"curr": 11552.0,
+"qty": 279.0,
+"unit": 4000.0,
+"amount": 1116000.0
+},
+{
+"kind": "water",
+"prev": 973.0,
+"curr": 983.0,
+"qty": 10.0,
+"unit": 35000.0,
+"amount": 350000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 2266000.0,
+"excelBD": 1434000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "90K TIỀN SƠN",
+"src": "HOÀN CỌC!109"
+},
+{
+"code": "HC-202609-0106",
+"stay": "101S10A001",
+"room": "101S10",
+"b": "S10",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8080.0,
+"curr": 8312.0,
+"qty": 232.0,
+"unit": 4000.0,
+"amount": 928000.0
+},
+{
+"kind": "water",
+"prev": 312.0,
+"curr": 317.0,
+"qty": 5.0,
+"unit": 35000.0,
+"amount": 175000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1303000.0,
+"excelBD": 1897000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "quản lý đền ghế",
+"src": "HOÀN CỌC!110"
+},
+{
+"code": "HC-202609-0107",
+"stay": "302S12A001",
+"room": "302S12",
+"b": "S12",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 5391.0,
+"curr": 5440.0,
+"qty": 49.0,
+"unit": 4000.0,
+"amount": 196000.0
+},
+{
+"kind": "water",
+"prev": 395.0,
+"curr": 397.0,
+"qty": 2.0,
+"unit": 35000.0,
+"amount": 70000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 466000.0,
+"excelBD": 3234000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!111"
+},
+{
+"code": "HC-202609-0108",
+"stay": "303S9BA001",
+"room": "303S9B",
+"b": "S9B",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 18100.0,
+"curr": 18406.0,
+"qty": 306.0,
+"unit": 4000.0,
+"amount": 1224000.0
+},
+{
+"kind": "water",
+"prev": 1228.0,
+"curr": 1243.0,
+"qty": 15.0,
+"unit": 35000.0,
+"amount": 525000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+}
+],
+"excelBC": 2199000.0,
+"excelBD": 2101000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!112"
+},
+{
+"code": "HC-202609-0109",
+"stay": "501S25AA001",
+"room": "501S25A",
+"b": "S25A",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7220.0,
+"curr": 7616.0,
+"qty": 396.0,
+"unit": 4000.0,
+"amount": 1584000.0
+},
+{
+"kind": "water",
+"prev": 493.0,
+"curr": 499.0,
+"qty": 6.0,
+"unit": 35000.0,
+"amount": 210000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1994000.0,
+"excelBD": 1806000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!113"
+},
+{
+"code": "HC-202609-0110",
+"stay": "203S32A001",
+"room": "203S32",
+"b": "S32",
+"deposit": 2700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7302.0,
+"curr": 7526.0,
+"qty": 224.0,
+"unit": 4000.0,
+"amount": 896000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1796000.0,
+"excelBD": 904000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!114"
+},
+{
+"code": "HC-202609-0111",
+"stay": "202S8A001",
+"room": "202S8",
+"b": "S8",
+"deposit": 2700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 15730.0,
+"curr": 15784.0,
+"qty": 54.0,
+"unit": 4000.0,
+"amount": 216000.0
+},
+{
+"kind": "water",
+"prev": 1534.0,
+"curr": 1537.0,
+"qty": 3.0,
+"unit": 30000.0,
+"amount": 90000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 506000.0,
+"excelBD": 2194000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!115"
+},
+{
+"code": "HC-202609-0112",
+"stay": "205S8A001",
+"room": "205S8",
+"b": "S8",
+"deposit": 2700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 13855.0,
+"curr": 13956.0,
+"qty": 101.0,
+"unit": 4000.0,
+"amount": 404000.0
+},
+{
+"kind": "water",
+"prev": 1301.0,
+"curr": 1305.0,
+"qty": 4.0,
+"unit": 30000.0,
+"amount": 120000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 724000.0,
+"excelBD": 1976000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!116"
+},
+{
+"code": "HC-202609-0113",
+"stay": "101S29A001",
+"room": "101S29",
+"b": "S29",
+"deposit": 2200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2294.0,
+"curr": 2551.0,
+"qty": 257.0,
+"unit": 4000.0,
+"amount": 1028000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1328000.0,
+"excelBD": 872000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!117"
+},
+{
+"code": "HC-202609-0114",
+"stay": "503T3A001",
+"room": "503T3",
+"b": "T3",
+"deposit": 4500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 12664.0,
+"curr": 13041.0,
+"qty": 377.0,
+"unit": 4000.0,
+"amount": 1508000.0
+},
+{
+"kind": "water",
+"prev": 76.0,
+"curr": 84.0,
+"qty": 8.0,
+"unit": 35000.0,
+"amount": 280000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 450000.0,
+"amount": 450000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2738000.0,
+"excelBD": 1762000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!118"
+},
+{
+"code": "HC-202609-0115",
+"stay": "502S2A001",
+"room": "502S2",
+"b": "S2",
+"deposit": 1368000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2774.0,
+"curr": 2899.0,
+"qty": 125.0,
+"unit": 4000.0,
+"amount": 500000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+}
+],
+"excelBC": 850000.0,
+"excelBD": 518000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!119"
+},
+{
+"code": "HC-202609-0116",
+"stay": "501T22A001",
+"room": "501T22",
+"b": "t22",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 19615.0,
+"curr": 19722.0,
+"qty": 107.0,
+"unit": 4000.0,
+"amount": 428000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 628000.0,
+"excelBD": 2872000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!120"
+},
+{
+"code": "HC-202609-0117",
+"stay": "601S6A001",
+"room": "601S6",
+"b": "S6",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 549.0,
+"curr": 664.0,
+"qty": 115.0,
+"unit": 4000.0,
+"amount": 460000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 660000.0,
+"excelBD": 2840000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!121"
+},
+{
+"code": "HC-202609-0118",
+"stay": "101S38A001",
+"room": "101S38",
+"b": "S38",
+"deposit": 3400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 23824.0,
+"curr": 23873.0,
+"qty": 49.0,
+"unit": 4000.0,
+"amount": 196000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 996000.0,
+"excelBD": 2404000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!122"
+},
+{
+"code": "HC-202609-0119",
+"stay": "502S9BA001",
+"room": "502S9B",
+"b": "S9B",
+"deposit": 4500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 14684.0,
+"curr": 14866.0,
+"qty": 182.0,
+"unit": 4000.0,
+"amount": 728000.0
+},
+{
+"kind": "water",
+"prev": 1518.0,
+"curr": 1525.0,
+"qty": 7.0,
+"unit": 35000.0,
+"amount": 245000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1473000.0,
+"excelBD": 3027000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!123"
+},
+{
+"code": "HC-202609-0120",
+"stay": "304S37AA001",
+"room": "304S37A",
+"b": "S37A",
+"deposit": 4500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2968.0,
+"curr": 3270.0,
+"qty": 302.0,
+"unit": 4000.0,
+"amount": 1208000.0
+},
+{
+"kind": "water",
+"prev": 160.0,
+"curr": 177.0,
+"qty": 17.0,
+"unit": 35000.0,
+"amount": 595000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2003000.0,
+"excelBD": 2497000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!124"
+},
+{
+"code": "HC-202609-0121",
+"stay": "402T5A001",
+"room": "402T5",
+"b": "T5",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6629.0,
+"curr": 7113.0,
+"qty": 484.0,
+"unit": 4000.0,
+"amount": 1936000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2136000.0,
+"excelBD": 2064000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "check ql",
+"src": "HOÀN CỌC!125"
+},
+{
+"code": "HC-202609-0122",
+"stay": "401S40A001",
+"room": "401S40",
+"b": "S40",
+"deposit": 7000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2896.0,
+"curr": 3374.0,
+"qty": 478.0,
+"unit": 4000.0,
+"amount": 1912000.0
+},
+{
+"kind": "water",
+"prev": 77.0,
+"curr": 86.0,
+"qty": 9.0,
+"unit": 35000.0,
+"amount": 315000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2627000.0,
+"excelBD": 4373000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!126"
+},
+{
+"code": "HC-202609-0123",
+"stay": "501S43A001",
+"room": "501S43",
+"b": "S43",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 5884.0,
+"curr": 5982.0,
+"qty": 98.0,
+"unit": 4000.0,
+"amount": 392000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1092000.0,
+"excelBD": 2508000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!127"
+},
+{
+"code": "HC-202609-0124",
+"stay": "201T24A001",
+"room": "201T24",
+"b": "T24",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 19646.0,
+"curr": 19778.0,
+"qty": 132.0,
+"unit": 4000.0,
+"amount": 528000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 828000.0,
+"excelBD": 3172000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!128"
+},
+{
+"code": "HC-202609-0125",
+"stay": "102T20A001",
+"room": "102T20",
+"b": "T20",
+"deposit": 2500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 10744.0,
+"curr": 10857.0,
+"qty": 113.0,
+"unit": 4000.0,
+"amount": 452000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "other",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 25000.0,
+"amount": 25000.0
+}
+],
+"excelBC": 677000.0,
+"excelBD": 1823000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!129"
+},
+{
+"code": "HC-202609-0126",
+"stay": "201S8A001",
+"room": "201S8",
+"b": "S8",
+"deposit": 2700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 9927.0,
+"curr": 10068.0,
+"qty": 141.0,
+"unit": 4000.0,
+"amount": 564000.0
+},
+{
+"kind": "water",
+"prev": 1277.0,
+"curr": 1282.0,
+"qty": 5.0,
+"unit": 30000.0,
+"amount": 150000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1314000.0,
+"excelBD": 1386000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "công 100k",
+"src": "HOÀN CỌC!130"
+},
+{
+"code": "HC-202609-0127",
+"stay": "502S3A001",
+"room": "502S3",
+"b": "S3",
+"deposit": 5025806.452,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6115.0,
+"curr": 6157.0,
+"qty": 42.0,
+"unit": 4000.0,
+"amount": 168000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 368000.0,
+"excelBD": 4657806.452,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "",
+"src": "HOÀN CỌC!131"
+},
+{
+"code": "HC-202609-0128",
+"stay": "303T36A001",
+"room": "303T36",
+"b": "T36",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7214.0,
+"curr": 7465.0,
+"qty": 251.0,
+"unit": 4000.0,
+"amount": 1004000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1204000.0,
+"excelBD": 2796000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!132"
+},
+{
+"code": "HC-202609-0129",
+"stay": "404S5A001",
+"room": "404S5",
+"b": "S5",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 19159.0,
+"curr": 19352.0,
+"qty": 193.0,
+"unit": 4000.0,
+"amount": 772000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1272000.0,
+"excelBD": 2528000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!133"
+},
+{
+"code": "HC-202609-0130",
+"stay": "101S27A001",
+"room": "101S27",
+"b": "S27",
+"deposit": 3300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2183.0,
+"curr": 2384.0,
+"qty": 201.0,
+"unit": 4000.0,
+"amount": 804000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1104000.0,
+"excelBD": 2196000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!134"
+},
+{
+"code": "HC-202609-0131",
+"stay": "502T21A001",
+"room": "502T21",
+"b": "T21",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 16148.0,
+"curr": 16460.0,
+"qty": 312.0,
+"unit": 4000.0,
+"amount": 1248000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+}
+],
+"excelBC": 2148000.0,
+"excelBD": 2152000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "150k tiền sơn",
+"src": "HOÀN CỌC!135"
+},
+{
+"code": "HC-202609-0132",
+"stay": "101S42A001",
+"room": "101S42",
+"b": "S42",
+"deposit": 5700170.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2380.0,
+"curr": 2661.0,
+"qty": 281.0,
+"unit": 4000.0,
+"amount": 1124000.0
+},
+{
+"kind": "water",
+"prev": 82.0,
+"curr": 87.0,
+"qty": 5.0,
+"unit": 35000.0,
+"amount": 175000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1499000.0,
+"excelBD": 4201170.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "check video",
+"src": "HOÀN CỌC!136"
+},
+{
+"code": "HC-202609-0133",
+"stay": "105S7A001",
+"room": "105S7",
+"b": "S7",
+"deposit": 2800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 7232.0,
+"curr": 7364.0,
+"qty": 132.0,
+"unit": 4000.0,
+"amount": 528000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1028000.0,
+"excelBD": 1772000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!137"
+},
+{
+"code": "HC-202609-0134",
+"stay": "502S7A001",
+"room": "502S7",
+"b": "S7",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 14420.0,
+"curr": 14891.0,
+"qty": 471.0,
+"unit": 4000.0,
+"amount": 1884000.0
+},
+{
+"kind": "water",
+"prev": 782.0,
+"curr": 795.0,
+"qty": 13.0,
+"unit": 35000.0,
+"amount": 455000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "painting",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 2639000.0,
+"excelBD": 1161000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!138"
+},
+{
+"code": "HC-202609-0135",
+"stay": "103S10A001",
+"room": "103S10",
+"b": "S10",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8905.0,
+"curr": 9407.0,
+"qty": 502.0,
+"unit": 4000.0,
+"amount": 2008000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2208000.0,
+"excelBD": 1492000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!139"
+},
+{
+"code": "HC-202609-0136",
+"stay": "301T2A001",
+"room": "301T2",
+"b": "T2",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8442.0,
+"curr": 8559.0,
+"qty": 117.0,
+"unit": 4000.0,
+"amount": 468000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+}
+],
+"excelBC": 1268000.0,
+"excelBD": 2932000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!140"
+},
+{
+"code": "HC-202609-0137",
+"stay": "101S31A001",
+"room": "101S31",
+"b": "S31",
+"deposit": 3400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2406.0,
+"curr": 2769.0,
+"qty": 363.0,
+"unit": 4000.0,
+"amount": 1452000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 500000.0,
+"amount": 500000.0
+}
+],
+"excelBC": 2352000.0,
+"excelBD": 1048000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!141"
+},
+{
+"code": "HC-202609-0138",
+"stay": "301T43A001",
+"room": "301T43",
+"b": "T43",
+"deposit": 3200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8543.0,
+"curr": 8663.0,
+"qty": 120.0,
+"unit": 4000.0,
+"amount": 480000.0
+},
+{
+"kind": "water",
+"prev": 536.0,
+"curr": 541.0,
+"qty": 5.0,
+"unit": 35000.0,
+"amount": 175000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 855000.0,
+"excelBD": 2345000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!142"
+},
+{
+"code": "HC-202609-0139",
+"stay": "201S38A001",
+"room": "201S38",
+"b": "S38",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 8097.0,
+"curr": 8325.0,
+"qty": 228.0,
+"unit": 4000.0,
+"amount": 912000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 400000.0,
+"amount": 400000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 220000.0,
+"amount": 220000.0
+}
+],
+"excelBC": 1732000.0,
+"excelBD": 1868000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!143"
+},
+{
+"code": "HC-202609-0140",
+"stay": "502S21A001",
+"room": "502S21",
+"b": "S21",
+"deposit": 4300000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4736.0,
+"curr": 5225.0,
+"qty": 489.0,
+"unit": 4000.0,
+"amount": 1956000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2156000.0,
+"excelBD": 2144000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!144"
+},
+{
+"code": "HC-202609-0141",
+"stay": "601S31A001",
+"room": "601S31",
+"b": "S31",
+"deposit": 4700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 3041.0,
+"curr": 3554.0,
+"qty": 513.0,
+"unit": 4000.0,
+"amount": 2052000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2452000.0,
+"excelBD": 2248000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!145"
+},
+{
+"code": "HC-202609-0142",
+"stay": "402S49A001",
+"room": "402S49",
+"b": "S49",
+"deposit": 4600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1752.0,
+"curr": 2286.0,
+"qty": 534.0,
+"unit": 4000.0,
+"amount": 2136000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 2336000.0,
+"excelBD": 2264000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "Đã check ok",
+"src": "HOÀN CỌC!146"
+},
+{
+"code": "HC-202609-0143",
+"stay": "403S18A001",
+"room": "403S18",
+"b": "S18",
+"deposit": 3400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 2364.0,
+"curr": 2550.0,
+"qty": 186.0,
+"unit": 4000.0,
+"amount": 744000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 1244000.0,
+"excelBD": 2156000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "Quay video toàn cảnh vệ sinh phòng, ko check đồ",
+"src": "HOÀN CỌC!147"
+},
+{
+"code": "HC-202609-0144",
+"stay": "301S18A001",
+"room": "301S18",
+"b": "S18",
+"deposit": 3600000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4473.0,
+"curr": 4570.0,
+"qty": 97.0,
+"unit": 4000.0,
+"amount": 388000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 100000.0,
+"amount": 100000.0
+}
+],
+"excelBC": 788000.0,
+"excelBD": 2812000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "Quay toàn cảnh phòng vệ sinh, ktra dc bếp từ, còn lại các thiết bị chưa ktra",
+"src": "HOÀN CỌC!148"
+},
+{
+"code": "HC-202609-0145",
+"stay": "403G1A001",
+"room": "403G1",
+"b": "G1",
+"deposit": 4200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1381.0,
+"curr": 1640.0,
+"qty": 259.0,
+"unit": 4000.0,
+"amount": 1036000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 150000.0,
+"amount": 150000.0
+}
+],
+"excelBC": 1386000.0,
+"excelBD": 2814000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "Đã check ok",
+"src": "HOÀN CỌC!149"
+},
+{
+"code": "HC-202609-0146",
+"stay": "503T21A001",
+"room": "503T21",
+"b": "T21",
+"deposit": 4400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 17984.0,
+"curr": 18009.0,
+"qty": 25.0,
+"unit": 4000.0,
+"amount": 100000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 300000.0,
+"excelBD": 4100000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!150"
+},
+{
+"code": "HC-202609-0147",
+"stay": "301G7A001",
+"room": "301G7",
+"b": "G7",
+"deposit": 5200000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 692.0,
+"curr": 910.0,
+"qty": 218.0,
+"unit": 4000.0,
+"amount": 872000.0
+},
+{
+"kind": "water",
+"prev": 15.0,
+"curr": 19.0,
+"qty": 4.0,
+"unit": 35000.0,
+"amount": 140000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1412000.0,
+"excelBD": 3788000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "Khách mới đã ở, chưa check đồ , chỉ quay cơ bản vệ sinh",
+"src": "HOÀN CỌC!151"
+},
+{
+"code": "HC-202609-0148",
+"stay": "504S12A001",
+"room": "504S12",
+"b": "S12",
+"deposit": 3700000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 14731.0,
+"curr": 15105.0,
+"qty": 374.0,
+"unit": 4000.0,
+"amount": 1496000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "cleaning",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1896000.0,
+"excelBD": 1804000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "Mới ktra vòi rửa mặt, bồn cầu, vòi rửa bát bị rỉ, còn lại chưa check",
+"src": "HOÀN CỌC!152"
+},
+{
+"code": "HC-202609-0149",
+"stay": "102S44A001",
+"room": "102S44",
+"b": "S44",
+"deposit": 3000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 683.0,
+"curr": 751.0,
+"qty": 68.0,
+"unit": 4000.0,
+"amount": 272000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 472000.0,
+"excelBD": 2528000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!153"
+},
+{
+"code": "HC-202609-0150",
+"stay": "402G8A001",
+"room": "402G8",
+"b": "G8",
+"deposit": 3400000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 11330.0,
+"curr": 11472.0,
+"qty": 142.0,
+"unit": 4000.0,
+"amount": 568000.0
+}
+],
+"excelBC": 568000.0,
+"excelBD": 2832000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "",
+"src": "HOÀN CỌC!154"
+},
+{
+"code": "HC-202609-0151",
+"stay": "403T27A001",
+"room": "403T27",
+"b": "T27",
+"deposit": 4000000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 6092.0,
+"curr": 6402.0,
+"qty": 310.0,
+"unit": 4000.0,
+"amount": 1240000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+},
+{
+"kind": "repair",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 300000.0,
+"amount": 300000.0
+}
+],
+"excelBC": 1740000.0,
+"excelBD": 2260000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!155"
+},
+{
+"code": "HC-202609-0152",
+"stay": "304S18A001",
+"room": "304S18",
+"b": "S18",
+"deposit": 2800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 1704.0,
+"curr": 1852.0,
+"qty": 148.0,
+"unit": 4000.0,
+"amount": 592000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 792000.0,
+"excelBD": 2008000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "",
+"src": "HOÀN CỌC!156"
+},
+{
+"code": "HC-202609-0153",
+"stay": "206G6A001",
+"room": "206G6",
+"b": "G6",
+"deposit": 3500000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 745.0,
+"curr": 892.0,
+"qty": 147.0,
+"unit": 4000.0,
+"amount": 588000.0
+},
+{
+"kind": "water",
+"prev": 25.0,
+"curr": 30.0,
+"qty": 5.0,
+"unit": 35000.0,
+"amount": 175000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 963000.0,
+"excelBD": 2537000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "paid",
+"note": "tháng 9 hoàn trước",
+"src": "HOÀN CỌC!157"
+},
+{
+"code": "HC-202609-0154",
+"stay": "701S21A001",
+"room": "701S21",
+"b": "S21",
+"deposit": 3800000.0,
+"deductions": [
+{
+"kind": "electric",
+"prev": 4638.0,
+"curr": 4868.0,
+"qty": 230.0,
+"unit": 4000.0,
+"amount": 920000.0
+},
+{
+"kind": "depreciation",
+"prev": null,
+"curr": null,
+"qty": 1.0,
+"unit": 200000.0,
+"amount": 200000.0
+}
+],
+"excelBC": 1120000.0,
+"excelBD": 2680000.0,
+"extraDays": 0,
+"extraDaysDenom": null,
+"extraRent": 0.0,
+"status": "calculated",
+"note": "",
+"src": "HOÀN CỌC!158"
+}
+]
