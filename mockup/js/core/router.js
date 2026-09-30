@@ -57,7 +57,7 @@
         root.innerHTML = TH.ui.card({ body: TH.ui.empty({ icon: 'lock', title: '403 – Không có quyền truy cập', text: 'Vai trò ' + TH.esc(TH.auth.roleLabel()) + ' không được xem chức năng này.', action: '<a class="btn btn-primary btn-sm" href="#/dashboard">Về Tổng quan</a>' }) });
       } else if (!TH.ms.on(m.meta.ms)) {
         TH.layout.crumb([{ label: m.meta.title }]);
-        root.innerHTML = TH.ui.card({ body: TH.ui.empty({ icon: 'flag', title: m.meta.title + ' thuộc mốc ' + m.meta.ms, text: 'Hệ thống đang ở mốc ' + TH.ms.current() + ' (go-live hóa đơn & thu tiền). Chức năng chốt tháng mở khi chuyển sang mốc 1B ở Cài đặt.', action: TH.auth.can('settings.manage') ? '<a class="btn btn-primary btn-sm" href="#/settings?tab=he-thong">Mở Cài đặt</a>' : '' }) });
+        root.innerHTML = TH.ui.card({ body: TH.ui.empty({ icon: 'flag', title: m.meta.title + ' thuộc mốc ' + m.meta.ms, text: 'Hệ thống đang ở mốc ' + TH.ms.INFO[TH.ms.current()].label + ' (' + TH.ms.INFO[TH.ms.current()].name + '). Chức năng này mở khi chuyển sang mốc ' + TH.ms.INFO[m.meta.ms].label + ' ở Cài đặt.', action: TH.auth.can('settings.manage') ? '<a class="btn btn-primary btn-sm" href="#/settings?tab=he-thong">Mở Cài đặt</a>' : '' }) });
       } else {
         const h = R.handlers[m.meta.path];
         if (!h) root.innerHTML = TH.ui.card({ body: TH.ui.empty({ icon: 'alert-circle', title: 'Chưa có màn hình', text: m.meta.ui + ' – ' + m.meta.title }) });

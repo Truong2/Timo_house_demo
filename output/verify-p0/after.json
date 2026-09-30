@@ -1,6 +1,6 @@
 {
   "label": "after",
-  "at": "2026-09-29T09:46:16.083Z",
+  "at": "2026-09-30T10:13:25.742Z",
   "results": [
     {
       "id": "P0-1",
@@ -84,19 +84,19 @@
       "id": "P0-7c",
       "name": "Sau khóa: đổi dữ liệu nguồn không làm đổi LNR kỳ đã khóa",
       "ok": true,
-      "detail": "LNR T9 lúc khóa 3313182481 → sau khi đổi hồ sơ NV + giá 200 phòng 3313182481"
+      "detail": "LNR T9 lúc khóa 3294080204 → sau khi đổi hồ sơ NV + giá 200 phòng 3294080204"
     },
     {
       "id": "P0-7d",
       "name": "Điều chỉnh sau khóa: bắt buộc lý do, số điều chỉnh vào báo cáo kỳ gốc",
       "ok": true,
-      "detail": "không lý do: chặn; +1.000.000 chi phí khác G1 → LNR 3312182481"
+      "detail": "không lý do: chặn; +1.000.000 chi phí khác G1 → LNR 3293080204"
     },
     {
       "id": "P0-8",
       "name": "Kỳ live: tổng phân bổ = tổng chứng từ quỹ (không phụ phí \"ảo\"); kỳ 08 vẫn tái hiện công thức G1",
       "ok": true,
-      "detail": "trước khi có chứng từ: phân bổ 0; sau chốt lương: chứng từ quỹ 125513847 → phân bổ 125513847 · kỳ 08 G1 kế toán 181708 (Excel 181.708) · sal_gm: quỹ 12000000 → phân bổ 12000000 · sal_head: quỹ 25470000 → phân bổ 25470000 · sal_lead: quỹ 15690000 → phân bổ 15690000 · sal_source: quỹ 4000000 → phân bổ 4000000 · sal_sales: quỹ 66453847 → phân bổ 66453847 · sal_acct: quỹ 500000 → phân bổ 500000 · sal_repair: quỹ 1400000 → phân bổ 1400000 · office: quỹ 0 → phân bổ 0 · marketing: quỹ 0 → phân bổ 0"
+      "detail": "trước khi có chứng từ: phân bổ 0; sau chốt lương: chứng từ quỹ 146513847 → phân bổ 146513847 · kỳ 08 G1 kế toán 181708 (Excel 181.708) · sal_gm: quỹ 12000000 → phân bổ 12000000 · sal_head: quỹ 25470000 → phân bổ 25470000 · sal_lead: quỹ 15690000 → phân bổ 15690000 · sal_source: quỹ 4000000 → phân bổ 4000000 · sal_sales: quỹ 66453847 → phân bổ 66453847 · sal_acct: quỹ 500000 → phân bổ 500000 · sal_repair: quỹ 22400000 → phân bổ 22400000 · office: quỹ 0 → phân bổ 0 · marketing: quỹ 0 → phân bổ 0"
     },
     {
       "id": "P0-9a",

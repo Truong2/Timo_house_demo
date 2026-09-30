@@ -1,0 +1,165 @@
+/* Phase 2 – trung tâm báo cáo 4 nhóm (UI-27 đầy đủ) và báo cáo vận hành / kinh doanh: UI-42 chi phí, UI-43 âm dương điện nước, UI-44 sửa chữa & vệ sinh,
+   UI-45 phòng vận hành, UI-46 khách hàng & doanh số sale. Đầu trang và file xuất ghi tên báo cáo, kỳ, bộ lọc, phiên bản dữ liệu, thời điểm khóa (đặc tả dòng 404). */
+(function (TH) {
+  const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, esc = F.esc, QO = TH.qo, RP = TH.calc.repairs;
+  const pct = (v, d = 1) => v == null ? '–' : (Math.round(v * 100 * 10 ** d) / 10 ** d).toString().replace('.', ',') + '%';
+  const dec = (v, d = 1) => v == null ? '–' : (Math.round(v * 10 ** d) / 10 ** d).toString().replace('.', ',');
+  const ST = { ready: ['Sẵn sàng', 'green'], waiting: ['Chờ dữ liệu', 'amber'], undefined: ['Chờ định nghĩa', 'gray'], phase3: ['Phase 3', 'gray'] };
+  /* Bộ lọc tòa dùng chung: phạm vi vai trò + khu vực / nhóm T-S-G / tòa / quản lý (theo phân công cuối kỳ) */
+  const okB = (q, period) => { const mm = Q.managerMap(TH.calc.dates.periodEnd(period)); return (bid) => { const b = Q.building(bid); if (!b || !TH.auth.inScope(bid)) return false; if (q.area && b.areaId !== q.area) return false; if (q.group && b.group !== q.group) return false; if (q.building && bid !== q.building) return false; if (q.manager && (mm[bid] || {}).id !== q.manager) return false; return true; }; };
+  const scopeDesc = (q) => [q.area && 'Khu ' + ((S.get('areas', q.area) || {}).name || ''), q.group && 'Nhà ' + q.group, q.building && 'Tòa ' + ((Q.building(q.building) || {}).code || ''), q.manager && 'QL ' + ((Q.emp(q.manager) || {}).name || ''), TH.auth.buildingScope() && 'Phạm vi được giao'].filter(Boolean).join(' · ') || 'Toàn hệ thống';
+  const version = (period) => { const p = S.get('periods', period) || {}; return p.status === 'closed' ? 'Số chốt khi khóa kỳ ' + F.datetime(p.closedAt) : p.source === 'excel_parallel' ? 'Kỳ chạy song song Excel – tạm tính' : 'Số web tạm tính (kỳ chưa khóa) · dữ liệu v' + S.version; };
+  const metaBar = (name, period, q, src) => `<div class="card mb16"><div class="card-b small row wrap gap12"><span><b>${esc(name)}</b></span><span>Kỳ ${esc(F.periodLabel(period))}</span><span>Bộ lọc: ${esc(scopeDesc(q))}</span><span>${esc(version(period))}</span>${src ? `<span class="muted">${esc(src)}</span>` : ''}</div></div>`;
+  const xmeta = (name, period, q, src) => [name + ' – ' + F.periodLabel(period), ['Bộ lọc', scopeDesc(q)], ['Phiên bản số liệu', version(period)], ...(src ? [['Nguồn', src]] : []), ['Xuất lúc', F.datetime(F.nowISO()) + ' · ' + ((S.session || {}).name || '')]];
+  const periodOpts = () => S.all('periods').filter(p => p.id <= S.meta.period).map(p => [p.id, F.periodLabel(p.id) + (p.source === 'excel_parallel' ? ' (song song Excel)' : '')]);
+  const scopeFilters = () => [{ name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'group', label: 'Nhóm', options: K.groupOpts() }, { name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'building', label: 'Tòa', options: K.buildingOpts() }];
+
+  /* ---------- UI-27: 4 nhóm báo cáo ---------- */
+  TH.pages.reportHubP2 = () => `<div class="mt16">${QO.catalog().map(g => `<h3 class="mt16 mb8">${esc(g.label)}</h3><div class="grid grid-3">${g.items.map(it => {
+    const st = ST[it.status] || ST.undefined; const inner = `<div class="card-b"><div class="row between"><span class="chip gray">${esc(it.ui)}</span>${U.chip(st[0], st[1], true)}</div><h3 class="mt8">${esc(it.title)}</h3>
+      <p class="small muted mt4">${esc(it.formula)}</p><div class="small mt8">${it.period ? 'Dữ liệu mới nhất: <b>' + esc(F.periodLabel(it.period)) + '</b>' : 'Chưa có dữ liệu'}${it.note ? ' · ' + esc(it.note) : ''}</div></div>`;
+    return it.href && it.status === 'ready' ? `<a class="card rep-card" href="${it.href}">${inner}</a>` : `<div class="card rep-card muted-card">${inner}</div>`; }).join('')}</div>`).join('')}</div>`;
+
+  /* ---------- UI-42 ---------- */
+  TH.router.handle('/reports/costs', (root, p, q) => {
+    const period = q.period || '2026-08'; const tab = ['gv', 'fixed', 'var'].includes(q.tab) ? q.tab : 'gv';
+    const ok = okB(q, period); const C = QO.costs(period, ok);
+    const prevP = TH.calc.dates.prevPeriod(period); const hasPrev = !!S.get('periods', prevP); const Cp = hasPrev ? QO.costs(prevP, ok) : null;
+    const g = C.groups.find(x => x.key === tab), gp = Cp && Cp.groups.find(x => x.key === tab);
+    root.innerHTML = TH.pages.reportTabs('costs') + U.pageHead({ title: 'Chi phí giá vốn / cố định / phát sinh', sub: 'UI-42 · cùng số với Báo cáo tổng dòng 20–42; bấm số để xem chứng từ gốc (UI-15, UI-16, UI-47)', acts: [U.btn({ label: 'Xuất Excel', icon: 'download', act: 'exp', perm: 'reports.export' })] })
+      + K.filters([{ name: 'period', label: 'Kỳ', options: periodOpts(), value: '2026-08', all: false }, ...scopeFilters()], q)
+      + '<div class="mt16"></div>' + metaBar('Chi phí giá vốn / cố định / phát sinh', period, q, C.rep.sources.allocation)
+      + `<div class="grid grid-4 mb16">${C.groups.map(x => U.kpi({ label: x.label, value: F.vnd(x.total), cap: pct(C.revenue ? x.total / C.revenue : null) + ' doanh thu' + (Cp ? ' · tháng trước ' + F.vnd(Cp.groups.find(y => y.key === x.key).total) : ''), icon: x.key === 'gv' ? 'building' : x.key === 'fixed' ? 'users' : 'activity', tone: x.key === 'gv' ? 'blue' : x.key === 'fixed' ? 'purple' : 'amber' })).join('')}
+        ${U.kpi({ label: 'Tổng chi phí (TCP)', value: F.vnd(C.total), cap: 'Báo cáo tổng dòng 44: ' + F.vnd(C.bids.reduce((t, b) => t + ((C.rep.byBuilding[b] || {}).tcp || 0), 0)), icon: 'wallet', tone: 'red' })}</div>`
+      + U.tabs(C.groups.map(x => ({ key: x.key, label: x.label + ' · ' + F.vnd(x.total) })), tab)
+      + `<div class="grid grid-2 mt16"><div>${U.card({ title: g.label, sub: esc(g.sub), bodyCls: 'flush', body: `<table class="tbl compact"><thead><tr><th>Dòng</th><th>Khoản mục</th><th class="num">Toàn hệ thống</th><th class="num">% DT</th><th class="num">Tháng trước</th><th class="num">Chênh</th></tr></thead><tbody>
+        ${g.lines.map(l => { const pv = gp ? gp.lines.find(x => x.code === l.code).total : null; return `<tr><td>${l.row}</td><td>${esc(l.label)}</td><td class="num"><a href="javascript:void 0" data-act="cell" data-code="${l.code}">${F.vnd(l.total)}</a></td><td class="num">${pct(C.revenue ? l.total / C.revenue : null)}</td><td class="num">${pv != null ? F.vnd(pv) : '–'}</td><td class="num">${pv != null ? F.vnd(l.total - pv) : '–'}</td></tr>`; }).join('')}
+        <tr class="b"><td></td><td><b>Tổng ${esc(g.label.toLowerCase())}</b></td><td class="num"><b>${F.vnd(g.total)}</b></td><td class="num"><b>${pct(C.revenue ? g.total / C.revenue : null)}</b></td><td class="num">${gp ? F.vnd(gp.total) : '–'}</td><td class="num">${gp ? F.vnd(g.total - gp.total) : '–'}</td></tr></tbody></table>` })}</div>
+        <div>${K.tableCard('tb', 'Theo tòa – ' + g.label.toLowerCase())}</div></div>`;
+    K.bindFilters(root, ['tab']);
+    const byB = C.bids.map(b => { const v = C.rep.byBuilding[b] || {}; return { b, code: (Q.building(b) || {}).code, total: g.lines.reduce((t, l) => t + (v[l.code] || 0), 0), rev: v.rev_total || 0 }; }).filter(x => x.total).sort((a, c) => c.total - a.total);
+    U.table(root.querySelector('#tb'), { rows: byB, pageSize: 12, cols: [{ key: 'c', label: 'Tòa', render: x => `<b>${esc(x.code)}</b>` }, { key: 't', label: g.label, num: true, sortable: true, sortVal: x => x.total, render: x => `<a href="javascript:void 0" data-act="bcell" data-b="${x.b}">${F.vnd(x.total)}</a>` }, { key: 'p', label: '% DT tòa', num: true, render: x => pct(x.rev ? x.total / x.rev : null) }] });
+    const sub = {}; C.bids.forEach(b => { sub[b] = C.rep.byBuilding[b]; });
+    U.bind(root, {
+      tab: (el) => TH.router.setQuery({ tab: el.dataset.key }),
+      cell: (el) => TH.pages.reportCellDrawer(C.rep, sub, el.dataset.code, 'TOTAL'),
+      bcell: (el) => TH.pages.reportCellDrawer(C.rep, sub, g.lines.slice().sort((a, c) => ((sub[el.dataset.b] || {})[c.code] || 0) - ((sub[el.dataset.b] || {})[a.code] || 0))[0].code, 'TOTAL', el.dataset.b),
+      exp: () => K.xls('chi-phi-' + tab + '-' + period + '.xls', g.label, xmeta('Chi phí ' + g.label.toLowerCase(), period, q), ['Dòng', 'Khoản mục', 'Toàn hệ thống', '% DT', ...C.bids.map(b => (Q.building(b) || {}).code)],
+        g.lines.map(l => [l.row, l.label, Math.round(l.total), C.revenue ? Math.round(l.total / C.revenue * 10000) / 100 : '', ...C.bids.map(b => Math.round(l.byB[b] || 0))])),
+    });
+  });
+
+  /* ---------- UI-43 ---------- */
+  const AD_COLS = { electric: [['B', 'Thực thu máy giặt'], ['C', 'Phải thu máy giặt'], ['D', 'Không thu được'], ['E', 'Thực thu thang máy + xe điện'], ['F', 'Phải thu'], ['G', 'Không thu được'], ['H', 'Điện thực thu'], ['I', 'Điện phải thu'], ['J', 'Không thu được'], ['K', '(3) Tổng thu = H + B/2 + E'], ['L', '(4) Điện chi'], ['M', '(5) Thu − chi']],
+    water: [['B', 'Thực thu máy giặt'], ['C', 'Phải thu máy giặt'], ['D', 'Không thu được'], ['H', 'Nước thực thu'], ['I', 'Nước phải thu'], ['J', 'Không thu được'], ['K', '(6) Tổng thu = H + B/2'], ['L', '(7) Nước chi'], ['M', '(8) Thu − chi']] };
+  TH.router.handle('/reports/amduong', (root, p, q) => {
+    const tab = ['nuoc', 'san-luong'].includes(q.tab) ? q.tab : 'dien'; const kind = tab === 'nuoc' ? 'water' : 'electric';
+    const mode = q.mode || 'excel';
+    const exP = QO.amDuongExcelPeriods().filter(x => x.kind === kind).map(x => x.period).sort().reverse();
+    const liveP = S.all('periods').filter(x => x.source === 'web' && Q.invoicesOf(x.id).some(i => i.lifecycle !== 'draft')).map(x => x.id);
+    const opts = mode === 'excel' ? exP : liveP;
+    const period = opts.includes(q.period) ? q.period : opts[0];
+    root.innerHTML = TH.pages.reportTabs('amduong') + U.pageHead({ title: 'Âm dương điện nước', sub: 'UI-43 · thu (điện/nước thực thu + ½ máy giặt + thang máy/xe điện) − chi hóa đơn nhà cung cấp theo tòa; dương = lãi, âm = lỗ', acts: [U.btn({ label: 'Xuất Excel', icon: 'download', act: 'exp', perm: 'reports.export' })] })
+      + U.tabs([{ key: 'dien', label: 'Điện' }, { key: 'nuoc', label: 'Nước' }, { key: 'san-luong', label: 'Sản lượng / biến động chi' }], tab);
+    if (tab === 'san-luong') {
+      const te = QO.costTrend('electric'), tw = QO.costTrend('water');
+      const kwh = liveP.map(pp => ({ period: pp, kwh: Q.invoicesOf(pp).filter(i => i.lifecycle !== 'draft').reduce((t, i) => t + (Number(TH.calc.billing.expand(i.lines)[2].qty) || 0), 0) }));
+      root.insertAdjacentHTML('beforeend', `<div class="grid grid-2 mt16">${U.card({ title: 'Chi điện / nước theo hóa đơn nhà cung cấp (SRC-06)', icon: 'zap', bodyCls: 'flush', body: `<table class="tbl compact"><thead><tr><th>Tháng</th><th class="num">Điện chi</th><th class="num">So tháng trước</th><th class="num">Nước chi</th><th class="num">So tháng trước</th></tr></thead><tbody>${te.map((x, i) => `<tr><td>${F.periodShort(x.period)}</td><td class="num">${F.vnd(x.total)}</td><td class="num">${x.delta != null ? F.vnd(x.delta) + ' (' + pct(x.pct) + ')' : '–'}</td><td class="num">${F.vnd(tw[i].total)}</td><td class="num">${tw[i].delta != null ? F.vnd(tw[i].delta) + ' (' + pct(tw[i].pct) + ')' : '–'}</td></tr>`).join('')}</tbody></table>` })}
+        ${U.card({ title: 'Sản lượng điện bán (kWh trên hóa đơn)', icon: 'activity', body: U.kv(kwh.map(x => ['Hóa đơn ' + F.periodShort(x.period), F.num0(x.kwh) + ' kWh'])) + U.note('info', '', 'Sản lượng bán = kWh trên hóa đơn đã phát hành; cộng phòng trống / hoàn cọc ở báo cáo âm dương. So với file Excel "Sản lượng điện tháng 5 và 6": khách tính chênh chi theo danh sách tòa trong sheet, web tính trên toàn bộ hóa đơn nhà cung cấp đã nhập.') })}</div>`);
+      U.bind(root, { tab: (el) => TH.router.setQuery({ tab: el.dataset.key }) }); return;
+    }
+    const A = period ? QO.amDuong(period, kind, mode) : { rows: [], total: null, status: 'no_data' };
+    const ok = okB(q, period || S.meta.period); const rows = A.rows.filter(r => !r.buildingId || ok(r.buildingId)); const T = rows.length === A.rows.length && A.total ? A.total : null;
+    const tot = T || {}; if (!T) AD_COLS[kind].forEach(([k]) => { tot[k] = rows.reduce((t, r) => t + (r[k] || 0), 0); });
+    const cols = AD_COLS[kind];
+    root.insertAdjacentHTML('beforeend', K.filters([{ name: 'mode', label: 'Chế độ', options: [['excel', 'Như Excel (số file khách – SRC-15)'], ['web', 'Web tự tính từ hóa đơn & phiếu thu']], value: 'excel', all: false }, { name: 'period', label: 'Kỳ', options: opts.map(x => [x, F.periodLabel(x)]), value: period, all: false }, ...scopeFilters().slice(0, 2)], q)
+      + '<div class="mt16"></div>' + (period ? metaBar('Âm dương ' + (kind === 'electric' ? 'điện' : 'nước') + (mode === 'excel' ? ' – như Excel' : ' – web'), period, q, mode === 'excel' ? A.src + ' · sheet ' + A.sheet : 'Hóa đơn đã phát hành + phiếu thu theo dòng + phiếu hoàn + phòng trống; chi ' + A.costCoverage + ' tòa có số') : '')
+      + (A.status === 'no_data' ? U.card({ body: U.empty({ icon: 'database', title: 'Chờ dữ liệu', text: mode === 'excel' ? 'Không có file âm dương của kỳ này.' : 'Chưa có hóa đơn đã phát hành.' }) }) : `
+        <div class="grid grid-4 mb16">${U.kpi({ label: 'Tổng thu (K)', value: F.vnd(tot.K), icon: 'trending-up', tone: 'blue' })}${U.kpi({ label: (kind === 'electric' ? 'Điện' : 'Nước') + ' chi (L)', value: F.vnd(tot.L), icon: kind === 'electric' ? 'zap' : 'droplet', tone: 'amber' })}
+        ${U.kpi({ label: 'Thu − chi (M)', value: `<span class="${tot.M >= 0 ? 'green' : 'red'}">${tot.M >= 0 ? '+' : ''}${F.vnd(tot.M)}</span>`, cap: mode === 'web' && A.status === 'no_cost' ? 'chỉ tính tòa đã có chi (' + A.costCoverage + ')' : '', icon: 'bar-chart', tone: tot.M >= 0 ? 'green' : 'red' })}
+        ${mode === 'web' ? U.kpi({ label: 'Thu − chi tiền thực (OQ-20)', value: F.vnd(tot.realM), cap: 'bỏ ' + F.vnd(tot.vac) + ' phòng trống/không thu được', icon: 'wallet', tone: 'purple' }) : U.kpi({ label: 'Không thu được (D + G + J)', value: F.vnd((tot.D || 0) + (tot.G || 0) + (tot.J || 0)), icon: 'alert-triangle', tone: 'red' })}</div>`
+        + (mode === 'web' ? U.note('info', 'Cách tính web (OQ-20, OQ-21)', `Phải thu = dòng ${kind === 'electric' ? '3 + 12 (điện chung)' : '4'} trên hóa đơn đã phát hành; thực thu = phiếu thu phân bổ theo dòng. Máy giặt = dòng 9 + ½ combo (dòng 10); ½ máy giặt vào ${kind === 'electric' ? 'điện' : 'nước'}. ${kind === 'electric' ? 'Thang máy (7) + xe điện (8) 100% vào điện. ' : ''}Trừ cọc ${F.vnd(tot.dep)}; phòng trống/không thu được ${F.vnd(tot.vac)} ${A.withVac ? 'đang tính vào tổng thu như Excel (tham số OQ-20)' : 'không tính'}.`) : '')
+        + K.tableCard('t', rows.length + ' tòa'))
+    );
+    K.bindFilters(root, ['tab']);
+    if (A.status !== 'no_data') U.table(root.querySelector('#t'), { rows, pageSize: 30, onRowOpen: mode === 'web' ? (r) => invDrawer(r, kind, period) : null, cols: [{ key: 'b', label: 'Tòa', render: r => `<b>${esc(r.b)}</b>` },
+      ...cols.map(([k, l]) => ({ key: k, label: `<span data-tip="${esc(l)}">${k}</span>`, num: true, sortable: ['K', 'L', 'M'].includes(k), sortVal: r => r[k], render: r => r[k] == null ? '–' : k === 'M' ? `<b class="${r.M >= 0 ? 'green' : 'red'}">${F.vnd(r.M)}</b>` : F.vnd(r[k]) })),
+      ...(mode === 'web' ? [{ key: 'vac', label: 'Trong đó phòng trống', num: true, render: r => r.vac ? F.vnd(r.vac) : '–' }] : []), { key: 'f', label: 'Cờ', render: r => (r.flags || []).map(x => U.chip(x, 'amber')).join(' ') }],
+      footer: () => `<tr><td><b>Tổng</b></td>${cols.map(([k]) => `<td class="num"><b>${tot[k] == null ? '–' : F.vnd(tot[k])}</b></td>`).join('')}${mode === 'web' ? `<td class="num"><b>${F.vnd(tot.vac)}</b></td>` : ''}<td></td></tr>` });
+    U.bind(root, { tab: (el) => TH.router.setQuery({ tab: el.dataset.key }),
+      exp: () => K.xls('am-duong-' + kind + '-' + period + '-' + mode + '.xls', 'Âm dương', xmeta('Âm dương ' + (kind === 'electric' ? 'điện' : 'nước') + ' (' + mode + ')', period, q), ['Tòa', ...cols.map(([k, l]) => k + ' ' + l), 'Cờ'], rows.map(r => [r.b, ...cols.map(([k]) => r[k] == null ? '' : Math.round(r[k])), (r.flags || []).join('; ')])) });
+  });
+  const invDrawer = (r, kind, period) => {
+    const invs = r.invoices.map(id => Q.invoice(id));
+    const no = kind === 'electric' ? [2, 11] : [3];
+    U.drawer({ title: 'Âm dương ' + (kind === 'electric' ? 'điện' : 'nước') + ' – tòa ' + r.b, sub: F.periodLabel(period) + ' · ' + invs.length + ' hóa đơn', wide: true,
+      body: U.kv([['Phải thu (I)', F.vnd(r.I)], ['Thực thu (H)', F.vnd(r.H)], ['Trừ cọc', F.vnd(r.dep)], ['Phòng trống', F.vnd(r.vac)], ['Chi (L)', r.L != null ? F.vnd(r.L) + ' · ' + esc(r.Lsrc) : 'Chờ hóa đơn chi']])
+        + `<table class="tbl compact mt12"><thead><tr><th>Hóa đơn</th><th>Phòng</th><th class="num">Phải thu</th><th class="num">Đã thu</th></tr></thead><tbody>${invs.map(i => { const ls = Q.lineState(i); return `<tr><td>${TH.auth.can('invoices.view') ? `<a href="#/billing/invoices/${i.id}">${esc(i.code)}</a>` : esc(i.code)}</td><td>${K.room(i.roomId)}</td><td class="num">${F.vnd(no.reduce((t, n) => t + ls[n].amount, 0))}</td><td class="num">${F.vnd(no.reduce((t, n) => t + ls[n].paid, 0))}</td></tr>`; }).join('')}</tbody></table>` });
+  };
+
+  /* ---------- UI-44 ---------- */
+  TH.router.handle('/reports/repairs', (root, p, q) => {
+    const periods = [...new Set(S.all('repairLogs').map(r => r.period))].sort().reverse();
+    const period = q.period || periods[0] || S.meta.period; const mode = q.mode || 'excel'; const by = q.by || 'building';
+    const R = QO.repairs(period, mode, by); const [w0, w1] = Q.repairWindow(period);
+    const prevP = TH.calc.dates.prevPeriod(period); const Rp = periods.includes(prevP) ? QO.repairs(prevP, mode, by) : null; // so sánh tháng trước
+    root.innerHTML = TH.pages.reportTabs('repairs') + U.pageHead({ title: 'Chi phí sửa chữa, vệ sinh', sub: `UI-44 · gộp sổ sửa chữa kỳ ${F.date(w0)} → ${F.date(w1)} (26 → 25); không có sổ vệ sinh riêng (OQ-23)`, acts: [U.btn({ label: 'Xuất Excel', icon: 'download', act: 'exp', perm: 'reports.export' })] })
+      + K.filters([{ name: 'period', label: 'Kỳ sổ', options: periods.map(x => [x, 'Kỳ ' + F.periodShort(x)]), value: period, all: false }, { name: 'mode', label: 'Cách tính', options: [['excel', 'Như Excel – mọi dòng của sheet'], ['web', 'Web – chỉ dòng trong kỳ']], value: 'excel', all: false },
+        { name: 'by', label: 'Gộp theo', options: [['building', 'Tòa'], ['room', 'Phòng'], ['worker', 'Thợ'], ['jobType', 'Loại việc'], ['reason', 'Lý do'], ['bearer', 'Người chịu']], value: 'building', all: false }], q)
+      + '<div class="mt16"></div>' + metaBar('Chi phí sửa chữa, vệ sinh', period, q, 'Sổ sửa chữa UI-47' + (mode === 'excel' ? ' – như Excel SRC-16' : ' – chỉ dòng trong kỳ'))
+      + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Số việc', value: R.totals.jobs, cap: R.totals.outside ? R.totals.outside + ' dòng ngoài kỳ' + (mode === 'excel' ? ' (đang tính)' : ' (không tính)') : '', icon: 'wrench', tone: 'blue' })}${U.kpi({ label: 'Tiền công', value: F.vnd(R.totals.labor), icon: 'users', tone: 'purple' })}
+        ${U.kpi({ label: 'Vật tư', value: F.vnd(R.totals.material), cap: 'tổng ' + F.vnd(R.totals.labor + R.totals.material) + (Rp ? ' · kỳ trước ' + F.vnd(Rp.totals.labor + Rp.totals.material) : ''), icon: 'package', tone: 'green' })}${U.kpi({ label: 'Vệ sinh', value: R.cleaning.jobs + ' việc dọn phòng', cap: F.vnd(R.cleaning.cost) + ' theo sổ · lương vệ sinh ' + (R.cleaning.salary != null ? F.vnd(R.cleaning.salary) : '–') + ' (dòng 35)', icon: 'sparkles', tone: 'amber' })}</div>`
+      + K.tableCard('t', 'Theo ' + { building: 'tòa', room: 'phòng', worker: 'thợ', jobType: 'loại việc', reason: 'lý do', bearer: 'người chịu' }[by] + ' (' + R.rows.length + ')');
+    K.bindFilters(root);
+    U.table(root.querySelector('#t'), { rows: R.rows, pageSize: 25, rowHref: by === 'building' ? (x => '#/repairs?period=' + period + '&mode=' + mode + (x.buildingId ? '&building=' + x.buildingId : '')) : null, cols: [{ key: 'k', label: { building: 'Tòa', room: 'Phòng', worker: 'Thợ', jobType: 'Loại việc', reason: 'Lý do', bearer: 'Người chịu' }[by], render: x => `<b>${esc(x.key)}</b>` },
+      { key: 'j', label: 'Số việc', num: true, sortable: true, sortVal: x => x.jobs, render: x => x.jobs }, { key: 'r', label: 'Số phòng', num: true, render: x => x.rooms }, { key: 'l', label: 'Tiền công', num: true, render: x => F.vnd(x.labor) }, { key: 'm', label: 'Vật tư', num: true, render: x => F.vnd(x.material) },
+      { key: 't', label: 'Tổng', num: true, sortable: true, sortVal: x => x.total, render: x => `<b>${F.vnd(x.total)}</b>` }, ...(by === 'building' ? [{ key: 'pr', label: 'Chi phí / phòng tòa', num: true, render: x => x.perRoom != null ? F.vnd(x.perRoom) : '–' }] : [])],
+      footer: () => `<tr><td><b>Tổng</b></td><td class="num"><b>${R.totals.jobs}</b></td><td></td><td class="num"><b>${F.vnd(R.totals.labor)}</b></td><td class="num"><b>${F.vnd(R.totals.material)}</b></td><td class="num"><b>${F.vnd(R.totals.labor + R.totals.material)}</b></td>${by === 'building' ? '<td></td>' : ''}</tr>` });
+    U.bind(root, { exp: () => K.xls('sua-chua-' + period + '-' + by + '.xls', 'Sửa chữa', xmeta('Chi phí sửa chữa, vệ sinh (' + mode + ')', period, q), ['Nhóm', 'Số việc', 'Số phòng', 'Tiền công', 'Vật tư', 'Tổng'], R.rows.map(x => [x.key, x.jobs, x.rooms, x.labor, x.material, x.total])) });
+  });
+
+  /* ---------- UI-45 ---------- */
+  const VIEWS = { hs: 'HS thực tế / tạm tính', occ: 'Lấp đầy & thời gian trống', pay: 'Đóng đúng hạn / quá hạn', seg: 'Phân khúc khách' };
+  TH.router.handle('/reports/rooms', (root, p, q) => {
+    const period = q.period || S.meta.period; const view = VIEWS[q.view] ? q.view : 'hs';
+    const O = QO.rooms(period, okB(q, period)); const T = O.totals; const bk = T.bucket; const nInv = bk.ontime + bk.d10 + bk.d15 + bk.late + bk.open;
+    root.innerHTML = TH.pages.reportTabs('rooms') + U.pageHead({ title: 'Báo cáo phòng vận hành', sub: 'UI-45 · HS là hiệu suất thu tiền nhà so với giá niêm yết, không phải tỷ lệ lấp đầy', acts: [U.btn({ label: 'Xuất Excel', icon: 'download', act: 'exp', perm: 'reports.export' })] })
+      + K.filters([{ name: 'period', label: 'Kỳ', options: periodOpts(), value: S.meta.period, all: false }, ...scopeFilters()], q)
+      + '<div class="mt16"></div>' + metaBar('Báo cáo phòng vận hành – ' + VIEWS[view], period, q, O.parallel ? 'HS từ bảng lương Excel (kỳ song song); lấp đầy / đúng hạn cần hóa đơn web' : 'Hóa đơn, phiếu thu, lượt thuê trên web')
+      + `<div class="grid grid-4 mb16">${U.kpi({ label: T.hsFinal ? 'HS thực tế' : 'HS (tạm tính – chưa qua mốc ngày ' + O.msDays[2] + ')', value: dec(T.hs), cap: 'HS tạm tính (tiền nhà đã thu) ' + dec(T.hsTemp) + ' · ' + T.rooms + ' phòng · trống ' + T.vac.now + ' ở ngay / ' + T.vac.eom + ' cuối tháng / ' + T.vac.clean + ' cần dọn', icon: 'gauge', tone: 'blue' })}${U.kpi({ label: 'Lấp đầy', value: pct(T.occ), cap: 'thời gian trống bq ' + (T.vacancyDays != null ? dec(T.vacancyDays) + ' ngày' : '–'), icon: 'door', tone: 'green' })}
+        ${U.kpi({ label: 'Đóng đúng hạn (≤ ngày ' + O.msDays[0] + ')', value: pct(nInv ? bk.ontime / nInv : null), cap: `${bk.d10} ngày ${O.msDays[0] + 1}–${O.msDays[1]} · ${bk.d15} ngày ${O.msDays[1] + 1}–${O.msDays[2]} · ${bk.late} sau ${O.msDays[2]} · ${bk.open} chưa đủ`, icon: 'calendar-check', tone: 'purple' })}
+        ${U.kpi({ label: 'Sinh viên / đi làm', value: pct(T.active ? T.students / T.active : null, 0) + ' / ' + pct(T.active ? 1 - T.students / T.active : null, 0), cap: T.active + ' lượt thuê đang ở', icon: 'users', tone: 'amber' })}</div>`
+      + U.tabs(Object.entries(VIEWS).map(([k, l]) => ({ key: k, label: l })), view) + '<div class="mt16">' + K.tableCard('t', O.rows.length + ' tòa') + '</div>';
+    K.bindFilters(root, ['view']);
+    const c = { hs: [{ key: 'hs', label: 'HS thực tế', num: true, sortable: true, sortVal: x => x.hs, render: x => `<b class="${x.hs != null && x.hs < 70 ? 'red' : x.hs > 100 ? 'amber' : ''}">${dec(x.hs)}</b>` }, { key: 'ht', label: 'HS tạm tính', num: true, sortable: true, sortVal: x => x.hsTemp, render: x => dec(x.hsTemp) }],
+      occ: [{ key: 'vg', label: 'Trống: ở ngay / cuối tháng / cần dọn', render: x => x.vac.now + ' / ' + x.vac.eom + ' / ' + x.vac.clean }, { key: 'o', label: 'Lấp đầy', num: true, sortable: true, sortVal: x => x.occ, render: x => pct(x.occ) }, { key: 'v', label: 'Trống bq (ngày)', num: true, sortable: true, sortVal: x => x.vacancyDays, render: x => x.vacancyDays != null ? dec(x.vacancyDays) + ` <small class="muted">(${x.gaps} lượt)</small>` : '–' }],
+      pay: [{ key: 'on', label: '≤ ngày ' + O.msDays[0], num: true, render: x => x.bucket.ontime }, { key: 'd10', label: O.msDays[0] + 1 + '–' + O.msDays[1], num: true, render: x => x.bucket.d10 }, { key: 'd15', label: O.msDays[1] + 1 + '–' + O.msDays[2], num: true, render: x => x.bucket.d15 }, { key: 'l', label: 'Sau ' + O.msDays[2], num: true, render: x => x.bucket.late }, { key: 'op', label: 'Chưa đủ', num: true, render: x => x.bucket.open }, { key: 'p', label: '% đúng hạn', num: true, sortable: true, sortVal: x => x.invoices ? x.bucket.ontime / x.invoices : null, render: x => pct(x.invoices ? x.bucket.ontime / x.invoices : null) }],
+      seg: [{ key: 's', label: 'Sinh viên', num: true, render: x => x.students }, { key: 'w', label: 'Đi làm', num: true, render: x => x.workers }, { key: 'ps', label: '% sinh viên', num: true, sortable: true, sortVal: x => x.active ? x.students / x.active : null, render: x => pct(x.active ? x.students / x.active : null, 0) }] }[view];
+    U.table(root.querySelector('#t'), { rows: O.rows, pageSize: 30, rowHref: x => '#/buildings/' + x.buildingId, cols: [{ key: 'c', label: 'Tòa', render: x => `<b>${esc(x.code)}</b>` }, { key: 'm', label: 'Quản lý', render: x => esc((Q.managerOf(x.buildingId, TH.calc.dates.periodEnd(period)) || {}).name || '–') }, { key: 'r', label: 'Phòng có giá', num: true, render: x => x.rooms }, ...c] });
+    U.bind(root, { tab: (el) => TH.router.setQuery({ view: el.dataset.key }),
+      exp: () => K.xls('phong-van-hanh-' + period + '.xls', 'Phòng vận hành', xmeta('Báo cáo phòng vận hành', period, q), ['Tòa', 'Phòng', 'HS thực tế', 'HS tạm tính', 'Lấp đầy', 'Trống bq (ngày)', 'Đúng hạn', `${O.msDays[0] + 1}-${O.msDays[1]}`, `${O.msDays[1] + 1}-${O.msDays[2]}`, 'Sau ' + O.msDays[2], 'Chưa đủ', 'Sinh viên', 'Đi làm'],
+        O.rows.map(x => [x.code, x.rooms, x.hs != null ? Math.round(x.hs * 100) / 100 : '', x.hsTemp != null ? Math.round(x.hsTemp * 100) / 100 : '', x.occ != null ? Math.round(x.occ * 10000) / 100 : '', x.vacancyDays != null ? Math.round(x.vacancyDays * 10) / 10 : '', x.bucket.ontime, x.bucket.d10, x.bucket.d15, x.bucket.late, x.bucket.open, x.students, x.workers])) });
+  });
+
+  /* ---------- UI-46 ---------- */
+  TH.router.handle('/reports/sales', (root, p, q) => {
+    const period = q.period || S.meta.period; const tab = q.tab === 'doanh-so' ? 'doanh-so' : 'chuyen-doi'; const by = q.by || 'sale';
+    const R = QO.sales(period, by, { building: q.building, area: q.area, sale: q.sale, team: q.team });
+    const label = (k) => by === 'sale' ? (Q.emp(k) || {}).name || k : by === 'team' ? (Q.emp(k) || { name: 'Chưa có trưởng nhóm' }).name : by === 'area' ? (S.get('areas', k) || { name: '–' }).name : by === 'building' ? (Q.building(k) || { code: k }).code : k;
+    root.innerHTML = TH.pages.reportTabs('sales') + U.pageHead({ title: 'Khách hàng & doanh số sale', sub: 'UI-46 · tỷ lệ chuyển đổi = khách chốt / khách xem theo tháng xem (OQ-06; K-8: file khách ghi "xem/chốt"); doanh số theo ngày chốt (OQ-25)', acts: [U.btn({ label: 'Xuất Excel', icon: 'download', act: 'exp', perm: 'reports.export' })] })
+      + K.filters([{ name: 'period', label: 'Kỳ', options: S.all('periods').map(x => [x.id, F.periodLabel(x.id)]), value: S.meta.period, all: false }, { name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'building', label: 'Tòa', options: K.buildingOpts() },
+        { name: 'sale', label: 'Sale', options: Q.salesStaff().filter(e => TH.auth.inSales([e.id])).map(e => [e.id, e.name]) }, { name: 'team', label: 'Team', options: [...new Set(Q.salesStaff().map(e => (Q.leaderOf(e.id) || {}).id).filter(Boolean))].map(id => [id, (Q.emp(id) || {}).name]) }, ...(tab === 'chuyen-doi' ? [{ name: 'by', label: 'Theo', options: [['sale', 'Sale'], ['team', 'Trưởng nhóm'], ['source', 'Nguồn'], ['building', 'Tòa'], ['area', 'Khu vực']], value: 'sale', all: false }] : [])], q)
+      + '<div class="mt16"></div>' + metaBar('Khách hàng & doanh số sale', period, q, 'Khách xem, lượt xem, giao dịch chốt (UI-20, UI-21)')
+      + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Khách có lượt xem', value: R.totals.viewed, icon: 'eye', tone: 'blue' })}${U.kpi({ label: 'Trong đó đã chốt', value: R.totals.closed, icon: 'check-circle', tone: 'green' })}
+        ${U.kpi({ label: 'Tỷ lệ chốt / xem', value: pct(R.totals.rate), cap: 'hiện cả hai số tuyệt đối (K-8)', icon: 'percent', tone: 'purple' })}${U.kpi({ label: 'Doanh số', value: F.vnd(R.totals.volume), cap: 'hủy / bỏ cọc ' + F.vnd(R.totals.cancelled), icon: 'trending-up', tone: 'amber' })}</div>`
+      + U.tabs([{ key: 'chuyen-doi', label: 'Tỷ lệ chuyển đổi' }, { key: 'doanh-so', label: 'Doanh số sale' }], tab) + '<div class="mt16">' + K.tableCard('t', '') + '</div>';
+    K.bindFilters(root, ['tab']);
+    if (tab === 'chuyen-doi') U.table(root.querySelector('#t'), { rows: R.conv, pageSize: 25, cols: [{ key: 'k', label: { sale: 'Sale', team: 'Trưởng nhóm', source: 'Nguồn', building: 'Tòa', area: 'Khu vực' }[by], render: x => esc(label(x.key)) },
+      { key: 'v', label: 'Khách xem', num: true, sortable: true, sortVal: x => x.viewed, render: x => dec(x.viewed, 2) }, { key: 'c', label: 'Khách chốt', num: true, render: x => dec(x.closed, 2) }, { key: 'r', label: '% chốt / xem', num: true, sortable: true, sortVal: x => x.rate, render: x => `<b>${pct(x.rate)}</b>` }] });
+    else U.table(root.querySelector('#t'), { rows: R.volume, pageSize: 25, cols: [{ key: 'n', label: 'Sale', render: x => esc(x.name) }, { key: 'c', label: 'Deal chốt', num: true, render: x => dec(x.count, 2) }, { key: 'v', label: 'Doanh số', num: true, sortable: true, sortVal: x => x.volume, render: x => `<b>${F.vnd(x.volume)}</b>` },
+      { key: 't', label: 'Chỉ tiêu', num: true, render: x => F.vnd(x.target) }, { key: 'p', label: '% chỉ tiêu', num: true, render: x => pct(x.pct, 0) }, { key: 'x', label: 'Hủy / bỏ cọc', num: true, render: x => x.cancelled ? dec(x.cancelled, 2) + ' · ' + F.vnd(x.cancelledVolume) : '–' }] });
+    U.bind(root, { tab: (el) => TH.router.setQuery({ tab: el.dataset.key }),
+      exp: () => tab === 'chuyen-doi' ? K.xls('khach-chuyen-doi-' + period + '.xls', 'Chuyển đổi', xmeta('Báo cáo khách hàng – tỷ lệ chuyển đổi', period, q), ['Nhóm', 'Khách xem', 'Khách chốt', '% chốt / xem'], R.conv.map(x => [label(x.key), Math.round(x.viewed * 100) / 100, Math.round(x.closed * 100) / 100, x.rate != null ? Math.round(x.rate * 10000) / 100 : '']))
+        : K.xls('doanh-so-' + period + '.xls', 'Doanh số', xmeta('Báo cáo doanh số sale', period, q), ['Sale', 'Deal chốt', 'Doanh số', 'Chỉ tiêu', '% chỉ tiêu', 'Hủy / bỏ cọc'], R.volume.map(x => [x.name, Math.round(x.count * 100) / 100, x.volume, x.target, x.pct != null ? Math.round(x.pct * 10000) / 100 : '', x.cancelledVolume])) });
+  });
+})(window.TH);

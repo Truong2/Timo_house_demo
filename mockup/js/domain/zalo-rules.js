@@ -6,7 +6,11 @@
     invoice_issued: 'Hóa đơn phát hành',
     before_due: 'Nhắc trước hạn',
     overdue: 'Quá hạn / công nợ',
+    contract_expiring: 'Sắp hết hợp đồng',
+    refund_paid: 'Đã chi hoàn cọc',
   };
+  /* Sự kiện Phase 2 gắn lượt thuê (không gắn hóa đơn): không kiểm tra lại số nợ, mỗi lượt thuê chỉ gửi một lần cho mỗi sự kiện */
+  Z.STAY_EVENTS = ['contract_expiring', 'refund_paid'];
   /* Chọn người nhận theo quy tắc tại ngày asOf. items: [{invoice, remaining, dueTo, debtFrom, lastSentAt, issued}]
      prm: tham số hiệu lực (zaloRemindBeforeDays). Quá hạn = từ ngày thành công nợ (ngày 6 tháng N, OQ-12);
      repeatDays: không gửi lại cùng hóa đơn + cùng sự kiện trong N ngày; tin phát hành chỉ gửi một lần. */
@@ -22,6 +26,7 @@
   });
   /* Kiểm tra lại số nợ ngay trước khi gửi: đã đủ → bỏ qua; thu một phần → gửi số còn lại */
   Z.recheck = (msg, remaining) => {
+    if (Z.STAY_EVENTS.includes(msg.event)) return { action: 'send', amount: msg.amount };
     if (msg.event !== 'invoice_issued' && remaining <= 0.5) return { action: 'skip', reason: 'Đã thanh toán đủ' };
     return { action: 'send', amount: msg.event === 'invoice_issued' ? msg.amount : remaining };
   };

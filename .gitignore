@@ -8,3 +8,4 @@ Thumbs.db
 tmp/
 docs/uat/**/_rendered/
 output/smoke/
+__pycache__/

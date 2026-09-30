@@ -29,11 +29,67 @@
     }
     if (pend.length) throw new Error('Chưa đủ điều kiện khóa kỳ: ' + pend.join(', '));
     // Chốt số báo cáo tại thời điểm khóa: báo cáo kỳ đã khóa đọc từ ảnh chụp này + dòng điều chỉnh sau khóa
-    const rep = TH.qr.build(period, 'total');
+    const rep = TH.qr.build(period, 'total', 'gd', { noAdj: true }); // A5: không chụp dòng điều chỉnh (tránh cộng hai lần khi mở lại → khóa lại)
     S.remove('reportSnapshots', 'rs_' + period);
     S.add('reportSnapshots', { id: 'rs_' + period, period, base: JSON.parse(JSON.stringify(rep.base)), dep: JSON.parse(JSON.stringify(rep.dep)), sources: rep.sources, at: F.nowISO(), by: _.who() });
-    S.update('periods', period, { status: 'closed', closedAt: F.nowISO(), closedBy: _.who() });
-    _.audit('close', 'period', period, 'Khóa kỳ ' + F.periodShort(period) + ' – chốt số báo cáo'); _.done();
+    // Phase 2 (UI-38 nâng cao): mỗi lần khóa lưu một phiên bản số chốt để so sánh giữa các lần khóa / mở lại
+    const ver = S.where('reportSnapshotVersions', v => v.period === period).length + 1;
+    S.add('reportSnapshotVersions', { id: 'rsv_' + period + '_' + ver, period, version: ver, base: JSON.parse(JSON.stringify(rep.base)), at: F.nowISO(), by: _.who() });
+    S.update('periods', period, { status: 'closed', closedAt: F.nowISO(), closedBy: _.who(), history: [...(p.history || []), { type: 'close', version: ver, at: F.nowISO(), by: _.who() }] });
+    _.audit('close', 'period', period, 'Khóa kỳ ' + F.periodShort(period) + ' – chốt số báo cáo (phiên bản ' + ver + ')'); _.done();
+  };
+  /* ---- Quản lý kỳ nâng cao (UI-38, Phase 2 – [GĐ K-7]): mở lại kỳ đã khóa cần yêu cầu có lý do + duyệt của CẢ admin và kế toán;
+     lịch sử khóa / mở; so sánh số báo cáo giữa hai phiên bản khóa ---- */
+  X.requestReopen = (period, reason) => {
+    _.need('periods.close');
+    if (!TH.ms.on('2')) throw new Error('Mở lại kỳ cần duyệt kép thuộc Phase 2 – ở mốc hiện tại admin dùng "Mở khóa"');
+    const p = S.get('periods', period); if (!p || p.status !== 'closed') throw new Error('Chỉ yêu cầu mở lại kỳ đã khóa');
+    if (p.reopenRequest) throw new Error('Kỳ đã có yêu cầu mở lại đang chờ duyệt');
+    if (!String(reason || '').trim()) { const e = new Error('Nhập lý do mở lại'); e.fields = { reason: 'Nhập lý do mở lại' }; throw e; }
+    S.update('periods', period, { reopenRequest: { reason, by: _.who(), byRole: TH.auth.role(), at: F.nowISO(), approvals: [] } });
+    _.audit('request', 'period', period, 'Yêu cầu mở lại kỳ ' + F.periodShort(period) + ': ' + reason); _.done();
+  };
+  X.approveReopen = (period) => {
+    const role = TH.auth.role();
+    if (!['admin', 'ketoan'].includes(role)) throw new Error('Chỉ admin và kế toán duyệt mở lại kỳ');
+    _.need(role === 'admin' ? 'periods.reopen.admin' : 'periods.reopen.ketoan');
+    const p = S.get('periods', period); const rq = p && p.reopenRequest; if (!rq) throw new Error('Kỳ không có yêu cầu mở lại');
+    if (rq.approvals.some(a => a.role === role)) throw new Error('Vai trò ' + TH.auth.roleLabel(role) + ' đã duyệt – cần người của vai trò còn lại');
+    const approvals = [...rq.approvals, { role, by: _.who(), at: F.nowISO() }];
+    if (approvals.length < 2) { S.update('periods', period, { reopenRequest: Object.assign({}, rq, { approvals }) }); _.audit('approve', 'period', period, 'Duyệt mở lại kỳ ' + F.periodShort(period) + ' (' + TH.auth.roleLabel(role) + ')'); _.done(); return false; }
+    S.update('periods', period, { status: 'open', reopenRequest: null, reopenedAt: F.nowISO(), reopenedBy: approvals.map(a => a.by).join(' + '), reopenReason: rq.reason, history: [...(p.history || []), { type: 'reopen', at: F.nowISO(), by: approvals.map(a => a.by).join(' + '), reason: rq.reason }] });
+    S.remove('reportSnapshots', 'rs_' + period);
+    // D18 [GĐ]: kỳ mở lại → dòng điều chỉnh sau khóa tạm gỡ khỏi báo cáo (kế toán sửa thẳng số gốc, tránh cộng hai lần)
+    const adjs = S.where('adjustments', a => a.entity === 'report' && a.originalPeriod === period && a.status !== 'absorbed');
+    adjs.forEach(a => S.update('adjustments', a.id, { status: 'absorbed', absorbedAt: F.nowISO(), fixed: false }));
+    _.audit('unlock', 'period', period, 'Mở lại kỳ ' + F.periodShort(period) + ' (đủ duyệt admin + kế toán): ' + rq.reason + (adjs.length ? ` · tạm gỡ ${adjs.length} dòng điều chỉnh sau khóa – sửa số gốc` : '')); _.done(); return true;
+  };
+  /* Người gửi yêu cầu rút lại = "hủy"; người khác = "từ chối" (lịch sử phân biệt) */
+  X.cancelReopen = (period, reason) => {
+    _.need('periods.close');
+    if (!TH.ms.on('2')) throw new Error('Yêu cầu mở lại thuộc Phase 2');
+    if (!String(reason || '').trim()) { const e = new Error('Nhập lý do'); e.fields = { reason: 'Nhập lý do' }; throw e; }
+    const p = S.get('periods', period); if (!p || !p.reopenRequest) throw new Error('Không có yêu cầu');
+    const type = p.reopenRequest.by === _.who() ? 'reopen_cancel' : 'reopen_reject';
+    S.update('periods', period, { reopenRequest: null, history: [...(p.history || []), { type, at: F.nowISO(), by: _.who(), reason }] });
+    _.audit('cancel', 'period', period, (type === 'reopen_cancel' ? 'Hủy' : 'Từ chối') + ' yêu cầu mở lại: ' + reason); _.done();
+  };
+  /* D18: đánh dấu dòng điều chỉnh đã gỡ là "đã sửa số gốc" (chỉ để theo dõi) */
+  X.markAdjustmentFixed = (id) => {
+    _.need('expenses.manage');
+    const a = S.get('adjustments', id); if (!a || a.status !== 'absorbed') throw new Error('Chỉ đánh dấu dòng điều chỉnh đã gỡ khi mở lại kỳ');
+    S.update('adjustments', id, { fixed: true, fixedBy: _.who(), fixedAt: F.nowISO() });
+    _.audit('update', 'adjustment', id, 'Đã sửa số gốc cho dòng điều chỉnh kỳ ' + F.periodShort(a.originalPeriod)); _.done();
+  };
+  TH.q.absorbedAdjustments = (period) => S.where('adjustments', a => a.entity === 'report' && a.status === 'absorbed' && (!period || a.originalPeriod === period));
+  TH.q.snapshotVersions = (period) => S.where('reportSnapshotVersions', v => v.period === period).sort((a, b) => a.version - b.version);
+  /* So sánh hai phiên bản khóa: chênh theo tòa × dòng báo cáo nhập liệu */
+  TH.q.compareSnapshots = (period, v1, v2) => {
+    const A = S.get('reportSnapshotVersions', 'rsv_' + period + '_' + v1), B = S.get('reportSnapshotVersions', 'rsv_' + period + '_' + v2);
+    if (!A || !B) return [];
+    const out = []; const bids = new Set([...Object.keys(A.base), ...Object.keys(B.base)]);
+    bids.forEach(b => { const codes = new Set([...Object.keys(A.base[b] || {}), ...Object.keys(B.base[b] || {})]); codes.forEach(c => { const a = (A.base[b] || {})[c] || 0, x = (B.base[b] || {})[c] || 0; if (Math.abs(x - a) > 0.5) out.push({ buildingId: b, code: c, a, b: x, diff: x - a }); }); });
+    return out.sort((p, q) => Math.abs(q.diff) - Math.abs(p.diff));
   };
   /* Điều chỉnh sau khóa: không sửa số đã chốt, ghi dòng điều chỉnh (tòa × dòng báo cáo) có lý do, cộng vào báo cáo kỳ gốc */
   X.addPeriodAdjustment = (d) => {
@@ -49,6 +105,7 @@
   };
   X.unlockPeriod = (period, reason) => {
     _.need('periods.unlock');
+    if (TH.ms.on('2')) throw new Error('Phase 2: mở lại kỳ đã khóa cần "Yêu cầu mở lại" và được cả admin và kế toán duyệt');
     if (!String(reason || '').trim()) throw new Error('Nhập lý do mở khóa');
     S.update('periods', period, { status: 'open', reopenedAt: F.nowISO(), reopenedBy: _.who(), reopenReason: reason });
     S.remove('reportSnapshots', 'rs_' + period);
@@ -65,6 +122,7 @@
     if (!/^[a-z0-9._]{3,32}$/.test(username)) errs.username = 'Tên đăng nhập 3–32 ký tự: a-z, 0-9, dấu chấm, gạch dưới';
     else if (S.one('users', u => u.username === username)) errs.username = 'Tên đăng nhập đã tồn tại';
     if (!RB.ROLES[d.role]) errs.role = 'Chọn vai trò';
+    else if (RB.ROLES[d.role].phase && !TH.ms.on(RB.ROLES[d.role].phase)) errs.role = 'Vai trò thuộc Phase ' + RB.ROLES[d.role].phase + ' – chưa mở ở mốc hiện tại'; // D17
     const emp = d.employeeId ? S.get('employees', d.employeeId) : null;
     if (d.employeeId && !emp) errs.employeeId = 'Nhân viên không tồn tại';
     if (RB.ROLES[d.role] && RB.ROLES[d.role].scope !== 'all' && !emp) errs.employeeId = 'Vai trò có phạm vi theo phân công phải gắn nhân viên';
@@ -78,6 +136,7 @@
     const u = S.get('users', id); if (!u) throw new Error('Không tìm thấy tài khoản');
     const errs = {}; const role = d.role || u.role;
     if (!RB.ROLES[role]) errs.role = 'Chọn vai trò';
+    else if (role !== u.role && RB.ROLES[role].phase && !TH.ms.on(RB.ROLES[role].phase)) errs.role = 'Vai trò thuộc Phase ' + RB.ROLES[role].phase + ' – chưa mở ở mốc hiện tại'; // D17
     const empId = d.employeeId !== undefined ? (d.employeeId || null) : u.employeeId;
     const emp = empId ? S.get('employees', empId) : null; if (empId && !emp) errs.employeeId = 'Nhân viên không tồn tại';
     if (RB.ROLES[role] && RB.ROLES[role].scope !== 'all' && !emp) errs.employeeId = 'Vai trò có phạm vi theo phân công phải gắn nhân viên';

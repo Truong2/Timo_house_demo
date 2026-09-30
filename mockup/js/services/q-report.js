@@ -56,11 +56,12 @@
     src.depreciation = dep; return dep;
   };
   /* type: 'total' | 'business'; bizMode: 'gd' (giả định OQ-10) | 'excel' (tái hiện sheet KD) */
-  QR.build = (period, type = 'total', bizMode = 'gd') => {
+  /* opts.noAdj: bỏ dòng điều chỉnh sau khóa – dùng khi khóa kỳ chụp số (điều chỉnh luôn cộng thêm khi đọc, không nằm trong ảnh chụp) */
+  QR.build = (period, type = 'total', bizMode = 'gd', opts = {}) => {
     const per = S.get('periods', period) || {}; const parallel = per.source === 'excel_parallel';
     let m = {}; let src = {}; let dep;
     const snap = per.status === 'closed' ? S.get('reportSnapshots', 'rs_' + period) : null;
-    const adjs = S.where('adjustments', a => a.entity === 'report' && a.originalPeriod === period);
+    const adjs = opts.noAdj ? [] : S.where('adjustments', a => a.entity === 'report' && a.originalPeriod === period && a.status !== 'absorbed'); // D18: dòng đã gỡ khi mở lại kỳ không cộng
     if (snap) {
       m = JSON.parse(JSON.stringify(snap.base)); dep = snap.dep;
       src = Object.assign({}, snap.sources, { frozen: `Số chốt khi khóa kỳ ${F.datetime(snap.at)} (${snap.by})` + (adjs.length ? ` + ${adjs.length} dòng điều chỉnh sau khóa` : '') });
@@ -171,7 +172,7 @@
       if (pv && code === 'sal_mgr') pv.lines.forEach(l => l.buildings.filter(b => inB(b.buildingId) && b.W).forEach(b => push({ type: pr ? 'Bảng lương (tạm tính)' : 'Bảng lương (xem trước)', label: (Q.emp(l.employeeId) || {}).name + ' · ' + bc(b.buildingId), sub: 'HS ' + (b.HS == null ? '–' : F.dec(b.HS, 2)) + ' · ' + b.J + ' phòng', href: '#/hr/payroll?period=' + period, amount: b.W, buildingId: b.buildingId })));
       if (pv) (pv.buildingCosts || []).filter(c => c.line === code && inB(c.buildingId)).forEach(c => push({ type: 'Bảng lương – nhập tay', label: c.kind === 'repair_labor' ? 'Tiền công ' + ((Q.emp(c.employeeId) || {}).name || '') : c.line === 'sal_clean' ? 'Lương vệ sinh' : 'Lương bảo vệ', sub: c.note, href: '#/hr/payroll?period=' + period + '&tab=nhap-tay', amount: c.amount, buildingId: c.buildingId }));
     }
-    S.where('adjustments', a => a.entity === 'report' && a.originalPeriod === period && a.reportLine === code && inB(a.buildingId)).forEach(a => push({ type: 'Điều chỉnh sau khóa', label: bc(a.buildingId) + ' · ' + a.reason, sub: a.by + ' · ' + F.datetime(a.at), href: '#/settings?tab=ky', amount: a.delta, buildingId: a.buildingId }));
+    S.where('adjustments', a => a.entity === 'report' && a.originalPeriod === period && a.status !== 'absorbed' && a.reportLine === code && inB(a.buildingId)).forEach(a => push({ type: 'Điều chỉnh sau khóa', label: bc(a.buildingId) + ' · ' + a.reason, sub: a.by + ' · ' + F.datetime(a.at), href: '#/settings?tab=ky', amount: a.delta, buildingId: a.buildingId }));
     if (per.status === 'closed') notes.push('Kỳ đã khóa: số báo cáo là số chốt; danh sách giao dịch là dữ liệu hiện tại');
     return { items, parts: null, note: notes.join(' · ') };
   };

@@ -115,8 +115,8 @@
     root.innerHTML = U.pageHead({ title: 'Tòa ' + esc(b.code) + ' ' + U.chip('Nhà ' + b.group, 'blue') + (b.level ? ' ' + U.chip(b.level, 'gray') : ''), back: '#/buildings', sub: `${esc(b.address)} · Quản lý: ${mgr ? esc(mgr.name) : 'chưa phân công'} · Nhận nhà ${F.date(b.operatedFrom)}`,
       acts: [U.btn({ label: 'Chủ nhà / HĐ', icon: 'file-text', href: oc ? '#/owners/' + oc.id : '#', perm: 'owners.view' }), U.btn({ label: 'Sửa hồ sơ tòa', icon: 'pencil', act: 'editb', perm: 'buildings.manage' }), U.btn({ label: 'Thêm phòng', icon: 'plus', cls: 'btn-primary', act: 'addroom', perm: 'buildings.manage' })] })
       + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Lấp đầy', value: F.pctv(real ? occ / real : 0), cap: `${occ}/${real} phòng có khách`, icon: 'door', tone: 'blue' })}
-        ${U.kpi({ label: 'Phải thu ' + F.periodShort(period), value: TH.auth.can('debts.viewAmounts') ? F.vnd(due) : invs.length + ' HĐ', icon: 'receipt', tone: 'teal' })}
-        ${U.kpi({ label: 'Còn nợ', value: TH.auth.can('debts.viewAmounts') ? F.vnd(rem) : invs.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', icon: 'alert-triangle', tone: rem > 0 ? 'red' : 'green' })}
+        ${!TH.auth.can('debts.viewStatus') ? '' : U.kpi({ label: 'Phải thu ' + F.periodShort(period), value: TH.auth.can('debts.viewAmounts') ? F.vnd(due) : invs.length + ' HĐ', icon: 'receipt', tone: 'teal' })}
+        ${!TH.auth.can('debts.viewStatus') ? '' : U.kpi({ label: 'Còn nợ', value: TH.auth.can('debts.viewAmounts') ? F.vnd(rem) : invs.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', icon: 'alert-triangle', tone: rem > 0 ? 'red' : 'green' })}
         ${U.kpi({ label: 'Mẫu hóa đơn', value: TH.calc.billing.TEMPLATES[b.template].name, cap: TH.auth.can('settings.view') ? ((Q.account(b.accountId) || {}).bank || '') + ' ' + ((Q.account(b.accountId) || {}).number || '') : '', icon: 'printer', tone: 'purple', valueCls: 'sm' })}</div>`
       + U.tabs(tabs, tab) + '<div id="tab-body" class="mt16"></div>';
     const body = root.querySelector('#tab-body');
@@ -198,7 +198,7 @@
     { key: 'from', label: 'Kỳ từ', render: o => F.date(o.from) }, { key: 'm', label: 'Số tháng', num: true, render: o => o.months },
     { key: 'due', label: 'Hạn trả', render: o => F.date(o.dueDate) },
     { key: 'amt', label: 'Phải trả', num: true, render: o => F.vnd(o.amountDue) },
-    { key: 'off', label: 'Bù trừ khách chủ nhà', num: true, render: o => { const v = (o.offsets || []).reduce((s, x) => s + x.amount, 0); return v ? `<span data-tip="${esc((o.offsets || []).map(x => (Q.invoice(x.invoiceId) || {}).customerCode + ' ' + F.vnd(x.amount)).join(' · '))}">${F.vnd(v)}</span>` : '–'; } },
+    { key: 'off', label: 'Bù trừ (khách chủ nhà / sửa chữa chủ nhà chịu)', num: true, render: o => { const v = (o.offsets || []).reduce((s, x) => s + x.amount, 0); return v ? `<span data-tip="${esc((o.offsets || []).map(x => (x.repairId ? 'Sửa chữa ' + ((S.get('repairLogs', x.repairId) || {}).code || '') : (Q.invoice(x.invoiceId) || {}).customerCode) + ' ' + F.vnd(x.amount)).join(' · '))}">${F.vnd(v)}</span>` : '–'; } },
     { key: 'paid', label: 'Đã chi (gồm bù trừ)', num: true, render: o => F.vnd(o.paid) },
     { key: 'rem', label: 'Còn phải trả', num: true, render: o => F.vnd(Math.max(0, o.amountDue - o.paid)) },
     { key: 'st', label: 'Trạng thái', render: o => o.paid >= o.amountDue ? U.chip('Đã trả', 'green') : o.dueDate < F.today() ? U.chip('Quá hạn', 'red') : F.daysBetween(F.today(), o.dueDate) <= 7 ? U.chip('Đến hạn ≤ 7 ngày', 'amber') : U.chip('Chưa đến hạn', 'gray') },

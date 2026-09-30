@@ -9,6 +9,8 @@
   D.periodStart = (p) => p + '-01';
   D.periodEnd = (p) => p + '-' + pad(D.daysInMonth(p));
   D.addDays = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1, d + n)); return t.toISOString().slice(0, 10); };
+  /* Cộng n tháng, giữ ngày (kẹp về cuối tháng nếu tháng đích ngắn hơn): 2026-01-31 + 1 → 2026-02-28 */
+  D.addMonths = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); const t = y * 12 + (m - 1) + n; const p = Math.floor(t / 12) + '-' + pad(t % 12 + 1); return p + '-' + pad(Math.min(d, D.daysInMonth(p))); };
   D.diffDays = (a, b) => Math.round((Date.UTC(...b.split('-').map((v, i) => i === 1 ? v - 1 : +v)) - Date.UTC(...a.split('-').map((v, i) => i === 1 ? v - 1 : +v))) / 86400000);
 
   /* Tháng lẻ: số ngày tính = số ngày của tháng − ngày vào + 1 (đếm cả ngày vào); mẫu số = số ngày thực của tháng */

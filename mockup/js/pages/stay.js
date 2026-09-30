@@ -87,12 +87,13 @@
     if (tab === 'hop-dong') {
       const files = S.where('contractFiles', f => f.stayId === s.id);
       tb.innerHTML = `<div class="two-col"><div>${U.card({ title: 'File hợp đồng khách', icon: 'file-text', body: `${U.dropzone({ name: 'hd', hint: 'PDF/ảnh hợp đồng đã ký – lưu bản gốc, gắn lượt thuê', multiple: true, accept: '.pdf,image/*' })}
-          <div class="mt12">${files.map(f => U.fileItem({ name: f.name, size: Math.round(f.size / 1024) + ' KB', date: f.uploadedAt })).join('') || '<span class="muted small">Chưa có file</span>'}</div>
+          <div class="mt12">${files.map(f => { const oc = TH.ms.on('2') && Q.ocrOf ? Q.ocrOf(f.id)[0] : null; return U.fileItem({ name: f.name, size: Math.round(f.size / 1024) + ' KB', date: f.uploadedAt }, TH.ms.on('2') ? (oc ? `<a class="btn btn-xs btn-ghost" href="#/ocr/${oc.id}">OCR phiên ${oc.run} · ${esc({ review: 'chờ rà soát', error: 'lỗi', applied: 'đã áp dụng' }[oc.status])}</a>` : `<button type="button" class="btn btn-xs btn-ghost" data-act="ocr" data-id="${f.id}" data-perm="ocr.review">Đọc OCR</button>`) : ''); }).join('') || '<span class="muted small">Chưa có file</span>'}</div>
           <button type="button" class="btn btn-primary mt12" data-act="upload" data-perm="tenants.manage">Lưu file đã chọn</button>` })}</div>
-        <div>${U.note('info', 'OCR hợp đồng – Phase 2', 'Phase 1 chỉ tải và lưu file gốc. Đọc tự động các trường (người thuê, giá, cọc, phí dịch vụ) và bàn rà soát OCR làm ở Phase 2; giá áp dụng hiện nhập ở tab Biểu phí.')}
+        <div>${TH.ms.on('2') ? U.note('info', 'OCR hợp đồng (UI-08)', 'Đọc tự động người thuê, ngày, giá, cọc, biểu phí → màn rà soát đặt bản gốc cạnh từng trường (độ tin cậy, trang/vùng). Chỉ áp dụng vào biểu phí khi đủ trường bắt buộc và đã rà mọi nhóm; OCR không ghi vào hóa đơn.') : U.note('info', 'OCR hợp đồng – Phase 2', 'Phase 1 chỉ tải và lưu file gốc. Đọc tự động các trường (người thuê, giá, cọc, phí dịch vụ) và bàn rà soát OCR làm ở Phase 2; giá áp dụng hiện nhập ở tab Biểu phí.')}
         ${U.card({ title: 'Điều kiện hợp đồng', icon: 'list', body: U.kv([['Giá thuê', F.vndd(s.rent)], ['Giá niêm yết phòng', F.vndd(room.listPrice)], ['Cọc', F.vndd(s.depositAmount)], ['Thời hạn', F.date(s.rentStart) + ' → ' + F.date(s.endDate)], ['Kỳ trả', (s.payMonths || 1) + ' tháng/lần']]) })}</div></div>`;
       U.bindDropzones(tb);
-      U.bind(tb, { upload: () => { const fs = U.dzFiles(tb, 'hd'); if (!fs.length) return U.toast('warn', 'Chọn file trước'); fs.forEach(f => X.addContractFile(s.id, { name: f.name, size: f.size })); U.toast('ok', 'Đã lưu ' + fs.length + ' file'); } });
+      U.bind(tb, { upload: () => { const fs = U.dzFiles(tb, 'hd'); if (!fs.length) return U.toast('warn', 'Chọn file trước'); fs.forEach(f => X.addContractFile(s.id, { name: f.name, size: f.size })); U.toast('ok', 'Đã lưu ' + fs.length + ' file'); },
+        ocr: (el) => { const o = K.act(() => X.runOcr(el.dataset.id)); if (o) TH.go('#/ocr/' + o.id); } });
     }
     if (tab === 'bieu-phi') {
       const vs = S.where('rateVersions', v => v.stayId === s.id).sort((a, b) => String(b.from).localeCompare(String(a.from)));
@@ -116,7 +117,9 @@
     }
     if (tab === 'zalo') {
       const msgs = S.where('zaloMessages', m => m.stayId === s.id);
+      const inbox = TH.ms.on('2') && (TH.auth.can('zalo.inbox') || TH.auth.can('zalo.view')) && Q.inboxScoped ? Q.inboxScoped().filter(x => x.stayId === s.id) : null;
       tb.innerHTML = U.card({ title: 'Lịch sử tin Zalo', icon: 'message', body: msgs.map(m => `<div class="mini-row"><span>${F.datetime(m.sentAt)}</span><span class="grow">${esc(m.text || TH.calc.zalo.EVENTS[m.event])}</span>${({ delivered: U.chip('Đã nhận', 'green'), failed: U.chip('Lỗi ' + (m.error || ''), 'red'), skipped_paid: U.chip('Bỏ qua – đã thanh toán', 'gray'), queued: U.chip('Chờ gửi', 'blue') })[m.status] || ''}</div>`).join('') || '<span class="muted small">Chưa có tin</span>' });
+      if (inbox) { tb.insertAdjacentHTML('beforeend', '<div class="mt16">' + K.tableCard('ibx', 'Phản hồi của khách (hộp thư Zalo – Phase 2)') + '</div>'); TH.pages.inboxTable(tb.querySelector('#ibx'), inbox); }
     }
     U.bind(root, {
       tab: (el) => TH.router.setQuery({ tab: el.dataset.key }),

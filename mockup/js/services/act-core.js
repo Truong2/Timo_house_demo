@@ -7,6 +7,8 @@
     done: (what = 'change', detail) => { S.emit('change', detail); },
     audit: (action, entity, id, summary) => S.audit(action, entity, id, summary),
     who: () => (S.session && S.session.name) || 'Hệ thống',
+    /* D12: loại file được nhận (tài liệu, file HĐ khách) */
+    checkFile: (name) => { if (!/\.(pdf|jpe?g|png|docx?|xlsx?)$/i.test(String(name || '').trim())) { const e = new Error('Chỉ nhận file PDF, ảnh (JPG/PNG), Word hoặc Excel'); e.fields = { name: e.message }; throw e; } },
     /* Kỳ đã khóa: chỉ được tạo dòng điều chỉnh có lý do (1B) */
     guardPeriod: (period, what = 'thao tác') => {
       const p = S.get('periods', period);

@@ -25,11 +25,11 @@ PASS  P0-7a  Không khóa kỳ khi chưa chốt lương/phân bổ (bỏ "force"
 PASS  P0-7b  Sau khóa: chặn tính lại lương, duyệt cờ, tham số/phân công/giá chủ nhà hiệu lực trong kỳ
       bị chặn 5/5: computePayroll=chặn, approveFlag=chặn, setParam=chặn, assign=chặn, ownerRate=chặn
 PASS  P0-7c  Sau khóa: đổi dữ liệu nguồn không làm đổi LNR kỳ đã khóa
-      LNR T9 lúc khóa 3313182481 → sau khi đổi hồ sơ NV + giá 200 phòng 3313182481
+      LNR T9 lúc khóa 3294080204 → sau khi đổi hồ sơ NV + giá 200 phòng 3294080204
 PASS  P0-7d  Điều chỉnh sau khóa: bắt buộc lý do, số điều chỉnh vào báo cáo kỳ gốc
-      không lý do: chặn; +1.000.000 chi phí khác G1 → LNR 3312182481
+      không lý do: chặn; +1.000.000 chi phí khác G1 → LNR 3293080204
 PASS  P0-8  Kỳ live: tổng phân bổ = tổng chứng từ quỹ (không phụ phí "ảo"); kỳ 08 vẫn tái hiện công thức G1
-      trước khi có chứng từ: phân bổ 0; sau chốt lương: chứng từ quỹ 125513847 → phân bổ 125513847 · kỳ 08 G1 kế toán 181708 (Excel 181.708) · sal_gm: quỹ 12000000 → phân bổ 12000000 · sal_head: quỹ 25470000 → phân bổ 25470000 · sal_lead: quỹ 15690000 → phân bổ 15690000 · sal_source: quỹ 4000000 → phân bổ 4000000 · sal_sales: quỹ 66453847 → phân bổ 66453847 · sal_acct: quỹ 500000 → phân bổ 500000 · sal_repair: quỹ 1400000 → phân bổ 1400000 · office: quỹ 0 → phân bổ 0 · marketing: quỹ 0 → phân bổ 0
+      trước khi có chứng từ: phân bổ 0; sau chốt lương: chứng từ quỹ 146513847 → phân bổ 146513847 · kỳ 08 G1 kế toán 181708 (Excel 181.708) · sal_gm: quỹ 12000000 → phân bổ 12000000 · sal_head: quỹ 25470000 → phân bổ 25470000 · sal_lead: quỹ 15690000 → phân bổ 15690000 · sal_source: quỹ 4000000 → phân bổ 4000000 · sal_sales: quỹ 66453847 → phân bổ 66453847 · sal_acct: quỹ 500000 → phân bổ 500000 · sal_repair: quỹ 22400000 → phân bổ 22400000 · office: quỹ 0 → phân bổ 0 · marketing: quỹ 0 → phân bổ 0
 PASS  P0-9a  Leader không xem được HĐ chủ nhà / biểu phí / tài chính tòa qua ?tab=
       chu-nha-hd: không lộ · bieu-phi: không lộ · tai-chinh: không lộ
 PASS  P0-9b  Vận hành không mở được hóa đơn/phiếu hoàn của tòa ngoài phạm vi (in, chi tiết, sửa)

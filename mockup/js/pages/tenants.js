@@ -51,13 +51,13 @@
     const rooms = S.all('rooms').filter(r => r.exploitation !== 'meter_common' && TH.auth.inScope(r.buildingId) && !Q.pendingStay(r.id)).sort((a, b) => a.code.localeCompare(b.code));
     const r0 = q.room ? Q.room(q.room) : null;
     const in30 = F.addDays(F.today(), 2);
-    root.innerHTML = U.pageHead({ title: 'Tạo khách & lượt thuê', back: '#/tenants', sub: 'Chưa có module Kinh doanh ở Phase 1: khách đã cọc giữ phòng được ghi là lượt thuê "chờ nhận"' })
+    root.innerHTML = U.pageHead({ title: 'Tạo khách & lượt thuê', back: '#/tenants', sub: TH.ms.on('2') ? 'Khách chốt chờ nhận tạo từ Kinh doanh → Giao dịch chốt (UI-21); ở đây chỉ nhập khách vào ở ngay / chuyển đổi dữ liệu' : 'Chưa có module Kinh doanh ở Phase 1: khách đã cọc giữ phòng được ghi là lượt thuê "chờ nhận"' })
       + `<form id="f" class="two-col"><div class="side-stack">
         ${U.card({ title: '1. Khách thuê', icon: 'user', body: `<div class="form-grid">${U.field({ label: 'Họ tên', req: true, name: 'name', input: U.input({ name: 'name' }) })}${U.field({ label: 'SĐT (Zalo)', req: true, name: 'phone', input: U.input({ name: 'phone', placeholder: '09xxxxxxxx' }) })}
           ${U.field({ label: 'CCCD', name: 'idNo', input: U.input({ name: 'idNo' }) })}${U.field({ label: 'Nghề nghiệp (phân khúc khách)', name: 'occupation', input: U.select({ name: 'occupation', value: 'Người đi làm', options: ['Sinh viên', 'Người đi làm'] }) })}
           ${U.field({ label: '', name: 'zaloLinked', input: U.check({ name: 'zaloLinked', label: 'Khách đã liên kết Zalo', checked: true }) })}</div>` })}
         ${U.card({ title: '2. Phòng & thời hạn', icon: 'door', body: `<div class="form-grid">${U.field({ label: 'Phòng', req: true, name: 'roomId', input: U.select({ name: 'roomId', value: r0 ? r0.id : '', placeholder: 'Chọn phòng', options: rooms.map(r => [r.id, r.code + (Q.currentStay(r.id) ? ' – đang có khách (chỉ tạo chờ nhận)' : ' – trống')]) }) })}
-          ${U.field({ label: 'Trạng thái lượt thuê', name: 'status', input: U.select({ name: 'status', value: 'pending', options: [['pending', 'Chờ nhận – đã cọc, chưa vào ở'], ['active', 'Vào ở ngay']] }) })}
+          ${U.field({ label: 'Trạng thái lượt thuê', name: 'status', input: U.select({ name: 'status', value: TH.ms.on('2') ? 'active' : 'pending', options: TH.ms.on('2') ? [['active', 'Vào ở ngay']] : [['pending', 'Chờ nhận – đã cọc, chưa vào ở'], ['active', 'Vào ở ngay']] }) })}
           ${U.field({ label: 'Ngày chốt / đặt cọc', req: true, name: 'dealDate', input: U.date({ name: 'dealDate', value: F.today() }) })}
           ${U.field({ label: 'Ngày tính tiền phòng', req: true, name: 'rentStart', input: U.date({ name: 'rentStart', value: in30 }), help: 'Vào giữa tháng → hóa đơn đầu chia theo ngày thực của tháng' })}
           ${U.field({ label: 'Ngày bắt đầu tính dịch vụ', name: 'svcStart', input: U.date({ name: 'svcStart' }), help: 'Để trống = trùng ngày tính tiền phòng' })}

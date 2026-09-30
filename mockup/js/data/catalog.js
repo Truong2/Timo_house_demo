@@ -22,6 +22,10 @@ TH.data.catalog = {
     { key: 'bizDepreciation', type: 'bool', label: 'Báo cáo kinh doanh tính khấu hao thiết bị', value: true, unit: '', oq: 'OQ-10', group: 'Báo cáo' },
     { key: 'depRate', type: 'pct', min: 0, max: 0.2, label: 'Tỷ lệ khấu hao thiết bị/tháng (cộng dồn)', value: 0.016, unit: '', oq: 'OQ-11', group: 'Báo cáo' },
     { key: 'zaloRemindBeforeDays', type: 'int', min: 0, max: 15, label: 'Nhắc Zalo trước hạn', value: 2, unit: 'ngày', oq: 'CH-34', group: 'Zalo' },
+    /* --- Phase 2 --- */
+    { key: 'salesTarget', type: 'money', min: 0, max: 2000000000, label: 'Chỉ tiêu doanh số sale / tháng (Σ giá chốt)', value: 40000000, unit: 'đ', oq: 'OQ-25', group: 'Kinh doanh' },
+    { key: 'repairCycleStartDay', type: 'int', min: 1, max: 28, label: 'Sổ sửa chữa: kỳ bắt đầu từ ngày (tháng trước) đến ngày trước đó tháng này', value: 26, unit: 'ngày', oq: 'OQ-23', group: 'Sửa chữa' },
+    { key: 'amduongVacantInIncome', type: 'bool', label: 'Âm dương: tính điện/nước phòng trống, không thu được vào tổng thu (như Excel)', value: true, unit: '', oq: 'OQ-20', group: 'Báo cáo' },
   ].map(p => Object.assign({ effectiveFrom: '2026-01-01', effectiveTo: null }, p)),
 
   /* Loại phí & ánh xạ dòng in */
@@ -166,11 +170,14 @@ TH.data.catalog = {
 
   /* Tài khoản demo (mật khẩu bất kỳ). empKey trỏ nhân viên trong seed. */
   users: [
-    { username: 'admin', role: 'admin', empKey: 'NGUYEN THI HANG', display: 'Quản trị hệ thống' },
-    { username: 'ketoan', role: 'ketoan', empKey: 'NGUYEN THI NGOC', display: 'Kế toán' },
-    { username: 'vanhanh', role: 'vanhanh', empKey: 'NGUYEN THI THUONG HUYEN', display: 'Nhân viên vận hành' },
-    { username: 'leader', role: 'leader', empKey: 'TRAN QUANG HUY', display: 'Trưởng nhóm vận hành' },
-    { username: 'truongphong', role: 'truongphong', empKey: 'DANG DINH MANH', display: 'Trưởng phòng vận hành' },
+    { username: 'admin', role: 'admin', empKey: 'NV16536766', display: 'Quản trị hệ thống' },
+    { username: 'ketoan', role: 'ketoan', empKey: 'NV49413627', display: 'Kế toán' },
+    { username: 'vanhanh', role: 'vanhanh', empKey: 'NV20113331', display: 'Nhân viên vận hành' },
+    { username: 'leader', role: 'leader', empKey: 'NV33066843', display: 'Trưởng nhóm vận hành' },
+    { username: 'truongphong', role: 'truongphong', empKey: 'NV26134536', display: 'Trưởng phòng vận hành' },
+    { username: 'truongkd', role: 'truongkd', empKey: 'NV70522410', display: 'Trưởng nhóm kinh doanh', phase: '2' },
+    { username: 'sale', role: 'sale', empKey: 'NV42064945', display: 'Nhân viên kinh doanh', phase: '2' },
+    { username: 'kythuat', role: 'kythuat', empKey: 'NV94361688', display: 'Thợ sửa chữa', phase: '2' },
   ],
 
   zaloTemplates: [
@@ -180,10 +187,16 @@ TH.data.catalog = {
       body: 'Nhắc thanh toán phòng {{phong}}: còn {{sotien}}đ, hạn {{han}}. Nội dung CK: {{noidung}}.' },
     { id: 'zt_overdue', name: 'Nhắc công nợ quá hạn', event: 'overdue', status: 'approved', cost: 300,
       body: 'Phòng {{phong}} còn nợ {{sotien}}đ kỳ {{ky}} đã quá hạn. Vui lòng thanh toán, nội dung CK: {{noidung}}.' },
+    { id: 'zt_expiring', name: 'Thông báo sắp hết hợp đồng', event: 'contract_expiring', status: 'approved', cost: 300, phase: '2',
+      body: 'Hợp đồng phòng {{phong}} hết hạn ngày {{han}}. Anh/chị vui lòng báo gia hạn hoặc trả phòng với quản lý tòa.' },
+    { id: 'zt_refund', name: 'Thông báo đã chi hoàn cọc', event: 'refund_paid', status: 'approved', cost: 300, phase: '2',
+      body: 'TimoHouse đã chi hoàn cọc phòng {{phong}}: {{sotien}}đ ngày {{han}}. Cảm ơn anh/chị đã ở cùng TimoHouse.' },
   ],
   zaloRules: [
     { id: 'zr_issue', name: 'Gửi khi phát hành hóa đơn', event: 'invoice_issued', templateId: 'zt_invoice', on: true, time: '09:00' },
     { id: 'zr_before', name: 'Nhắc trước hạn (số ngày theo tham số)', event: 'before_due', templateId: 'zt_before', on: true, time: '09:00' },
     { id: 'zr_overdue', name: 'Nhắc công nợ từ ngày 6', event: 'overdue', templateId: 'zt_overdue', on: true, time: '10:00', repeatDays: 3 },
+    { id: 'zr_expiring', name: 'Báo sắp hết HĐ (35 ngày – tham số)', event: 'contract_expiring', templateId: 'zt_expiring', on: true, time: '09:00', phase: '2' },
+    { id: 'zr_refund', name: 'Báo đã chi hoàn cọc', event: 'refund_paid', templateId: 'zt_refund', on: true, time: '16:00', phase: '2' },
   ],
 };

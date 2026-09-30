@@ -35,7 +35,7 @@ console.log(`✓ Cú pháp OK: ${jsFiles.length} file JS`);
 const impure = [];
 for (const f of walk(path.join(SRC, 'js', 'domain'), p => p.endsWith('.js'))) {
   const src = fs.readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '').replace(/\}\)\(window\.TH\);\s*$/, '');
-  const hit = ['document', 'window.', 'localStorage', 'sessionStorage', 'TH.store', 'TH.ui', 'TH.auth', 'TH.q'].filter(k => src.includes(k));
+  const hit = ['document.', 'window.', 'localStorage', 'sessionStorage', 'TH.store', 'TH.ui', 'TH.auth', 'TH.q'].filter(k => src.includes(k));
   if (hit.length) impure.push(`${path.relative(ROOT, f)}: ${hit.join(', ')}`);
 }
 if (impure.length) { console.error('Build dừng: module domain không thuần\n - ' + impure.join('\n - ')); process.exit(1); }

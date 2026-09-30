@@ -14,7 +14,12 @@
     return { cols: filtered ? TH.calc.report.aggregate(sub, b => (Q.building(b) || {}).group) : rep.cols, sub, filtered };
   };
   const filterBar = (q, extra = []) => K.filters([{ name: 'period', label: 'Kỳ', options: periods(), value: '2026-08', all: false }, ...extra, { name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'building', label: 'Tòa', options: K.buildingOpts() }], q);
-  TH.pages.reportTabs = (cur) => `<div class="subnav">${[['hub', 'Báo cáo', '#/reports'], ['total', 'Báo cáo tổng', '#/reports/total'], ['business', 'Báo cáo kinh doanh', '#/reports/business'], ['buildings', 'Báo cáo theo tòa', '#/reports/buildings']].map(([k, l, h]) => `<a class="${k === cur ? 'on' : ''}" href="${h}">${l}</a>`).join('')}</div>`;
+  /* Phase 2 thêm các báo cáo vận hành / kinh doanh (UI-42 → UI-46) khi đã mở mốc 2 và có quyền reports.ops */
+  const P2TABS = [['costs', 'Chi phí', '#/reports/costs'], ['amduong', 'Âm dương', '#/reports/amduong'], ['repairs', 'Sửa chữa', '#/reports/repairs'], ['rooms', 'Phòng vận hành', '#/reports/rooms'], ['sales', 'Khách & doanh số', '#/reports/sales']];
+  TH.pages.reportTabs = (cur) => `<div class="subnav">${[['hub', 'Báo cáo', '#/reports'], ['total', 'Báo cáo tổng', '#/reports/total'], ['business', 'Báo cáo kinh doanh', '#/reports/business'], ['buildings', 'Báo cáo theo tòa', '#/reports/buildings'],
+    ...(TH.ms.on('2') && TH.auth.can('reports.ops') ? P2TABS : [])].map(([k, l, h]) => `<a class="${k === cur ? 'on' : ''}" href="${h}${keepQ(h)}">${l}</a>`).join('')}</div>`;
+  /* Giữ bộ lọc chung (kỳ, khu vực, nhóm, quản lý, tòa) khi chuyển giữa các báo cáo (đặc tả UI-27) */
+  const keepQ = (h) => { const qq = (TH.router.parse ? TH.router.parse().query : {}) || {}; const p = ['period', 'area', 'group', 'manager', 'building'].filter(k => qq[k]).map(k => k + '=' + encodeURIComponent(qq[k])).join('&'); return p ? (h.includes('?') ? '&' : '?') + p : ''; };
 
   TH.router.handle('/reports', (root, p, q) => {
     const period = q.period || '2026-08';
@@ -26,6 +31,8 @@
         <div class="grid grid-3 mt12"><div><small class="muted">Doanh thu</small><b class="d-block">${F.vnd(v.rev_total)}</b></div><div><small class="muted">Tổng chi phí</small><b class="d-block">${F.vnd(v.tcp)}</b></div><div><small class="muted">LN ròng</small><b class="d-block ${v.lnr >= 0 ? 'green' : 'red'}">${F.vnd(v.lnr)}</b></div></div>
         <div class="mt12 small muted">Tỷ lệ LNR/DT ${F.pctv(v.r_lnr_dt)} · LNR/GV ${F.pctv(v.r_lnr_gv)}</div></div></a>`).join('')}</div>`
       + `<div class="mt16">${U.card({ title: 'Nguồn số liệu kỳ ' + F.periodShort(period), icon: 'database', body: U.kv([['Doanh thu', esc(t.sources.revenue)], ['Lương quản lý', esc(t.sources.payroll)], ['Phân bổ chung', esc(t.sources.allocation)], ['Khấu hao kỳ (BC kinh doanh)', F.vndd(t.dep.total) + ' · ' + t.dep.detail.length + ' thiết bị']]) + (t.parallel ? U.note('info', 'Kỳ chạy song song Excel', 'Tháng 08/2026 chưa có hóa đơn trên web: doanh thu lấy từ SRC-04; chi phí lấy từ chi phí ghi trên web + bảng lương + phân bổ tính trên web. Báo cáo hiện cột Excel và chênh lệch để giải thích trước khi bỏ file.') : '') })}</div>`;
+    // Phase 2: trung tâm báo cáo 4 nhóm (UI-27 đầy đủ) – thẻ có công thức, kỳ dữ liệu mới nhất, trạng thái
+    if (TH.ms.on('2') && TH.pages.reportHubP2) { root.querySelector('.page-head .sub') && (root.querySelector('.page-head .sub').textContent = 'Trung tâm báo cáo 4 nhóm: kết quả kinh doanh, vận hành, kinh doanh, theo tòa · không gộp Báo cáo tổng và Báo cáo kinh doanh thành một số LN'); root.insertAdjacentHTML('beforeend', TH.pages.reportHubP2()); }
     K.bindFilters(root, []);
   });
 

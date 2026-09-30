@@ -32,6 +32,8 @@
     if (e.source === 'payroll') throw new Error('Chi phí lương sinh từ bảng lương đã chốt – điều chỉnh ở bảng lương');
     S.update('expenses', id, { status: 'void', voidReason: reason, voidBy: _.who() });
     // Hủy khoản chi tiền nhà → trả lại số đã chi của kỳ trả chủ nhà (UI-05)
+    // Hủy chứng từ chi hoa hồng (UI-22) → gỡ đợt chi, dòng hoa hồng chi lại được
+    if (e.source === 'commission' && e.refId) { const c = S.get('commissions', e.refId); if (c) S.update('commissions', c.id, { installments: (c.installments || []).filter(i => i.expenseId !== id), status: c.status === 'paid' ? 'approved' : c.status }); }
     if (e.source === 'ownerPayment' && e.refId) { const op = S.get('ownerPayments', e.refId); if (op) S.update('ownerPayments', op.id, { paid: Math.max(0, (op.paid || 0) - e.amount), expenseIds: (op.expenseIds || []).filter(x => x !== id) }); }
     _.audit('void', 'expense', id, `Hủy chi phí ${e.code}: ${reason}`); _.done();
   };

@@ -98,12 +98,46 @@ def h(key, mod=None):
     return v % mod if mod else v
 
 
+def ekey(name):
+    """Mã nhân viên ẩn danh: NV + 8 số băm từ tên chuẩn hóa – không suy ngược ra tên thật (id = emp_NV########).
+    Không gọi pseudo() để không đổi thứ tự cấp tên giả hiển thị."""
+    n = norm(name)
+    return f'NV{h("emp:" + n, 10 ** 8):08d}' if n else ''
+
+
 # ---------- bút danh ----------
 HO = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Huỳnh', 'Phan', 'Vũ', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý', 'Mai', 'Trịnh']
 DEM = ['Văn', 'Thị', 'Minh', 'Thu', 'Hoàng', 'Ngọc', 'Quang', 'Thanh', 'Đức', 'Hải', 'Anh', 'Gia', 'Bảo', 'Khánh', 'Phương', 'Tuấn', 'Diệu', 'Hữu']
 TEN = ['An', 'Bình', 'Châu', 'Dũng', 'Giang', 'Hà', 'Hạnh', 'Hiếu', 'Hoa', 'Huy', 'Khánh', 'Lan', 'Linh', 'Long', 'Mai', 'Nam', 'Ngân', 'Nhung',
        'Phong', 'Phúc', 'Quân', 'Sơn', 'Tâm', 'Thảo', 'Trang', 'Trung', 'Tuấn', 'Vân', 'Vy', 'Yến', 'Đạt', 'Hùng', 'Loan', 'Minh', 'Oanh', 'Tú']
 _used = {}
+_reserved = None
+
+
+def reserved():
+    """Tên thật có thể xuất hiện trong mọi file nguồn (chủ tài khoản điện nước, khách, nhân viên, cổ đông, người nhận hoa hồng…):
+    mọi cụm 3 từ liên tiếp của ô chữ trong các file .xlsx ở docs_timonouse, đã chuẩn hóa. Bút danh không được trùng một cụm nào (D19)."""
+    global _reserved
+    if _reserved is None:
+        _reserved = set()
+        for dp, _, fs in os.walk(SRC):
+            for fn in fs:
+                if not fn.lower().endswith('.xlsx') or fn.startswith('~$'):
+                    continue
+                try:
+                    wb = openpyxl.load_workbook(os.path.join(dp, fn), read_only=True, data_only=True)
+                except Exception:
+                    continue
+                for ws in wb.worksheets:
+                    for row in ws.iter_rows(values_only=True):
+                        for v in row:
+                            if isinstance(v, str) and len(v) < 300:
+                                w = [t for t in re.split(r'[^A-Z]+', norm(v)) if t]
+                                for j in range(len(w) - 2):
+                                    _reserved.add(' '.join(w[j:j + 3]))
+                wb.close()
+        log(f'  bút danh: {len(_reserved):,} cụm 3 từ trong file nguồn được loại trừ')
+    return _reserved
 
 
 def pseudo(key, scope='person'):
@@ -114,7 +148,7 @@ def pseudo(key, scope='person'):
     while True:
         hv = h(k + '#' + str(i))
         name = f'{HO[hv % len(HO)]} {DEM[(hv // 7) % len(DEM)]} {TEN[(hv // 131) % len(TEN)]}'
-        if name not in _used.values():
+        if name not in _used.values() and norm(name) not in reserved():  # D19: không trùng tên thật trong file nguồn
             _used[k] = name
             return name
         i += 1
@@ -367,7 +401,7 @@ def main():
         title = s3v.cell(r, 3).value
         bcode = s3v.cell(r, 9).value
         if name and title:
-            cur = dict(key=norm(name), name=pseudo(name), title=str(title).strip(), row=r,
+            cur = dict(key=ekey(name), name=pseudo(name), title=str(title).strip(), row=r,
                        base=num(s3v.cell(r, 4).value), lunch=num(s3v.cell(r, 5).value), fuel=num(s3v.cell(r, 6).value),
                        lead=num(s3v.cell(r, 7).value), support=num(s3v.cell(r, 8).value), total=num(s3v.cell(r, 23).value),
                        net=num(s3v.cell(r, 24).value), leadF=str(s3f.cell(r, 7).value or ''), baseF=str(s3f.cell(r, 4).value or ''), buildings=[])
@@ -397,16 +431,17 @@ def main():
     for p in payroll:
         emps[p['key']] = dict(key=p['key'], name=p['name'], title=p['title'].upper().replace('KĨ', 'KỸ'))
     for x in rows:
-        k = norm(x['mgr'])
+        k = ekey(x['mgr'])
         if k and k not in emps:
             emps[k] = dict(key=k, name=pseudo(x['mgr']), title='NVVH')
 
     # tòa
     bcodes = sorted({x['b'] for x in rows} | set(report['byBuilding']), key=lambda c: (c[0], int(re.sub(r'\D', '', c) or 0), c))
-    mgrOfB = {}
+    mgrOfB, mgrReal = {}, {}
     for x in rows:
         if x['kind'] == 'NHA' and x['mgr']:
-            mgrOfB.setdefault(x['b'], norm(x['mgr']))
+            mgrOfB.setdefault(x['b'], ekey(x['mgr']))
+            mgrReal.setdefault(x['b'], norm(x['mgr']))  # chỉ dùng nội bộ để chọn mẫu hóa đơn, không ghi ra file
     buildings = []
     for c in bcodes:
         grp = grpOf.get(c, c[0] if c[0] in 'TSG' else 'S')
@@ -415,7 +450,7 @@ def main():
         buildings.append(dict(code=c, group=grp, areaId=a[0], level=report['level'].get(c), ownerRent=bb.get(20, 0) or 0,
                               address=f'Số {10 + h("addr:" + c, 180)} ngõ {h("ngo:" + c, 300) + 1} {STREETS[h("st:" + c, len(STREETS))]}, Hà Nội',
                               managerKey=mgrOfB.get(c), vendor=vendors.get(c),
-                              template={'T': 'TECH', 'G': 'G1_TECH'}.get(grp, 'VP_HANG' if norm(mgrOfB.get(c, '')).startswith('NGUYEN THI THUONG') else 'VP')))
+                              template={'T': 'TECH', 'G': 'G1_TECH'}.get(grp, 'VP_HANG' if mgrReal.get(c, '').startswith('NGUYEN THI THUONG') else 'VP')))
 
     # phòng + lượt thuê + hóa đơn
     rooms, stays, invoices, payments, depositLedger, customers = {}, [], [], [], [], []
@@ -475,7 +510,7 @@ def main():
         if rr['extraDays']:
             end = f'2026-09-{rr["extraDays"]:02d}'
         cid = mk_customer(code, 1)
-        stays.append(dict(code=code, room=rr['room'], b=rr['b'], customerId=cid, status='ended', endType='expired', mgr=norm(rr['mgr']),
+        stays.append(dict(code=code, room=rr['room'], b=rr['b'], customerId=cid, status='ended', endType='expired', mgr=ekey(rr['mgr']),
                           moveIn=None, rentStart=None, svcStart=None, endDate=end, noticeDate=None, deposit=rr['deposit'],
                           depositStatus='refunded' if 'hoàn' in rr['status'].lower() else 'refund_pending', rent=0, people=1, source='HOÀN CỌC'))
         refundStayByRoom.setdefault(rr['room'], []).append(code)
@@ -519,7 +554,7 @@ def main():
         dep = x['dh'] or x['dep']
         if x['kind'] in ('PM9', 'PM10'):
             dep = x['dep']
-        mgr = norm(x['mgr'])
+        mgr = ekey(x['mgr'])
         stays.append(dict(code=stayCode, room=code_room, b=x['b'], customerId=cid, status=status, endType=endType, mgr=mgr,
                           moveIn=start, rentStart=start, svcStart=start, endDate=end, deposit=dep, depositStatus=depStatus,
                           rent=x['monthly'], list=x['list'], people=x['pp'] or 1,

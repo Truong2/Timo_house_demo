@@ -1,19 +1,39 @@
-/* UI-01 Tổng quan: 3 loại phòng trống, tiến độ thu theo mốc 5/10/15, việc cần xử lý. Chỉ đọc. */
+/* UI-01 Tổng quan: 3 loại phòng trống, tiến độ thu theo mốc 5/10/15, việc cần xử lý. Chỉ đọc.
+   Phase 2: HS thực tế / tạm tính (cùng công thức bảng lương – OQ-18), thẻ kinh doanh (deal của tôi cho sale), phản hồi Zalo chờ xử lý (trưởng phòng). */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, I = TH.icon, esc = F.esc;
-  const scopeBuildings = (q) => {
-    const mgr = Q.managerMap();
+  const scopeBuildings = (q, date) => {
+    const d = date || F.today(); const mgr = Q.managerMap(d); // phân công / cơ cấu tại cuối kỳ đang xem
     let bs = Q.scopedBuildings();
     if (q.group) bs = bs.filter(b => b.group === q.group);
     if (q.area) bs = bs.filter(b => b.areaId === q.area);
     if (q.manager) bs = bs.filter(b => (mgr[b.id] || {}).id === q.manager);
-    if (q.leader) { const br = TH.auth.branchOf(q.leader, F.today()); bs = bs.filter(b => br.has((mgr[b.id] || {}).id)); }
+    if (q.leader) { const br = TH.auth.branchOf(q.leader, d); bs = bs.filter(b => br.has((mgr[b.id] || {}).id)); }
     return bs;
+  };
+  /* Hàng thẻ Phase 2: HS (nhãn thực tế / tạm tính), lấp đầy, kinh doanh, phản hồi Zalo */
+  const p2Row = (period, bset) => {
+    const role = TH.auth.role();
+    const cards = [];
+    if (TH.auth.can('buildings.view') && role !== 'sale' && role !== 'kythuat') {
+      const O = TH.qo.rooms(period, (b) => bset.has(b)); const T = O.totals;
+      const f1 = (v) => v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',');
+      cards.push(U.kpi({ label: T.hsFinal ? 'HS thực tế' : 'HS (tạm tính)', value: f1(T.hs), cap: 'thu trong 3 mốc / giá niêm yết – cùng công thức lương (OQ-18)' + (O.parallel ? ' · số Excel kỳ song song' : ''), icon: 'gauge', tone: 'blue' }));
+      cards.push(U.kpi({ label: 'HS tạm tính', value: f1(T.hsTemp), cap: '(tiền nhà đã thu + bỏ cọc) / giá niêm yết – không phải lấp đầy', icon: 'activity', tone: 'purple' }));
+    }
+    const mine = TH.auth.can('sales.view') ? Q.salesScoped(S.all('deals')) : [];
+    if (TH.auth.can('sales.view') && (mine.length || role === 'sale')) { const inP = mine.filter(d => F.period(d.closeDate) === period && !['cancelled', 'forfeited'].includes(d.status));
+      cards.push(U.kpi({ label: role === 'sale' ? 'Deal của tôi – ' + F.periodShort(period) : 'Deal chốt – ' + F.periodShort(period), value: inP.length, cap: mine.filter(d => d.status === 'closed').length + ' chờ nhận · ' + mine.filter(d => d.status === 'received' && F.period(d.moveInDate) === period).length + ' đã nhận · doanh số ' + F.vnd(inP.reduce((t, d) => t + d.price, 0)), icon: 'briefcase', tone: 'green' }));
+      if (role === 'sale') { const leads = Q.salesScoped(S.all('leads')); cards.push(U.kpi({ label: 'Khách xem của tôi', value: leads.filter(l => !['closed', 'lost'].includes(l.status)).length, cap: 'đang chăm sóc · <a href="#/sales/leads">mở danh sách</a>', icon: 'eye', tone: 'amber' })); }
+    }
+    if (TH.auth.can('zalo.inbox') && Q.inboxScoped) { const ib = Q.inboxScoped().filter(x => x.status !== 'done'); cards.push(U.kpi({ label: 'Phản hồi Zalo chờ xử lý', value: ib.length, cap: (role === 'truongphong' ? 'gán cho nhánh của tôi' : 'toàn hệ thống') + ' · <a href="#/zalo/inbox">mở hộp thư</a>', icon: 'inbox', tone: ib.length ? 'amber' : 'gray' })); }
+    if (role === 'kythuat' && Q.repairsScoped) { const rs = Q.repairsScoped(S.all('repairLogs')).filter(r => r.status === 'draft'); cards.push(U.kpi({ label: 'Việc sửa chữa chờ xác nhận', value: rs.length, cap: '<a href="#/repairs">mở sổ sửa chữa</a>', icon: 'wrench', tone: 'blue' })); }
+    return cards.length ? `<div class="grid grid-${Math.min(4, cards.length)} mt16">${cards.join('')}</div>` : '';
   };
   TH.router.handle('/dashboard', (root, p, q) => {
     const period = q.period || S.meta.period;
-    const money = TH.auth.can('dashboard.money');
-    const bs = scopeBuildings(q); const bset = new Set(bs.map(b => b.id));
+    const money = TH.auth.can('dashboard.money'), opsView = TH.auth.can('debts.viewStatus');
+    const pe = TH.calc.dates.periodEnd(period); const bs = scopeBuildings(q, pe < F.today() ? pe : F.today()); const bset = new Set(bs.map(b => b.id));
     const vac = Q.vacancy();
     const inB = (r) => bset.has(r.buildingId);
     const vNow = vac.now.filter(inB), vEnd = vac.endOfMonth.filter(inB), vWait = vac.waiting.filter(inB);
@@ -46,13 +66,14 @@
         ${U.kpi({ label: 'Trống cuối tháng', value: vEnd.length, cap: 'khách hết HĐ / báo trả trong tháng', icon: 'calendar-clock', tone: 'amber' })}
         ${U.kpi({ label: 'Đang chờ (đã cọc)', value: vWait.length, cap: 'khách đã cọc, chưa vào ở', icon: 'user-check', tone: 'purple' })}
       </div>`
-      + `<div class="grid grid-4 mt16">
+      + (!opsView ? '' : `<div class="grid grid-4 mt16">
         ${U.kpi({ label: 'Phải thu kỳ ' + F.periodShort(period), value: money ? F.vnd(due) : main.length + ' HĐ', cap: money ? main.length + ' hóa đơn (không gồm phá HĐ)' : 'hóa đơn đã phát hành', icon: 'receipt', tone: 'blue' })}
         ${U.kpi({ label: 'Đã thu', value: money ? F.vnd(paid) : main.filter(i => Q.invState(i).remaining <= 0).length + ' HĐ', cap: F.pctv(pctNow) + ' số phải thu', icon: 'check-circle', tone: 'green', bar: Math.round(pctNow * 100) })}
         ${U.kpi({ label: 'Còn nợ', value: money ? F.vnd(remain) : main.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', cap: debtors.length + ' hóa đơn đã thành công nợ (từ ngày 6)', icon: 'alert-triangle', tone: 'red' })}
         ${U.kpi({ label: 'Phá HĐ / bỏ trốn', value: br.length, cap: money ? 'còn thu ' + F.vnd(sum(br, i => Q.invState(i).remaining)) + ' (tiền điện)' : 'giữ cọc, chỉ thu tiền điện', icon: 'file-x', tone: 'orange' })}
-      </div>`
-      + `<div class="two-col mt16"><div class="side-stack">
+      </div>`)
+      + (TH.ms.on('2') ? p2Row(period, bset) : '')
+      + (!opsView ? '' : `<div class="two-col mt16"><div class="side-stack">
         ${U.card({ title: 'Tiến độ thu theo mốc (ngày tiền thực nhận)', icon: 'activity', sub: `Mốc ${msDays.join('/')} (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu`, body: `<div class="ms-bars">${ms.map(m => { const v = due ? Math.min(1, m.amount / due) : 0; return `<div class="ms-bar"><div class="row between"><b>Đến hết ngày ${m.day}/${Number(period.slice(5))}</b><span>${money ? F.vnd(m.amount) + ' · ' : ''}${F.pctv(v)}</span></div><div class="progress"><i style="width:${Math.min(100, v * 100)}%"></i></div></div>`; }).join('')}</div>` })}
         ${U.card({ title: 'Tòa cần chú ý', icon: 'building', sub: 'Xếp theo số còn nợ', body: '<div id="db-bld"></div>', bodyCls: 'flush' })}
       </div><div class="side-stack">
@@ -64,8 +85,9 @@
           <a class="todo-it" href="#/buildings?roomStatus=vacant_cleaning">${I('brush')}<span>Phòng trống cần kiểm tra/dọn</span><b>${cleaning.length}</b></a>
         </div>` })}
         ${U.card({ title: 'Hợp đồng sắp hết hạn', icon: 'calendar', body: exp.slice(0, 6).map(s => `<a class="mini-row" href="#/stays/${s.id}"><span class="code">${esc(Q.roomCode(s.roomId))}</span><span class="grow truncate">${esc((Q.customer(s.customerId) || {}).name || '')}</span><span class="muted">${F.date(s.endDate)} · còn ${F.daysBetween(F.today(), s.endDate)} ngày</span></a>`).join('') || U.empty({ title: 'Không có hợp đồng sắp hết hạn' }) })}
-      </div></div>`;
+      </div></div>`);
     K.bindFilters(root, []);
+    if (!opsView) return; // sale / kỹ thuật: không xem công nợ, tiến độ thu (CH-01)
     const rows = bs.map(b => {
       const bi = main.filter(i => i.buildingId === b.id);
       const d = sum(bi, i => i.totalDue), r = sum(bi, i => Q.invState(i).remaining);

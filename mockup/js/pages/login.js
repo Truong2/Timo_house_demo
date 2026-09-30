@@ -1,12 +1,12 @@
-/* Đăng nhập demo – chọn nhanh 5 vai trò Phase 1. */
+/* Đăng nhập demo – chọn nhanh vai trò (vai trò Phase 2 chỉ hiện khi đang ở mốc Phase 2). */
 (function (TH) {
   const U = TH.ui, esc = TH.f.esc, I = TH.icon;
   TH.pages.login = (app) => {
-    const users = TH.store.all('users');
+    const users = TH.store.all('users').filter(u => u.status === 'active' && (!u.phase || TH.ms.on(u.phase)));
     app.innerHTML = `<div class="login">
       <div class="login-hero"><div class="row gap12"><img src="assets/logo.svg" alt="" style="width:40px"><b style="font-size:20px">TimoHouse</b></div>
         <h2>Vận hành cho thuê, thu tiền và chốt tháng trên một hệ thống</h2>
-        <p>Phase 1: tòa – phòng – khách – hợp đồng – chỉ số – hóa đơn – thu tiền – công nợ – Zalo – hoàn cọc; chốt tháng lương, phân bổ chi phí, báo cáo theo tòa và báo cáo tổng/kinh doanh.</p>
+        <p>Phase 1: tòa – phòng – khách – hợp đồng – chỉ số – hóa đơn – thu tiền – công nợ – Zalo – hoàn cọc; chốt tháng lương, phân bổ chi phí, báo cáo theo tòa và báo cáo tổng/kinh doanh. Phase 2: kinh doanh & hoa hồng, sổ sửa chữa, báo cáo vận hành, chia cổ đông.</p>
         <div class="feat"><div class="ic">${I('receipt')}</div><div><b>Hóa đơn đúng mẫu Excel</b><span>13 dòng, 4 mẫu in, tháng lẻ, Thu khác</span></div></div>
         <div class="feat"><div class="ic">${I('wallet')}</div><div><b>Thu tiền & công nợ</b><span>Chưa TT / Thiếu / Đủ / Thừa, công nợ từ ngày 6</span></div></div>
         <div class="feat"><div class="ic">${I('bar-chart')}</div><div><b>Chốt tháng</b><span>Lương theo mốc 5/10/15, phân bổ, báo cáo theo tòa</span></div></div>

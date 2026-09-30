@@ -116,3 +116,10 @@ table.rpt{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 .rep-card{text-decoration:none!important;color:inherit;transition:border-color .15s,box-shadow .15s}.rep-card:hover{border-color:var(--primary);box-shadow:0 4px 14px rgba(37,99,235,.1)}.rep-card h3{font-size:17px}
 .d-block{display:block}
 .two-col>.side-stack:last-child .kv{grid-template-columns:1fr}
+
+/* Phase 2 – UI-08 rà soát OCR: bản gốc mô phỏng */
+.ocr-doc{display:flex;flex-direction:column;gap:12px}
+.ocr-page{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:#FCFCFD;font-size:13px;line-height:1.7}
+.ocr-tbl input.inp{width:100%;min-width:0}.ocr-tbl td:nth-child(2){width:48%}
+.ocr-line.low{background:#FEF2F2;border-radius:4px;padding:0 4px}
+.muted-card{opacity:.75}

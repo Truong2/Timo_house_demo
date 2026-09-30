@@ -10,12 +10,12 @@
     if (L._mounted && document.getElementById('content')) return;
     const u = TH.auth.user() || {};
     const navHtml = TH.routes.NAV.map(n => {
-      if (!n.group) return visible(n) ? `<a class="nav-it" data-nav="${n.key}" href="${n.href}">${I(n.icon)}<span>${esc(n.label)}</span></a>` : '';
+      if (!n.group) return visible(n) ? `<a class="nav-it" data-nav="${n.key}" href="${n._href || n.href}">${I(n.icon)}<span>${esc(n.label)}</span></a>` : '';
       const items = n.items.filter(visible);
       if (!items.length) return '';
       return `<div class="nav-group"><div class="nav-gh">${I(n.icon)}<span>${esc(n.group)}</span></div>${items.map(it => `<a class="nav-it sub" data-nav="${it.key}" href="${it._href || it.href}"><span>${esc(it.label)}</span></a>`).join('')}</div>`;
     }).join('');
-    const footHtml = TH.routes.FOOT.filter(visible).map(n => `<a class="nav-it" data-nav="${n.key}" href="${n.href}">${I(n.icon)}<span>${esc(n.label)}</span></a>`).join('');
+    const footHtml = TH.routes.FOOT.filter(visible).map(n => `<a class="nav-it" data-nav="${n.key}" href="${n._href || n.href}">${I(n.icon)}<span>${esc(n.label)}</span></a>`).join('');
     const ms = TH.ms.INFO[TH.ms.current()];
     app.className = 'shell';
     app.innerHTML = `
@@ -23,7 +23,7 @@
         <a class="brand" href="#/dashboard"><img src="assets/logo.svg" alt=""><div><b>TimoHouse</b><small>Quản lý nhà cho thuê</small></div></a>
         <nav class="nav">${navHtml}</nav>
         <div class="nav-foot">${footHtml}
-          <div class="ms-chip" data-tip="${esc('Đang dùng: ' + ms.name + '. Để sau Phase 1: ' + TH.ms.DEFERRED.join(' · '))}">${I('flag')}<span>${esc(ms.label)}</span></div>
+          <div class="ms-chip" data-tip="${esc('Đang dùng: ' + ms.name + '. Để phase sau: ' + TH.ms.DEFERRED.join(' · '))}">${I('flag')}<span>${esc(ms.label)}</span></div>
         </div>
       </aside>
       <div class="main">
@@ -41,7 +41,7 @@
       sb: () => document.body.classList.toggle('sb-open'),
       user: (el) => U.menu(el, [
         { header: 'Chuyển vai trò (demo)' },
-        ...TH.store.all('users').map(x => ({ label: (x.id === u.id ? '● ' : '') + x.display + ' – ' + x.username, onClick: () => { TH.auth.switchRole(x.username); L.reset(); TH.router.render(); TH.ui.toast('ok', 'Đã chuyển vai trò', x.display); } })),
+        ...TH.store.all('users').filter(x => !x.phase || TH.ms.on(x.phase)).map(x => ({ label: (x.id === u.id ? '● ' : '') + x.display + ' – ' + x.username, onClick: () => { TH.auth.switchRole(x.username); L.reset(); TH.router.render(); TH.ui.toast('ok', 'Đã chuyển vai trò', x.display); } })),
         '-',
         { label: 'Đăng xuất', icon: 'log-out', onClick: () => { TH.auth.logout(); L.reset(); TH.go('#/login'); } },
       ]),

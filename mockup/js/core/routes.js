@@ -1,5 +1,5 @@
-/* Manifest route Phase 1 – dữ liệu thuần, là nguồn duy nhất cho router, sidebar và scripts/check-rbac.mjs.
-   ui = mã màn hình đặc tả; ms = mốc Phase 1 đầu tiên có màn (1A/1B); menu = mục sidebar được tô sáng. */
+/* Manifest route Phase 1 + Phase 2 – dữ liệu thuần, là nguồn duy nhất cho router, sidebar và scripts/check-rbac.mjs.
+   ui = mã màn hình đặc tả; ms = mốc đầu tiên có màn (1A / 1B / 2); menu = mục sidebar được tô sáng. */
 (function (TH) {
   const R = [
     { path: '/dashboard', ui: 'UI-01', title: 'Tổng quan', menu: 'dashboard', perm: 'dashboard.view', ms: '1A' },
@@ -32,31 +32,58 @@
     { path: '/reports/business', ui: 'UI-30', title: 'Báo cáo kinh doanh', menu: 'reports', perm: 'reports.view', ms: '1B' },
     { path: '/reports/buildings', ui: 'UI-28', title: 'Báo cáo theo tòa', menu: 'reports', perm: 'reports.view', ms: '1B' },
     { path: '/zalo', ui: 'UI-39', title: 'Thông báo Zalo', menu: 'zalo', perm: 'zalo.view', ms: '1A' },
+    { path: '/zalo/inbox', ui: 'UI-39', title: 'Phản hồi Zalo', menu: 'zalo', perm: 'zalo.inbox', ms: '2' },
     { path: '/zalo/batches/:id', ui: 'UI-39', title: 'Chi tiết đợt gửi', menu: 'zalo', perm: 'zalo.view', ms: '1A' },
     { path: '/import', ui: 'UI-37', title: 'Import dữ liệu', menu: 'import', perm: 'import.view', ms: '1A' },
     { path: '/settings', ui: 'UI-38', title: 'Cài đặt', menu: 'settings', perm: 'settings.view', ms: '1A' },
+    /* --- Phase 2 --- */
+    { path: '/sales', ui: 'UI-19', title: 'Tổng quan hàng hóa', menu: 'sales', perm: 'sales.view', ms: '2' },
+    { path: '/sales/leads', ui: 'UI-20', title: 'Khách tiềm năng & lượt xem', menu: 'leads', perm: 'sales.view', ms: '2' },
+    { path: '/sales/deals', ui: 'UI-21', title: 'Giao dịch chốt', menu: 'deals', perm: 'sales.view', ms: '2' },
+    { path: '/sales/deals/:id', ui: 'UI-21', title: 'Chi tiết giao dịch', menu: 'deals', perm: 'sales.view', ms: '2' },
+    { path: '/sales/commission', ui: 'UI-22', title: 'Hoa hồng & nhân sự sale', menu: 'commission', perm: 'commission.view', ms: '2' },
+    { path: '/repairs', ui: 'UI-47', title: 'Sổ sửa chữa & ứng chi vật tư', menu: 'repairs', perm: 'repairs.view', ms: '2' },
+    { path: '/documents', ui: 'UI-26', title: 'Kho tài liệu', menu: 'documents', perm: 'documents.view', ms: '2' },
+    { path: '/ocr/:id', ui: 'UI-08', title: 'Rà soát OCR hợp đồng', menu: 'tenants', perm: 'ocr.review', ms: '2' },
+    { path: '/shares', ui: 'UI-31', title: 'Cổ đông & tỷ lệ góp', menu: 'shares', perm: 'shares.view', ms: '2' },
+    { path: '/shares/:id', ui: 'UI-32', title: 'Bảng kê chia lãi', menu: 'shares', perm: 'shares.view', ms: '2' },
+    { path: '/reports/costs', ui: 'UI-42', title: 'Chi phí giá vốn / cố định / phát sinh', menu: 'reports', perm: 'reports.ops', ms: '2' },
+    { path: '/reports/amduong', ui: 'UI-43', title: 'Âm dương điện nước', menu: 'reports', perm: 'reports.ops', ms: '2' },
+    { path: '/reports/repairs', ui: 'UI-44', title: 'Chi phí sửa chữa, vệ sinh', menu: 'reports', perm: 'reports.ops', ms: '2' },
+    { path: '/reports/rooms', ui: 'UI-45', title: 'Báo cáo phòng vận hành', menu: 'reports', perm: 'reports.ops', ms: '2' },
+    { path: '/reports/sales', ui: 'UI-46', title: 'Khách hàng & doanh số sale', menu: 'reports', perm: 'reports.ops', ms: '2' },
   ];
-  /* Sidebar Phase 1 (đặc tả §1.2 rút gọn theo phạm vi Phase 1) */
+  /* Sidebar (đặc tả §1.2): mục chỉ hiện khi vai trò có quyền và mốc hiện tại đã mở route */
   const NAV = [
     { key: 'dashboard', label: 'Tổng quan', icon: 'home', href: '#/dashboard' },
     { group: 'Vận hành', icon: 'building', items: [
       { key: 'buildings', label: 'Tòa nhà', href: '#/buildings' },
       { key: 'tenants', label: 'Khách thuê', href: '#/tenants' },
+      { key: 'repairs', label: 'Sổ sửa chữa', href: '#/repairs' },
+      { key: 'documents', label: 'Tài liệu', href: '#/documents' },
+    ] },
+    { group: 'Kinh doanh', icon: 'briefcase', items: [
+      { key: 'sales', label: 'Tổng quan hàng', href: '#/sales' },
+      { key: 'leads', label: 'Khách xem', href: '#/sales/leads' },
+      { key: 'deals', label: 'Giao dịch chốt', href: '#/sales/deals' },
+      { key: 'commission', label: 'Hoa hồng', href: '#/sales/commission' },
     ] },
     { group: 'Tài chính', icon: 'wallet', items: [
       { key: 'billing', label: 'Hóa đơn & thu tiền', href: '#/billing/invoices', alts: ['#/billing/readings', '#/billing/debts'] },
       { key: 'expenses', label: 'Chi phí', href: '#/expenses', alts: ['#/owner-payments'] },
       { key: 'refunds', label: 'Hoàn cọc', href: '#/refunds' },
-      { key: 'reports', label: 'Báo cáo', href: '#/reports' },
+      { key: 'shares', label: 'Cổ đông', href: '#/shares' },
+      { key: 'reports', label: 'Báo cáo', href: '#/reports', alts: ['#/reports/costs'] },
     ] },
     { group: 'Nhân sự', icon: 'users', items: [
       { key: 'hr', label: 'Nhân sự & lương', href: '#/hr' },
     ] },
   ];
   const FOOT = [
-    { key: 'zalo', label: 'Thông báo Zalo', icon: 'message', href: '#/zalo' },
+    { key: 'zalo', label: 'Thông báo Zalo', icon: 'message', href: '#/zalo', alts: ['#/zalo/inbox'] },
     { key: 'import', label: 'Import dữ liệu', icon: 'upload', href: '#/import' },
     { key: 'settings', label: 'Cài đặt', icon: 'settings', href: '#/settings' },
   ];
-  TH.routes = { ROUTES: R, NAV, FOOT, PHASE1_UI: ['UI-01', 'UI-02', 'UI-03', 'UI-04', 'UI-05', 'UI-06', 'UI-07', 'UI-08', 'UI-09', 'UI-10', 'UI-11', 'UI-12', 'UI-13', 'UI-14', 'UI-15', 'UI-16', 'UI-17', 'UI-18', 'UI-23', 'UI-24', 'UI-25', 'UI-27', 'UI-28', 'UI-29', 'UI-30', 'UI-37', 'UI-38', 'UI-39'] };
+  TH.routes = { ROUTES: R, NAV, FOOT, PHASE1_UI: ['UI-01', 'UI-02', 'UI-03', 'UI-04', 'UI-05', 'UI-06', 'UI-07', 'UI-08', 'UI-09', 'UI-10', 'UI-11', 'UI-12', 'UI-13', 'UI-14', 'UI-15', 'UI-16', 'UI-17', 'UI-18', 'UI-23', 'UI-24', 'UI-25', 'UI-27', 'UI-28', 'UI-29', 'UI-30', 'UI-37', 'UI-38', 'UI-39'],
+    PHASE2_UI: ['UI-19', 'UI-20', 'UI-21', 'UI-22', 'UI-26', 'UI-31', 'UI-32', 'UI-42', 'UI-43', 'UI-44', 'UI-45', 'UI-46', 'UI-47'] };
 })(window.TH);

@@ -1,0 +1,79 @@
+/* UI-21 Giao dịch chốt – danh sách và chi tiết; E09 thao tác: nhận phòng, đổi phòng, hủy, khách bỏ cọc. Đặc tả §3.5 dòng 295–299.
+   Deal thay "lượt thuê chờ nhận" của Phase 1; liên kết lượt thuê (UI-07), phiếu cọc (UI-13), hóa đơn đầu (UI-11), hoa hồng (UI-22). */
+(function (TH) {
+  const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc, A = TH.auth;
+  const phone = (p) => A.can('customers.phone') ? esc(p) : esc(F.mask(p, 3));
+  const stChip = (d) => U.chip(Q.DEAL_ST[d.status][0], Q.DEAL_ST[d.status][1], true);
+  const depChip = (d) => { const x = Q.dealDeposit(d); return d.status === 'forfeited' ? U.chip('Cọc → doanh thu', 'red') : x.state === 'full' ? U.chip('Cọc: đủ', 'green') : x.state === 'partial' ? U.chip('Cọc: thiếu', 'amber') : U.chip('Cọc: chưa thu', 'gray'); };
+  const EV = { close: 'Chốt', receive: 'Nhận phòng', transfer: 'Đổi phòng', cancel: 'Hủy', forfeit: 'Bỏ cọc', movein: 'Đổi ngày nhận dự kiến' };
+  const firstChip = (d) => { const c = Q.dealCollect(d); return c.first === 'none' ? '' : c.first === 'full' ? U.chip('Tháng đầu: đủ', 'green') : c.first === 'partial' ? U.chip('Tháng đầu: thiếu', 'amber') : U.chip('Tháng đầu: chưa thu', 'gray'); };
+
+  TH.router.handle('/sales/deals', (root, p, q) => {
+    let rows = Q.salesScoped(S.all('deals')); const all = rows;
+    const period = q.period || '';
+    if (period) rows = rows.filter(d => F.period(d.closeDate) === period);
+    if (q.status) rows = rows.filter(d => d.status === q.status);
+    if (q.building) rows = rows.filter(d => d.buildingId === q.building);
+    if (q.sale) rows = rows.filter(d => d.saleIds.includes(q.sale));
+    if (q.q) rows = rows.filter(d => K.match(q.q, d.code, Q.roomCode(d.roomId), (Q.customer(d.customerId) || {}).name, d.partner));
+    rows.sort((a, b) => b.closeDate.localeCompare(a.closeDate));
+    const live = rows.filter(d => !['cancelled', 'forfeited'].includes(d.status));
+    const cmBy = F.by(S.all('commissions'), 'dealId');
+    root.innerHTML = U.pageHead({ title: 'Giao dịch chốt', sub: 'Ngày chốt, ngày vào ở, ngày tính tiền là ba trường riêng · hủy / đổi phòng / bỏ cọc ghi sự kiện riêng để doanh số, cọc, hoa hồng không bị đếm hai lần', acts: [U.btn({ label: 'Xuất', icon: 'download', act: 'exp' })] })
+      + TH.salesNav('deals')
+      + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Chờ nhận', value: rows.filter(d => d.status === 'closed').length, cap: rows.filter(d => d.status === 'closed' && Q.dealDeposit(d).state !== 'full').length + ' chưa thu đủ cọc', icon: 'clock', tone: 'blue' })}
+        ${U.kpi({ label: 'Đã nhận', value: rows.filter(d => d.status === 'received').length, icon: 'log-in', tone: 'green' })}${U.kpi({ label: 'Hủy / bỏ cọc', value: rows.filter(d => ['cancelled', 'forfeited'].includes(d.status)).length, icon: 'x-circle', tone: 'red' })}
+        ${U.kpi({ label: 'Doanh số (Σ giá chốt)', value: F.vnd(live.reduce((t, d) => t + d.price, 0)), cap: 'không gồm deal hủy / bỏ cọc (OQ-25)', icon: 'trending-up', tone: 'purple' })}</div>`
+      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã, phòng, khách, đối tác' }, { name: 'period', label: 'Tháng chốt', options: [...new Set(all.map(d => F.period(d.closeDate)))].sort().reverse().map(x => [x, F.periodLabel(x)]) },
+        { name: 'status', label: 'Trạng thái', options: Object.entries(Q.DEAL_ST).map(([k, v]) => [k, v[0]]) }, { name: 'building', label: 'Tòa', options: K.buildingOpts(false) }, { name: 'sale', label: 'Sale', options: Q.salesStaff().filter(e => A.inSales([e.id])).map(e => [e.id, e.name]) }], q)
+      + '<div class="mt16">' + K.tableCard('t', rows.length + ' giao dịch') + '</div>';
+    K.bindFilters(root);
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: d => '#/sales/deals/' + d.id, cols: [
+      { key: 'd', label: 'Ngày chốt', sortable: true, sortVal: d => d.closeDate, render: d => U.cell2(F.date(d.closeDate), esc(d.code)) }, { key: 'r', label: 'Tòa / phòng', render: d => K.room(d.roomId) },
+      { key: 'm', label: 'Quản lý', render: d => esc((Q.managerOf(d.buildingId) || {}).name || '–') }, { key: 'k', label: 'Khách', render: d => { const c = Q.customer(d.customerId) || {}; return U.cell2(esc(c.name || ''), phone(c.phone)); } },
+      { key: 'dep', label: 'Cọc / thu', num: true, render: d => U.cell2(F.vnd(d.deposit), depChip(d) + ' ' + firstChip(d)) }, { key: 'p', label: 'Giá chốt', num: true, sortable: true, sortVal: d => d.price, render: d => F.vnd(d.price) },
+      { key: 'b', label: 'Tính tiền từ', render: d => U.cell2(F.date(d.billingStart), d.term + ' tháng') }, { key: 's', label: 'Nguồn', render: d => U.cell2(esc(d.source), esc(d.partner || '')) },
+      { key: 'sl', label: 'Sale', render: d => esc(Q.saleName(d.saleIds)) }, { key: 'kd', label: 'Loại', render: d => esc(Q.dealKind(d)) }, { key: 'nt', label: 'Ghi chú', render: d => `<span class="small muted">${esc(d.note || '')}</span>` },
+      ...(A.can('commission.view') ? [{ key: 'cm', label: 'Hoa hồng', render: d => { const cs = (cmBy[d.id] || []).filter(c => c.status !== 'void'); return cs.length ? U.link('#/sales/commission?deal=' + d.id, cs.length + ' dòng · ' + F.vnd(cs.reduce((t, c) => t + (c.approvedAmount || c.amount), 0))) : '–'; } }] : []),
+      { key: 'st', label: 'Trạng thái', render: stChip }] });
+    U.bind(root, { exp: () => K.csv('giao-dich-chot.csv', ['Mã', 'Ngày chốt', 'Phòng', 'Khách', 'Cọc', 'Giá chốt', 'Tính tiền từ', 'Thời hạn', 'Nguồn', 'Đối tác', 'Sale', 'Loại', 'Trạng thái'],
+      rows.map(d => [d.code, d.closeDate, Q.roomCode(d.roomId), (Q.customer(d.customerId) || {}).name, d.deposit, d.price, d.billingStart, d.term, d.source, d.partner || '', Q.saleName(d.saleIds), Q.dealKind(d), Q.DEAL_ST[d.status][0]])) });
+  });
+
+  TH.router.handle('/sales/deals/:id', (root, p) => {
+    const d = Q.deal(p.id); if (!d) { root.innerHTML = U.card({ body: U.empty({ title: 'Không tìm thấy giao dịch' }) }); return; }
+    if (!A.inSales(d.saleIds)) { root.innerHTML = U.card({ body: U.empty({ icon: 'lock', title: 'Giao dịch ngoài phạm vi kinh doanh của bạn' }) }); return; }
+    TH.layout.crumb([{ label: 'Giao dịch chốt', href: '#/sales/deals' }, { label: d.code }]);
+    const c = Q.customer(d.customerId) || {}; const s = d.stayId ? Q.stay(d.stayId) : null; const l = Q.lead(d.leadId);
+    const inv = s ? S.where('invoices', i => i.stayId === s.id && i.lifecycle !== 'draft').sort((a, b) => a.period.localeCompare(b.period))[0] : null;
+    const open = d.status === 'closed';
+    root.innerHTML = U.pageHead({ title: 'Giao dịch ' + esc(d.code) + ' ' + stChip(d), back: '#/sales/deals', sub: `Phòng ${esc(Q.roomCode(d.roomId))} · ${esc(c.name || '')} · sale ${esc(Q.saleName(d.saleIds))}${d.partner ? ' · đối tác ' + esc(d.partner) : ''}`, acts: open ? [
+      U.btn({ label: 'Nhận phòng', icon: 'log-in', cls: 'btn-primary', act: 'receive', perm: 'tenants.manage' }), U.btn({ label: 'Sửa ngày nhận', icon: 'calendar', act: 'movein', perm: 'deals.close' }), U.btn({ label: 'Đổi phòng', icon: 'arrow-left-right', act: 'transfer', perm: 'deals.cancel' }),
+      U.btn({ label: 'Khách bỏ cọc', icon: 'minus-circle', act: 'forfeit', perm: 'deals.cancel' }), U.btn({ label: 'Hủy giao dịch', icon: 'x', act: 'cancel', perm: 'deals.cancel' })] : [] })
+      + `<div class="two-col"><div class="side-stack">${U.card({ title: 'Thông tin giao dịch', icon: 'briefcase', body: U.kv([['Ngày chốt', F.date(d.closeDate)], ['Ngày vào ở', F.date(d.moveInDate)], ['Ngày tính tiền phòng', F.date(d.billingStart)], ['Thời hạn HĐ', d.term + ' tháng'],
+          ['Giá chốt', F.vndd(d.price)], ['Tiền cọc', F.vndd(d.deposit) + ' ' + depChip(d)], ['Loại nhận phòng', esc(Q.dealKind(d))], ['Nguồn', esc(d.source) + (d.group ? ' · ' + esc(d.group) : '')], ['Quản lý tòa', esc((Q.managerOf(d.buildingId) || {}).name || '–')], ['Khách', esc(c.name || '') + ' · ' + phone(c.phone)]])
+          + (d.forfeit ? U.note('danger', 'Khách bỏ cọc ' + F.date(d.forfeit.date), `Cọc ${F.vndd(d.forfeit.deposit)} → doanh thu dòng 5 "Cọc khách bỏ không ở". Không công nợ, không phiếu hoàn. Cơ sở hoa hồng = cọc − ${d.forfeit.days} ngày đã tính tiền = ${F.vndd(d.forfeit.base)}.`) : '') })}
+        ${U.card({ title: 'Liên kết', icon: 'external-link', body: U.kv([['Lượt thuê (UI-07)', s ? (A.can('tenants.view') ? `<a href="#/stays/${s.id}">${esc(s.code)}</a>` : esc(s.code)) + ' · ' + ({ pending: 'chờ nhận', active: 'đang ở', ended: 'đã kết thúc', cancelled: 'đã hủy' }[s.status] || esc(s.status)) : '–'],
+          ['Phiếu cọc (UI-13)', s && A.can('payments.record') && open ? `<a href="#/billing/receipts/new?stay=${s.id}&type=deposit">Ghi phiếu cọc</a>` : F.vndd(Q.dealDeposit(d).held) + ' đã thu'], ['Hóa đơn đầu (UI-11)', inv ? (A.can('invoices.view') ? `<a href="#/billing/invoices/${inv.id}">${esc(inv.code)}</a>` : esc(inv.code)) : 'Chưa phát hành'],
+          ['Ghi chú', esc(d.note || '–')], ['Khách xem (UI-20)', l ? U.link('#/sales/leads?q=' + encodeURIComponent(l.code), esc(l.code)) + ' · ' + Q.viewingsOf(l.id).length + ' lượt xem' : '–']]) })}</div>
+      <div class="side-stack">${U.card({ title: 'Lịch sử sự kiện', icon: 'history', body: U.timeline((d.events || []).slice().reverse().map(e => ({ when: F.date(e.at), title: (EV[e.type] || e.type) + (e.from ? ` ${e.from} → ${e.to}` : ''), sub: esc([e.by, e.note].filter(Boolean).join(' · ')), color: { close: 'blue', receive: 'green', transfer: 'amber', cancel: 'gray', forfeit: 'red' }[e.type] }))) })}
+        ${A.can('commission.view') ? U.card({ title: 'Hoa hồng (UI-22)', icon: 'hand-coins', actions: U.btn({ label: 'Mở', size: 'btn-xs', href: '#/sales/commission?deal=' + d.id }), body: commissionBox(d) }) : ''}</div></div>`;
+    U.bind(root, {
+      receive: () => K.formDrawer({ title: 'Khách nhận phòng – ' + d.code, modal: true, fields: [{ name: 'date', label: 'Ngày nhận phòng', type: 'date', value: d.moveInDate > F.today() ? F.today() : d.moveInDate, req: true }], submit: 'Xác nhận', onSubmit: (x) => { X.receiveDeal(d.id, x.date); U.toast('ok', 'Khách đã nhận phòng'); } }),
+      movein: () => K.formDrawer({ title: 'Sửa ngày nhận dự kiến – ' + d.code, modal: true, note: U.note('info', '', 'Ghi thành sự kiện riêng; lượt thuê chờ nhận đổi theo. Ngày tính tiền phòng giữ nguyên.'),
+        fields: [{ name: 'date', label: 'Ngày nhận dự kiến', type: 'date', value: d.moveInDate, req: true }, { name: 'reason', label: 'Lý do', req: true, span: true }], submit: 'Lưu', onSubmit: (x) => { X.setDealMoveIn(d.id, x.date, x.reason); U.toast('ok', 'Đã đổi ngày nhận dự kiến'); } }),
+      transfer: () => K.formDrawer({ title: 'Đổi phòng – ' + d.code, modal: true, note: U.note('info', '', 'Lượt thuê chờ nhận chuyển sang phòng mới; hoa hồng giữ theo giao dịch (đặc tả: đổi phòng giữ hoa hồng phòng cũ).'),
+        fields: [{ name: 'toRoomId', label: 'Phòng mới', type: 'select', req: true, options: Q.forSale().filter(x => x.room.id !== d.roomId).map(x => [x.room.id, x.room.code + ' · ' + F.vnd(x.room.price)]) }, { name: 'price', label: 'Giá chốt mới (bỏ trống = giữ)', type: 'money' }, { name: 'reason', label: 'Lý do', req: true, span: true }],
+        submit: 'Đổi phòng', onSubmit: (x) => { X.transferDeal(d.id, Object.assign({}, x, { price: F.num(x.price) })); U.toast('ok', 'Đã đổi phòng'); } }),
+      cancel: () => K.formDrawer({ title: 'Hủy giao dịch – ' + d.code, modal: true, note: U.note('warn', '', 'Chỉ hủy khi khách chưa nộp cọc. Không tính doanh số, không tính hoa hồng; phòng mở bán lại.'), fields: [{ name: 'reason', label: 'Lý do', req: true, span: true }],
+        submit: 'Hủy giao dịch', onSubmit: (x) => { X.cancelDeal(d.id, x.reason); U.toast('ok', 'Đã hủy giao dịch'); } }),
+      forfeit: () => K.formDrawer({ title: 'Khách bỏ cọc – ' + d.code, modal: true, note: U.note('warn', '', 'Cọc đã thu chuyển doanh thu dòng 5; không công nợ, không phiếu hoàn; phòng mở bán lại; hoa hồng tính lại trên cọc − tiền ngày đã ở.'),
+        fields: [{ name: 'date', label: 'Ngày khách báo bỏ', type: 'date', value: F.today(), req: true }, { name: 'reason', label: 'Lý do', req: true, span: true }], submit: 'Ghi bỏ cọc', onSubmit: (x) => { X.forfeitDeal(d.id, x); U.toast('ok', 'Đã ghi khách bỏ cọc'); } }),
+    });
+  });
+  const commissionBox = (d) => {
+    const cs = Q.commissionsOf(d.id); const el = Q.dealEligibility(d);
+    return (cs.length ? `<table class="tbl compact"><thead><tr><th>Người nhận</th><th class="num">H</th><th class="num">Thành tiền</th><th>Trạng thái</th></tr></thead><tbody>${cs.map(c => `<tr><td>${esc(c.recipient.name)}</td><td class="num">${(c.H * 100).toFixed(2).replace('.', ',')}%</td><td class="num">${F.vnd(c.approvedAmount || c.amount)}</td><td>${U.chip(Q.CM_ST[c.status][0], Q.CM_ST[c.status][1])}</td></tr>`).join('')}</tbody></table>` : U.empty({ title: 'Chưa có dòng hoa hồng' }))
+      + (el.ok ? U.note('ok', 'Đủ điều kiện chi', 'Từ ' + F.date(el.date) + ' – ghi nhận kỳ ' + F.periodShort(F.period(el.date)) + ' (OQ-13)') : U.note('warn', 'Chưa đủ điều kiện chi (CH-19)', el.missing.join(' · ')));
+  };
+})(window.TH);

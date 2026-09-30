@@ -28,7 +28,9 @@
      hỗ trợ/điều chỉnh theo người. Kỳ chạy song song lấy các khoản này từ Excel. */
   X.SALE_TITLES = ['SALE', 'NVKD', 'TNKD'];
   X.manualOf = (period) => S.where('payrollManual', x => x.period === period);
-  X.manualSig = (period) => X.manualOf(period).map(x => [x.id, x.kind, x.employeeId, x.buildingId, x.line, x.amount, x.days].join(':')).sort().join('|');
+  X.manualSig = (period) => X.manualOf(period).map(x => [x.id, x.kind, x.employeeId, x.buildingId, x.line, x.amount, x.days].join(':')).concat(ledgerCosts(period).map(c => ['ledger', c.employeeId, c.buildingId, c.bearer || '', c.amount].join(':'))).sort().join('|');
+  /* Phase 2: tiền công theo sổ sửa chữa đã xác nhận (UI-47) – act-repairs.js; không có thì rỗng */
+  const ledgerCosts = (period) => (X.repairLaborCosts ? X.repairLaborCosts(period) : []);
   const guardManual = (period) => {
     _.need('payroll.manage');
     if (!/^\d{4}-\d{2}$/.test(period || '')) throw new Error('Chọn kỳ lương');
@@ -92,6 +94,7 @@
     const lines = [];
     const M = X.manualOf(period); const divisor = Q.param('saleDivisor', pEnd) || 26;
     const msCfg = TH.calc.params.milestones(Q.param('milestones', pEnd));
+    const ledger = ledgerCosts(period);
     S.all('employees').filter(e => e.status === 'active' || (e.leftDate && e.leftDate >= D.periodStart(period))).forEach(e => {
       const over1y = P.over1y(e.hireDate, pEnd);
       let blds = [];
@@ -120,20 +123,24 @@
         leadNote = parallel && e.excel ? 'Excel: ' + e.excel.leadF : `${leadRate}đ × ${rooms} phòng của nhánh`;
       }
       let base = e.baseSalary || 0, workdays = null;
+      // Thợ sửa chữa (UI-47, SRC-16): phần cố định = lương cứng + thâm niên + ăn trưa theo hồ sơ thợ; kỳ song song Excel giữ nguyên số Excel
+      const rp = !parallel && e.repairPay;
+      if (rp) base = (rp.base || 0) + (rp.seniority || 0);
       if (X.SALE_TITLES.includes(e.title)) {
         const wd = M.find(x => x.kind === 'workdays' && x.employeeId === e.id);
         workdays = wd ? wd.days : divisor;
         base = parallel && e.excel && !wd ? (e.excel.total - ((e.allowances || {}).lunch || 0) - ((e.allowances || {}).fuel || 0)) : P.salePay(e.baseSalary || 0, workdays, divisor);
       }
       const al = e.allowances || {};
-      const laborRows = M.filter(x => x.kind === 'repair_labor' && x.employeeId === e.id);
+      const laborRows = M.filter(x => x.kind === 'repair_labor' && x.employeeId === e.id).concat(ledger.filter(x => x.employeeId === e.id));
       const labor = laborRows.reduce((s, x) => s + x.amount, 0);
       const manualPay = M.filter(x => x.kind === 'manual_pay' && x.employeeId === e.id).reduce((s, x) => s + x.amount, 0);
-      const Xn = W + base + (al.lunch || 0) + (al.fuel || 0) + lead + (al.support || 0) + labor + manualPay;
+      const lunch = rp && rp.lunch != null ? rp.lunch : (al.lunch || 0);
+      const Xn = W + base + lunch + (al.fuel || 0) + lead + (al.support || 0) + labor + manualPay;
       const flags = blds.filter(b => b.flag && b.flag !== 'Lương cố định').map(b => ({ buildingId: b.buildingId, flag: b.flag, HS: b.HS }));
-      lines.push({ employeeId: e.id, title: e.title, over1y, buildings: blds, W, base, workdays, lunch: al.lunch || 0, fuel: al.fuel || 0, lead, leadNote, support: al.support || 0, labor, laborByB: laborRows.map(x => ({ buildingId: x.buildingId, amount: x.amount })), manualPay, divisor, X: Xn, flags, excelNet: e.excel ? e.excel.net : null });
+      lines.push({ employeeId: e.id, title: e.title, over1y, buildings: blds, W, base, workdays, lunch, fuel: al.fuel || 0, lead, leadNote, support: al.support || 0, labor, laborByB: laborRows.map(x => ({ buildingId: x.buildingId, amount: x.amount })), manualPay, divisor, X: Xn, flags, excelNet: e.excel ? e.excel.net : null });
     });
-    return { lines, parallel, buildingCosts: X.manualBuildingCosts(period) };
+    return { lines, parallel, buildingCosts: X.manualBuildingCosts(period).concat(ledger.filter(c => c.bearer !== 'owner')) };
   };
   X.approvePayFlag = (runId, key, note) => {
     _.need('payroll.manage');

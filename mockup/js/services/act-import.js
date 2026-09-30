@@ -33,6 +33,8 @@
       const d = r.data;
       if (['rooms', 'equipment'].includes(type) && !S.one('buildings', b => b.code === String(d.building).toUpperCase())) { r.status = 'error'; r.errs.push('Mã tòa không tồn tại: ' + d.building); }
       if (['stays', 'readings', 'commissions'].includes(type) && !S.get('rooms', 'r_' + String(d.room).toUpperCase())) { r.status = 'error'; r.errs.push('Mã phòng không tồn tại: ' + d.room); }
+      // Phase 2: hoa hồng từ kỳ 09/2026 tính và chi trên web (UI-22) – import chỉ cho dữ liệu lịch sử, tránh cộng hai lần dòng 40
+      if (type === 'commissions' && TH.ms && TH.ms.on('2') && String(d.period || '') >= '2026-09') { r.status = 'error'; r.errs.push('Từ kỳ 09/2026 hoa hồng tính trên web (UI-22) – chỉ import lịch sử đến 08/2026'); }
       // Lượt thuê đang có trên web (cùng phòng, cùng SĐT, cùng ngày vào) → trùng dữ liệu hiện có, không chỉ trùng lần import trước
       if (type === 'stays' && r.status === 'ok') { const room = S.get('rooms', 'r_' + String(d.room).toUpperCase()); const phone = String(d.phone || '').replace(/\s/g, '');
         if (room && S.all('stays').some(s => s.roomId === room.id && ['active', 'pending'].includes(s.status) && ((Q.customer(s.customerId) || {}).phone === phone || s.rentStart === d.moveIn))) { r.status = 'duplicate'; r.errs.push('Phòng ' + room.code + ' đã có lượt thuê hiệu lực trùng khách/ngày vào'); } }

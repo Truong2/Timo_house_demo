@@ -25,7 +25,8 @@ Cài đặt → Hệ thống demo → chọn mốc. Mốc 1A ẩn Báo cáo, Ph�
 - Hóa đơn in 9 cột, **13 dòng** (thêm dòng 13 "Thu khác"), chọn 1 trong 4 mẫu theo tòa; trạng thái thu theo Excel: Chưa TT / Thiếu / Đủ / Thừa; công nợ từ ngày 6 tháng N.
 - Báo cáo đúng dòng 3–61 của sheet SRC-04 với cột TỔNG / NHÀ T / S / G; báo cáo theo tòa mỗi cột một tòa.
 - Bảng lương theo HS = T/K×100, mốc 5/10/15 (100/90/70%), bậc cận gần nhất – không dùng công thức A/B/C×91% của ảnh UI-25.
-- Chia cổ đông G1, kinh doanh/lead, OCR, tài sản không có trong Phase 1.
+- Chia cổ đông G1, kinh doanh/lead, OCR là Phase 2 (mốc mặc định; đổi ở Cài đặt → Hệ thống demo); tài sản / bảo dưỡng là Phase 3 – chưa có.
+- Phase 2: ảnh UI-22 (tỷ lệ mẫu 10/2/3%) và UI-27 (chọn 2 báo cáo) đã cũ – làm theo đặc tả và SRC-09; UI-42…UI-47, hộp thư Zalo không có ảnh – thiết kế theo khung báo cáo Phase 1. Chi tiết: `docs/uat/Phase2_Kich_ban_kiem_thu.md` §3.
 - UI-39 Thông báo Zalo không có ảnh – thiết kế theo bộ nền B00.
 
 ## Công cụ

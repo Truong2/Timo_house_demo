@@ -6,9 +6,9 @@
     return roomCode + 'A' + String(n + 1).padStart(3, '0');
   };
 
-  /* Tạo khách + lượt thuê; trạng thái 'pending' = đã cọc, chờ vào ở (thay deal khi chưa có module Kinh doanh) */
-  X.createStay = (d) => {
-    _.need('tenants.manage');
+  /* Tạo khách + lượt thuê; trạng thái 'pending' = đã cọc, chờ vào ở. Phase 2: deal chốt (UI-21) gọi lõi này với d.dealId –
+     giao dịch giữ phòng nên lượt thuê chờ nhận chưa cần phiếu cọc (kế toán ghi cọc sau ở UI-13). */
+  const createStayCore = (d) => {
     const errs = {};
     const room = Q.room(d.roomId);
     if (!room) errs.roomId = 'Chọn phòng';
@@ -30,14 +30,14 @@
     if (cur && d.status !== 'active' && d.rentStart && d.rentStart <= (cur.plannedLeaveDate || cur.endDate)) errs.rentStart = `Phòng còn khách ${cur.code} đến ${F.date(cur.plannedLeaveDate || cur.endDate)} – ghi ngày báo trả của khách cũ trước, hoặc chọn ngày sau đó`;
     // Lượt thuê chờ nhận phải có cọc thực nhận (SRS §2.3 mục 3): phiếu cọc hôm nay, hoặc cọc đang giữ khi import số dư
     const depIn = d.depositReceived ? Number(d.depositReceived.amount) || 0 : 0;
-    if (d.status !== 'active' && !(depIn > 0) && !(Number(d.openingDeposit) > 0)) errs.depAmount = 'Lượt thuê chờ nhận phải có cọc đã nhận';
+    if (d.status !== 'active' && !d.dealId && !(depIn > 0) && !(Number(d.openingDeposit) > 0)) errs.depAmount = 'Lượt thuê chờ nhận phải có cọc đã nhận';
     if (room && Q.pendingStay(room.id)) errs.roomId = 'Phòng đã có khách cọc chờ nhận';
     if (Object.keys(errs).length) { const e = new Error('Dữ liệu chưa hợp lệ'); e.fields = errs; throw e; }
     const code = nextStayCode(room.code);
     const cust = S.add('customers', { id: 'KH-' + code, name: d.name.trim(), phone: d.phone.replace(/\s/g, ''), idNo: d.idNo || '', occupation: d.occupation || 'Người đi làm', zaloLinked: !!d.zaloLinked });
     const stay = S.add('stays', { id: 'st_' + code, code, roomId: room.id, buildingId: room.buildingId, customerId: cust.id, status: d.status === 'active' ? 'active' : 'pending', endType: null,
       dealDate, moveInDate: d.moveInDate || d.rentStart, rentStart: d.rentStart, svcStart: d.svcStart || d.rentStart, endDate: d.endDate,
-      depositAmount: Number(d.deposit) || 0, depositStatus: 'none', rent: Number(d.rent), listPrice: room.listPrice, people: Number(d.people) || 1, vehicles: Number(d.vehicles) || 0, payMonths: Number(d.payMonths) || 1, source: 'web' });
+      depositAmount: Number(d.deposit) || 0, depositStatus: 'none', rent: Number(d.rent), listPrice: room.listPrice, people: Number(d.people) || 1, vehicles: Number(d.vehicles) || 0, payMonths: Number(d.payMonths) || 1, source: d.dealId ? 'deal' : 'web', dealId: d.dealId || null });
     const items = d.items || (Q.rateOf((S.where('stays', s => s.buildingId === room.buildingId && s.id !== stay.id)[0] || {}).id) || {}).items || {};
     S.add('rateVersions', { stayId: stay.id, from: d.rentStart, to: null, rent: Number(d.rent), items: JSON.parse(JSON.stringify(items)), reason: 'Biểu phí khi tạo lượt thuê', source: 'web' });
     S.update('rooms', room.id, { status: stay.status === 'active' ? 'occupied' : (Q.currentStay(room.id) ? room.status : 'reserved') });
@@ -46,18 +46,26 @@
     if (d.depositReceived && Number(d.depositReceived.amount) > 0) {
       X.recordPayment({ stayId: stay.id, type: 'deposit', amount: Number(d.depositReceived.amount), receivedAt: d.depositReceived.date || F.today(), method: d.depositReceived.method || 'bank', allocations: [], note: 'Nhận cọc giữ phòng' }, true);
     }
-    _.audit('create', 'stay', stay.id, `Tạo lượt thuê ${code} (${stay.status === 'active' ? 'đang ở' : 'chờ nhận'})`);
+    _.audit('create', 'stay', stay.id, `Tạo lượt thuê ${code} (${stay.status === 'active' ? 'đang ở' : 'chờ nhận'})${d.dealId ? ' từ giao dịch chốt' : ''}`);
     _.done(); return stay;
   };
+  X.createStay = (d) => { _.need('tenants.manage'); return createStayCore(d); };
+  _.createStay = createStayCore;
   /* Khách chờ nhận vào ở */
-  X.activateStay = (id, date) => {
-    _.need('tenants.manage');
-    const s = Q.stay(id); if (s.status !== 'pending') throw new Error('Lượt thuê không ở trạng thái chờ nhận');
+  /* Phase 2: lượt thuê sinh từ giao dịch chốt → nhận phòng ở đâu (UI-07 hay UI-21) deal cũng thành "đã nhận" (không lệch trạng thái) */
+  const activateCore = (id, date) => {
+    const s = Q.stay(id); if (!s || s.status !== 'pending') throw new Error('Lượt thuê không ở trạng thái chờ nhận');
     if (Q.currentStay(s.roomId)) throw new Error('Phòng còn khách cũ – kết thúc lượt thuê cũ trước khi bàn giao');
-    S.update('stays', id, { status: 'active', moveInDate: date || s.rentStart });
+    const d = date || s.rentStart;
+    if (s.dealId && s.dealDate && d < s.dealDate) { const e = new Error('Ngày nhận phòng không trước ngày chốt ' + F.date(s.dealDate)); e.fields = { date: e.message }; throw e; }
+    S.update('stays', id, { status: 'active', moveInDate: d });
     S.update('rooms', s.roomId, { status: 'occupied' });
-    _.audit('activate', 'stay', id, 'Khách nhận phòng ' + s.code); _.done();
+    const deal = s.dealId && S.get('deals', s.dealId);
+    if (deal && deal.status === 'closed') S.update('deals', deal.id, { status: 'received', moveInDate: d, events: [...(deal.events || []), { type: 'receive', at: d, by: _.who(), note: 'Khách nhận phòng' }] });
+    _.audit('activate', 'stay', id, 'Khách nhận phòng ' + s.code + (deal ? ' (giao dịch ' + deal.code + ')' : ''));
   };
+  X.activateStay = (id, date) => { _.need('tenants.manage'); activateCore(id, date); _.done(); };
+  _.activateStay = activateCore;
 
   /* Khách báo trả phòng: ngày báo + ngày dự kiến bàn giao (UI-07) – để nhận khách chờ vào ngay sau, không chồng lượt thuê */
   X.setNotice = (id, d) => {
@@ -70,15 +78,17 @@
     _.audit('notice', 'stay', id, `Khách ${s.code} báo trả ${F.date(d.noticeDate)}, dự kiến bàn giao ${F.date(d.plannedLeaveDate)}`); _.done();
   };
   /* Kết thúc lượt thuê – bắt buộc chọn loại (đặc tả UI-07, §3.12d) */
-  X.endStay = (id, d) => {
-    _.need('stays.end');
+  X.endStay = (id, d) => { _.need('stays.end'); return endStayCore(id, d); };
+  /* opts.dealScope: gọi từ giao dịch (UI-21, bỏ cọc) – phạm vi đã kiểm theo nhánh kinh doanh, không theo tòa được giao */
+  const endStayCore = (id, d, opts = {}) => {
     const s = Q.stay(id); const cat = TH.data.catalog.endTypes.find(x => x.key === d.endType);
     if (!cat) throw new Error('Chọn loại kết thúc');
     if (!d.date) throw new Error('Nhập ngày kết thúc / bàn giao');
     if (['breach', 'abscond', 'forfeit'].includes(d.endType) && !String(d.reason || '').trim()) throw new Error('Nhập lý do');
-    if (!TH.auth.inScope(s.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao');
+    if (!opts.dealScope && !TH.auth.inScope(s.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao');
     _.guardPeriod(F.period(d.date), 'kết thúc lượt thuê');
     if (d.endType === 'forfeit' && s.status !== 'pending') throw new Error('"Bỏ cọc" chỉ áp dụng khách đã cọc nhưng chưa vào ở');
+    if (d.endType === 'forfeit' && s.dealId && s.dealDate && d.date < s.dealDate) { /* Phase 2: lượt thuê sinh từ giao dịch chốt */ const e = new Error('Ngày khách bỏ không trước ngày chốt ' + F.date(s.dealDate)); e.fields = { date: e.message }; throw e; }
     if (d.endType !== 'forfeit' && s.status !== 'active') throw new Error('Lượt thuê không còn hiệu lực');
     if (d.endType === 'transfer') return X.transferStay(id, d);
     const patch = { status: 'ended', endType: d.endType, endDate: d.date, stopBillingDate: d.date, handoverDate: d.handoverDate || d.date, noticeDate: d.noticeDate || null, endReason: d.reason || null, breachReason: ['breach', 'abscond'].includes(d.endType) ? d.reason : null };
@@ -91,6 +101,8 @@
     S.update('stays', id, patch);
     if (['breach', 'abscond'].includes(d.endType) && dep) S.add('depositLedger', { stayId: id, buildingId: s.buildingId, kind: 'keep_breach', amount: dep, date: d.date, period: F.period(d.date), note: 'Giữ cọc do ' + cat.label.toLowerCase() });
     if (d.endType === 'forfeit' && dep) S.add('depositLedger', { stayId: id, buildingId: s.buildingId, kind: 'forfeit_revenue', amount: dep, date: d.date, period: F.period(d.date), note: 'Cọc khách bỏ không ở → doanh thu' });
+    // Phase 2: bỏ cọc ghi ở UI-07 hay UI-21 đều cập nhật giao dịch + tính lại hoa hồng (act-sales.js)
+    if (d.endType === 'forfeit' && s.dealId && _.syncDealForfeit) _.syncDealForfeit(s.dealId, { date: d.date, reason: d.reason, deposit: dep });
     // Phá HĐ/bỏ trốn: hóa đơn kỳ hiện tại chỉ còn tiền điện theo chỉ số (GĐ OQ-03)
     if (['breach', 'abscond'].includes(d.endType)) {
       S.where('invoices', i => i.stayId === id && !i.isBreach && (i.period > F.period(d.date) || (i.period === F.period(d.date) && Q.invState(i).paid <= 0))).forEach(inv => {
@@ -106,6 +118,7 @@
     _.audit('end', 'stay', id, `Kết thúc ${s.code}: ${cat.label}${d.reason ? ' – ' + d.reason : ''}`);
     _.done(); return { stay: Q.stay(id), refund };
   };
+  _.endStay = endStayCore;
   /* Chuyển phòng: lượt thuê mới liên kết, cọc chuyển theo phương án (không tự đổi mã phòng) */
   /* Phương án cọc khi chuyển phòng (UI-07, BR-DEP-013) – khách xác nhận trước khi tạo lượt thuê mới:
      carry = chuyển toàn bộ cọc đang giữ; cọc yêu cầu phòng mới lớn hơn → phần thiếu thu ở hóa đơn đầu hoặc phiếu cọc.
@@ -156,6 +169,7 @@
     _.need('rates.manage');
     if (!d.from) throw new Error('Nhập ngày hiệu lực');
     if (!String(d.reason || '').trim()) throw new Error('Nhập lý do/nguồn thay đổi');
+    _.guardEffective(d.from, 'biểu phí'); // B16: không đổi biểu phí hiệu lực trong kỳ đã khóa
     const cur = S.where('rateVersions', v => v.stayId === stayId).sort((a, b) => String(b.from).localeCompare(String(a.from)));
     if (cur.some(v => v.from >= d.from)) throw new Error('Chồng ngày hiệu lực với phiên từ ' + F.date(cur[0].from));
     const issued = S.where('invoices', i => i.stayId === stayId && i.lifecycle !== 'draft' && i.period >= F.period(d.from));
@@ -169,9 +183,30 @@
   };
   X.addContractFile = (stayId, f) => {
     _.need('tenants.manage');
+    _.checkFile(f.name);
     const v = S.where('contractFiles', x => x.stayId === stayId).length + 1;
-    const r = S.add('contractFiles', { stayId, name: f.name, size: f.size, version: v, uploadedBy: _.who(), uploadedAt: F.nowISO(), ocr: 'Phase 2' });
+    // D9: file HĐ mới → phiên OCR chờ rà soát của file cũ không áp dụng được nữa
+    const olds = new Set(S.where('contractFiles', x => x.stayId === stayId).map(x => x.id));
+    S.where('ocrSessions', o => olds.has(o.fileId) && o.status === 'review').forEach(o => S.update('ocrSessions', o.id, { status: 'superseded', supersededAt: F.nowISO(), supersededBy: 'file' }));
+    const r = S.add('contractFiles', { stayId, name: f.name, size: f.size, version: v, uploadedBy: _.who(), uploadedAt: F.nowISO(), ocr: 'uploaded' });
     _.audit('upload', 'contractFile', r.id, 'Tải file HĐ ' + f.name); _.done(); return r;
+  };
+  /* D8: điều khoản HĐ đã rà soát từ OCR → lượt thuê. Ngày ký / nhận / tính tiền chỉ đổi khi lượt thuê chưa có hóa đơn phát hành
+     (hóa đơn đã phát hành không tính lại); trả về trường đã ghi và trường bỏ qua để UI cảnh báo. */
+  _.applyStayTerms = (stayId, t, reason) => {
+    const s = Q.stay(stayId); if (!s) throw new Error('Không tìm thấy lượt thuê');
+    const issued = S.one('invoices', i => i.stayId === stayId && i.lifecycle !== 'draft');
+    const MAP = { endDate: 'endDate', payMonths: 'payMonths', dueDay: 'dueDay', deposit: 'depositAmount', people: 'people', vehicles: 'vehicles', signDate: 'dealDate', moveInDate: 'moveInDate', rentStart: 'rentStart' };
+    const DATES = ['signDate', 'moveInDate', 'rentStart'];
+    const patch = {}, applied = [], skipped = [];
+    Object.entries(t).forEach(([k, v]) => {
+      const f = MAP[k]; if (!f || v === '' || v == null || String(s[f] ?? '') === String(v)) return;
+      if (DATES.includes(k) && issued) { skipped.push(k); return; }
+      patch[f] = v; applied.push(k);
+      if (k === 'rentStart' && s.svcStart === s.rentStart) patch.svcStart = v;
+    });
+    if (applied.length) { S.update('stays', stayId, patch); _.audit('update', 'stay', stayId, `Điều khoản HĐ ${s.code} theo ${reason}: ${applied.join(', ')}`); }
+    return { applied, skipped };
   };
   X.updateCustomer = (id, patch) => { _.need('tenants.manage'); S.update('customers', id, patch); _.audit('update', 'customer', id, 'Sửa thông tin khách'); _.done(); };
 })(window.TH);

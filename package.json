@@ -20,6 +20,9 @@
     "verify:p0": "node scripts/verify-p0.mjs --label=after && node scripts/verify-p0-shots.mjs",
     "verify:p1": "node scripts/verify-p1-shots.mjs",
     "verify:p1r": "node scripts/verify-p1-remaining.mjs",
+    "verify:p2": "node scripts/verify-p2.mjs",
+    "sweep": "node scripts/sweep.mjs",
+    "seed:p2": "python -X utf8 scripts/seed/extract_seed_p2.py",
     "build": "node scripts/build.mjs",
     "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist ."
   },

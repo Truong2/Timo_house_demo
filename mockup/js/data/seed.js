@@ -19,7 +19,7 @@
       hireDate: ['2023-', '2024-', '2025-'][hash('hire' + e.key) % 3] + String(1 + hash('hm' + e.key) % 12).padStart(2, '0') + '-01', phone: '09' + String(10000000 + hash('ph' + e.key) % 89999999) }));
     const empByKey = {}; emps.forEach(e => { empByKey[e.key] = e; });
     col('employees', emps);
-    col('users', CAT.users.map(u => ({ id: 'u_' + u.username, username: u.username, role: u.role, employeeId: (empByKey[u.empKey] || {}).id || null, name: (empByKey[u.empKey] || {}).name || u.display, display: u.display, status: 'active' })));
+    col('users', CAT.users.map(u => ({ id: 'u_' + u.username, username: u.username, role: u.role, employeeId: (empByKey[u.empKey] || {}).id || null, name: (empByKey[u.empKey] || {}).name || u.display, display: u.display, status: 'active', phase: u.phase || null })));
 
     /* --- tòa, phòng --- */
     // Mã tòa chuẩn hóa in hoa: nguồn Excel ghi lẫn s8/S8, t20/T20… → gộp bản ghi trùng (bản in hoa ưu tiên, bản thường bù thông tin thiếu), nhóm T/S/G theo tiền tố mã
@@ -32,7 +32,7 @@
       operatedFrom: '2024-' + String(1 + hash('op' + b.code) % 12).padStart(2, '0') + '-01', floors: 3 + hash('fl' + b.code) % 5, vendor: b.vendor || null }));
     const bByCode = {}; buildings.forEach(b => { bByCode[b.code] = b; });
     // Cấu hình demo: các tòa S do một quản lý phụ trách nhận tiền vào TK mẫu HĐ (VP-HẰNG) – admin đổi ở Cài đặt → TK nhận tiền
-    buildings.filter(b => b.group === 'S' && b.managerKey === 'TRINH XUAN HOA TU').forEach(b => { b.template = 'VP_HANG'; b.accountId = accByTpl.VP_HANG; });
+    buildings.filter(b => b.group === 'S' && b.managerKey === 'NV99146292').forEach(b => { b.template = 'VP_HANG'; b.accountId = accByTpl.VP_HANG; });
     // tòa mới nhận (G12A, G13, G14… và các tòa đầu kỳ 2026) → mốc 3 tháng lương cố định
     ['G12A', 'G13', 'G14', 'G15', 'G16', 'G17', 'G18'].forEach((c, i) => { if (bByCode[c]) bByCode[c].operatedFrom = ['2026-06-01', '2026-06-15', '2026-07-01', '2026-08-01', '2026-09-01', '2026-09-01', '2026-09-01'][i]; });
     col('buildings', buildings);
@@ -218,7 +218,7 @@
     ]);
     col('expenses', []);
     col('equipment', []);
-    col('allocationRuns', []); col('payrollRuns', []); col('adjustments', []); col('reportSnapshots', []); col('payrollManual', []);
+    col('allocationRuns', []); col('payrollRuns', []); col('adjustments', []); col('reportSnapshots', []); col('reportSnapshotVersions', []); col('payrollManual', []);
     col('zaloTemplates', CAT.zaloTemplates.map(t => Object.assign({}, t)));
     col('zaloRules', CAT.zaloRules.map(t => Object.assign({}, t)));
     col('zaloBatches', []); col('zaloMessages', []); col('zaloInbox', []); col('smsMessages', []);
