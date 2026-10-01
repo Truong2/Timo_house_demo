@@ -66,6 +66,8 @@ expect(R.ROLES.sale.sales === 'own', 'sale phải có phạm vi kinh doanh "own"
 ['commission.view', 'payments.view', 'debts.viewStatus', 'debts.viewAmounts', 'customers.pii', 'invoices.view', 'reports.view', 'tenants.view'].forEach(p => expect(!R.can('sale', p), `sale không được có quyền ${p}`));
 ['payments.view', 'invoices.view', 'debts.viewStatus', 'debts.viewAmounts', 'repairs.money', 'repairs.confirm', 'reports.view', 'tenants.view', 'sales.view'].forEach(p => expect(!R.can('kythuat', p), `kỹ thuật không được có quyền ${p}`));
 expect(R.can('kythuat', 'repairs.enter') && R.can('sale', 'deals.close'), 'kỹ thuật nhập sổ sửa chữa, sale chốt deal');
+// E1 [GĐ-E1]: sale / kỹ thuật tải tài liệu trong phạm vi hẹp (HĐ khách của deal mình / biên bản, ảnh chỉ số tòa có việc) – không mở kho tài liệu
+['sale', 'kythuat'].forEach(r => expect(R.can(r, 'documents.download') && !R.can(r, 'documents.view') && !R.can(r, 'documents.upload'), `${r}: chỉ quyền tải tài liệu, không xem / tải lên kho`));
 /* 6c. Mở lại kỳ đã khóa (UI-38 nâng cao): cần cả admin và kế toán – hai quyền tách riêng */
 expect(JSON.stringify(R.POLICY['periods.reopen.admin']) === '["admin"]' && JSON.stringify(R.POLICY['periods.reopen.ketoan']) === '["ketoan"]', 'mở lại kỳ phải tách duyệt admin / kế toán');
 /* 7. Trưởng phòng xem báo cáo (CH-23), không xuất */

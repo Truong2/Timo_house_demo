@@ -46,6 +46,7 @@
     'reports.ops': ['admin', 'ketoan', 'truongphong'],
     'shares.view': FIN, 'shares.manage': FIN, 'shares.lock': FIN,
     'documents.view': ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong'], 'documents.upload': ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong'],
+    'documents.download': ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong', 'truongkd', 'sale', 'kythuat'], // E1 [GĐ-E1]: sale/kỹ thuật tải trong phạm vi hẹp (Q.canDownloadDoc), không mở kho
     'ocr.review': OPS, // rà soát trường; "Áp dụng vào biểu phí" cần rates.manage (FIN)
     'zalo.inbox': ['admin', 'ketoan', 'truongphong'],
     'periods.reopen.admin': ['admin'], 'periods.reopen.ketoan': ['ketoan'],

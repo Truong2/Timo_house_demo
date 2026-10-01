@@ -124,7 +124,7 @@
     if (tab === 'zalo') {
       const msgs = S.where('zaloMessages', m => m.stayId === s.id);
       const inbox = TH.ms.on('2') && (TH.auth.can('zalo.inbox') || TH.auth.can('zalo.view')) && Q.inboxScoped ? Q.inboxScoped().filter(x => x.stayId === s.id) : null;
-      tb.innerHTML = U.card({ title: 'Lịch sử tin Zalo', icon: 'message', body: msgs.map(m => `<div class="mini-row"><span>${F.datetime(m.sentAt)}</span><span class="grow">${esc(m.text || TH.calc.zalo.EVENTS[m.event])}</span>${({ delivered: U.chip('Đã nhận', 'green'), failed: U.chip('Lỗi ' + (m.error || ''), 'red'), skipped_paid: U.chip('Bỏ qua – đã thanh toán', 'gray'), queued: U.chip('Chờ gửi', 'blue') })[m.status] || ''}</div>`).join('') || '<span class="muted small">Chưa có tin</span>' });
+      tb.innerHTML = U.card({ title: 'Lịch sử tin Zalo', icon: 'message', body: msgs.map(m => `<div class="mini-row"><span>${F.datetime(m.sentAt)}</span><span class="grow">${esc(m.text || TH.calc.zalo.EVENTS[m.event])}</span>${({ delivered: U.chip('Đã nhận', 'green'), failed: U.chip('Lỗi ' + (m.error || ''), 'red'), skipped_paid: U.chip('Bỏ qua – đã thanh toán', 'gray'), skipped_stale: U.chip('Bỏ qua – sự kiện không còn đúng', 'gray'), queued: U.chip('Chờ gửi', 'blue') })[m.status] || ''}</div>`).join('') || '<span class="muted small">Chưa có tin</span>' });
       if (inbox) { tb.insertAdjacentHTML('beforeend', '<div class="mt16">' + K.tableCard('ibx', 'Phản hồi của khách (hộp thư Zalo – Phase 2)') + '</div>'); TH.pages.inboxTable(tb.querySelector('#ibx'), inbox); }
     }
     U.bind(root, {

@@ -6,22 +6,32 @@
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, A = TH.auth;
   const fail = (fields, msg = 'Dữ liệu chưa hợp lệ') => { const e = new Error(msg); e.fields = fields; throw e; };
   const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h >>> 0; };
-  Q.DOC_TYPES = [['red_book', 'Sổ đỏ'], ['owner_contract', 'HĐ chủ nhà'], ['tenant_contract', 'HĐ khách'], ['appendix', 'Phụ lục'], ['handover', 'Biên bản bàn giao'], ['voucher', 'Phiếu thu / chi'], ['meter_photo', 'Ảnh chỉ số'], ['asset', 'Tài sản'], ['other', 'Khác']];
+  Q.DOC_TYPES = [['red_book', 'Sổ đỏ'], ['pccc', 'PCCC'], ['owner_contract', 'HĐ chủ nhà'], ['tenant_contract', 'HĐ khách'], ['appendix', 'Phụ lục'], ['handover', 'Biên bản bàn giao'], ['voucher', 'Phiếu thu / chi'], ['meter_photo', 'Ảnh chỉ số'], ['asset', 'Tài sản'], ['other', 'Khác']];
   Q.OBJ_TYPES = { building: 'Tòa', room: 'Phòng', stay: 'Lượt thuê / khách', ownerContract: 'HĐ chủ nhà', invoice: 'Hóa đơn', payment: 'Phiếu thu', refund: 'Phiếu hoàn', expense: 'Chứng từ chi' };
   const LINKED = ['stay', 'ownerContract', 'invoice', 'payment', 'refund', 'expense'];
   /* Toàn bộ tài liệu = kho tài liệu + file HĐ khách của lượt thuê (UI-07) */
+  /* E1 [GĐ-E1]: vai trò có quyền xem kho tải theo phạm vi tòa; sale / trưởng nhóm KD chỉ tải HĐ khách của deal mình;
+     kỹ thuật chỉ tải biên bản / ảnh chỉ số của tòa có việc sửa của mình (không mở kho tài liệu) */
+  Q.canDownloadDoc = (d) => {
+    if (!d || d.status === 'deleted' || !A.can('documents.download')) return false;
+    if (A.can('documents.view')) return A.inScope(d.buildingId);
+    if (A.can('sales.view')) return d.type === 'tenant_contract' && !!S.one('deals', x => x.stayId === d.objectId && A.inSales(x.saleIds));
+    if (A.can('repairs.enter')) return ['handover', 'meter_photo'].includes(d.type) && !!S.one('repairLogs', r => r.workerId === (S.session || {}).employeeId && r.buildingId === d.buildingId);
+    return false;
+  };
+  Q.downloadableDocs = (pred = () => true) => Q.documentsAll().filter(d => d.status === 'current' && pred(d) && Q.canDownloadDoc(d));
   /* Tải xuống (mô phỏng): kiểm quyền + phạm vi, ghi nhật ký */
-  X.downloadDocument = (id) => {
-    _.need('documents.view');
+  X.downloadDocument = (id) => { _.needMs('2', 'Kho tài liệu (UI-26)');
+    _.need('documents.download');
     const d = Q.documentsAll().find(x => x.id === id); if (!d || d.status === 'deleted') throw new Error('Không tìm thấy tài liệu (đã xóa)');
-    if (!A.inScope(d.buildingId)) throw new Error('Tòa ngoài phạm vi được giao');
+    if (!Q.canDownloadDoc(d)) throw new Error(A.can('documents.view') ? 'Tòa ngoài phạm vi được giao' : 'Tài liệu ngoài phạm vi được tải của bạn');
     _.audit('download', 'document', id, 'Tải xuống ' + d.name); _.done(); return d;
   };
   Q.documentsAll = () => [...S.all('documents'), ...S.all('contractFiles').map(f => { const s = Q.stay(f.stayId) || {}; const newer = S.one('contractFiles', x => x.stayId === f.stayId && (x.version || 1) > (f.version || 1)); return { id: 'cf:' + f.id, fileId: f.id, blobId:f.blobId, source: 'contractFile', type: 'tenant_contract', name: f.name, size: f.size, objectType: 'stay', objectId: f.stayId, buildingId: s.buildingId, roomId: s.roomId, version: f.version || 1, validTo: s.endDate, uploadedBy: f.uploadedBy, uploadedAt: f.uploadedAt, status: newer ? 'superseded' : 'current', ocrStatus: Q.ocrStatusOf ? Q.ocrStatusOf(f.id) : null }; }),...S.all('intakeAttachments').map(a=>{const oc=a.kind==='owner'&&S.get('ownerContracts',a.targetId),s=a.kind==='tenant'&&Q.stay(a.targetId);return{id:'ia:'+a.id,blobId:a.fileId,source:'intakeAttachment',type:a.kind==='owner'?'owner_contract':'tenant_contract',name:a.name,objectType:a.kind==='owner'?'ownerContract':'stay',objectId:a.targetId,buildingId:oc?.buildingId||s?.buildingId,roomId:s?.roomId,uploadedAt:a.createdAt,status:'current'};})];
   Q.documentsScoped = () => Q.scoped(Q.documentsAll()).filter(d => d.status !== 'deleted');
   Q.docObjectHref = (d) => ({ stay: '#/stays/' + d.objectId, ownerContract: '#/owners/' + d.objectId, building: '#/buildings/' + d.objectId, invoice: '#/billing/invoices/' + d.objectId, refund: '#/refunds/' + d.objectId, payment: '#/billing/receipts/' + d.objectId })[d.objectType] || null;
 
-  X.uploadDocument = (d) => {
+  X.uploadDocument = (d) => { _.needMs('2', 'Kho tài liệu (UI-26)');
     _.need('documents.upload');
     const errs = {};
     const old = d.replaceId ? S.get('documents', d.replaceId) : null;
@@ -44,7 +54,7 @@
     _.audit(old ? 'version' : 'upload', 'document', doc.id, `${old ? 'Phiên bản ' + doc.version + ' của' : 'Tải lên'} ${doc.name}`); _.done(); return doc;
   };
   Q.docVersions = (id) => { const out = []; let d = S.get('documents', id); while (d) { out.push(d); d = d.prevId ? S.get('documents', d.prevId) : null; } return out; };
-  X.deleteDocument = (id, reason) => {
+  X.deleteDocument = (id, reason) => { _.needMs('2', 'Kho tài liệu (UI-26)');
     _.need('documents.upload');
     const d = S.get('documents', id); if (!d) throw new Error(String(id).startsWith('cf:') ? 'File HĐ khách gắn lượt thuê – không xóa, chỉ tải phiên bản mới' : 'Không tìm thấy tài liệu');
     if (LINKED.includes(d.objectType)) throw new Error('Tài liệu gắn ' + (Q.OBJ_TYPES[d.objectType] || 'giao dịch').toLowerCase() + ' – không xóa được, chỉ tải phiên bản mới');
@@ -69,7 +79,7 @@
   Q.ocrStatusOf = (fileId) => { const o = Q.ocrOf(fileId)[0]; return o ? o.status : ((S.get('contractFiles', fileId) || {}).ocr === 'extracting' ? 'extracting' : 'uploaded'); };
   Q.ocrSession = (id) => S.get('ocrSessions', id);
   Q.ocrOf = (fileId) => S.where('ocrSessions', o => o.fileId === fileId).sort((a, b) => b.run - a.run);
-  X.runOcr = (fileId) => {
+  X.runOcr = (fileId) => { _.needMs('2', 'OCR hợp đồng (UI-08)');
     _.need('ocr.review');
     const f = S.get('contractFiles', fileId); if (!f) throw new Error('Không tìm thấy file hợp đồng');
     const s = Q.stay(f.stayId); if (!A.inScope(s.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao'); const c = Q.customer(s.customerId) || {}; const rv = Q.rateOf(s.id) || { items: {} }; const room = Q.room(s.roomId) || {};
@@ -112,7 +122,7 @@
   const hintOf = (key) => kindOf(key) === moneyOf ? OCR_HINT.money : kindOf(key) === dateOf ? OCR_HINT.date : OCR_HINT.int;
   /* Giá trị hợp lệ đã chuẩn hóa; undefined = trường tự do; null = không hợp lệ */
   Q.ocrValue = (key, value) => { const fn = kindOf(key); if (!fn) return value; if (value === '' || value == null) return ''; const v = fn(value); return v == null ? null : v; };
-  const needOpen = (sid) => { _.need('ocr.review'); const o = Q.ocrSession(sid); if (!o) throw new Error('Không tìm thấy phiên OCR');
+  const needOpen = (sid) => { _.needMs('2', 'OCR hợp đồng (UI-08)'); _.need('ocr.review'); const o = Q.ocrSession(sid); if (!o) throw new Error('Không tìm thấy phiên OCR');
     const st = Q.stay(o.stayId); if (st && !A.inScope(st.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao'); /* D10 */
     if (o.status === 'applied') throw new Error('Phiên đã áp dụng – chạy lại OCR để tạo phiên mới'); if (o.status === 'superseded') throw new Error('Phiên đã được thay bằng lần chạy OCR mới – mở phiên mới nhất'); if (o.status === 'error') throw new Error('File lỗi / thiếu trang – nhập tay ở tab Biểu phí'); return o; };
   X.ocrSetField = (sid, key, value) => {

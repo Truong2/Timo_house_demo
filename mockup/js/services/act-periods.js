@@ -49,7 +49,7 @@
     S.update('periods', period, { reopenRequest: { reason, by: _.who(), byRole: TH.auth.role(), at: F.nowISO(), approvals: [] } });
     _.audit('request', 'period', period, 'Yêu cầu mở lại kỳ ' + F.periodShort(period) + ': ' + reason); _.done();
   };
-  X.approveReopen = (period) => {
+  X.approveReopen = (period) => { _.needMs('2', 'Mở lại kỳ cần duyệt kép');
     const role = TH.auth.role();
     if (!['admin', 'ketoan'].includes(role)) throw new Error('Chỉ admin và kế toán duyệt mở lại kỳ');
     _.need(role === 'admin' ? 'periods.reopen.admin' : 'periods.reopen.ketoan');

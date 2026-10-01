@@ -5,7 +5,7 @@
   /* Ứng viên theo quy tắc tại ngày */
   /* Phase 2: sự kiện gắn lượt thuê – sắp hết HĐ (trong số ngày cảnh báo, CH-09) và đã chi hoàn cọc (7 ngày gần nhất); mỗi lượt thuê gửi một lần */
   const stayCandidates = (rule, set) => {
-    const t = F.today(); const sent = new Set(S.where('zaloMessages', m => m.event === rule.event && m.status !== 'queued').map(m => m.stayId));
+    const t = F.today(); const sent = new Set(S.where('zaloMessages', m => m.event === rule.event && !['queued', 'skipped_stale'].includes(m.status)).map(m => m.stayId));
     if (rule.event === 'contract_expiring') return Q.expiring().filter(s => (!set || set.has(s.buildingId)) && !sent.has(s.id)).map(s => ({ stay: s, amount: 0, date: s.endDate }));
     return S.all('refunds').filter(r => r.status === 'paid' && r.paidAt && Cc.dates.diffDays(String(r.paidAt).slice(0, 10), t) <= 7 && (!set || set.has(r.buildingId)) && !sent.has(r.stayId))
       .map(r => ({ stay: Q.stay(r.stayId), amount: r.paidAmount || 0, date: String(r.paidAt).slice(0, 10), refundId: r.id }));
@@ -45,8 +45,8 @@
   };
   const deliver = (m) => {
     const inv = m.invoiceId ? Q.invoice(m.invoiceId) : null; const st = inv ? Q.invState(inv) : { remaining: 0 };
-    const chk = Cc.zalo.recheck(m, st.remaining);
-    if (chk.action === 'skip') return { status: 'skipped_paid', error: chk.reason };
+    const chk = Cc.zalo.recheck(m, st.remaining, inv ? {} : { stay: Q.stay(m.stayId), refund: m.refundId ? S.get('refunds', m.refundId) : null, asOf: F.today(), warnDays: Q.param('expiryWarnDays') });
+    if (chk.action === 'skip') return { status: chk.status, error: chk.reason };
     if (!m.zaloLinked) return { status: 'failed', error: 'NOT_LINKED', errorText: 'Khách chưa liên kết Zalo', amount: chk.amount };
     if (m.attempts === 0 && hash(m.id) % 17 === 3) return { status: 'failed', error: 'TIMEOUT', errorText: 'Hết thời gian chờ nhà cung cấp', amount: chk.amount };
     return { status: 'delivered', amount: chk.amount };
@@ -77,7 +77,7 @@
       if (r.status === 'failed' && !m.smsId && (!Cc.zalo.retryable(r.error) || retry)) fallback(Object.assign({}, m, { batchId: id }), inv, r.amount || m.amount, r.error === 'NOT_LINKED' ? 'khách chưa liên kết Zalo' : 'Zalo lỗi sau khi gửi lại');
     });
     const all = S.where('zaloMessages', m => m.batchId === id);
-    S.update('zaloBatches', id, Object.assign({ status: 'sent', stats: { delivered: all.filter(m => m.status === 'delivered').length, failed: all.filter(m => m.status === 'failed').length, skipped: all.filter(m => m.status === 'skipped_paid').length, sms: S.where('smsMessages', x => x.batchId === id).length } }, retry ? { retriedAt: F.nowISO() } : { sentAt: F.nowISO() }));
+    S.update('zaloBatches', id, Object.assign({ status: 'sent', stats: { delivered: all.filter(m => m.status === 'delivered').length, failed: all.filter(m => m.status === 'failed').length, skipped: all.filter(m => ['skipped_paid', 'skipped_stale'].includes(m.status)).length, sms: S.where('smsMessages', x => x.batchId === id).length } }, retry ? { retriedAt: F.nowISO() } : { sentAt: F.nowISO() }));
     // mô phỏng phản hồi khách → hộp thư trưởng phòng: chỉ tin gửi thành công trong lần này, mỗi tin tối đa một phản hồi
     const sentNow = new Set(msgs.map(m => m.id));
     all.filter(m => sentNow.has(m.id) && m.status === 'delivered' && hash(m.id) % 29 === 1 && !S.one('zaloInbox', x => x.messageId === m.id)).slice(0, 3).forEach(m => {
@@ -101,12 +101,13 @@
   Q.inboxAssignee = (buildingId) => {
     // chỉ gán cho trưởng phòng (TPVH – vai trò có quyền hộp thư); không tìm thấy → để trống, admin / kế toán xử lý (B18)
     let e = Q.managerOf(buildingId); const seen = new Set();
+    if (e && e.title === 'TPVH') return e; // E1: trưởng phòng trực tiếp phụ trách tòa
     while (e && !seen.has(e.id)) { seen.add(e.id); const up = Q.leaderOf(e.id); if (!up) break; if (up.title === 'TPVH') return up; e = up; }
     return null;
   };
   Q.INBOX_ST = { open: ['Chờ xử lý', 'amber'], processing: ['Đang xử lý', 'blue'], done: ['Đã xử lý', 'green'] };
   Q.inboxScoped = () => { const sc = TH.auth.salesScope(); const role = TH.auth.role(); const all = S.all('zaloInbox'); if (['admin', 'ketoan'].includes(role)) return all; const br = TH.auth.branchOf(S.session.employeeId, F.today()); return all.filter(x => x.assigneeId && br.has(x.assigneeId)); };
-  X.updateInbox = (id, d) => {
+  X.updateInbox = (id, d) => { _.needMs('2', 'Hộp thư phản hồi Zalo (UI-39)');
     if (!TH.auth.can('zalo.view')) _.need('zalo.inbox');
     const x = S.get('zaloInbox', id); if (!x) throw new Error('Không tìm thấy tin');
     if (!Q.INBOX_ST[d.status]) throw new Error('Trạng thái không hợp lệ');

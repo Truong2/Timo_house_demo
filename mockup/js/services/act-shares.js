@@ -40,14 +40,14 @@
     return { rent: w.rent - e.rent, lng: w.lng - e.lng, lnr: w.lnr - e.lnr, oq04: 25000000 * 15 / 1343 - 25000000 * 15 / 1382 };
   };
 
-  X.addShareholder = (d) => {
+  X.addShareholder = (d) => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
     _.need('shares.manage');
     if (!String(d.name || '').trim()) fail({ name: 'Nhập tên nhà đầu tư' });
     const sh = S.add('shareholders', { code: S.nextCode('shareholders', 'CD-', 2), name: d.name.trim(), common: false, phone: d.phone || '', bank: d.bank || '', note: d.note || '' });
     _.audit('create', 'shareholder', sh.id, 'Thêm cổ đông ' + sh.code); _.done(); return sh;
   };
   /* Tỷ lệ mới có hiệu lực từ ngày: đóng bộ tỷ lệ cũ; lưu được khi chưa đủ 100% (cảnh báo) nhưng không khóa bảng kê được */
-  X.setShareRatios = (bid, rows, from, reason) => {
+  X.setShareRatios = (bid, rows, from, reason) => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
     _.need('shares.manage');
     const errs = {};
     if (!Q.building(bid)) errs.buildingId = 'Chọn tòa';
@@ -67,7 +67,7 @@
     _.audit('update', 'shareRatio', bid, `Tỷ lệ góp ${(Q.building(bid) || {}).code} từ ${F.date(from)}: Σ ${v.sum}%${v.ok ? '' : ' (chưa đủ 100%)'} – ${reason}`); _.done();
     return v;
   };
-  X.lockShareRun = (bid, period, source = 'web') => {
+  X.lockShareRun = (bid, period, source = 'web') => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
     _.need('shares.lock');
     // B13: chỉ khóa số web (nguồn "như Excel" để đối chiếu, mang lỗi ô C43 – OQ-04); kỳ báo cáo mở lại sau khi khóa → khóa phiên mới
     if (source !== 'web') throw new Error('Chỉ khóa bảng kê theo số Báo cáo tổng web – nguồn "như Excel" chỉ để đối chiếu');

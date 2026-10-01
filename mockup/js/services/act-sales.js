@@ -66,7 +66,7 @@
     const cust = S.one('customers', c => normPhone(c.phone) === p);
     return lead || cust ? { lead, customer: cust } : null;
   };
-  X.addLead = (d) => {
+  X.addLead = (d) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('sales.manage');
     const errs = {};
     if (!phoneOk(d.phone)) errs.phone = 'SĐT 10 số, bắt đầu 0';
@@ -93,7 +93,7 @@
     _.audit('create', 'lead', lead.id, `Khách xem ${lead.code} (${lead.source})${hit ? ' – trùng liên hệ: ' + d.dupReason : ''}`); _.done(); return lead;
   };
   /* Giao lại sale phụ trách: leader / trưởng phòng / admin trong nhánh; sale không tự chuyển */
-  X.assignLead = (id, saleId, reason) => {
+  X.assignLead = (id, saleId, reason) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('sales.manage');
     const l = Q.lead(id); if (!l) throw new Error('Không tìm thấy khách');
     const scope = A.salesScope();
@@ -103,7 +103,7 @@
     S.update('leads', id, { saleIds: [saleId], transfers: [...(l.transfers || []), { from: l.saleIds, to: saleId, reason, at: F.today(), by: _.who() }], note: [l.note, `Chuyển sale ${Q.saleName(l.saleIds)} → ${Q.saleName([saleId])}: ${reason}`].filter(Boolean).join(' · ') });
     _.audit('assign', 'lead', id, 'Chuyển sale phụ trách ' + l.code); _.done();
   };
-  X.addViewing = (leadId, d) => {
+  X.addViewing = (leadId, d) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('sales.manage');
     const l = Q.lead(leadId); if (!l) throw new Error('Không tìm thấy khách');
     if (!A.inSales(l.saleIds)) throw new Error('Khách ngoài phạm vi kinh doanh của bạn');
@@ -114,7 +114,7 @@
     if (['new'].includes(l.status)) S.update('leads', leadId, { status: 'viewed' });
     _.audit('create', 'viewing', v.id, `Lượt xem ${r.code} – ${l.code}`); _.done(); return v;
   };
-  X.setLeadStatus = (id, status, note) => {
+  X.setLeadStatus = (id, status, note) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('sales.manage');
     const l = Q.lead(id); if (!l || !A.inSales(l.saleIds)) throw new Error('Khách ngoài phạm vi kinh doanh của bạn');
     if (!Q.LEAD_ST[status] || status === 'closed') throw new Error('Trạng thái không hợp lệ – "Đã chốt" chỉ đặt khi chốt giao dịch');
@@ -124,7 +124,7 @@
   };
 
   /* ---- UI-21 giao dịch chốt ---- */
-  X.closeDeal = (d) => {
+  X.closeDeal = (d) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('deals.close');
     const l = Q.lead(d.leadId); if (!l) throw new Error('Không tìm thấy khách');
     if (!A.inSales(l.saleIds)) throw new Error('Khách ngoài phạm vi kinh doanh của bạn');
@@ -159,7 +159,7 @@
     return Q.deal(deal.id);
   };
   /* Sửa ngày nhận phòng dự kiến (UI-21): sự kiện riêng, lượt thuê chờ nhận đổi theo; không đổi ngày tính tiền */
-  X.setDealMoveIn = (id, date, reason) => {
+  X.setDealMoveIn = (id, date, reason) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('deals.close');
     const d = needDeal(id);
     if (d.status !== 'closed') throw new Error('Chỉ sửa ngày nhận khi giao dịch đang chờ nhận');
@@ -183,7 +183,7 @@
     const v = S.where('salesTargets', t => t.employeeId === employeeId && t.from <= date).sort((a, b) => b.from.localeCompare(a.from))[0];
     return v ? v.amount : Q.param('salesTarget', date);
   };
-  X.setSalesTarget = (employeeId, amount, from, reason) => {
+  X.setSalesTarget = (employeeId, amount, from, reason) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('commission.policy');
     const errs = {};
     if (!Q.emp(employeeId)) errs.employeeId = 'Chọn sale';
@@ -196,7 +196,7 @@
     _.audit('create', 'salesTarget', t.id, `Chỉ tiêu ${(Q.emp(employeeId) || {}).name} từ ${F.date(from)}: ${F.vnd(amount)}`); _.done(); return t;
   };
   /* Khách vào ở: kích hoạt lượt thuê chờ nhận (UI-07) – deal "đã nhận" */
-  X.receiveDeal = (id, date) => {
+  X.receiveDeal = (id, date) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('tenants.manage');
     const d = needDeal(id);
     if (d.status !== 'closed') throw new Error('Chỉ nhận phòng cho giao dịch đang chờ nhận');
@@ -204,7 +204,7 @@
     _.audit('receive', 'deal', id, 'Khách nhận phòng ' + Q.roomCode(d.roomId)); _.done();
   };
   /* Đổi phòng trước khi nhận (E09): lượt thuê chờ chuyển sang phòng mới; hoa hồng giữ theo deal (đặc tả: đổi phòng giữ hoa hồng phòng cũ) */
-  X.transferDeal = (id, d) => {
+  X.transferDeal = (id, d) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('deals.cancel');
     const deal = needDeal(id);
     if (deal.status !== 'closed') throw new Error('Chỉ đổi phòng khi giao dịch chưa nhận phòng');
@@ -233,7 +233,7 @@
     _.audit('transfer', 'deal', id, `Đổi phòng ${deal.code}: ${from.code} → ${to.code} – ${d.reason}`); _.done();
   };
   /* Hủy (chưa thu cọc): không doanh số, không hoa hồng, phòng mở bán lại */
-  X.cancelDeal = (id, reason) => {
+  X.cancelDeal = (id, reason) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('deals.cancel');
     const d = needDeal(id);
     if (d.status !== 'closed') throw new Error('Chỉ hủy giao dịch chưa nhận phòng');
@@ -256,7 +256,7 @@
   };
   /* Khách bỏ cọc (đặc tả dòng 299): kết thúc lượt thuê chờ nhận loại "bỏ cọc" → cọc thành doanh thu dòng 5; không công nợ, không phiếu hoàn;
      hoa hồng tính lại trên cơ sở cọc − tiền phòng các ngày đã tính (nếu ngày bỏ sau ngày tính tiền) */
-  X.forfeitDeal = (id, d) => {
+  X.forfeitDeal = (id, d) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('deals.cancel');
     const deal = needDeal(id);
     if (deal.status !== 'closed') throw new Error('Chỉ ghi bỏ cọc cho giao dịch chưa nhận phòng');

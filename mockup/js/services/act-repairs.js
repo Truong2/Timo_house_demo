@@ -46,7 +46,7 @@
   const payrollClosed = (period) => !!S.one('payrollRuns', r => r.period === period && r.status === 'closed');
   const PAY_CLOSED = (period) => `Bảng lương kỳ ${F.periodShort(period)} đã chốt – tiền công không vào lương được nữa; ghi vào kỳ sổ sau hoặc dùng "Điều chỉnh sau khóa"`;
 
-  X.addRepair = (d) => {
+  X.addRepair = (d) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.enter');
     const self = A.role() === 'kythuat';
     const workerId = self ? S.session.employeeId : d.workerId;
@@ -73,7 +73,7 @@
       stayId: d.stayId || null, note: [d.note, d.periodReason ? 'Ngoài kỳ: ' + d.periodReason : ''].filter(Boolean).join(' · '), periodOverride: !!(d.date && Q.repairPeriodOf(d.date) !== period), status: 'draft', source: 'web', enteredBy: _.who() });
     _.audit('create', 'repair', r.id, `Sổ sửa chữa ${r.code}: ${b.code} ${d.desc} – công ${F.vnd(labor)}, vật tư ${F.vnd(material)}`); _.done(); return r;
   };
-  X.voidRepair = (id, reason) => {
+  X.voidRepair = (id, reason) => { _.needMs('2', 'Sổ sửa chữa (UI-47)'); _.need('repairs.enter');
     const r = S.get('repairLogs', id); if (!r) throw new Error('Không tìm thấy dòng sổ');
     if (r.status !== 'draft') throw new Error('Chỉ hủy dòng nháp – dòng đã xác nhận dùng "Điều chỉnh"');
     if (A.role() === 'kythuat' ? r.workerId !== S.session.employeeId : !A.can('repairs.confirm')) throw new Error('Bạn không có quyền hủy dòng này');
@@ -82,7 +82,7 @@
     S.update('repairLogs', id, { status: 'void', note: [r.note, 'Hủy: ' + reason].filter(Boolean).join(' · ') }); _.audit('void', 'repair', id, 'Hủy dòng sổ ' + r.code); _.done();
   };
   /* Xác nhận (kế toán): chủ nhà chịu → bù trừ kỳ trả chủ nhà; khách chịu → đề xuất trừ cọc (chưa áp) */
-  X.confirmRepairs = (ids) => {
+  X.confirmRepairs = (ids) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.confirm');
     const rows = ids.map(id => S.get('repairLogs', id)).filter(r => r && r.status === 'draft');
     if (!rows.length) throw new Error('Chọn dòng nháp cần xác nhận');
@@ -117,7 +117,7 @@
     const stays = S.where('stays', s => s.roomId === r.roomId && (s.id === r.stayId || !r.stayId));
     return S.one('refunds', f => stays.some(s => s.id === f.stayId) && ['draft', 'calculated'].includes(f.status)) || null;
   };
-  X.applyRepairToRefund = (id) => {
+  X.applyRepairToRefund = (id) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.confirm');
     const r = S.get('repairLogs', id); if (!r || !r.tenantCharge || r.tenantCharge.status !== 'suggested') throw new Error('Không có đề xuất trừ cọc cho dòng này');
     const rf = Q.refundForRepair(r); if (!rf) throw new Error('Phòng ' + (r.roomCode || '') + ' chưa có phiếu hoàn cọc nháp');
@@ -127,7 +127,7 @@
   };
   /* Khách chịu, khách còn ở → đề xuất thành dòng 13 "Thu khác" trên hóa đơn nháp của lượt thuê (OQ-23; áp khi kế toán xác nhận) */
   Q.draftInvoiceForRepair = (r) => { const stays = S.where('stays', s => s.roomId === r.roomId && (s.id === r.stayId || !r.stayId) && s.status === 'active'); return S.where('invoices', i => stays.some(s => s.id === i.stayId) && i.lifecycle === 'draft').sort((a, b) => b.period.localeCompare(a.period))[0] || null; };
-  X.applyRepairToInvoice = (id) => {
+  X.applyRepairToInvoice = (id) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.confirm');
     const r = S.get('repairLogs', id); if (!r || !r.tenantCharge || r.tenantCharge.status !== 'suggested') throw new Error('Không có đề xuất thu khách cho dòng này');
     const inv = Q.draftInvoiceForRepair(r); if (!inv) throw new Error('Phòng ' + (r.roomCode || '') + ' chưa có hóa đơn nháp của khách đang ở');
@@ -137,7 +137,7 @@
     _.audit('apply', 'repair', id, `Áp khách chịu ${r.code} vào hóa đơn nháp ${inv.code || inv.id} (Thu khác)`); _.done(); return inv;
   };
   /* Chốt kỳ sổ: vật tư công ty / khách chịu → chi phí dòng 41 theo tòa (tiền công đi qua bảng lương); chủ nhà chịu đã bù trừ kỳ trả chủ nhà */
-  X.postRepairPeriod = (period) => {
+  X.postRepairPeriod = (period) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.confirm');
     _.guardPeriod(period, 'chốt sổ sửa chữa');
     if (parallel(period)) throw new Error('Kỳ ' + F.periodShort(period) + ' chạy song song Excel – chi phí sửa chữa đã có trong số Excel, sổ chỉ để đối chiếu');
@@ -154,7 +154,7 @@
   };
   /* B9: điều chỉnh dòng đã xác nhận (tiền công / vật tư / người chịu) khi kỳ sổ còn mở, lương chưa chốt, vật tư chưa chốt kỳ sổ.
      Lưu lịch sử; bù trừ chủ nhà và đề xuất trừ cọc đi theo số mới. Sau các mốc đó: ghi dòng mới ở kỳ sau hoặc "Điều chỉnh sau khóa". */
-  X.adjustRepair = (id, d) => {
+  X.adjustRepair = (id, d) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.confirm');
     const r = S.get('repairLogs', id); if (!r || r.status !== 'confirmed') throw new Error('Chỉ điều chỉnh dòng đã xác nhận');
     if (!String(d.reason || '').trim()) fail({ reason: 'Nhập lý do điều chỉnh' });
@@ -188,7 +188,7 @@
     _.audit('adjust', 'repair', id, `Điều chỉnh ${r.code}: công ${F.vnd(r.labor)} → ${F.vnd(labor)}, vật tư ${F.vnd(r.material)} → ${F.vnd(material)} – ${d.reason}`); _.done();
     return S.get('repairLogs', id);
   };
-  X.setRepairAdvance = (workerId, period, amount, note) => {
+  X.setRepairAdvance = (workerId, period, amount, note) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.confirm');
     _.guardPeriod(period, 'ghi ứng chi');
     if (!(Number(amount) > 0)) fail({ amount: 'Nhập số ứng' });

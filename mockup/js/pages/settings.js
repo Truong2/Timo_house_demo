@@ -7,7 +7,7 @@
 
   const PERM_GROUPS_P2 = [['Kinh doanh (P2)', ['sales.view', 'sales.manage', 'deals.close', 'deals.cancel', 'customers.phone']], ['Hoa hồng (P2)', ['commission.view', 'commission.approve', 'commission.pay', 'commission.policy']],
     ['Sửa chữa (P2)', ['repairs.view', 'repairs.enter', 'repairs.confirm', 'repairs.money']], ['Báo cáo, cổ đông (P2)', ['reports.ops', 'shares.view', 'shares.manage', 'shares.lock']],
-    ['Tài liệu, OCR (P2)', ['documents.view', 'documents.upload', 'ocr.review']], ['Zalo, kỳ (P2)', ['zalo.inbox', 'periods.reopen.admin', 'periods.reopen.ketoan']]];
+    ['Tài liệu, OCR (P2)', ['documents.view', 'documents.upload', 'documents.download', 'ocr.review']], ['Zalo, kỳ (P2)', ['zalo.inbox', 'periods.reopen.admin', 'periods.reopen.ketoan']]];
   /* Điều chỉnh sau khóa (UI-38, SRS §2.2): dùng chung ở Cài đặt → Kỳ, Bảng lương, Phân bổ, Chi phí, ô báo cáo */
   TH.pages.adjustDrawer = (period, preset = {}) => K.formDrawer({ title: 'Điều chỉnh sau khóa – kỳ ' + F.periodShort(period), sub: 'Không sửa số đã chốt; ghi dòng điều chỉnh (tòa × dòng báo cáo) cộng vào báo cáo kỳ gốc', modal: true, fields: [
     { name: 'buildingId', label: 'Tòa', type: 'select', req: true, value: preset.buildingId || '', options: K.buildingOpts(false) },

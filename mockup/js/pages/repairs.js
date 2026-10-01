@@ -2,7 +2,7 @@
    SRC-16 (NT-5, NT-6); chế độ web chỉ tính dòng có ngày trong kỳ và cảnh báo dòng ngoài kỳ (K-6). */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc, A = TH.auth, RP = TH.calc.repairs;
-  const TABS = [{ key: 'so', label: 'Sổ sửa chữa' }, { key: 'ung-chi', label: 'Ứng chi & lương thợ', perm: 'repairs.money' }, { key: 'son', label: 'Sơn' }];
+  const TABS = [{ key: 'so', label: 'Sổ sửa chữa' }, { key: 'ung-chi', label: 'Ứng chi & lương thợ', perm: 'repairs.money' }, { key: 'son', label: 'Sơn' }, { key: 'tai-lieu', label: 'Biên bản & ảnh', perm: 'documents.download' }];
   const BT = { company: 'gray', tenant: 'amber', owner: 'purple' };
   TH.router.handle('/repairs', (root, p, q) => {
     const tab = K.pickTab(TABS, q.tab, 'so');
@@ -69,9 +69,13 @@
         + '<div class="mt16">' + K.tableCard('t', 'Việc trong kỳ có ghi điểm lấy sơn (' + used.length + ')') + '</div>';
       U.table(tb.querySelector('#t'), { rows: used, pageSize: 15, cols: [{ key: 'd', label: 'Ngày', render: r => F.date(r.date) }, { key: 'b', label: 'Tòa / phòng', render: r => esc(r.buildingCode + (r.roomCode ? '-' + r.roomCode : '')) }, { key: 'n', label: 'Nội dung', render: r => esc(r.desc) }, { key: 'p', label: 'Điểm lấy sơn', render: r => esc(r.paintFrom) }] });
     }
+    if (tab === 'tai-lieu') { // E1 [GĐ-E1]: biên bản bàn giao / ảnh chỉ số của tòa có việc sửa trong kỳ (kỹ thuật: chỉ tòa có việc của mình)
+      const bs = new Set(rows.map(r => r.buildingId));
+      tb.innerHTML = U.card({ title: 'Biên bản bàn giao & ảnh chỉ số – tòa có việc sửa trong kỳ', icon: 'folder', body: TH.pages.docDownloadList(Q.downloadableDocs(d => ['handover', 'meter_photo'].includes(d.type) && bs.has(d.buildingId))) });
+    }
     const tbl = tb.querySelector('#t') && tb.querySelector('#t')._tbl;
     U.bind(root, {
-      tab: (el) => TH.router.setQuery({ tab: el.dataset.key }),
+      tab: (el) => TH.router.setQuery({ tab: el.dataset.key }), docdl: (el) => TH.pages.docDownload(el.dataset.id),
       apply: (el) => K.act(() => X.applyRepairToRefund(el.dataset.id), 'Đã áp vào phiếu hoàn cọc'),
       applyinv: (el) => K.act(() => X.applyRepairToInvoice(el.dataset.id), 'Đã thêm vào "Thu khác" hóa đơn nháp'),
       adjr: (el) => { const r = S.get('repairLogs', el.dataset.id); K.formDrawer({ title: 'Điều chỉnh ' + r.code, modal: true, note: U.note('info', '', 'Điều chỉnh được khi kỳ sổ còn mở, bảng lương kỳ chưa chốt và vật tư chưa chốt kỳ sổ. Lưu lịch sử thay đổi; bù trừ chủ nhà và đề xuất trừ cọc đi theo số mới.'),

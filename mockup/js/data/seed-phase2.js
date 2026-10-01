@@ -107,7 +107,7 @@
 
     /* Hộp thư phản hồi Zalo (UI-39 Phase 2, CH-37): vài tin khách trả lời, gán trưởng phòng phụ trách theo cơ cấu tổ chức (đi lên từ quản lý tòa tới TPVH) */
     const up = (id) => (st.orgLinks.find(l => l.employeeId === id && !l.to) || {}).leaderId;
-    const head = (bid) => { const a = st.assignments.find(x => x.buildingId === bid && x.responsibility === 'operate' && !x.to && !x.roomId); let e = a && a.employeeId, first = null; for (let i = 0; i < 5 && e; i++) { const u = up(e); if (!u) break; if (!first) first = u; if ((st.employees.find(x => x.id === u) || {}).title === 'TPVH') return u; e = u; } return first; };
+    const head = (bid) => { const a = st.assignments.find(x => x.buildingId === bid && x.responsibility === 'operate' && !x.to && !x.roomId); let e = a && a.employeeId; const tp = (id) => (st.employees.find(x => x.id === id) || {}).title === 'TPVH'; if (e && tp(e)) return e; for (let i = 0; i < 5 && e; i++) { const u = up(e); if (!u) break; if (tp(u)) return u; e = u; } return null; }; // cùng quy tắc Q.inboxAssignee
     const texts = ['Em chuyển khoản tối nay ạ', 'Cho em xin gia hạn đến ngày 10', 'Phòng em điện sao cao vậy ạ?', 'Em muốn gia hạn hợp đồng thêm 6 tháng', 'Bình nóng lạnh phòng em bị hỏng ạ'];
     st.zaloInbox = st.stays.filter(x => x.status === 'active').filter((x, i) => i % 131 === 7).slice(0, 5).map((x, i) => ({ id: 'zi_demo_' + i, messageId: 'demo_' + i, stayId: x.id, buildingId: x.buildingId, text: texts[i % texts.length],
       at: '2026-09-2' + (3 + i) + 'T1' + i + ':15:00', assigneeId: head(x.buildingId), status: i === 4 ? 'done' : 'open', customerCode: x.code, notes: i === 4 ? [{ text: 'Đã báo kỹ thuật thay bình', by: 'Demo', at: '2026-09-27T16:00:00' }] : [], source: 'demo' }));

@@ -12,6 +12,7 @@
 
   /* (Tính lại) dòng hoa hồng của deal. Dòng đã chi giữ nguyên; bỏ cọc → cơ sở F = cọc − tiền ngày đã ở */
   X.buildDealCommissions = (dealId, silent) => {
+    if (!TH.ms.on('2')) return []; // hoa hồng tự động thuộc Phase 2; bỏ cọc ở UI-07 mốc 1A vẫn chạy
     const d = Q.deal(dealId); if (!d) throw new Error('Không tìm thấy giao dịch');
     const pol = Q.commissionPolicy(d.closeDate);
     const recips = d.partner ? [{ kind: 'partner', name: d.partner }] : (d.saleIds || []).map(id => ({ kind: 'sale', employeeId: id, name: (Q.emp(id) || {}).name }));
@@ -34,7 +35,7 @@
     if (!silent) { _.audit('update', 'deal', dealId, 'Tính lại hoa hồng ' + d.code); _.done(); }
   };
   /* Duyệt: H khác gợi ý hoặc có khoản trừ (hỗ trợ khách…) → bắt buộc lý do; cảnh báo khi số duyệt ≠ F × H − trừ */
-  X.approveCommission = (id, d = {}) => {
+  X.approveCommission = (id, d = {}) => { _.needMs('2', 'Hoa hồng (UI-22)');
     _.need('commission.approve');
     const c = S.get('commissions', id); if (!c) throw new Error('Không tìm thấy dòng hoa hồng');
     if (!['pending', 'approved'].includes(c.status)) throw new Error('Dòng hoa hồng không ở trạng thái duyệt được');
@@ -52,7 +53,7 @@
     _.audit('approve', 'commission', id, `Duyệt hoa hồng ${(Q.deal(c.dealId) || {}).code}: ${c.recipient.name} ${(H * 100).toFixed(2)}% = ${F.vnd(amount)}${d.reason ? ' – ' + d.reason : ''}`); _.done();
   };
   /* Chi (từng đợt): đủ điều kiện CH-19; tổng ≤ số duyệt; chứng từ chi phí hoa hồng theo tòa – phòng, kỳ = tháng đủ điều kiện */
-  X.payCommission = (id, d) => {
+  X.payCommission = (id, d) => { _.needMs('2', 'Hoa hồng (UI-22)');
     _.need('commission.pay');
     const c = S.get('commissions', id); if (!c) throw new Error('Không tìm thấy dòng hoa hồng');
     if (c.status !== 'approved') throw new Error(c.status === 'pending' ? 'Chưa duyệt hoa hồng' : 'Dòng hoa hồng không chi được');
@@ -77,7 +78,7 @@
     return exp;
   };
   /* Chính sách tỷ lệ mới có ngày hiệu lực (admin) – không áp ngược kỳ đã khóa */
-  X.addCommissionPolicy = (d) => {
+  X.addCommissionPolicy = (d) => { _.needMs('2', 'Hoa hồng (UI-22)');
     _.need('commission.policy');
     const errs = {};
     if (!d.from) errs.from = 'Nhập ngày hiệu lực';

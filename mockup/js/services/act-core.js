@@ -4,6 +4,8 @@
   const X = TH.actions = TH.actions || {};
   X._ = {
     need: (perm) => A.need(perm),
+    /* E1: chức năng Phase 2 bị chặn ở mức action (không chỉ ở route) khi mốc demo là 1A/1B */
+    needMs: (ms = '2', what = 'Chức năng này') => { if (!TH.ms.on(ms)) throw new Error(`${what} thuộc ${TH.ms.INFO[ms].label} – chưa mở ở mốc ${TH.ms.INFO[TH.ms.current()].label}`); },
     done: (what = 'change', detail) => { S.emit('change', detail); },
     audit: (action, entity, id, summary) => S.audit(action, entity, id, summary),
     who: () => (S.session && S.session.name) || 'Hệ thống',
