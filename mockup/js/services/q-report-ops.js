@@ -32,12 +32,12 @@
       return { period, kind, mode, status: 'ready', sheet: x.sheet, src: x.src, rows, total: x.total };
     }
     const invs = Q.invoicesOf(period).filter(i => i.lifecycle !== 'draft');
-    const m = {}; const row = (b) => (m[b] = m[b] || { buildingId: b, b: (Q.building(b) || {}).code, B: 0, C: 0, E: 0, F: 0, H: 0, I: 0, dep: 0, vac: 0, invoices: [] });
+    const m = {}; const row = (b) => (m[b] = m[b] || { buildingId: b, b: (Q.building(b) || {}).code, B: 0, C: 0, E: 0, F: 0, H: 0, I: 0, dep: 0, vac: 0, kwh: 0, invoices: [] });
     invs.forEach(i => {
       const L = TH.calc.billing.expand(i.lines), ls = Q.lineState(i), x = row(i.buildingId);
       // OQ-21: combo (dòng 10) → 1/2 máy giặt (B, sau đó 1/2 điện + 1/2 nước); thang máy (7), xe điện (8), máy giặt/sấy (9, cột AN) → 100% điện (E)
       x.C += L[9].amount / 2; x.B += ls[9].paid / 2;
-      if (kind === 'electric') { x.F += L[6].amount + L[7].amount + L[8].amount; x.E += ls[6].paid + ls[7].paid + ls[8].paid; x.I += L[2].amount + L[11].amount; x.H += ls[2].paid + ls[11].paid; }
+      if (kind === 'electric') { x.kwh += Number(L[2].qty) || 0; x.F += L[6].amount + L[7].amount + L[8].amount; x.E += ls[6].paid + ls[7].paid + ls[8].paid; x.I += L[2].amount + L[11].amount; x.H += ls[2].paid + ls[11].paid; }
       else { x.I += L[3].amount; x.H += ls[3].paid; }
       if ((kind === 'electric' ? L[2].amount + L[11].amount : L[3].amount) > 0) x.invoices.push(i.id);
     });
@@ -54,13 +54,16 @@
       const b = Q.building(x.buildingId) || {};
       const exp = S.all('expenses').filter(e => e.period === period && e.buildingId === x.buildingId && e.reportLine === (kind === 'electric' ? 'cost_el' : 'cost_wa') && e.status !== 'void');
       const v = (b.vendor || {})[kind === 'electric' ? 'electric' : 'water'];
-      x.L = exp.length ? sum(exp, 'amount') : v && v.bills && v.bills[prevP] != null ? v.bills[prevP] : null;
-      x.Lsrc = exp.length ? 'Chứng từ chi phí kỳ' : x.L != null ? 'Hóa đơn NCC tháng ' + F.periodShort(prevP) : null;
+      // E3 [GĐ-E5] (đặc tả dòng 496): tòa trả điện qua chủ nhà → chi = đơn giá trả chủ nhà × kWh trên hóa đơn đã phát hành; chưa có đơn giá → cờ, không lấy hóa đơn EVN
+      const vo = kind === 'electric' && b.vendor && b.vendor.electricViaOwner && (!b.vendor.electricViaOwner.from || b.vendor.electricViaOwner.from <= D.periodEnd(period)) ? b.vendor.electricViaOwner : null;
+      if (exp.length) { x.L = sum(exp, 'amount'); x.Lsrc = 'Chứng từ chi phí kỳ'; }
+      else if (vo) { x.L = vo.unitPrice ? vo.unitPrice * x.kwh : null; x.Lsrc = vo.unitPrice ? `Trả chủ nhà ${F.vnd(vo.unitPrice)}đ/kWh × ${F.num0(x.kwh)} kWh` : null; }
+      else { x.L = v && v.bills && v.bills[prevP] != null ? v.bills[prevP] : null; x.Lsrc = x.L != null ? 'Hóa đơn NCC tháng ' + F.periodShort(prevP) : null; }
       x.D = x.C - x.B; x.G = x.F - x.E; x.J = x.I - x.H;
       x.K = x.H + x.B / 2 + (kind === 'electric' ? x.E : 0);
       x.M = x.L != null ? x.K - x.L : null;
       x.realM = x.M != null ? x.M - (withVac ? x.vac : 0) : null;
-      x.flags = [!v && 'Không có mã KH ' + (kind === 'electric' ? 'điện' : 'nước') + ' – có thể trả qua chủ nhà', x.L == null && 'Chờ hóa đơn chi'].filter(Boolean);
+      x.flags = [vo ? (vo.unitPrice ? 'Trả điện qua chủ nhà' : 'Trả điện qua chủ nhà – chưa có đơn giá') : !v && 'Không có mã KH ' + (kind === 'electric' ? 'điện' : 'nước') + ' – có thể trả qua chủ nhà', x.L == null && !(vo && !vo.unitPrice) && 'Chờ hóa đơn chi'].filter(Boolean);
       ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'M', 'realM', 'dep', 'vac'].forEach(k => { if (x[k] != null) x[k] = r2(x[k]); });
     });
     const rows = Object.values(m).sort((a, c) => String(a.b).localeCompare(String(c.b), 'vi', { numeric: true }));
@@ -81,9 +84,12 @@
     const sc = TH.auth.buildingScope(); // B12: trưởng phòng / vận hành chỉ thấy tòa trong phạm vi
     const L = Q.repairLedger(period, { mode }); const all = L.rows.filter(r => !sc || sc.has(r.buildingId)); const rows = all.filter(r => r.status === 'confirmed'); // D15: dòng nháp chưa tính
     const keyOf = { room: r => (r.buildingCode || '?') + (r.roomCode ? '-' + r.roomCode : ' (chung)'), building: r => r.buildingCode || '?', worker: r => (Q.emp(r.workerId) || {}).name || '?', jobType: r => TH.calc.repairs.label(TH.calc.repairs.JOB_TYPES, r.jobType), reason: r => TH.calc.repairs.label(TH.calc.repairs.REASONS, r.reason), bearer: r => TH.calc.repairs.label(TH.calc.repairs.BEARERS, r.bearer) }[by];
-    const g = {}; rows.forEach(r => { const k = keyOf(r); const x = g[k] = g[k] || { key: k, buildingId: r.buildingId, jobs: 0, rooms: new Set(), labor: 0, material: 0 }; x.jobs++; if (r.roomId || r.roomCode) x.rooms.add(r.buildingCode + '-' + r.roomCode); x.labor += r.labor; x.material += r.material; });
+    // E3: giữ khóa gốc để mở đúng phần sổ UI-47 (drill-down) + chứng từ liên quan: phiếu hoàn UI-18 / hóa đơn (khách chịu), chứng từ chi UI-15 (vật tư đã chốt kỳ sổ)
+    const idOf = { room: r => ({ building: r.buildingId, room: r.roomId || '' }), building: r => ({ building: r.buildingId }), worker: r => ({ worker: r.workerId }), jobType: r => ({ jobType: r.jobType }), reason: r => ({ reason: r.reason }), bearer: r => ({ bearer: r.bearer || 'company' }) }[by];
+    const g = {}; rows.forEach(r => { const k = keyOf(r); const x = g[k] = g[k] || { key: k, buildingId: r.buildingId, ref: idOf(r), jobs: 0, rooms: new Set(), labor: 0, material: 0, refunds: new Set(), invoices: new Set(), expenses: new Set() }; x.jobs++; if (r.roomId || r.roomCode) x.rooms.add(r.buildingCode + '-' + r.roomCode); x.labor += r.labor; x.material += r.material;
+      const tc = r.tenantCharge || {}; if (tc.refundId) x.refunds.add(tc.refundId); if (tc.invoiceId) x.invoices.add(tc.invoiceId); if (r.posted && r.posted !== 'excel') x.expenses.add(r.posted); });
     const out = Object.values(g).map(x => { const tot = x.labor + x.material; const nRooms = by === 'building' && x.buildingId ? (Q.roomsByBuilding()[x.buildingId] || []).filter(r => Q.rentable(r)).length : null;
-      return Object.assign(x, { rooms: x.rooms.size, total: tot, perRoom: nRooms ? tot / nRooms : null, roomsInBuilding: nRooms }); }).sort((a, b) => b.total - a.total);
+      return Object.assign(x, { rooms: x.rooms.size, total: tot, perRoom: nRooms ? tot / nRooms : null, roomsInBuilding: nRooms, refunds: [...x.refunds], invoices: [...x.invoices], expenses: [...x.expenses] }); }).sort((a, b) => b.total - a.total);
     const clean = rows.filter(r => r.jobType === 'cleaning');
     let salClean = null; try { salClean = TH.qr.get(period, 'total').cols.TOTAL.sal_clean || 0; } catch (e) { salClean = null; }
     return { period, mode, by, rows: out, totals: { jobs: rows.length, labor: sum(rows, 'labor'), material: sum(rows, 'material'), outside: L.outside.length, drafts: all.length - rows.length }, cleaning: { jobs: clean.length, cost: sum(clean, r => r.labor + r.material), salary: salClean } };
@@ -149,7 +155,9 @@
   QO.sales = (period, by = 'sale', f = {}) => {
     const teamOf = (id) => (Q.leaderOf(id) || { id: '–' }).id;
     const okSale = (ids) => (!f.sale || (ids || []).includes(f.sale)) && (!f.team || (ids || []).some(id => teamOf(id) === f.team));
-    const okB2 = (bid) => (!f.building || bid === f.building) && (!f.area || (Q.building(bid) || {}).areaId === f.area);
+    // E3: thêm lọc nhóm T/S/G, NV vận hành (quản lý tòa cuối kỳ), cổ đông (tòa cổ đông có tỷ lệ góp cuối kỳ – chỉ giới hạn tòa, không đổi định nghĩa doanh số; đặc tả dòng 410, 518)
+    const pe = D.periodEnd(period); const mm = f.manager ? Q.managerMap(pe) : null; const shB = f.shareholder && Q.shareRatios ? (bid) => Q.shareRatios(bid, pe).some(r => r.shareholderId === f.shareholder) : null;
+    const okB2 = (bid) => { const b = Q.building(bid) || {}; return (!f.building || bid === f.building) && (!f.area || b.areaId === f.area) && (!f.group || b.group === f.group) && (!mm || (mm[bid] || {}).id === f.manager) && (!shB || shB(bid)); };
     const views = S.all('viewings').filter(v => F.period(v.date) === period && okB2(v.buildingId) && okSale((Q.lead(v.leadId) || {}).saleIds));
     const leadsViewed = new Set(views.map(v => v.leadId));
     const closedLead = new Set(S.all('deals').filter(d => !['cancelled'].includes(d.status)).map(d => d.leadId));

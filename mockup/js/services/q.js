@@ -87,7 +87,21 @@
     const l = S.all('orgLinks').find(x => x.employeeId === empId && (!x.from || x.from <= d) && (!x.to || d <= x.to));
     return l ? S.get('employees', l.leaderId) : null;
   };
-  Q.teamLeaders = () => cached('leaders', () => { const ids = new Set(S.all('orgLinks').filter(l => !l.to).map(l => l.leaderId)); return S.all('employees').filter(e => ids.has(e.id)); });
+  /* E3: theo ngày (xem kỳ cũ thấy leader cũ – đặc tả §3.6 dòng 338); không truyền ngày = cơ cấu hiện tại */
+  const eff = (x, d) => (!x.from || x.from <= d) && (!x.to || d <= x.to);
+  Q.teamLeaders = (date) => date ? (() => { const ids = new Set(S.all('orgLinks').filter(l => eff(l, date)).map(l => l.leaderId)); return S.all('employees').filter(e => ids.has(e.id)); })()
+    : cached('leaders', () => { const ids = new Set(S.all('orgLinks').filter(l => !l.to).map(l => l.leaderId)); return S.all('employees').filter(e => ids.has(e.id)); });
+  /* Team của leader tại ngày: cả nhánh (trực tiếp + gián tiếp) hoặc "chỉ team trực tiếp" */
+  Q.teamOf = (leaderId, date, direct) => direct ? new Set([leaderId, ...S.all('orgLinks').filter(l => l.leaderId === leaderId && eff(l, date)).map(l => l.employeeId)]) : TH.auth.branchOf(leaderId, date);
+  /* E3: vai trò phụ trách (§3.6) quyết định lấy tòa theo phân công vận hành, việc kỹ thuật của thợ trong kỳ, deal của sale trong kỳ; vai trò chưa có dữ liệu phân công → rỗng */
+  Q.RESP_FILTER = [['operate', 'Vận hành phòng'], ['tech', 'Kỹ thuật (việc sửa của thợ)'], ['sale', 'Sale (deal chốt)'], ['remind', 'Nhắc thu'], ['collect', 'Thu thực tế'], ['cleaning', 'Vệ sinh']];
+  Q.leaderBuildings = (leaderId, date, { direct = false, resp = 'operate' } = {}) => {
+    const team = Q.teamOf(leaderId, date, direct); const p = F.period(date);
+    if (resp === 'operate') { const mm = Q.managerMap(date); return new Set(Object.keys(mm).filter(b => mm[b] && team.has(mm[b].id))); }
+    if (resp === 'tech') return new Set(S.all('repairLogs').filter(r => r.status !== 'void' && team.has(r.workerId) && r.period === (Q.repairPeriodOf ? Q.repairPeriodOf(date) : p)).map(r => r.buildingId));
+    if (resp === 'sale') return new Set(S.all('deals').filter(d => F.period(d.closeDate) === p && (d.saleIds || []).some(id => team.has(id))).map(d => d.buildingId));
+    return new Set(S.all('assignments').filter(a => a.responsibility === resp && eff(a, date) && team.has(a.employeeId)).map(a => a.buildingId));
+  };
 
   /* ---- lượt thuê ---- */
   Q.currentStay = (roomId) => { const arr = Q.staysByRoom()[roomId] || []; return arr.find(s => s.status === 'active') || null; };

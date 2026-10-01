@@ -50,6 +50,7 @@
       mdel: (b) => K.act(() => X.removePayrollManual(b.dataset.id), 'Đã xóa dòng'),
     });
   };
+  let lastExp = null;
   TH.router.handle('/hr/payroll', (root, p, q) => {
     const period = q.period || '2026-08';
     const run = S.one('payrollRuns', r => r.period === period);
@@ -77,6 +78,8 @@
     K.bindFilters(root, []);
     const el = root.querySelector('#t');
     if (tab === 'nhap-tay') manualTab(el, period, lines, !periodClosed && !(run && run.status === 'closed') && TH.auth.can('payroll.manage'), !!(perRec.source === 'excel_parallel'));
+    // E3: mở thẳng giải thích lương từ UI-45 (?emp=&building=) – mỗi liên kết mở một lần, không mở lại khi trang vẽ lại
+    if (tab === 'van-hanh' && q.emp) { const key = period + q.emp + (q.building || ''); const x = flat.find(z => z.l.employeeId === q.emp && (!q.building || z.b.buildingId === q.building)); if (x && key !== lastExp) { lastExp = key; setTimeout(() => explain(x.l, x.b)); } }
     if (tab === 'van-hanh') U.table(el, { rows: flat, pageSize: 30, onRowOpen: (x) => explain(x.l, x.b), cols: [
       { key: 'e', label: 'Nhân viên', render: x => U.cell2(esc(Q.emp(x.l.employeeId).name), (x.l.over1y ? 'trên 1 năm' : 'dưới 1 năm')) }, { key: 'b', label: 'Tòa', render: x => `<b>${esc((Q.building(x.b.buildingId) || {}).code)}</b>` },
       { key: 'j', label: 'Số phòng (J)', num: true, render: x => x.b.J }, { key: 'k', label: 'DT niêm yết (K)', num: true, render: x => F.vnd(x.b.K) }, { key: 'l', label: 'Phải thu (L)', num: true, render: x => F.vnd(x.b.L) },

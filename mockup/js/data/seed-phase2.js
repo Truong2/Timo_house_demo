@@ -104,6 +104,8 @@
         buildingId: b.id, roomId: null, version: 1, validTo: null, uploadedBy: 'Import', uploadedAt: '2026-01-05T08:00:00', status: 'current' });
     });
     st.documents = docs; st.ocrSessions = [];
+    /* E3 [GĐ-E5]: tòa trả điện qua chủ nhà (UI-43, đặc tả dòng 496, 856): S32 theo Sheet1 ẩn SRC-14 – 2.500đ/kWh; S39 ghi "đã tt cho chủ nhà", chưa có đơn giá */
+    [['b_S32', { unitPrice: 2500, from: '2026-01-01', note: 'SRC-14 Sheet1: điện thanh toán chủ nhà' }], ['b_S39', { unitPrice: null, from: '2026-01-01', note: 'Hóa đơn ghi "đã tt cho chủ nhà" – chờ đơn giá' }]].forEach(([id, vo]) => { const b = st.buildings.find(x => x.id === id); if (b) b.vendor = Object.assign({}, b.vendor || {}, { electricViaOwner: vo }); });
 
     /* Hộp thư phản hồi Zalo (UI-39 Phase 2, CH-37): vài tin khách trả lời, gán trưởng phòng phụ trách theo cơ cấu tổ chức (đi lên từ quản lý tòa tới TPVH) */
     const up = (id) => (st.orgLinks.find(l => l.employeeId === id && !l.to) || {}).leaderId;

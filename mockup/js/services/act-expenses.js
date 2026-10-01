@@ -1,6 +1,22 @@
 /* Actions – chi phí gốc (UI-15): mỗi khoản gắn tòa hoặc quỹ chung + dòng báo cáo SRC-04; thiết bị có khấu hao. */
 (function (TH) {
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q;
+  /* E3 [GĐ-E5]: tòa trả điện qua chủ nhà (UI-03 → UI-43): đơn giá trả chủ nhà theo kWh; để trống đơn giá = chỉ gắn cờ; bỏ chọn = trả trực tiếp nhà cung cấp */
+  X.setElectricViaOwner = (bid, d) => {
+    _.needMs('2', 'Âm dương điện nước (UI-43)'); _.need('expenses.manage');
+    const b = TH.q.building(bid); if (!b) throw new Error('Không tìm thấy tòa');
+    const on = d.on === true || d.on === 'true' || d.on === 'on'; const price = d.unitPrice === '' || d.unitPrice == null ? null : Number(d.unitPrice);
+    const errs = {};
+    if (on && price != null && !(price > 0 && price < 20000)) errs.unitPrice = 'Đơn giá đ/kWh từ 1 đến 19.999';
+    if (on && !d.from) errs.from = 'Nhập ngày hiệu lực';
+    if (Object.keys(errs).length) { const e = new Error('Dữ liệu chưa hợp lệ'); e.fields = errs; throw e; }
+    if (on) _.guardEffective(d.from, 'đơn giá điện trả chủ nhà');
+    const vendor = Object.assign({}, b.vendor || {}); const old = vendor.electricViaOwner || null;
+    vendor.electricViaOwner = on ? { unitPrice: price, from: d.from, note: d.note || '' } : null;
+    S.update('buildings', bid, { vendor, vendorHistory: [...(b.vendorHistory || []), { electricViaOwner: old, by: _.who(), at: F.nowISO() }] });
+    _.audit('update', 'building', bid, `Tòa ${b.code}: ` + (on ? `điện trả qua chủ nhà${price ? ' ' + F.vnd(price) + 'đ/kWh' : ' (chưa có đơn giá)'} từ ${F.date(d.from)}` : 'điện trả trực tiếp nhà cung cấp')); _.done();
+    return S.get('buildings', bid);
+  };
   X.addExpense = (d, silent) => {
     _.need('expenses.manage');
     const errs = {};

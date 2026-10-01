@@ -184,7 +184,12 @@
       const v = b.vendor || {};
       const bills = (k) => Object.entries((v[k] || {}).bills || {}).sort().map(([m, a]) => `<div class="mini-row"><span>${F.periodShort(m)}</span><b class="grow tr">${F.vnd(a)}</b></div>`).join('') || '<span class="muted small">Chưa có hóa đơn</span>';
       body.innerHTML = `<div class="grid grid-3">${[['electric', 'Điện', 'zap'], ['water', 'Nước', 'droplet'], ['internet', 'Mạng', 'wifi']].map(([k, l, ic]) => U.card({ title: l, icon: ic, sub: `Mã KH: ${esc((v[k] || {}).code || 'chưa có')} · Chủ HĐ: ${esc((v[k] || {}).holder || '–')}`, body: bills(k) })).join('')}</div>
-        ${U.note('info', 'Nguồn', 'Mã khách hàng nhà cung cấp và số tiền hóa đơn 2026 từ file "Danh sách mã HĐ điện nước mạng" (mã đã che). Hóa đơn nhà cung cấp ghi vào Chi phí theo tòa ở mốc 1B.')}`;
+        ${U.note('info', 'Nguồn', 'Mã khách hàng nhà cung cấp và số tiền hóa đơn 2026 từ file "Danh sách mã HĐ điện nước mạng" (mã đã che). Hóa đơn nhà cung cấp ghi vào Chi phí theo tòa ở mốc 1B.')}`
+        + (TH.ms.on('2') ? '<div class="mt16">' + U.card({ title: 'Điện trả qua chủ nhà (UI-43)', icon: 'zap', actions: U.btn({ label: 'Khai báo', icon: 'pencil', size: 'btn-xs', act: 'viaowner', perm: 'expenses.manage' }),
+          body: v.electricViaOwner ? U.kv([['Đơn giá trả chủ nhà', v.electricViaOwner.unitPrice ? F.vnd(v.electricViaOwner.unitPrice) + 'đ/kWh' : 'Chưa có – báo cáo âm dương gắn cờ'], ['Hiệu lực từ', F.date(v.electricViaOwner.from)], ['Ghi chú', esc(v.electricViaOwner.note || '–')]]) : '<p class="small muted">Trả trực tiếp nhà cung cấp</p>' }) + '</div>' : '');
+      U.bind(body, { viaowner: () => { const vo = v.electricViaOwner || {}; K.formDrawer({ title: 'Điện trả qua chủ nhà – tòa ' + esc(b.code), modal: true, note: U.note('info', '', 'Âm dương điện (web): chi = đơn giá × kWh trên hóa đơn đã phát hành. Để trống đơn giá thì chỉ gắn cờ "chưa có đơn giá".'),
+        fields: [{ name: 'on', label: 'Trả điện qua chủ nhà', type: 'check', checkLabel: 'Tòa trả tiền điện qua chủ nhà', value: !!v.electricViaOwner }, { name: 'unitPrice', label: 'Đơn giá (đ/kWh)', type: 'number', value: vo.unitPrice || '' }, { name: 'from', label: 'Hiệu lực từ', type: 'date', value: vo.from || F.today() }, { name: 'note', label: 'Căn cứ', span: true, value: vo.note || '' }],
+        submit: 'Lưu', onSubmit: (x) => { X.setElectricViaOwner(b.id, x); U.toast('ok', 'Đã cập nhật'); } }); } });
     }
     if (tab === 'tai-chinh') {
       const exps = S.where('expenses', e => e.buildingId === b.id && e.status !== 'void');

@@ -8,17 +8,18 @@
     if (q.group) bs = bs.filter(b => b.group === q.group);
     if (q.area) bs = bs.filter(b => b.areaId === q.area);
     if (q.manager) bs = bs.filter(b => (mgr[b.id] || {}).id === q.manager);
-    if (q.leader) { const br = TH.auth.branchOf(q.leader, d); bs = bs.filter(b => br.has((mgr[b.id] || {}).id)); }
+    // E3: leader theo cơ cấu tại ngày xem; "chỉ team trực tiếp"; vai trò phụ trách (vận hành / kỹ thuật / sale …) – đặc tả §3.6 dòng 338
+    if (q.leader) { const set = Q.leaderBuildings(q.leader, d, { direct: q.direct === '1', resp: TH.ms.on('2') && q.resp ? q.resp : 'operate' }); bs = bs.filter(b => set.has(b.id)); }
     return bs;
   };
   /* Hàng thẻ Phase 2: HS (nhãn thực tế / tạm tính), lấp đầy, kinh doanh, phản hồi Zalo */
-  const p2Row = (period, bset) => {
+  const p2Row = (period, bset, q = {}) => {
     const role = TH.auth.role();
     const cards = [];
     if (TH.auth.can('buildings.view') && role !== 'sale' && role !== 'kythuat') {
       const O = TH.qo.rooms(period, (b) => bset.has(b)); const T = O.totals;
       const f1 = (v) => v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',');
-      cards.push(U.kpi({ label: T.hsFinal ? 'HS thực tế' : 'HS (tạm tính)', value: f1(T.hs), cap: 'thu trong 3 mốc / giá niêm yết – cùng công thức lương (OQ-18)' + (O.parallel ? ' · số Excel kỳ song song' : ''), icon: 'gauge', tone: 'blue' }));
+      cards.push(U.kpi({ label: T.hsFinal ? 'HS thực tế' : 'HS (tạm tính)', value: f1(T.hs), cap: 'thu trong 3 mốc / giá niêm yết – cùng công thức lương (OQ-18)' + (O.parallel ? ' · số Excel kỳ song song' : '') + (TH.auth.can('reports.ops') ? ` · <a href="#/reports/rooms?view=hs&period=${period}${['group', 'area', 'manager', 'leader', 'direct'].filter(k => q[k]).map(k => '&' + k + '=' + encodeURIComponent(q[k])).join('')}">chi tiết theo tòa (UI-45)</a>` : ''), icon: 'gauge', tone: 'blue' }));
       cards.push(U.kpi({ label: 'HS tạm tính', value: f1(T.hsTemp), cap: '(tiền nhà đã thu + bỏ cọc) / giá niêm yết – không phải lấp đầy', icon: 'activity', tone: 'purple' }));
     }
     const mine = TH.auth.can('sales.view') ? Q.salesScoped(S.all('deals')) : [];
@@ -33,7 +34,7 @@
   TH.router.handle('/dashboard', (root, p, q) => {
     const period = q.period || S.meta.period;
     const money = TH.auth.can('dashboard.money'), opsView = TH.auth.can('debts.viewStatus');
-    const pe = TH.calc.dates.periodEnd(period); const bs = scopeBuildings(q, pe < F.today() ? pe : F.today()); const bset = new Set(bs.map(b => b.id));
+    const pe = TH.calc.dates.periodEnd(period); const dd = pe < F.today() ? pe : F.today(); const bs = scopeBuildings(q, dd); const bset = new Set(bs.map(b => b.id));
     const vac = Q.vacancy();
     const inB = (r) => bset.has(r.buildingId);
     const vNow = vac.now.filter(inB), vEnd = vac.endOfMonth.filter(inB), vWait = vac.waiting.filter(inB);
@@ -58,8 +59,9 @@
         { name: 'period', label: 'Kỳ', options: K.periodOpts(), value: S.meta.period, all: false },
         { name: 'group', label: 'Loại nhà', options: K.groupOpts() },
         { name: 'area', label: 'Khu vực', options: K.areaOpts() },
-        { name: 'manager', label: 'Quản lý', options: K.managerOpts() },
-        { name: 'leader', label: 'Leader / trưởng nhóm', options: Q.teamLeaders().map(e => [e.id, e.name]) },
+        { name: 'manager', label: 'Quản lý', options: K.managerOpts(dd) },
+        { name: 'leader', label: 'Leader / trưởng nhóm', options: Q.teamLeaders(dd).map(e => [e.id, e.name + (e.status === 'inactive' || e.leftDate ? ' (đã nghỉ)' : '')]) },
+        ...(TH.ms.on('2') && q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh (trực tiếp + gián tiếp)' }, { name: 'resp', label: 'Vai trò phụ trách', options: Q.RESP_FILTER.filter(x => x[0] !== 'operate'), all: 'Vận hành phòng' }] : []),
       ], q)
       + `<div class="grid grid-3 mt16">
         ${U.kpi({ label: 'Trống ở luôn', value: vNow.length, cap: 'phòng sẵn sàng, chưa có khách cọc', icon: 'door', tone: 'blue' })}
@@ -72,7 +74,7 @@
         ${U.kpi({ label: 'Còn nợ', value: money ? F.vnd(remain) : main.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', cap: debtors.length + ' hóa đơn đã thành công nợ (từ ngày 6)', icon: 'alert-triangle', tone: 'red' })}
         ${U.kpi({ label: 'Phá HĐ / bỏ trốn', value: br.length, cap: money ? 'còn thu ' + F.vnd(sum(br, i => Q.invState(i).remaining)) + ' (tiền điện)' : 'giữ cọc, chỉ thu tiền điện', icon: 'file-x', tone: 'orange' })}
       </div>`)
-      + (TH.ms.on('2') ? p2Row(period, bset) : '')
+      + (TH.ms.on('2') ? p2Row(period, bset, q) : '')
       + (!opsView ? '' : `<div class="two-col mt16"><div class="side-stack">
         ${U.card({ title: 'Tiến độ thu theo mốc (ngày tiền thực nhận)', icon: 'activity', sub: `Mốc ${msDays.join('/')} (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu`, body: `<div class="ms-bars">${ms.map(m => { const v = due ? Math.min(1, m.amount / due) : 0; return `<div class="ms-bar"><div class="row between"><b>Đến hết ngày ${m.day}/${Number(period.slice(5))}</b><span>${money ? F.vnd(m.amount) + ' · ' : ''}${F.pctv(v)}</span></div><div class="progress"><i style="width:${Math.min(100, v * 100)}%"></i></div></div>`; }).join('')}</div>` })}
         ${U.card({ title: 'Tòa cần chú ý', icon: 'building', sub: 'Xếp theo số còn nợ', body: '<div id="db-bld"></div>', bodyCls: 'flush' })}
@@ -93,7 +95,7 @@
       const d = sum(bi, i => i.totalDue), r = sum(bi, i => Q.invState(i).remaining);
       const bRooms = (Q.roomsByBuilding()[b.id] || []).filter(x => x.exploitation !== 'meter_common');
       const occ = bRooms.filter(x => Q.currentStay(x.id)).length;
-      return { b, due: d, remain: r, pct: d ? (d - r) / d : 1, rooms: bRooms.length, occ, mgr: (Q.managerMap()[b.id] || {}).name || 'Chưa phân công' };
+      return { b, due: d, remain: r, pct: d ? (d - r) / d : 1, rooms: bRooms.length, occ, mgr: (Q.managerMap(dd)[b.id] || {}).name || 'Chưa phân công' };
     }).sort((a, b) => b.remain - a.remain);
     U.table(root.querySelector('#db-bld'), { rows, pageSize: 8, rowHref: r => '#/buildings/' + r.b.id, cols: [
       { key: 'b', label: 'Tòa', render: r => `<b>${esc(r.b.code)}</b> <span class="muted small">${r.b.group}</span>` },

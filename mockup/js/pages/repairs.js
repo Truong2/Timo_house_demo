@@ -17,8 +17,11 @@
     const L = Q.repairLedger(period, { workerId: q.worker, mode });
     let rows = Q.repairsScoped(L.rows);
     if (q.building) rows = rows.filter(r => r.buildingId === q.building);
-    if (q.bearer) rows = rows.filter(r => r.bearer === q.bearer);
+    if (q.bearer) rows = rows.filter(r => (r.bearer || 'company') === q.bearer);
     if (q.status) rows = rows.filter(r => r.status === q.status);
+    if (q.jobType) rows = rows.filter(r => r.jobType === q.jobType); // E3: mở từ UI-44 theo loại việc / lý do / phòng
+    if (q.reason) rows = rows.filter(r => (r.reason || 'other') === q.reason);
+    if (q.room) rows = rows.filter(r => r.roomId === q.room);
     const outside = Q.repairsScoped(L.outside);
     const sum = (arr, k) => arr.reduce((t, r) => t + (r[k] || 0), 0);
     const conf = rows.filter(r => r.status === 'confirmed'), dr = rows.filter(r => r.status === 'draft'); // D15: KPI chỉ tính dòng đã xác nhận

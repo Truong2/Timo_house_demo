@@ -217,6 +217,63 @@ test('E2.4 – cổ đông: sửa thông tin có lịch sử; chứng từ góp 
   assert.ok(Math.abs(run.K - 23.96) < 0.01, 'K ' + run.K); assert.ok(Math.abs(run.L - 3.0238) < 0.0001, 'L ' + run.L);
 });
 
+/* ---------------- E3 – báo cáo & Dashboard ---------------- */
+test('E3.1 – UI-46: lọc loại T/S/G, NV vận hành, cổ đông chỉ giới hạn tòa (không đổi định nghĩa doanh số)', () => {
+  const TH = boot({ user: 'admin' }); const S = TH.store, Q = TH.q, QO = TH.qo;
+  const p = '2026-09'; const all = QO.sales(p, 'building');
+  const g = QO.sales(p, 'building', { group: 'G' });
+  assert.ok(g.conv.every(x => (Q.building(x.key) || {}).group === 'G'));
+  assert.ok(g.totals.volume <= all.totals.volume);
+  const shId = Q.shareRatios('b_G1', '2026-09-30').find(r => r.shareholderId !== 'sh_CHUNG').shareholderId;
+  const sh = QO.sales(p, 'building', { shareholder: shId });
+  assert.ok(sh.conv.every(x => Q.shareRatios(x.key, '2026-09-30').some(r => r.shareholderId === shId)));
+  const mgr = Q.managerOf('b_T2', '2026-09-30');
+  const m = QO.sales(p, 'building', { manager: mgr.id });
+  assert.ok(m.conv.every(x => (Q.managerOf(x.key, '2026-09-30') || {}).id === mgr.id));
+});
+
+test('E3.2 – UI-43 web: tòa trả điện qua chủ nhà – chi = đơn giá × kWh; chưa có đơn giá → cờ [GĐ-E5]; "như Excel" không đổi (NT-3)', () => {
+  const TH = boot({ user: 'ketoan' }); const X = TH.actions, QO = TH.qo;
+  const A = QO.amDuong('2026-09', 'electric', 'web');
+  const s32 = A.rows.find(r => r.b === 'S32'); const s39 = A.rows.find(r => r.b === 'S39');
+  if (s32) { assert.equal(s32.L, 2500 * s32.kwh); assert.match(s32.Lsrc, /Trả chủ nhà/); assert.ok(s32.flags.includes('Trả điện qua chủ nhà')); }
+  if (s39) { assert.equal(s39.L, null); assert.ok(s39.flags.some(f => /chưa có đơn giá/.test(f))); }
+  assert.ok(s32 || s39, 'có ít nhất một tòa trả qua chủ nhà trong kỳ web');
+  const r = attempt(() => X.setElectricViaOwner('b_T2', { on: true, unitPrice: 50000, from: '2026-09-01' })); assert.ok(!r.ok && r.fields.unitPrice);
+  X.setElectricViaOwner('b_T2', { on: true, unitPrice: 3000, from: '2026-09-01', note: 'thử' });
+  const t2 = QO.amDuong('2026-09', 'electric', 'web').rows.find(x => x.b === 'T2');
+  if (t2 && !t2.Lsrc.startsWith('Chứng từ')) assert.equal(t2.L, 3000 * t2.kwh);
+  X.setElectricViaOwner('b_T2', { on: false });
+  assert.equal(TH.q.building('b_T2').vendor.electricViaOwner, null);
+  const ex = QO.amDuong('2026-07', 'electric', 'excel'); assert.equal(ex.total.L, 913178913);
+});
+
+test('E3.4 – UI-44: mọi cách gộp giữ khóa gốc để mở đúng phần sổ UI-47; khách chịu có link phiếu hoàn / hóa đơn', () => {
+  const TH = boot({ user: 'ketoan' }); const QO = TH.qo;
+  for (const by of ['building', 'room', 'worker', 'jobType', 'reason', 'bearer']) {
+    const R = QO.repairs('2026-08', 'excel', by); assert.ok(R.rows.length, by);
+    // tòa chỉ có trong sổ Excel, không có trên web (vd S48B) thì không mở được theo tòa
+    assert.ok(R.rows.every(x => x.ref && (Object.values(x.ref).some(Boolean) || (by === 'building' && !x.buildingId))), by + ' có khóa gốc');
+    assert.ok(R.rows.every(x => Array.isArray(x.refunds) && Array.isArray(x.invoices) && Array.isArray(x.expenses)), by);
+  }
+  const w = QO.repairs('2026-08', 'excel', 'worker').rows[0]; assert.ok(TH.q.emp(w.ref.worker));
+});
+
+test('E3.5 / E3.6 – leader theo ngày, chỉ team trực tiếp, vai trò phụ trách [GĐ-E6]', () => {
+  const TH = boot({ user: 'admin', kit: true }); const S = TH.store, Q = TH.q, K = TH.kit;
+  const d = '2026-09-30';
+  const tp = Q.teamLeaders(d).find(e => e.title === 'TPVH');
+  const all = Q.leaderBuildings(tp.id, d); const direct = Q.leaderBuildings(tp.id, d, { direct: true });
+  assert.ok(all.size > 0); assert.ok([...direct].every(b => all.has(b)), 'team trực tiếp ⊂ cả nhánh');
+  const kd = Q.teamLeaders(d).find(e => e.title === 'TNKD');
+  if (kd) { const sb = Q.leaderBuildings(kd.id, d, { resp: 'sale' }); const team = Q.teamOf(kd.id, d);
+    assert.deepEqual(plain([...sb].sort()), plain([...new Set(S.all('deals').filter(x => x.closeDate.startsWith('2026-09') && x.saleIds.some(id => team.has(id))).map(x => x.buildingId))].sort())); }
+  assert.equal(Q.leaderBuildings(tp.id, d, { resp: 'cleaning' }).size, 0, 'vai trò chưa có dữ liệu phân công → rỗng');
+  // leader / quản lý theo ngày: người đã thôi vai trò vẫn tìm được khi xem kỳ cũ
+  const old = S.all('orgLinks').find(l => l.to); if (old) { assert.ok(Q.teamLeaders(old.to).some(e => e.id === old.leaderId) || Q.teamLeaders().some(e => e.id === old.leaderId)); }
+  assert.ok(K.managerOpts(d).length > 0);
+});
+
 test('NT-0 – Phase 1 không đổi sau Đợt E (bộ nghiệm thu trong app)', () => {
   const TH = boot({ user: 'admin', pages: true });
   assert.deepEqual(plain(TH.pages.acceptance().filter(a => !a.ok).map(a => a.name + ' → ' + a.detail)), []);
