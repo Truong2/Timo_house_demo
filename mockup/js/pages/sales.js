@@ -28,8 +28,8 @@
     root.innerHTML = U.pageHead({ title: 'Tổng quan hàng hóa', sub: 'Phòng còn bán, đã chốt, đã nhận theo khu, trưởng nhóm, sale và kỳ · "Chốt" khác "đã nhận" · phòng nhiều sale chỉ đếm một lần', acts: [U.btn({ label: 'Thêm khách xem', icon: 'user-plus', cls: 'btn-primary', href: '#/sales/leads?new=1', perm: 'sales.manage' })] })
       + tabsNav('sales')
       + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Còn bán', value: forSale.length, cap: forSale.filter(x => x.kind === 'now').length + ' ở luôn · ' + forSale.filter(x => x.kind === 'eom').length + ' cuối tháng · ' + forSale.filter(x => x.kind === 'clean').length + ' cần dọn', icon: 'door', tone: 'green' })}
-        ${U.kpi({ label: 'Đã chốt ' + F.periodShort(period), value: rooms.size, cap: F.vnd(closed.reduce((t, d) => t + d.price, 0)) + 'đ giá chốt', icon: 'check-circle', tone: 'blue' })}
-        ${U.kpi({ label: 'Đã nhận phòng', value: received.length, cap: deals.filter(d => d.status === 'closed').length + ' deal đang chờ nhận', icon: 'log-in', tone: 'purple' })}
+        ${U.kpi({ label: 'Đã chốt ' + F.periodShort(period) + ' (phòng)', value: rooms.size, cap: closed.length + ' giao dịch · ' + F.vnd(closed.reduce((t, d) => t + d.price, 0)) + 'đ giá chốt', icon: 'check-circle', tone: 'blue' })}
+        ${U.kpi({ label: 'Đã nhận phòng ' + F.periodShort(period), value: received.length, cap: deals.filter(d => d.status === 'closed').length + ' deal đang chờ nhận (mọi kỳ)', icon: 'log-in', tone: 'purple' })}
         ${U.kpi({ label: 'Lên lại từ phá HĐ / hoàn cọc', value: back.length, cap: 'trong kỳ, chưa có khách mới', icon: 'refresh', tone: 'amber' })}</div>`
       + K.filters([{ name: 'period', label: 'Kỳ', options: K.periodOpts(), value: S.meta.period, all: false }, { name: 'area', label: 'Khu vực', options: K.areaOpts() },
         { name: 'leader', label: 'Trưởng nhóm', options: Q.teamLeaders().filter(e => ['TNKD', 'TPVH', 'QL TỔNG'].includes(e.title)).map(e => [e.id, e.name + ' · ' + e.title]) }, { name: 'sale', label: 'Sale', options: saleOpts() }], q)

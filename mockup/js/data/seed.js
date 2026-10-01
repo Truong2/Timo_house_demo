@@ -81,6 +81,13 @@
       const last = a[a.length - 1];
       a.slice(0, -1).forEach(s => { const end = TH.calc.dates.addDays(last.rentStart, -1); Object.assign(s, { status: 'ended', endType: 'expired', endDate: end, stopBillingDate: end, handoverDate: end, depositStatus: 'refund_pending', endReason: 'Suy từ dữ liệu: phòng có khách mới ' + last.code + ' từ ' + last.rentStart }); });
     });
+    // Excel có khách mới đã cọc tháng 10 (lượt chờ nhận) nhưng không ghi khách cũ báo trả → khách cũ báo trả trước 30 ngày, dự kiến bàn giao ngày trước khi khách mới tính tiền
+    // (chỉ ghi báo trả, chưa kết thúc: hóa đơn, lương, báo cáo không đổi; kết thúc lượt cũ rồi mới nhận phòng được).
+    stays.filter(s => s.status === 'pending').forEach(p => {
+      const a = (actByRoom[p.roomId] || []).find(s => s.status === 'active');
+      if (!a || !p.rentStart || (a.endDate && a.endDate < p.rentStart)) return;
+      Object.assign(a, { noticeDate: TH.calc.dates.addDays(p.rentStart, -30), plannedLeaveDate: TH.calc.dates.addDays(p.rentStart, -1), endReason: 'Suy từ dữ liệu: khách mới ' + p.code + ' đã cọc, tính tiền từ ' + p.rentStart });
+    });
     col('stays', stays);
 
     /* --- hóa đơn kỳ 2026-09 (đã phát hành từ Excel) + biểu phí suy từ dòng hóa đơn --- */

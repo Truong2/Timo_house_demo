@@ -22,8 +22,8 @@ const group = async (user, setup, steps) => {
   const data = await p.evaluate(`(() => { TH.auth.login('${user}'); TH.layout.reset(); TH.router.render(); return (${setup})(); })()`);
   const api = {
     p, data,
-    login: async (u) => { await p.evaluate(u => { document.querySelectorAll('.overlay').forEach(x => x.remove()); document.body.classList.remove('modal-open'); TH.ui.openCount = 0; TH.auth.login(u); TH.layout.reset(); TH.router.render(); }, u); await p.waitForTimeout(300); },
-    go: async (h, f, opt = {}) => { await p.evaluate(h => { document.querySelectorAll('.overlay').forEach(x => x.remove()); document.body.classList.remove('modal-open'); TH.ui.openCount = 0; location.hash = h; }, h); await p.waitForTimeout(700); if (f) await p.screenshot({ path: dir + f, fullPage: !!opt.full }); },
+    login: async (u) => { await p.evaluate(u => { document.querySelectorAll('.overlay, #toast-root > *').forEach(x => x.remove()); document.body.classList.remove('modal-open'); TH.ui.openCount = 0; TH.auth.login(u); TH.layout.reset(); TH.router.render(); }, u); await p.waitForTimeout(300); },
+    go: async (h, f, opt = {}) => { await p.evaluate(h => { document.querySelectorAll('.overlay, #toast-root > *').forEach(x => x.remove()); document.body.classList.remove('modal-open'); TH.ui.openCount = 0; location.hash = h; }, h); await p.waitForTimeout(700); if (f) await p.screenshot({ path: dir + f, fullPage: !!opt.full }); },
     click: async (sel, f) => { await p.click(sel); await p.waitForTimeout(600); if (f) await p.screenshot({ path: dir + f }); },
     shot: async (f, opt = {}) => { await p.screenshot({ path: dir + f, fullPage: !!opt.full }); },
   };
