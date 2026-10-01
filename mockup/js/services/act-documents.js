@@ -6,14 +6,14 @@
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, A = TH.auth;
   const fail = (fields, msg = 'Dữ liệu chưa hợp lệ') => { const e = new Error(msg); e.fields = fields; throw e; };
   const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h >>> 0; };
-  Q.DOC_TYPES = [['red_book', 'Sổ đỏ'], ['pccc', 'PCCC'], ['owner_contract', 'HĐ chủ nhà'], ['tenant_contract', 'HĐ khách'], ['appendix', 'Phụ lục'], ['handover', 'Biên bản bàn giao'], ['voucher', 'Phiếu thu / chi'], ['meter_photo', 'Ảnh chỉ số'], ['asset', 'Tài sản'], ['other', 'Khác']];
-  Q.OBJ_TYPES = { building: 'Tòa', room: 'Phòng', stay: 'Lượt thuê / khách', ownerContract: 'HĐ chủ nhà', invoice: 'Hóa đơn', payment: 'Phiếu thu', refund: 'Phiếu hoàn', expense: 'Chứng từ chi' };
-  const LINKED = ['stay', 'ownerContract', 'invoice', 'payment', 'refund', 'expense'];
+  Q.DOC_TYPES = [['red_book', 'Sổ đỏ'], ['pccc', 'PCCC'], ['owner_contract', 'HĐ chủ nhà'], ['tenant_contract', 'HĐ khách'], ['appendix', 'Phụ lục'], ['handover', 'Biên bản bàn giao'], ['voucher', 'Phiếu thu / chi'], ['meter_photo', 'Ảnh chỉ số'], ['asset', 'Tài sản'], ['capital', 'Chứng từ góp vốn'], ['other', 'Khác']];
+  Q.OBJ_TYPES = { building: 'Tòa', room: 'Phòng', stay: 'Lượt thuê / khách', ownerContract: 'HĐ chủ nhà', invoice: 'Hóa đơn', payment: 'Phiếu thu', refund: 'Phiếu hoàn', expense: 'Chứng từ chi', shareholder: 'Cổ đông' };
+  const LINKED = ['stay', 'ownerContract', 'invoice', 'payment', 'refund', 'expense', 'shareholder'];
   /* Toàn bộ tài liệu = kho tài liệu + file HĐ khách của lượt thuê (UI-07) */
   /* E1 [GĐ-E1]: vai trò có quyền xem kho tải theo phạm vi tòa; sale / trưởng nhóm KD chỉ tải HĐ khách của deal mình;
      kỹ thuật chỉ tải biên bản / ảnh chỉ số của tòa có việc sửa của mình (không mở kho tài liệu) */
   Q.canDownloadDoc = (d) => {
-    if (!d || d.status === 'deleted' || !A.can('documents.download')) return false;
+    if (!d || d.status === 'deleted' || !A.can('documents.download') || !shareOk(d)) return false;
     if (A.can('documents.view')) return A.inScope(d.buildingId);
     if (A.can('sales.view')) return d.type === 'tenant_contract' && !!S.one('deals', x => x.stayId === d.objectId && A.inSales(x.saleIds));
     if (A.can('repairs.enter')) return ['handover', 'meter_photo'].includes(d.type) && !!S.one('repairLogs', r => r.workerId === (S.session || {}).employeeId && r.buildingId === d.buildingId);
@@ -28,7 +28,9 @@
     _.audit('download', 'document', id, 'Tải xuống ' + d.name); _.done(); return d;
   };
   Q.documentsAll = () => [...S.all('documents'), ...S.all('contractFiles').map(f => { const s = Q.stay(f.stayId) || {}; const newer = S.one('contractFiles', x => x.stayId === f.stayId && (x.version || 1) > (f.version || 1)); return { id: 'cf:' + f.id, fileId: f.id, blobId:f.blobId, source: 'contractFile', type: 'tenant_contract', name: f.name, size: f.size, objectType: 'stay', objectId: f.stayId, buildingId: s.buildingId, roomId: s.roomId, version: f.version || 1, validTo: s.endDate, uploadedBy: f.uploadedBy, uploadedAt: f.uploadedAt, status: newer ? 'superseded' : 'current', ocrStatus: Q.ocrStatusOf ? Q.ocrStatusOf(f.id) : null }; }),...S.all('intakeAttachments').map(a=>{const oc=a.kind==='owner'&&S.get('ownerContracts',a.targetId),s=a.kind==='tenant'&&Q.stay(a.targetId);return{id:'ia:'+a.id,blobId:a.fileId,source:'intakeAttachment',type:a.kind==='owner'?'owner_contract':'tenant_contract',name:a.name,objectType:a.kind==='owner'?'ownerContract':'stay',objectId:a.targetId,buildingId:oc?.buildingId||s?.buildingId,roomId:s?.roomId,uploadedAt:a.createdAt,status:'current'};})];
-  Q.documentsScoped = () => Q.scoped(Q.documentsAll()).filter(d => d.status !== 'deleted');
+  // E2: chứng từ góp vốn của cổ đông chỉ người có quyền cổ đông (admin / kế toán) thấy
+  const shareOk = (d) => d.objectType !== 'shareholder' || A.can('shares.view');
+  Q.documentsScoped = () => Q.scoped(Q.documentsAll()).filter(d => d.status !== 'deleted' && shareOk(d));
   Q.docObjectHref = (d) => ({ stay: '#/stays/' + d.objectId, ownerContract: '#/owners/' + d.objectId, building: '#/buildings/' + d.objectId, invoice: '#/billing/invoices/' + d.objectId, refund: '#/refunds/' + d.objectId, payment: '#/billing/receipts/' + d.objectId })[d.objectType] || null;
 
   X.uploadDocument = (d) => { _.needMs('2', 'Kho tài liệu (UI-26)');
@@ -46,6 +48,7 @@
     if (!old && d.objectType === 'payment') { const py = S.get('payments', d.objectId); if (!py || (py.buildingId && py.buildingId !== bid)) errs.objectId = 'Nhập mã phiếu thu của tòa'; }
     // B17: gắn phòng / chứng từ chi phải trỏ đúng đối tượng thuộc tòa
     if (!old && d.objectType === 'room') { const rm = Q.room(d.roomId); if (!rm || rm.buildingId !== bid) errs.roomId = 'Chọn phòng thuộc tòa'; }
+    if (!old && d.objectType === 'shareholder') { if (!A.can('shares.manage')) errs.objectId = 'Chỉ admin / kế toán tải chứng từ góp vốn'; else if (!Q.shareholder(d.objectId) || !S.one('shareRatios', r => r.shareholderId === d.objectId && r.buildingId === bid)) errs.buildingId = 'Chọn tòa cổ đông có góp vốn'; }
     if (!old && d.objectType === 'expense') { const ex = S.get('expenses', d.objectId); if (!ex || (ex.buildingId && ex.buildingId !== bid)) errs.objectId = 'Nhập mã chứng từ chi của tòa'; }
     if (Object.keys(errs).length) fail(errs);
     if (old) S.update('documents', old.id, { status: 'superseded', supersededAt: F.nowISO() });

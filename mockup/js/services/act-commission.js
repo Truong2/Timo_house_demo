@@ -84,11 +84,32 @@
     if (!d.from) errs.from = 'Nhập ngày hiệu lực';
     const base = Number(d.base); if (!(base > 0 && base <= 1)) errs.base = 'Tỷ lệ cơ bản 0–100%';
     if (!String(d.note || '').trim()) errs.note = 'Nhập lý do / căn cứ';
+    // E2: tỷ lệ riêng theo đối tác (vd MOITHUE 65%, đặc tả dòng 311) – nhập trong form, 0–100%
+    let partners = null;
+    if (d.partners) { partners = {}; Object.entries(d.partners).forEach(([k, r]) => { const key = String(k || '').trim().toUpperCase(); if (!key) return;
+      if (!/^[A-Z0-9][A-Z0-9 ._-]{1,29}$/.test(key)) errs.partners = 'Tên đối tác không hợp lệ: ' + k; else if (!(Number(r) > 0 && Number(r) <= 1)) errs.partners = `Tỷ lệ đối tác ${key} phải trong 0–100%`; else partners[key] = Number(r); }); }
     if (Object.keys(errs).length) fail(errs);
     _.guardEffective(d.from, 'chính sách hoa hồng');
     const cur = Q.commissionPolicy(d.from);
-    const v = S.add('commissionPolicies', { from: d.from, base, partners: d.partners || cur.partners, fullTermMonths: cur.fullTermMonths, share: cur.share, forfeitRate: Number(d.forfeitRate) || base, note: d.note });
+    const v = S.add('commissionPolicies', { from: d.from, base, partners: partners || cur.partners, fullTermMonths: cur.fullTermMonths, share: cur.share, forfeitRate: Number(d.forfeitRate) || base, note: d.note });
     _.audit('create', 'commissionPolicy', v.id, `Chính sách hoa hồng từ ${F.date(d.from)}: cơ bản ${Math.round(base * 100)}%`); _.done(); return v;
+  };
+
+  /* E2: đối tác giới thiệu khách – tên lấy từ giao dịch / khách xem / chính sách; tài khoản nhận hoa hồng (đặc tả dòng 309 "STK người nhận"), chỉ admin / kế toán */
+  Q.partnerOf = (name) => S.one('partners', p => String(p.name).toUpperCase() === String(name || '').toUpperCase());
+  Q.partnerNames = () => [...new Set([...S.all('deals').map(d => d.partner), ...S.all('leads').map(l => l.partner), ...Object.keys(Q.commissionPolicy().partners || {}), ...S.all('partners').map(p => p.name)].filter(Boolean).map(x => String(x).trim()))].sort();
+  X.savePartner = (d) => { _.needMs('2', 'Hoa hồng (UI-22)');
+    _.need('commission.pay');
+    const errs = {}; const name = String(d.name || '').trim();
+    if (!name) errs.name = 'Nhập tên đối tác';
+    else if (!d.id && Q.partnerOf(name)) errs.name = 'Đối tác đã có – sửa dòng cũ';
+    if (!String(d.bank || '').trim()) errs.bank = 'Nhập ngân hàng';
+    if (!/^[\d ]{6,24}$/.test(String(d.number || '').trim())) errs.number = 'Số tài khoản 6–24 chữ số';
+    if (!String(d.holder || '').trim()) errs.holder = 'Nhập chủ tài khoản';
+    if (Object.keys(errs).length) fail(errs);
+    const rec = { name, bank: d.bank.trim(), number: d.number.trim(), holder: d.holder.trim(), note: d.note || '' };
+    const p = d.id ? S.update('partners', d.id, rec) : S.add('partners', rec);
+    _.audit(d.id ? 'update' : 'create', 'partner', p.id, `${d.id ? 'Sửa' : 'Thêm'} tài khoản đối tác ${name}: ${rec.bank} ${rec.number}`); _.done(); return p;
   };
 
   /* Đối chiếu file hoa hồng T8 (SRC-09): web tính I = F × H từng dòng (F bỏ cọc tính lại từ công thức), gợi ý tỷ lệ theo chính sách tại 31/08 */

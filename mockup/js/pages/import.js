@@ -5,7 +5,7 @@
     readings: 'Mã phòng,Kỳ (YYYY-MM),Điện cũ,Điện mới,Nước cũ,Nước mới\n101T17,2026-10,6041,6230,,\n201T17,2026-10,7119,7002,,\n999T17,2026-10,100,200,,\n301T17,2026-10,#REF!,10400,,\n101T17,2026-10,6041,6230,,',
     expenses: 'Mã chứng từ,Ngày chi,Kỳ hưởng,Loại chi phí,Tòa / quỹ chung,Số tiền,Nhà cung cấp\nCP-DEMO-001,2026-09-24,2026-09,Phí thu rác,T17,300000,Công ty môi trường\nCP-DEMO-002,24/09/2026,2026-09,"Sửa chữa, thay thế, bảo trì",S43,1.450.000,Thợ ngoài\nCP-DEMO-003,2026-09-25,2026-09,Thuê & dịch vụ văn phòng,F_OFFICE,12000000,Văn phòng\nCP-DEMO-004,2026-09-25,2026-09,Điện (hóa đơn nhà cung cấp),X99,500000,EVN',
     vendorBills: 'Dịch vụ,Mã KH nhà cung cấp,Mã tòa,Kỳ hưởng,Ngày hóa đơn,Số tiền,Số hóa đơn\nĐiện,PD30•••097,,2026-09,2026-09-12,15102000,EVN-2609-G1\nĐiện,PD12•••687,,2026-09,2026-09-12,5410000,EVN-2609-G2\nĐiện,PD99•••000,,2026-09,2026-09-12,1000000,EVN-2609-X\nRác,,G1,2026-09,2026-09-15,300000,RAC-2609-G1\nThang máy,,,2026-09,2026-09-15,500000,TM-2609-01',
-    commissions: 'Mã khoản,Kỳ ghi nhận,Mã phòng,Sale,Số tiền\nHH-2609-01,2026-09,501S43,Sale A,1500000\nHH-2609-02,2026-09,203G1,Sale B,2050000',
+    commissions: 'Mã khoản,Kỳ ghi nhận,Mã phòng,Người nhận (sale / đối tác),Giá chốt (F),Thời hạn / bỏ cọc (G),Tỷ lệ (H),Loại ca,Thành tiền (I)\nHH-2608-01,2026-08,501S43,Sale A,3500000,12 tháng,50%,Thường,1750000\nHH-2608-02,2026-08,203G1,Đối tác MOITHUE,4100000,12 tháng,65%,Đối tác,2665000\nHH-2608-03,2026-08,302T2,Sale B,3600000,12 tháng,"25%",Trùng 2,950000\nHH-2609-04,2026-09,401T3,Sale C,3000000,12 tháng,50%,Thường,1500000',
     equipment: 'Mã tòa,Tên thiết bị,Ngày mua,Nguyên giá\nG1,Máy giặt tầng 2,2026-06-10,6500000\nS43,Điều hòa P501,2026-07-02,8500000',
     staff: 'Mã NV,Họ tên,Chức danh,Ngày vào làm,SĐT,Khu vực\nNV-DEMO-1,Nguyễn Văn Mới,NVVH,2026-09-15,0912000111,Khu Cầu Giấy\nNV-0001,Trùng mã nguồn,NVVH,2026-09-15,,\nNV-DEMO-2,Sai chức danh,GIAM DOC,2026-09-15,,',
     openingDebt: 'Mã KH (lượt thuê),Số còn nợ,Kỳ gốc\n101T17A001,450000,2026-08',
@@ -42,13 +42,13 @@
       const cnt = (s) => results.filter(r => r.status === s).length;
       root.querySelector('#res').innerHTML = U.card({ title: '4. Kết quả kiểm tra', icon: 'clipboard-check', actions: `<button class="btn btn-ghost btn-sm" data-act="errs">Xuất file lỗi</button>${TH.auth.can(perm) ? `<button class="btn btn-primary btn-sm" data-act="commit" ${cnt('ok') ? '' : 'disabled'}>Chỉ nhập ${cnt('ok')} dòng hợp lệ</button>` : ''}`,
         body: `<div class="row gap12 mb12">${U.chip('Hợp lệ ' + cnt('ok'), 'green')}${U.chip('Lỗi ' + cnt('error'), 'red')}${U.chip('Trùng ' + cnt('duplicate'), 'amber')}</div>
-        <table class="tbl compact"><thead><tr><th>Dòng</th>${sc.cols.map(c => `<th>${esc(c[1])}</th>`).join('')}<th>Kết luận</th></tr></thead><tbody>${results.map(r => `<tr><td>${r.line}</td>${sc.cols.map(([k]) => `<td>${esc(r.data[k] ?? '')}</td>`).join('')}<td>${r.status === 'ok' ? U.chip('Hợp lệ', 'green') : r.status === 'duplicate' ? U.chip('Trùng mã nguồn – bỏ qua', 'amber') : U.chip(r.errs.join('; '), 'red')}</td></tr>`).join('')}</tbody></table>` });
+        <table class="tbl compact"><thead><tr><th>Dòng</th>${sc.cols.map(c => `<th>${esc(c[1])}</th>`).join('')}<th>Kết luận</th></tr></thead><tbody>${results.map(r => `<tr><td>${r.line}</td>${sc.cols.map(([k]) => `<td>${esc(r.data[k] ?? '')}</td>`).join('')}<td>${r.status === 'ok' ? ((r.warns || []).length ? U.chip('Hợp lệ – cảnh báo: ' + r.warns.join('; '), 'amber') : U.chip('Hợp lệ', 'green')) : r.status === 'duplicate' ? U.chip('Trùng mã nguồn – bỏ qua', 'amber') : U.chip(r.errs.join('; '), 'red')}</td></tr>`).join('')}</tbody></table>` });
     };
     U.bindDropzones(root, (files) => { const f = files[files.length - 1]; if (!f) return; const rd = new FileReader(); rd.onload = () => load(String(rd.result), f.name); rd.readAsText(f, 'utf-8'); });
     U.bind(root, {
       tpl: () => { F.download('mau-' + type + '.csv', X.importTemplate(type)); },
       sample: () => load(SAMPLES[type] || X.importTemplate(type), 'mau-' + type + '-co-loi.csv'),
-      check, errs: () => K.csv('loi-import-' + type + '.csv', ['Dòng', 'Kết luận', 'Lỗi'], (results || []).filter(r => r.status !== 'ok').map(r => [r.line, r.status, r.errs.join('; ')])),
+      check, errs: () => K.csv('loi-import-' + type + '.csv', ['Dòng', 'Kết luận', 'Lỗi'], (results || []).filter(r => r.status !== 'ok' || (r.warns || []).length).map(r => [r.line, r.status === 'ok' ? 'cảnh báo' : r.status, [...r.errs, ...(r.warns || [])].join('; ')])),
       commit: async () => { if (!(await U.confirm({ title: 'Nhập dữ liệu', text: 'Nhập các dòng hợp lệ? Dòng lỗi/trùng bị bỏ qua.', ok: 'Nhập' }))) return; const j = K.act(() => X.commitImport(type, fileName, results)); if (j) U.toast('ok', `Đã nhập ${j.ok}/${j.total} dòng`); },
     });
   });

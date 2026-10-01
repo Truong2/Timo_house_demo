@@ -8,6 +8,8 @@
   R.JOB_TYPES = [['replace', 'Thay thế'], ['repair', 'Sửa chữa'], ['paint', 'Sơn'], ['cleaning', 'Dọn phòng / vệ sinh'], ['waterproof', 'Chống thấm'], ['electric', 'Điện'], ['water', 'Nước'], ['washer', 'Máy giặt'], ['other', 'Khác']];
   R.REASONS = [['expired', 'Khách hết HĐ'], ['breach', 'Khách phá HĐ'], ['leak', 'Do thấm'], ['design', 'Do thiết kế nhà'], ['old_tenant', 'Lỗi khách cũ'], ['other', 'Khác']];
   R.BEARERS = [['company', 'Công ty'], ['tenant', 'Khách chi'], ['owner', 'Chủ nhà']];
+  /* Trạng thái thu việc khách chịu (đặc tả dòng 557; giá trị "QL bank về HT" giữ nguyên chữ của sổ Excel) */
+  R.COLLECT = [['Chưa thu', 'Chưa thu'], ['QL bank về HT', 'QL bank về HT (quản lý chuyển tiền khách trả về công ty)'], ['Khách CK về HT', 'Khách chuyển khoản thẳng về công ty'], ['Trừ cọc', 'Trừ vào cọc (phiếu hoàn)'], ['Thu khác trên hóa đơn', 'Thu khác trên hóa đơn']];
   R.label = (list, k) => ((list.find(x => x[0] === k) || [])[1]) || k || '–';
   /* Kỳ sổ của một ngày: từ ngày startDay trở đi thuộc kỳ tháng sau */
   R.periodOf = (iso, startDay = 26) => {

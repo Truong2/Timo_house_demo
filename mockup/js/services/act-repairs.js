@@ -45,6 +45,10 @@
   /* Bảng lương kỳ đã chốt → tiền công mới không vào lương được nữa (A3) */
   const payrollClosed = (period) => !!S.one('payrollRuns', r => r.period === period && r.status === 'closed');
   const PAY_CLOSED = (period) => `Bảng lương kỳ ${F.periodShort(period)} đã chốt – tiền công không vào lương được nữa; ghi vào kỳ sổ sau hoặc dùng "Điều chỉnh sau khóa"`;
+  /* E2: thợ đã quyết toán ứng chi của kỳ → không đổi vật tư / số ứng của kỳ đó nữa (quyết toán đã chi / thu theo số cũ) */
+  Q.repairSettlementDoc = (workerId, period) => S.one('repairSettlements', x => x.workerId === workerId && x.period === period && x.status !== 'void');
+  const settled = (workerId, period) => !!Q.repairSettlementDoc(workerId, period);
+  const SETTLED = (workerId, period) => `${(Q.emp(workerId) || {}).name || 'Thợ'} đã quyết toán ứng chi kỳ sổ ${F.periodShort(period)} – ghi vật tư vào kỳ sau`;
 
   X.addRepair = (d) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
     _.need('repairs.enter');
@@ -61,7 +65,15 @@
     const labor = Number(d.labor) || 0, material = Number(d.material) || 0;
     if (labor < 0 || material < 0 || !(labor + material > 0)) errs.labor = 'Nhập tiền công và/hoặc vật tư';
     if (d.bearer && !RP.BEARERS.some(x => x[0] === d.bearer)) errs.bearer = 'Người chịu không hợp lệ';
+    // E2: trạng thái thu chỉ cho việc khách chịu; lượt thuê phải thuộc đúng phòng; ảnh việc sửa chỉ nhận ảnh / PDF
+    if (d.collectStatus && !RP.COLLECT.some(x => x[0] === d.collectStatus)) errs.collectStatus = 'Trạng thái thu không hợp lệ';
+    else if (d.collectStatus && (d.bearer || 'company') !== 'tenant') errs.collectStatus = 'Trạng thái thu chỉ dùng cho việc khách chịu';
+    const stay = d.stayId ? Q.stay(d.stayId) : null;
+    if (d.stayId && (!stay || !d.roomId || stay.roomId !== d.roomId)) errs.stayId = 'Lượt thuê không thuộc phòng đã chọn';
+    const photos = (d.photos || []).map(f => ({ name: String(f.name || '').trim(), size: Number(f.size) || 0 }));
+    if (photos.some(f => !/\.(jpe?g|png|heic|pdf)$/i.test(f.name))) errs.photos = 'Ảnh việc sửa: chỉ nhận JPG, PNG, HEIC hoặc PDF';
     const period = d.period || (d.date ? Q.repairPeriodOf(d.date) : null);
+    if (!errs.period && period && material > 0 && settled(workerId, period)) errs.period = SETTLED(workerId, period);
     // ngày ngoài kỳ sổ đang ghi (K-6): phải chọn đúng kỳ hoặc ghi lý do
     if (d.date && period && Q.repairPeriodOf(d.date) !== period && !String(d.periodReason || '').trim()) errs.period = `Ngày ${F.date(d.date)} thuộc kỳ sổ ${F.periodShort(Q.repairPeriodOf(d.date))} – chọn đúng kỳ hoặc ghi lý do`;
     if (!errs.period && period && parallel(period)) errs.period = `Kỳ sổ ${F.periodShort(period)} chạy song song Excel – chỉ để đối chiếu, không ghi thêm dòng web`;
@@ -70,7 +82,7 @@
     _.guardPeriod(period, 'ghi sổ sửa chữa');
     const r = S.add('repairLogs', { code: S.nextCode('repairLogs', 'SC-' + period.slice(2, 4) + period.slice(5, 7) + '-'), period, date: d.date, buildingId: b.id, buildingCode: b.code, roomId: d.roomId || null, roomCode: d.roomId ? Q.roomCode(d.roomId).replace(b.code, '') : null,
       desc: d.desc.trim(), jobType: d.jobType, workerId, labor, material, paintFrom: d.paintFrom || null, reason: d.reason || 'other', bearer: d.bearer || 'company', collectStatus: d.collectStatus || null,
-      stayId: d.stayId || null, note: [d.note, d.periodReason ? 'Ngoài kỳ: ' + d.periodReason : ''].filter(Boolean).join(' · '), periodOverride: !!(d.date && Q.repairPeriodOf(d.date) !== period), status: 'draft', source: 'web', enteredBy: _.who() });
+      stayId: d.stayId || null, photos: photos.map(f => Object.assign(f, { at: F.nowISO(), by: _.who() })), note: [d.note, d.periodReason ? 'Ngoài kỳ: ' + d.periodReason : ''].filter(Boolean).join(' · '), periodOverride: !!(d.date && Q.repairPeriodOf(d.date) !== period), status: 'draft', source: 'web', enteredBy: _.who() });
     _.audit('create', 'repair', r.id, `Sổ sửa chữa ${r.code}: ${b.code} ${d.desc} – công ${F.vnd(labor)}, vật tư ${F.vnd(material)}`); _.done(); return r;
   };
   X.voidRepair = (id, reason) => { _.needMs('2', 'Sổ sửa chữa (UI-47)'); _.need('repairs.enter');
@@ -162,13 +174,16 @@
     const bearer = d.bearer || r.bearer || 'company'; const oldBearer = r.bearer || 'company';
     if (!RP.BEARERS.some(x => x[0] === bearer)) fail({ bearer: 'Người chịu không hợp lệ' });
     if (labor < 0 || material < 0 || !(labor + material > 0)) fail({ labor: 'Tiền công / vật tư không âm, tổng > 0' });
+    const collectStatus = bearer !== 'tenant' ? null : d.collectStatus !== undefined ? (d.collectStatus || null) : (r.collectStatus || null);
+    if (collectStatus && !RP.COLLECT.some(x => x[0] === collectStatus)) fail({ collectStatus: 'Trạng thái thu không hợp lệ' });
     _.guardPeriod(r.period, 'điều chỉnh sổ sửa chữa');
+    if (material !== r.material && settled(r.workerId, r.period)) throw new Error(SETTLED(r.workerId, r.period));
     if (labor !== r.labor && payrollClosed(r.period)) throw new Error(PAY_CLOSED(r.period));
     // người chịu quyết định tiền công có vào chi phí dòng 41 qua bảng lương hay không → sau chốt lương không đổi được nữa
     if (bearer !== oldBearer && (r.labor > 0 || labor > 0) && payrollClosed(r.period)) throw new Error(`Bảng lương kỳ ${F.periodShort(r.period)} đã chốt – không đổi người chịu của dòng có tiền công; ghi dòng mới ở kỳ sau hoặc dùng "Điều chỉnh sau khóa"`);
     if (r.posted && (material !== r.material || bearer !== r.bearer)) throw new Error('Vật tư đã chốt kỳ sổ (chứng từ chi) – ghi dòng mới ở kỳ sau hoặc "Điều chỉnh sau khóa"');
     if (r.tenantCharge && r.tenantCharge.status === 'applied') throw new Error('Đã áp trừ vào phiếu hoàn – sửa phiếu hoàn trước');
-    const patch = { labor, material, bearer, history: [...(r.history || []), { labor: r.labor, material: r.material, bearer: r.bearer, reason: d.reason, by: _.who(), at: F.nowISO() }] };
+    const patch = { labor, material, bearer, collectStatus, history: [...(r.history || []), { labor: r.labor, material: r.material, bearer: r.bearer, collectStatus: r.collectStatus || null, reason: d.reason, by: _.who(), at: F.nowISO() }] };
     // bù trừ chủ nhà (D2): chọn kỳ trả chủ nhà đích TRƯỚC (tính cả phần bù trừ cũ sẽ được gỡ), không có thì báo lỗi khi chưa ghi gì
     let target = null;
     if (bearer === 'owner') {
@@ -192,7 +207,49 @@
     _.need('repairs.confirm');
     _.guardPeriod(period, 'ghi ứng chi');
     if (!(Number(amount) > 0)) fail({ amount: 'Nhập số ứng' });
+    if (settled(workerId, period)) throw new Error(SETTLED(workerId, period).replace('ghi vật tư', 'ghi ứng chi'));
     const a = S.add('repairAdvances', { workerId, period, amount: Number(amount), date: F.today(), note: note || '' });
     _.audit('create', 'repairAdvance', a.id, `Ứng chi vật tư ${(Q.emp(workerId) || {}).name} kỳ ${F.periodShort(period)}: ${F.vnd(amount)}`); _.done(); return a;
+  };
+  /* E2 [GĐ-E2]: quyết toán ứng chi = chứng từ quỹ (phiếu chi bổ sung cho thợ / phiếu thu thợ hoàn ứng), KHÔNG ghi chi phí mới:
+     vật tư đã vào chi phí dòng 41 khi chốt kỳ sổ, số ứng chỉ là tiền tạm ứng. Mỗi thợ × kỳ sổ một lần; sau quyết toán không đổi vật tư / số ứng của kỳ. */
+  X.settleRepairAdvance = (workerId, period, d = {}) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
+    _.need('repairs.confirm');
+    _.guardPeriod(period, 'quyết toán ứng chi');
+    if (parallel(period)) throw new Error('Kỳ ' + F.periodShort(period) + ' chạy song song Excel – quyết toán ứng chi đã làm trên file, sổ chỉ để đối chiếu');
+    if (!Q.emp(workerId)) throw new Error('Không tìm thấy thợ');
+    if (settled(workerId, period)) throw new Error(`Đã quyết toán ứng chi kỳ ${F.periodShort(period)} (${Q.repairSettlementDoc(workerId, period).code})`);
+    if (S.one('repairLogs', r => r.workerId === workerId && r.period === period && r.status === 'draft')) throw new Error('Còn dòng nháp của thợ trong kỳ – xác nhận hoặc hủy trước khi quyết toán');
+    const st = Q.repairSettlement(workerId, period, 'web');
+    if (!st.advance && !st.material) throw new Error('Thợ không có ứng chi / vật tư trong kỳ');
+    const date = d.date || F.today();
+    if (!['cash', 'bank'].includes(d.method || 'cash')) fail({ method: 'Hình thức không hợp lệ' });
+    const code = S.nextCode('repairSettlements', 'QT-' + period.slice(2, 4) + period.slice(5, 7) + '-');
+    const doc = S.add('repairSettlements', { code, workerId, period, date, method: d.method || 'cash', advance: st.advance, material: st.material, diff: st.diff,
+      kind: st.diff > 0 ? 'pay' : st.diff < 0 ? 'refund' : 'zero', note: d.note || '', status: 'done', by: _.who() });
+    _.audit('settle', 'repairSettlement', doc.id, `Quyết toán ứng chi ${st.worker.name} kỳ ${F.periodShort(period)}: vật tư ${F.vnd(st.material)} − ứng ${F.vnd(st.advance)} = ` + (st.diff > 0 ? 'công ty trả thêm ' + F.vnd(st.diff) : st.diff < 0 ? 'thợ trả lại ' + F.vnd(-st.diff) : '0')); _.done();
+    return doc;
+  };
+  /* E2: tồn sơn theo điểm (đặc tả dòng 562 – danh mục vật tư đơn giản, không phải phân hệ kho) = tồn đầu từ SRC-16 Sheet4 + nhập − xuất */
+  Q.paintStock = () => {
+    const base = ((TH.data.p2 && TH.data.p2.repairs && TH.data.p2.repairs.paint) || { stock: [] }).stock;
+    const m = {}; base.forEach(x => { m[x.point] = (m[x.point] || 0) + (Number(x.qty) || 0); });
+    S.all('paintMoves').forEach(x => { m[x.point] = (m[x.point] || 0) + (x.kind === 'out' ? -x.qty : x.qty); });
+    return Object.entries(m).map(([point, qty]) => ({ point, qty })).sort((a, b) => a.point.localeCompare(b.point));
+  };
+  X.addPaintMove = (d) => { _.needMs('2', 'Sổ sửa chữa (UI-47)');
+    _.need('repairs.confirm');
+    const point = String(d.point || '').trim().toUpperCase(); const qty = Number(d.qty); const kind = d.kind || 'in';
+    const errs = {};
+    if (!/^[A-Z]{1,3}\d{0,3}[A-Z]?$/.test(point)) errs.point = 'Nhập mã điểm (vd T20, T42, VP)';
+    if (!['in', 'out'].includes(kind)) errs.kind = 'Chọn nhập / xuất';
+    if (!(qty > 0) || Math.abs(Math.round(qty * 10) - qty * 10) > 1e-9) errs.qty = 'Số thùng > 0 (tối đa 1 chữ số lẻ)';
+    if (!d.date) errs.date = 'Nhập ngày';
+    const room = d.roomCode ? S.one('rooms', r => r.code === String(d.roomCode).trim().toUpperCase()) : null;
+    if (d.roomCode && !room) errs.roomCode = 'Không tìm thấy phòng (nhập mã đầy đủ, vd 203T20)';
+    if (!errs.point && kind === 'out' && qty > ((Q.paintStock().find(x => x.point === point) || {}).qty || 0)) errs.qty = 'Vượt tồn tại điểm ' + point;
+    if (Object.keys(errs).length) fail(errs);
+    const x = S.add('paintMoves', { point, qty, kind, date: d.date, roomId: room ? room.id : null, note: d.note || '', by: _.who() });
+    _.audit(kind === 'in' ? 'create' : 'use', 'paint', x.id, `${kind === 'in' ? 'Nhập' : 'Xuất'} ${qty} thùng sơn tại ${point}${room ? ' cho phòng ' + room.code : ''}`); _.done(); return x;
   };
 })(window.TH);

@@ -34,7 +34,7 @@ test('B2 – hủy chứng từ chi hoa hồng ở UI-15 → gỡ đợt chi, d�
 test('B3 – import hoa hồng ở mốc 2: chỉ lịch sử ≤ 08/2026 (không cộng hai lần với hoa hồng tính trên web)', () => {
   const TH = boot({ user: 'ketoan' }); const X = TH.actions, S = TH.store;
   const room = S.all('rooms').find(r => r.price > 0);
-  const v = X.validateImport('commissions', [{ code: 'HH-X1', period: '2026-09', room: room.code, sale: 'A', amount: '1000000' }, { code: 'HH-X2', period: '2026-08', room: room.code, sale: 'A', amount: '1000000' }]);
+  const v = X.validateImport('commissions', [{ code: 'HH-X1', period: '2026-09', room: room.code, sale: 'A', F: '2000000', H: '50%', amount: '1000000' }, { code: 'HH-X2', period: '2026-08', room: room.code, sale: 'A', F: '2000000', H: '50%', amount: '1000000' }]);
   assert.equal(v[0].status, 'error'); assert.match(v[0].errs.join(), /lịch sử/);
   assert.equal(v[1].status, 'ok');
 });

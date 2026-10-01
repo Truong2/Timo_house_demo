@@ -19,7 +19,19 @@
       + U.tabs(TABS, tab) + '<div id="tb" class="mt16"></div>';
     U.bind(root, { tab: (e) => TH.router.setQuery({ tab: e.dataset.key }) });
     const tb = root.querySelector('#tb');
-    if (tab === 'hoa-hong') {
+    if (tab === 'hoa-hong' && q.src === 'import') { // E2: dòng hoa hồng import lịch sử (≤ 08/2026) – tra cứu, không duyệt / chi lại
+      const CASES = TH.calc.importv.COMMISSION_CASES; let rows = S.all('commissionImports').slice().sort((a, b) => b.period.localeCompare(a.period) || String(a.code).localeCompare(String(b.code)));
+      if (q.period) rows = rows.filter(x => x.period === q.period);
+      tb.innerHTML = K.filters([{ name: 'src', label: 'Nguồn', options: [['import', 'Import lịch sử (≤ 08/2026)']], all: 'Giao dịch trên web' }, { name: 'period', label: 'Kỳ ghi nhận', options: [...new Set(S.all('commissionImports').map(x => x.period))].sort().reverse().map(p => [p, F.periodShort(p)]) }], q)
+        + '<div class="mt12">' + K.tableCard('t', rows.length + ' dòng import · Σ I ' + F.vnd(rows.reduce((t, x) => t + x.amount, 0)) + 'đ') + '</div>';
+      K.bindFilters(tb, ['tab']);
+      U.table(tb.querySelector('#t'), { rows, pageSize: 25, empty: U.empty({ icon: 'upload', title: 'Chưa import lịch sử hoa hồng', text: 'Import → Hoa hồng (lịch sử theo phòng), kỳ đến 08/2026.' }), cols: [
+        { key: 'c', label: 'Mã khoản', render: x => `<b>${esc(x.code)}</b>` }, { key: 'p', label: 'Kỳ', render: x => F.periodShort(x.period) }, { key: 'r', label: 'Phòng', render: x => `<span class="code">${esc(Q.roomCode(x.roomId))}</span>` },
+        { key: 'n', label: 'Người nhận', render: x => esc(x.recipient) }, { key: 'F', label: 'F', num: true, render: x => F.vnd(x.F) }, { key: 'G', label: 'G', render: x => esc(x.G || '') }, { key: 'H', label: 'H', num: true, render: x => pct(x.H) },
+        { key: 'k', label: 'Loại ca', render: x => esc(((CASES.find(c => c[0] === x.caseType) || [])[1]) || '') }, { key: 'I', label: 'Thành tiền I', num: true, render: x => `<b>${F.vnd(x.amount)}</b>` + (Math.abs(x.amount - x.expected) > 0.5 ? ' ' + U.chip('≠ F × H ' + F.vnd(x.expected), 'amber') : '') },
+        { key: 'e', label: 'Chứng từ chi', render: x => { const e = S.get('expenses', x.expenseId); return e ? U.link('#/expenses?period=' + e.period + '&q=' + encodeURIComponent(e.code), esc(e.code)) : '–'; } }] });
+    }
+    else if (tab === 'hoa-hong') {
       let rows = all.slice();
       if (q.deal) rows = rows.filter(c => c.dealId === q.deal);
       if (q.status === 'eligible') rows = rows.filter(c => c.status === 'approved' && el[c.dealId].ok); else if (q.status) rows = rows.filter(c => c.status === q.status);
@@ -29,14 +41,14 @@
       if (q.team) rows = rows.filter(c => c.recipient.employeeId && (Q.leaderOf(c.recipient.employeeId) || {}).id === q.team);
       const byRecip = {}; rows.forEach(c => { const k = c.recipient.name; const x = byRecip[k] = byRecip[k] || { name: k, n: 0, amount: 0, paid: 0 }; x.n++; x.amount += c.approvedAmount != null ? c.approvedAmount : c.amount; x.paid += Q.commissionPaid(c); });
       rows.sort((a, b) => String((Q.deal(b.dealId) || {}).closeDate).localeCompare(String((Q.deal(a.dealId) || {}).closeDate)));
-      tb.innerHTML = K.filters([{ name: 'status', label: 'Trạng thái', options: [['eligible', 'Đủ điều kiện chi'], ...Object.entries(Q.CM_ST).filter(([k]) => k !== 'void').map(([k, v]) => [k, v[0]])] }, { name: 'kind', label: 'Người nhận', options: [['partner', 'Đối tác'], ['sale', 'Sale nội bộ']] }, { name: 'period', label: 'Kỳ (tháng chốt)', options: [...new Set(S.all('deals').map(d => F.period(d.closeDate)))].sort().reverse().map(x => [x, F.periodLabel(x)]) },
+      tb.innerHTML = K.filters([{ name: 'src', label: 'Nguồn', options: [['import', 'Import lịch sử (≤ 08/2026)']], all: 'Giao dịch trên web' }, { name: 'status', label: 'Trạng thái', options: [['eligible', 'Đủ điều kiện chi'], ...Object.entries(Q.CM_ST).filter(([k]) => k !== 'void').map(([k, v]) => [k, v[0]])] }, { name: 'kind', label: 'Người nhận', options: [['partner', 'Đối tác'], ['sale', 'Sale nội bộ']] }, { name: 'period', label: 'Kỳ (tháng chốt)', options: [...new Set(S.all('deals').map(d => F.period(d.closeDate)))].sort().reverse().map(x => [x, F.periodLabel(x)]) },
           { name: 'sale', label: 'Sale', options: Q.salesStaff().map(e => [e.id, e.name]) }, { name: 'team', label: 'Team', options: [...new Set(Q.salesStaff().map(e => (Q.leaderOf(e.id) || {}).id).filter(Boolean))].map(id => [id, (Q.emp(id) || {}).name]) }], q)
         + '<div class="mt12">' + K.tableCard('t', rows.length + ' dòng hoa hồng') + '</div>'
         + '<div class="mt16">' + U.card({ title: 'Tổng theo người nhận (J)', icon: 'users', bodyCls: 'flush', body: `<table class="tbl compact"><thead><tr><th>Người nhận</th><th class="num">Số dòng</th><th class="num">Thành tiền</th><th class="num">Đã chi</th><th class="num">Còn phải chi</th></tr></thead><tbody>${Object.values(byRecip).sort((a, b) => b.amount - a.amount).map(x => `<tr><td>${esc(x.name)}</td><td class="num">${x.n}</td><td class="num">${F.vnd(x.amount)}</td><td class="num">${F.vnd(x.paid)}</td><td class="num"><b>${F.vnd(x.amount - x.paid)}</b></td></tr>`).join('')}</tbody></table>` }) + '</div>';
       K.bindFilters(tb, ['tab']);
       U.table(tb.querySelector('#t'), { rows, pageSize: 25, cols: [
         { key: 'd', label: 'Giao dịch', render: c => { const d = Q.deal(c.dealId); return U.cell2(U.link('#/sales/deals/' + d.id, esc(d.code)), F.date(d.closeDate) + ' · ' + esc(Q.roomCode(d.roomId))); } },
-        { key: 'r', label: 'Người nhận', render: c => U.cell2(esc(c.recipient.name), (c.recipient.kind === 'partner' ? 'Đối tác' : 'Sale nội bộ' + (c.share > 1 ? ' · trùng ' + c.share : '')) + ' · STK ' + esc(c.recipient.kind === 'partner' ? 'theo HĐ đối tác' : ((Q.emp(c.recipient.employeeId) || {}).bank || '–'))) },
+        { key: 'r', label: 'Người nhận', render: c => U.cell2(esc(c.recipient.name), (c.recipient.kind === 'partner' ? 'Đối tác' : 'Sale nội bộ' + (c.share > 1 ? ' · trùng ' + c.share : '')) + ' · STK ' + esc(c.recipient.kind === 'partner' ? ((p) => p ? p.bank + ' ' + p.number : 'chưa khai báo')(Q.partnerOf(c.recipient.name)) : ((Q.emp(c.recipient.employeeId) || {}).bank || '–'))) },
         { key: 'kh', label: 'Khách / QL phòng', render: c => { const d = Q.deal(c.dealId) || {}; return U.cell2(esc(((Q.customer(d.customerId) || {}).phone) || '–'), esc((Q.managerOf(d.buildingId) || {}).name || '–')); } },
         { key: 'f', label: 'F (giá chốt)', num: true, render: c => F.vnd(c.F) }, { key: 'g', label: 'G', render: c => c.term === 'forfeit' ? 'Bỏ cọc' : c.term + ' th' },
         { key: 'sh', label: 'H gợi ý', num: true, render: c => `<span data-tip="${esc((c.reasons || []).join(' · '))}">${pct(c.suggestedH)}</span>` }, { key: 'h', label: 'H duyệt', num: true, render: c => c.status === 'pending' ? '–' : pct(c.H) + (CM.sameRate(c.H, c.suggestedH) ? '' : ' ' + U.chip('khác gợi ý', 'amber')) },
@@ -94,12 +106,24 @@
     if (tab === 'chinh-sach') {
       const rows = S.all('commissionPolicies').slice().sort((a, b) => b.from.localeCompare(a.from));
       tb.innerHTML = U.card({ title: 'Chính sách tỷ lệ gợi ý theo hiệu lực', icon: 'sliders', actions: U.btn({ label: 'Thêm phiên bản', icon: 'plus', size: 'btn-sm', act: 'addp', perm: 'commission.policy' }), bodyCls: 'flush', body: '<div id="t"></div>' })
+        + '<div class="mt16">' + U.card({ title: 'Tài khoản nhận hoa hồng của đối tác', icon: 'landmark', actions: U.btn({ label: 'Thêm đối tác', icon: 'plus', size: 'btn-sm', act: 'addpt', perm: 'commission.pay' }), bodyCls: 'flush', body: '<div id="pt"></div>' }) + '</div>'
         + U.note('warn', 'Giả định cần khách xác nhận (K-5)', 'Đặc tả chưa có công thức chọn tỷ lệ tự động; công thức phụ tháng 8 (LEAD → 50%, còn lại 35%) sai 29/42 dòng nên không dùng. Bảng này chỉ tạo tỷ lệ GỢI Ý; kế toán duyệt tỷ lệ thực tế.');
       U.table(tb.querySelector('#t'), { rows, noPager: true, cols: [{ key: 'f', label: 'Hiệu lực từ', render: r => F.date(r.from) }, { key: 'b', label: 'Cơ bản', num: true, render: r => pct(r.base) },
         { key: 'p', label: 'Đối tác riêng', render: r => Object.entries(r.partners || {}).map(([k, v]) => esc(k) + ' ' + pct(v)).join(', ') || '–' }, { key: 's', label: 'Khách trùng', render: r => Object.entries(r.share || {}).map(([k, v]) => k + ' người ' + pct(v * r.base / CM.DEFAULT_POLICY.base)).join(' · ') + ' · ≥ 4 người chia đều' },
         { key: 't', label: 'HĐ ngắn hạn', render: r => '< ' + r.fullTermMonths + ' tháng: × số tháng / ' + r.fullTermMonths }, { key: 'fr', label: 'Bỏ cọc', num: true, render: r => pct(r.forfeitRate) }, { key: 'n', label: 'Căn cứ', render: r => esc(r.note || '') }] });
-      U.bind(tb, { addp: () => K.formDrawer({ title: 'Phiên bản chính sách hoa hồng', modal: true, fields: [{ name: 'from', label: 'Hiệu lực từ', type: 'date', req: true }, { name: 'base', label: 'Tỷ lệ cơ bản (%)', type: 'number', value: 50, req: true }, { name: 'forfeitRate', label: 'Tỷ lệ khi bỏ cọc (%)', type: 'number', value: 50 }, { name: 'note', label: 'Căn cứ / lý do', req: true, span: true }],
-        submit: 'Lưu', onSubmit: (x) => { X.addCommissionPolicy({ from: x.from, base: F.num(x.base) / 100, forfeitRate: F.num(x.forfeitRate) / 100, note: x.note }); U.toast('ok', 'Đã thêm chính sách'); } }) });
+      const curP = Q.commissionPolicy(); const pkeys = [...new Set([...Object.keys(curP.partners || {}), ...Q.partnerNames().map(n => n.toUpperCase())])].filter(k => /^[A-Z0-9][A-Z0-9 ._-]{1,29}$/.test(k));
+      U.table(tb.querySelector('#pt'), { rows: S.all('partners'), noPager: true, empty: U.empty({ icon: 'landmark', title: 'Chưa khai báo tài khoản đối tác' }), cols: [{ key: 'n', label: 'Đối tác', render: p => `<b>${esc(p.name)}</b>` }, { key: 'r', label: 'Tỷ lệ riêng hiện hành', num: true, render: p => (curP.partners || {})[p.name.toUpperCase()] ? pct(curP.partners[p.name.toUpperCase()]) : '–' },
+        { key: 'b', label: 'Ngân hàng', render: p => esc(p.bank) }, { key: 'no', label: 'Số tài khoản', render: p => `<span class="mono">${esc(p.number)}</span>` }, { key: 'h', label: 'Chủ tài khoản', render: p => esc(p.holder) }, { key: 'a', label: '', render: p => U.actBtn({ icon: 'pencil', label: 'Sửa', act: 'editpt', attrs: { 'data-id': p.id }, perm: 'commission.pay' }) }] });
+      const ptForm = (p = {}) => K.formDrawer({ title: p.id ? 'Sửa tài khoản đối tác' : 'Thêm tài khoản đối tác', modal: true, fields: [{ name: 'name', label: 'Đối tác', req: true, value: p.name || '', placeholder: Q.partnerNames().slice(0, 3).join(', ') }, { name: 'bank', label: 'Ngân hàng', req: true, value: p.bank || '' },
+        { name: 'number', label: 'Số tài khoản', req: true, value: p.number || '' }, { name: 'holder', label: 'Chủ tài khoản', req: true, value: p.holder || '' }, { name: 'note', label: 'Ghi chú', span: true, value: p.note || '' }],
+        submit: 'Lưu', onSubmit: (x) => { X.savePartner(Object.assign({ id: p.id }, x)); U.toast('ok', 'Đã lưu tài khoản đối tác'); } });
+      U.bind(tb, { addpt: () => ptForm(), editpt: (b) => ptForm(S.get('partners', b.dataset.id)),
+        addp: () => K.formDrawer({ title: 'Phiên bản chính sách hoa hồng', modal: true, note: U.note('info', '', 'Tỷ lệ riêng theo đối tác: để trống = áp tỷ lệ cơ bản. Thêm đối tác mới ở dòng cuối.'),
+          fields: [{ name: 'from', label: 'Hiệu lực từ', type: 'date', req: true }, { name: 'base', label: 'Tỷ lệ cơ bản (%)', type: 'number', value: Math.round(curP.base * 10000) / 100, req: true }, { name: 'forfeitRate', label: 'Tỷ lệ khi bỏ cọc (%)', type: 'number', value: Math.round(curP.forfeitRate * 10000) / 100 },
+            ...pkeys.map(k => ({ name: 'p_' + k, label: 'Đối tác ' + k + ' (%)', type: 'number', value: (curP.partners || {})[k] ? Math.round(curP.partners[k] * 10000) / 100 : '' })),
+            { name: 'newPartner', label: 'Đối tác mới', placeholder: 'Tên đối tác' }, { name: 'newRate', label: 'Tỷ lệ đối tác mới (%)', type: 'number' }, { name: 'note', label: 'Căn cứ / lý do', req: true, span: true }],
+          submit: 'Lưu', onSubmit: (x) => { const partners = {}; pkeys.forEach(k => { const v = x['p_' + k]; if (v !== '' && v != null) partners[k] = F.num(v) / 100; }); if (String(x.newPartner || '').trim()) partners[String(x.newPartner).trim().toUpperCase()] = F.num(x.newRate) / 100;
+            X.addCommissionPolicy({ from: x.from, base: F.num(x.base) / 100, forfeitRate: F.num(x.forfeitRate) / 100, partners, note: x.note }); U.toast('ok', 'Đã thêm chính sách'); } }) });
     }
   });
 })(window.TH);

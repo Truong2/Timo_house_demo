@@ -10,7 +10,9 @@
     openingDebt: { label: 'Công nợ đầu kỳ', cols: [['stay', 'Mã KH (lượt thuê)', true], ['amount', 'Số còn nợ', true, 'money'], ['period', 'Kỳ gốc', true]] },
     expenses: { label: 'Chi phí', cols: [['code', 'Mã chứng từ', true], ['date', 'Ngày chi', true, 'date'], ['period', 'Kỳ hưởng', true], ['category', 'Loại chi phí', true], ['scope', 'Tòa / quỹ chung', true], ['amount', 'Số tiền', true, 'money'], ['vendor', 'Nhà cung cấp']] },
     vendorBills: { label: 'Hóa đơn nhà cung cấp (theo mã KH)', hint: 'Dịch vụ: Điện/Nước/Mạng/Rác/Môi trường/Thang máy. Điện, nước, mạng tìm tòa theo mã KH nhà cung cấp; dịch vụ khác ghi Mã tòa.', cols: [['service', 'Dịch vụ', true], ['customerCode', 'Mã KH nhà cung cấp'], ['building', 'Mã tòa'], ['period', 'Kỳ hưởng', true], ['date', 'Ngày hóa đơn', true, 'date'], ['amount', 'Số tiền', true, 'money'], ['invoiceNo', 'Số hóa đơn', true]] },
-    commissions: { label: 'Hoa hồng (theo phòng)', cols: [['code', 'Mã khoản', true], ['period', 'Kỳ ghi nhận', true], ['room', 'Mã phòng', true], ['sale', 'Sale', true], ['amount', 'Số tiền', true, 'money']] },
+    // E2: lịch sử hoa hồng ≤ 08/2026 theo mẫu SRC-09 – F giá chốt, G thời hạn / bỏ cọc, H tỷ lệ, loại ca, I thành tiền (kiểm I = F × H)
+    commissions: { label: 'Hoa hồng (lịch sử theo phòng)', hint: 'Chỉ kỳ đến 08/2026 (từ 09/2026 tính trên UI-22). H ghi 50% hoặc 0,5. Loại ca: Thường / Đối tác / Trùng 2 / Trùng 3 / Bỏ cọc / HĐ ngắn. I khác F × H quá 0,5đ chỉ cảnh báo.',
+      cols: [['code', 'Mã khoản', true], ['period', 'Kỳ ghi nhận', true], ['room', 'Mã phòng', true], ['sale', 'Người nhận (sale / đối tác)', true], ['F', 'Giá chốt (F)', true, 'money'], ['G', 'Thời hạn / bỏ cọc (G)'], ['H', 'Tỷ lệ (H)', true, 'rate'], ['caseType', 'Loại ca'], ['amount', 'Thành tiền (I)', true, 'money']] },
     equipment: { label: 'Thiết bị đã mua (số dư khấu hao)', cols: [['building', 'Mã tòa', true], ['name', 'Tên thiết bị', true], ['purchaseDate', 'Ngày mua', true, 'date'], ['cost', 'Nguyên giá', true, 'money']] },
     staff: { label: 'Nhân viên', hint: 'Giữ mã NV của nguồn; chức danh theo danh mục (mã hoặc tên); khu vực nếu ghi phải có sẵn.', cols: [['code', 'Mã NV', true], ['name', 'Họ tên', true], ['title', 'Chức danh', true], ['hireDate', 'Ngày vào làm', true, 'date'], ['phone', 'SĐT'], ['area', 'Khu vực']] },
   };
@@ -20,6 +22,11 @@
     const n = Number(s.replace(/\./g, '').replace(/,/g, '.').replace(/[^\d.-]/g, ''));
     return isNaN(n) ? NaN : n;
   };
+  /* Tỷ lệ: "50%", "16,67%", "0,5", "0.5" → 0,5 / 0,1667 (số > 1 hiểu là phần trăm) */
+  const parseRate = (v) => { const s = String(v == null ? '' : v).trim(); const pc = /%$/.test(s); const n = Number(s.replace('%', '').replace(/\s/g, '').replace(',', '.')); return isNaN(n) ? NaN : (pc || n > 1 ? n / 100 : n); };
+  /* Loại ca hoa hồng [GĐ-E3] */
+  I.COMMISSION_CASES = [['normal', 'Thường'], ['partner', 'Đối tác'], ['split2', 'Trùng 2'], ['split3', 'Trùng 3'], ['forfeit', 'Bỏ cọc'], ['short', 'HĐ ngắn']];
+  I.caseOf = (v) => { const t = String(v || '').trim().toLowerCase(); if (!t) return 'normal'; const c = I.COMMISSION_CASES.find(([k, l]) => k === t || l.toLowerCase() === t); return c ? c[0] : null; };
   const parseDate = (v) => {
     const s = String(v || '').trim();
     let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (m) return s;
@@ -36,7 +43,8 @@
         if (/#REF!|#VALUE!|#DIV\/0!|#N\/A/i.test(s)) { errs.push(`${label}: ô lỗi công thức (${s})`); return; }
         if (req && !s) { errs.push(`${label}: bắt buộc`); return; }
         if (!s) { out[k] = null; return; }
-        if (kind === 'money' || kind === 'number') { const n = parseMoney(s); if (isNaN(n)) errs.push(`${label}: không phải số (${s})`); else out[k] = n; }
+        if (kind === 'rate') { const n = parseRate(s); if (isNaN(n) || n < 0 || n > 1) errs.push(`${label}: tỷ lệ không hợp lệ (${s})`); else out[k] = n; }
+        else if (kind === 'money' || kind === 'number') { const n = parseMoney(s); if (isNaN(n)) errs.push(`${label}: không phải số (${s})`); else out[k] = n; }
         else if (kind === 'date') { const d = parseDate(s); if (!d) errs.push(`${label}: ngày không hợp lệ (${s})`); else out[k] = d; }
         else out[k] = s;
       });
@@ -44,7 +52,7 @@
       let status = errs.length ? 'error' : 'ok';
       if (!errs.length && (existingKeys.has(key) || seen.has(key))) status = 'duplicate';
       seen.add(key);
-      return { line: i + 2, data: out, errs, status, sourceKey: key };
+      return { line: i + 2, data: out, errs, warns: [], status, sourceKey: key };
     });
   };
   C.importv = I;

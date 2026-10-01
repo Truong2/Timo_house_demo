@@ -124,6 +124,99 @@ test('E1.3 – tài liệu: loại PCCC; sale chỉ tải HĐ khách của deal 
   assert.ok(Q.downloadableDocs().every(d => ['handover', 'meter_photo'].includes(d.type)));
 });
 
+/* ---------------- E2 – sổ sửa chữa, import hoa hồng, UI-22, cổ đông ---------------- */
+const worker = (TH) => TH.store.all('employees').filter(e => e.title === 'KỸ THUẬT' && e.repairPay)[0];
+const job = (TH, extra = {}) => Object.assign({ workerId: worker(TH).id, date: '2026-09-20', buildingId: 'b_T2', desc: 'Thay vòi sen', jobType: 'water', labor: 100000, material: 250000 }, extra);
+
+test('E2.1 – sổ sửa chữa: ảnh việc sửa, gắn lượt thuê đúng phòng, trạng thái thu chỉ cho khách chịu; ⛔ sai phòng / sai loại file', () => {
+  const TH = boot({ user: 'ketoan' }); const S = TH.store, X = TH.actions, Q = TH.q;
+  const st = S.one('stays', s => s.status === 'active' && s.buildingId === 'b_T2'); const other = S.one('stays', s => s.status === 'active' && s.roomId !== st.roomId);
+  let r = attempt(() => X.addRepair(job(TH, { roomId: st.roomId, stayId: other.id }))); assert.ok(!r.ok && r.fields.stayId);
+  r = attempt(() => X.addRepair(job(TH, { roomId: st.roomId, collectStatus: 'QL bank về HT' }))); assert.ok(!r.ok && /khách chịu/.test(r.fields.collectStatus));
+  r = attempt(() => X.addRepair(job(TH, { roomId: st.roomId, photos: [{ name: 'virus.exe', size: 1 }] }))); assert.ok(!r.ok && r.fields.photos);
+  const ok = X.addRepair(job(TH, { roomId: st.roomId, stayId: st.id, bearer: 'tenant', collectStatus: 'QL bank về HT', photos: [{ name: 'truoc.jpg', size: 2048 }, { name: 'sau.png', size: 4096 }] }));
+  assert.equal(ok.stayId, st.id); assert.equal(ok.collectStatus, 'QL bank về HT'); assert.equal(ok.photos.length, 2);
+  X.confirmRepairs([ok.id]);
+  const adj = X.adjustRepair(ok.id, { collectStatus: 'Trừ cọc', reason: 'khách đồng ý trừ cọc' });
+  assert.equal(adj.collectStatus, 'Trừ cọc'); assert.equal(adj.history.at(-1).collectStatus, 'QL bank về HT');
+});
+
+test('E2.1 – tồn sơn theo điểm: nhập / xuất; ⛔ xuất vượt tồn', () => {
+  const TH = boot({ user: 'ketoan' }); const X = TH.actions, Q = TH.q;
+  const p0 = Q.paintStock(); const pt = p0[0];
+  X.addPaintMove({ kind: 'in', point: pt.point, qty: 4, date: '2026-09-20' });
+  assert.equal(Q.paintStock().find(x => x.point === pt.point).qty, pt.qty + 4);
+  const room = TH.store.one('rooms', r => r.price > 0);
+  X.addPaintMove({ kind: 'out', point: pt.point, qty: 1, date: '2026-09-21', roomCode: room.code });
+  assert.equal(Q.paintStock().find(x => x.point === pt.point).qty, pt.qty + 3);
+  const r = attempt(() => X.addPaintMove({ kind: 'out', point: pt.point, qty: pt.qty + 10, date: '2026-09-22' })); assert.ok(!r.ok && /Vượt tồn/.test(r.fields.qty));
+  X.addPaintMove({ kind: 'in', point: 'vp', qty: 2, date: '2026-09-20' });
+  assert.equal(Q.paintStock().find(x => x.point === 'VP').qty, (p0.find(x => x.point === 'VP') || { qty: 0 }).qty + 2);
+});
+
+test('E2.1 – quyết toán ứng chi [GĐ-E2]: chứng từ quỹ, không thêm chi phí; ⛔ quyết toán 2 lần, đổi vật tư / ứng sau quyết toán, kỳ song song Excel', () => {
+  const TH = boot({ user: 'ketoan' }); const S = TH.store, X = TH.actions, Q = TH.q;
+  const w = worker(TH); const period = '2026-09';
+  S.where('repairLogs', r => r.workerId === w.id && r.period === period && r.status === 'draft').forEach(r => X.voidRepair(r.id, 'dọn dữ liệu thử'));
+  const a = X.addRepair(job(TH, { material: 600000 })); X.confirmRepairs([a.id]);
+  X.setRepairAdvance(w.id, period, 400000, 'ứng đầu kỳ');
+  const st = Q.repairSettlement(w.id, period);
+  const nExp = S.all('expenses').length;
+  const doc = X.settleRepairAdvance(w.id, period, { method: 'bank' });
+  assert.equal(doc.diff, st.diff); assert.equal(doc.kind, st.diff > 0 ? 'pay' : st.diff < 0 ? 'refund' : 'zero');
+  assert.equal(S.all('expenses').length, nExp, 'không ghi chi phí mới');
+  assert.ok(!attempt(() => X.settleRepairAdvance(w.id, period)).ok);
+  assert.ok(/quyết toán/.test(attempt(() => X.setRepairAdvance(w.id, period, 100000)).msg));
+  assert.ok(!attempt(() => X.addRepair(job(TH, { material: 50000 }))).ok, 'thêm vật tư vào kỳ đã quyết toán');
+  assert.ok(!attempt(() => X.adjustRepair(a.id, { material: 700000, reason: 'x' })).ok);
+  assert.ok(/song song Excel/.test(attempt(() => X.settleRepairAdvance(w.id, '2026-08')).msg));
+});
+
+test('E2.2 – import hoa hồng lịch sử: F/G/H/loại ca/I; I ≠ F × H chỉ cảnh báo [GĐ-E4]; ⛔ loại ca lạ, tỷ lệ sai', () => {
+  const TH = boot({ user: 'ketoan' }); const S = TH.store, X = TH.actions;
+  const room = S.all('rooms').find(r => r.price > 0);
+  const base = { period: '2026-08', room: room.code, sale: 'CTV A', F: '3.600.000', G: '12 tháng' };
+  const v = X.validateImport('commissions', [Object.assign({ code: 'HI-1', H: '16,67%', caseType: 'Trùng 3', amount: '600120' }, base), Object.assign({ code: 'HI-2', H: '50%', caseType: 'Thường', amount: '1700000' }, base),
+    Object.assign({ code: 'HI-3', H: '50%', caseType: 'Lạ', amount: '1800000' }, base), Object.assign({ code: 'HI-4', H: '150%', amount: '1800000' }, base)]);
+  assert.equal(v[0].status, 'ok'); assert.ok(Math.abs(v[0].data.H - 0.1667) < 1e-9); assert.equal(v[0].warns.length, 0);
+  assert.equal(v[1].status, 'ok'); assert.match(v[1].warns.join(), /I ≠ F × H/);
+  assert.equal(v[2].status, 'error'); assert.match(v[2].errs.join(), /Loại ca/);
+  assert.equal(v[3].status, 'error'); assert.match(v[3].errs.join(), /tỷ lệ/);
+  const nE = S.all('expenses').length;
+  X.commitImport('commissions', 'hh-t8.csv', v);
+  const imp = S.all('commissionImports'); assert.equal(imp.length, 2);
+  assert.equal(imp[1].caseType, 'normal'); assert.equal(imp[1].expected, 1800000); assert.equal(imp[1].amount, 1700000);
+  assert.equal(S.all('expenses').length, nE + 2); assert.ok(imp.every(x => S.get('expenses', x.expenseId).category === 'commission'));
+});
+
+test('E2.3 – UI-22: tỷ lệ riêng theo đối tác trong chính sách; tài khoản đối tác; ⛔ tỷ lệ > 100%, STK sai', () => {
+  const TH = boot({ user: 'admin' }); const X = TH.actions, Q = TH.q;
+  let r = attempt(() => X.addCommissionPolicy({ from: '2026-11-01', base: 0.5, partners: { MOITHUE: 1.5 }, note: 'x' })); assert.ok(!r.ok && /0–100%/.test(r.fields.partners));
+  X.addCommissionPolicy({ from: '2026-11-01', base: 0.5, partners: { moithue: 0.7, 'NHA TOT': 0.6 }, note: 'Thỏa thuận mới' });
+  assert.deepEqual(plain(Q.commissionPolicy('2026-11-15').partners), { MOITHUE: 0.7, 'NHA TOT': 0.6 });
+  assert.equal(TH.calc.commission.suggest({ term: 12, partner: 'MOITHUE', share: 1 }, Q.commissionPolicy('2026-11-15')).rate, 0.7);
+  r = attempt(() => X.savePartner({ name: 'MOITHUE', bank: 'VCB', number: '12ab', holder: 'CT MOITHUE' })); assert.ok(!r.ok && r.fields.number);
+  X.savePartner({ name: 'MOITHUE', bank: 'VCB', number: '0123456789', holder: 'CONG TY MOITHUE' });
+  assert.equal(Q.partnerOf('moithue').number, '0123456789');
+  assert.ok(!attempt(() => X.savePartner({ name: 'MoiThue', bank: 'VCB', number: '0123456789', holder: 'x' })).ok, 'trùng tên đối tác');
+  TH.auth.login('sale'); assert.ok(!attempt(() => X.savePartner({ name: 'X', bank: 'VCB', number: '0123456789', holder: 'x' })).ok);
+});
+
+test('E2.4 – cổ đông: sửa thông tin có lịch sử; chứng từ góp vốn chỉ admin / kế toán thấy; K/L dòng tổng G1 T8', () => {
+  const TH = boot({ user: 'ketoan' }); const S = TH.store, X = TH.actions, Q = TH.q;
+  const r0 = Q.shareRatios('b_G1', '2026-08-31').find(r => r.shareholderId !== 'sh_CHUNG'); const sh = Q.shareholder(r0.shareholderId);
+  const u = X.updateShareholder(sh.id, { name: sh.name, phone: '0912345678', bank: 'TCB 1903…', note: '' });
+  assert.equal(u.phone, '0912345678'); assert.equal(u.history.length, 1);
+  assert.ok(!attempt(() => X.uploadDocument({ type: 'capital', buildingId: 'b_T2', objectType: 'shareholder', objectId: sh.id, name: 'gop-von.pdf' })).ok, 'tòa không góp vốn');
+  const doc = X.uploadDocument({ type: 'capital', buildingId: 'b_G1', objectType: 'shareholder', objectId: sh.id, name: 'gop-von.pdf', size: 1000 });
+  assert.ok(Q.documentsScoped().some(d => d.id === doc.id));
+  assert.ok(!attempt(() => X.deleteDocument(doc.id, 'x')).ok, 'chứng từ gắn cổ đông không xóa');
+  TH.auth.login('vanhanh'); assert.ok(!Q.documentsScoped().some(d => d.id === doc.id));
+  TH.auth.login('ketoan');
+  const run = Q.shareRun('b_G1', '2026-08', 'excel');
+  assert.ok(Math.abs(run.K - 23.96) < 0.01, 'K ' + run.K); assert.ok(Math.abs(run.L - 3.0238) < 0.0001, 'L ' + run.L);
+});
+
 test('NT-0 – Phase 1 không đổi sau Đợt E (bộ nghiệm thu trong app)', () => {
   const TH = boot({ user: 'admin', pages: true });
   assert.deepEqual(plain(TH.pages.acceptance().filter(a => !a.ok).map(a => a.name + ' → ' + a.detail)), []);

@@ -46,6 +46,17 @@
     const sh = S.add('shareholders', { code: S.nextCode('shareholders', 'CD-', 2), name: d.name.trim(), common: false, phone: d.phone || '', bank: d.bank || '', note: d.note || '' });
     _.audit('create', 'shareholder', sh.id, 'Thêm cổ đông ' + sh.code); _.done(); return sh;
   };
+  /* E2: sửa thông tin cổ đông (đặc tả dòng 524 – liên hệ / tài khoản nhận, lịch sử điều chỉnh); tỷ lệ sửa riêng có ngày hiệu lực */
+  X.updateShareholder = (id, d) => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
+    _.need('shares.manage');
+    const sh = Q.shareholder(id); if (!sh) throw new Error('Không tìm thấy cổ đông');
+    if (!String(d.name || '').trim()) fail({ name: 'Nhập tên nhà đầu tư' });
+    const next = { name: d.name.trim(), phone: String(d.phone || '').trim(), bank: String(d.bank || '').trim(), note: d.note || '' };
+    const changed = Object.keys(next).filter(k => (sh[k] || '') !== next[k]); if (!changed.length) return sh;
+    const L = { name: 'tên', phone: 'liên hệ', bank: 'tài khoản nhận', note: 'ghi chú' };
+    S.update('shareholders', id, Object.assign(next, { history: [...(sh.history || []), { before: Object.fromEntries(changed.map(k => [k, sh[k] || ''])), by: _.who(), at: F.nowISO() }] }));
+    _.audit('update', 'shareholder', id, `Sửa cổ đông ${sh.code}: ` + changed.map(k => L[k]).join(', ')); _.done(); return Q.shareholder(id);
+  };
   /* Tỷ lệ mới có hiệu lực từ ngày: đóng bộ tỷ lệ cũ; lưu được khi chưa đủ 100% (cảnh báo) nhưng không khóa bảng kê được */
   X.setShareRatios = (bid, rows, from, reason) => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
     _.need('shares.manage');
