@@ -76,7 +76,7 @@
   /* Sale chia trùng: tối đa 2 người thêm; mặc định sale của lead trùng SĐT (dupOf) */
   const coSaleFields = (l) => {
     const dup = S.all('leads').filter(x => x.id !== l.id && (x.id === l.dupOf || x.dupOf === l.id || x.phone === l.phone)).flatMap(x => x.saleIds).filter(id => !l.saleIds.includes(id));
-    const opts = Q.salesStaff().filter(e => !l.saleIds.includes(e.id)).map(e => [e.id, e.name + ' (' + e.title + ')']);
+    const opts = Q.salesStaff().filter(e => !l.saleIds.includes(e.id) && (!A.salesScope() || A.salesScope().has(e.id))).map(e => [e.id, e.name + ' (' + e.title + ')']);
     return [{ name: 'co1', label: 'Sale chia trùng thứ 2', type: 'select', options: opts, value: dup[0] || '', placeholder: 'Không chia trùng', help: 'Khách trùng: 2 người 25%, 3 người 16,67% (theo chính sách)' },
       { name: 'co2', label: 'Sale chia trùng thứ 3', type: 'select', options: opts, value: dup[1] || '', placeholder: 'Không' }];
   };

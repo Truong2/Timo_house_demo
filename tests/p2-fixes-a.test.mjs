@@ -54,7 +54,7 @@ test('A4 – deal và lượt thuê không lệch khi thao tác ở UI-07', asyn
   const TH = boot({ user: 'admin' }); const S = TH.store, X = TH.actions, Q = TH.q;
   const pend = () => S.all('deals').filter(d => d.status === 'closed' && (Q.stay(d.stayId) || {}).status === 'pending');
   await t.test('nhận phòng ở UI-07 → deal "đã nhận" + sự kiện', () => {
-    const l = X.addLead({ phone: '0987000111', source: 'Zalo' }); const r = Q.forSale().find(x => x.kind === 'now').room;
+    const l = X.addLead({ phone: '0987000111', source: 'Zalo', saleId: Q.salesStaff()[0].id }); const r = Q.forSale().find(x => x.kind === 'now').room;
     const d = X.closeDeal({ leadId: l.id, roomId: r.id, price: r.price, deposit: r.price, closeDate: '2026-09-28', billingStart: '2026-09-30', term: 12 });
     X.activateStay(d.stayId, '2026-09-30');
     const d2 = Q.deal(d.id); assert.equal(d2.status, 'received'); assert.ok(d2.events.some(e => e.type === 'receive'));

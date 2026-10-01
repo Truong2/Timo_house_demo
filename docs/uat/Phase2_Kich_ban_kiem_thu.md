@@ -1,6 +1,6 @@
 # TimoHouse – Kịch bản kiểm thử Phase 2
 
-Phiên bản 0.4 · 01/10/2026 · Trạng thái: **đã sửa lỗi audit 30/09 (mục 6), rà soát lại (mục 7) và làm Đợt E – lỗi kiểm tra 01/10 + toàn bộ backlog mục 7 (mục 8)**. Tài liệu được cập nhật sau mỗi đợt.
+Phiên bản 0.5 · 01/10/2026 · Trạng thái: **đã sửa lỗi audit 30/09 (mục 6), rà soát lại (mục 7) và làm Đợt E – lỗi kiểm tra 01/10 + toàn bộ backlog mục 7 (mục 8), hoàn thành Đợt F sửa 6 lỗi audit tích hợp OCR/tài liệu/kinh doanh (mục 9)**. Tài liệu được cập nhật sau mỗi đợt.
 
 **Nguồn đặc tả:**
 - `docs/SRS/TimoHouse_Phan_chia_3_Phase.md` §3;
@@ -382,3 +382,22 @@ Kiểm tra lại toàn bộ Phase 2 ngày 01/10 (chạy lại check, verify:p2, 
 **Kết quả đợt E:** `npm run check` 266 test (thêm 20 ca `p2-fixes-e`), RBAC 442; smoke 36/36; P0 19/19; quét 117 route × 8 tài khoản 0 lỗi; 88 ảnh Phase 2 (thêm 23 ảnh `fe-*`), không lỗi trang.
 
 **Còn chờ khách:** các câu hỏi K-11…K-19 (mục 7) và giả định GĐ-E1…E6 (mục 3).
+
+## 9. Đợt F — Sửa 6 lỗi audit Phase 2 ngày 01/10 (P2-AUD-01…06)
+
+| Mã | Màn | Nghiệm thu sau sửa | Bằng chứng |
+|---|---|---|---|
+| F1 | UI-07/08/09 | PDF thật mở phiên OCR của lượt thuê hiện có; sửa cọc/phí, rà nhóm, chọn hiệu lực rồi áp dụng. Phí 0/không thu/giữ nguyên tách riêng; giữ hóa đơn đã phát hành và sổ cọc. Thiếu/sai trường, kỳ khóa, nguồn cũ và áp lặp bị chặn; lỗi giữa transaction rollback toàn bộ. | `p2-audit-fixes.test.mjs`, `verify:p2:fixes` |
+| F2 | Intake/UI-22 | HĐ ký từ intake/UI-07 dùng cùng selector điều kiện hoa hồng. Excel và ảnh tham khảo không tính là HĐ ký; không trùng hợp đồng/blob; không tự tạo thu/chi và không lùi ngày đủ điều kiện theo ngày nguồn. | Test intake commit → eligibility và nguồn cũ |
+| F3 | UI-08/26 | Vận hành/leader/trưởng phòng rà được trong phạm vi; admin/kế toán áp dụng theo quyền hiện có. URL trực tiếp, sửa phiên và đọc blob ngoài phạm vi bị chặn. Sửa dữ liệu/lựa phí hủy trạng thái rà soát. | Test service + UI 3 vai trò, direct scope |
+| F4 | UI-26/31 | Chọn file thật; blob và metadata đúng kích thước/hash. V1/v2 tải đúng byte sau reload, bản cũ còn nguyên khi ghi lỗi. Sale/kỹ thuật tải đúng tài liệu được phép; demo thiếu blob báo thiếu file gốc. | UI upload/version/download + transaction test |
+| F5 | UI-21 | Sale nhận chia phải tồn tại, đang hoạt động, là nhân sự sale và trong phạm vi. Tập rỗng/payload sai bị từ chối trước mọi mutation; khử trùng sale. | Snapshot trước/sau payload bị chặn |
+| F6 | UI-21 | Phòng inactive hoặc đã bị giữ sau khi mở form không chuyển được; giữ nguyên phòng, biểu phí, cọc, hoa hồng và lịch sử. Chuyển hợp lệ giữ quy tắc hoa hồng hiện tại. | Test destination inactive/pending + suite chuyển phòng hiện có |
+| F7 | UI-08/26 | Khôi phục cùng file giữ dữ liệu đã sửa; kết quả đọc đã hủy không được gộp. Trường sai có link tới bước sửa; khóa upload/CTA khi xử lý. | `verify:p2:fixes` và intake UI |
+| F8 | Responsive | 1600×1000, 1440×1000, 1024×768, 390×844 không tràn trang; preview/form xếp dọc ở màn hẹp, bảng cuộn ngang trong card và footer không che form. | 8 ảnh tại `output/phase2-fixes-2026-10-01/shots/` |
+
+**Kết quả đợt F:** check **275/275 test**, RBAC **442**, 90 JS hợp lệ; build 329 file; smoke **36/36**; P0 **19/19**; sweep **117 route × 8 tài khoản** không lỗi; verify:p2 88 ảnh không lỗi JS; cả 3 script intake và `verify:p2:fixes` PASS. NT-0…NT-6, seed và golden giữ nguyên.
+
+[Báo cáo nghiệm thu](../SRS/TimoHouse_Nghiem_Thu_Sua_Loi_Phase2_2026-10-01.md) và [assertion UI](../../output/phase2-fixes-2026-10-01/verification.json).
+
+**Còn chờ khách:** K-11…K-19/GĐ-E1…E6; PASS kỹ thuật theo giả định hiện tại không thay thế việc khách xác nhận các câu hỏi này.

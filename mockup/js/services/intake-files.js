@@ -15,26 +15,59 @@
       tx.onerror = tx.onabort = () => reject(tx.error || new Error('Không lưu được IndexedDB'));
     });
   };
-  B.saveDraft = async draft => { need(draft.kind); draft.id ||= TH.f.uid('intake'); draft.updatedAt = TH.f.nowISO(); await op('drafts', 'readwrite', s => s.put(JSON.parse(JSON.stringify(draft)))); return draft; };
-  B.drafts = async kind => { need(kind); return (await op('drafts','readonly',s=>s.getAll())).filter(d=>d.kind===kind); };
-  B.getDraft = async id => { const d=await op('drafts','readonly',s=>s.get(id)); if(d) need(d.kind); return d; };
-  B.startStay=async (stayId,fileId)=>{
-    need('tenant');const s=TH.q.stay(stayId);if(!s||!TH.auth.inScope(s.buildingId))throw new Error('Lượt thuê ngoài phạm vi');
-    const d=TH.intake.blank('tenant');d.targetStayId=stayId;d.id=TH.f.uid('intake');d.history=[];
-    const b=TH.q.building(s.buildingId),r=TH.q.room(s.roomId);d.data={buildingCode:b.code,buildingAddress:b.address,roomCode:r.code};
-    for(const [key,value] of Object.entries(d.data))d.sources[key]={file:'Lượt thuê hiện có '+s.code,raw:value};
-    if(fileId){const f=await B.file(fileId);d.files=[{id:f.id,name:f.name,size:f.size,hash:f.hash}];}
-    await B.saveDraft(d);TH.go('#/tenants/intake?draft='+encodeURIComponent(d.id)+(fileId?'&read='+encodeURIComponent(fileId):''));
+  const draftAccess = d => {
+    need(d.kind);
+    if(d.createdBy && d.createdBy !== TH.store.session?.userId) throw new Error('Bản nháp thuộc tài khoản khác');
+    if(d.targetStayId && !TH.auth.inScope(TH.q.stay(d.targetStayId)?.buildingId)) throw new Error('Lượt thuê ngoài phạm vi');
   };
-  B.addFile = async (file,kind) => {
-    need(kind); if(file.size>30*1024*1024) throw new Error('File vượt 30 MB; tách thành các file nhỏ hơn');
-    if(!/\.(pdf|png|jpe?g|xlsx|csv)$/i.test(file.name)) throw new Error('Chỉ hỗ trợ PDF, JPG, PNG, XLSX, CSV');
-    const buffer = await file.arrayBuffer(), hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256',buffer))].map(n=>n.toString(16).padStart(2,'0')).join('');
-    const rec={id:kind+'-'+hash,kind,name:file.name,size:file.size,blob:file,hash}; await op('files','readwrite',s=>s.put(rec));
-    return {id:rec.id,name:rec.name,size:rec.size,hash};
+  B.saveDraft = async draft => { draftAccess(draft); draft.id ||= TH.f.uid('intake'); draft.createdBy ||= TH.store.session?.userId; draft.updatedAt = TH.f.nowISO(); await op('drafts', 'readwrite', s => s.put(JSON.parse(JSON.stringify(draft)))); return draft; };
+  B.drafts = async kind => { need(kind); return (await op('drafts','readonly',s=>s.getAll())).filter(d=>d.kind===kind && (!d.createdBy || d.createdBy === TH.store.session?.userId)); };
+  B.getDraft = async id => { const d=await op('drafts','readonly',s=>s.get(id)); if(d) draftAccess(d); return d; };
+  const fileBinding = (kind, context = {}) => {
+    if(context.stayId){ TH.actions._.needMs('2','OCR hợp đồng');TH.actions._.need('ocr.review'); const st=TH.q.stay(context.stayId);if(!st || !TH.auth.inScope(st.buildingId))throw new Error('Lượt thuê ngoài phạm vi');return {stayId:st.id,buildingId:st.buildingId}; }
+    if(kind==='document'){TH.actions._.needMs('2','Kho tài liệu');TH.actions._.need('documents.upload');if(!TH.q.building(context.buildingId)||!TH.auth.inScope(context.buildingId))throw new Error('Tòa ngoài phạm vi');return {buildingId:context.buildingId};}
+    need(kind);return {};
   };
-  B.file = async id => { const f=await op('files','readonly',s=>s.get(id)); if(!f) throw new Error('File gốc không còn trong trình duyệt này'); TH.actions._.need(f.kind==='owner'?'owners.view':'tenants.view'); return f; };
-  B.download = async id => { const f=await B.file(id), url=URL.createObjectURL(f.blob), a=document.createElement('a');a.href=url;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000); };
+  B.addFile = async (file,kind,context={}) => {
+    const actor=TH.store.session?.userId,binding=fileBinding(kind,context);
+    if(file.size>30*1024*1024) throw new Error('File vượt 30 MB; tách thành các file nhỏ hơn');
+    if(kind==='document') TH.actions._.checkFile(file.name);
+    else if(!/\.(pdf|png|jpe?g|xlsx|csv)$/i.test(file.name)) throw new Error('Chỉ hỗ trợ PDF, JPG, PNG, XLSX, CSV');
+    const buffer=await file.arrayBuffer(),hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',buffer))].map(n=>n.toString(16).padStart(2,'0')).join('');
+    // Stage uploads separately by actor and binding; a shared hash never grants file access.
+    if(actor!==TH.store.session?.userId)throw new Error('Tài khoản đã thay đổi khi đọc file');fileBinding(kind,context);
+    const id=kind+'-'+hash+'-'+actor+'-'+(binding.stayId||binding.buildingId||'draft');
+    const old=await op('files','readonly',s=>s.get(id));
+    const rec=old||{id,kind,name:file.name,size:file.size,blob:file,hash,createdBy:TH.store.session.userId,binding};
+    await op('files','readwrite',s=>s.put(rec));return {id:rec.id,name:rec.name,size:rec.size,hash:rec.hash};
+  };
+  B.file = async id => {
+    const actor=TH.store.session?.userId,f=await op('files','readonly',s=>s.get(id));
+    if(actor!==TH.store.session?.userId)throw new Error('Tài khoản đã thay đổi khi đọc file');
+    // Resolve references after asynchronous storage access so revoked assignments take effect.
+    const docs=TH.q.documentsAll?.().filter(d=>d.blobId===id)||[];
+    const visible=docs.some(d=>TH.q.canDownloadDoc(d) || (d.status!=='deleted' && d.type==='tenant_contract' && TH.auth.can('ocr.review') && TH.auth.inScope(d.buildingId)) || (d.status!=='deleted' && d.type==='owner_contract' && TH.auth.can('owners.view') && TH.auth.inScope(d.buildingId)));
+    if(docs.length && !visible)throw new Error('File ngoài phạm vi được phép đọc');
+    if(!docs.length){
+      if(!f){const drafts=await op('drafts','readonly',s=>s.getAll());const d=drafts.find(d=>d.createdBy===actor&&d.files?.some(x=>x.id===id));if(d){draftAccess(d);throw new Error('File gốc không còn trong trình duyệt này');}}
+      if(!f || f.createdBy!==TH.store.session?.userId)throw new Error('File ngoài phạm vi được phép đọc');fileBinding(f.kind,f.binding||{});
+    }
+    if(!f)throw new Error('File gốc không còn trong trình duyệt này');return f;
+  };
+  B.cleanupFile = async id => {
+    const f=await op('files','readonly',s=>s.get(id));if(!f || f.createdBy!==TH.store.session?.userId)return;
+    if(TH.q.documentsAll?.().some(d=>d.blobId===id))return;
+    if((await op('drafts','readonly',s=>s.getAll())).some(d=>d.files?.some(x=>x.id===id)))return;
+    await op('files','readwrite',s=>s.delete(id));
+  };
+  B.download = async (id,name) => { const f=await B.file(id),url=URL.createObjectURL(f.blob),a=document.createElement('a');a.href=url;a.download=name||f.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); };
+  B.startStay = async (stayId,blobId,contractId) => {
+    TH.actions._.needMs('2','OCR hợp đồng');TH.actions._.need('ocr.review');
+    const st=TH.q.stay(stayId);if(!st || !TH.auth.inScope(st.buildingId))throw new Error('Lượt thuê ngoài phạm vi');
+    const file=contractId?TH.store.get('contractFiles',contractId):TH.store.one('contractFiles',f=>f.stayId===stayId && (!blobId || f.blobId===blobId));
+    if(contractId && (!file || file.stayId!==stayId))throw new Error('File không thuộc lượt thuê');
+    const session=TH.actions.createRealOcr(stayId,file?.id);TH.go('#/ocr/'+session.id);
+  };
   const scripts = {};
   const script = path => scripts[path] ||= new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=base+path;s.onload=resolve;s.onerror=()=>{delete scripts[path];reject(new Error('Không tải được bộ đọc. Chạy npm run prepare:intake rồi thử lại.'));};document.head.append(s);});
   B.workbook = async file => {

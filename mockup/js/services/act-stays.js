@@ -181,23 +181,43 @@
     if (!silent) { _.audit('create', 'rateVersion', v.id, `Phiên biểu phí mới từ ${F.date(d.from)}`); _.done(); }
     return { version: v, warnIssued: issued.map(i => i.period) };
   };
-  X.addContractFile = (stayId, f) => {
-    _.need('tenants.manage');
+  // One registry for UI-07, intake and real OCR. Old records remain readable without migration.
+  Q.contractsOfStay = (stayId) => {
+    const files = S.where('contractFiles', f => f.stayId === stayId);
+    return files.concat(S.where('intakeAttachments', a => a.kind === 'tenant' && a.targetId === stayId && !files.some(f => f.blobId === a.fileId)).map(a => ({ ...a, id: 'ia:' + a.id, stayId, blobId: a.fileId, uploadedAt: a.createdAt, signed: a.contractSigned === true, version: 1, legacyAttachment: true })));
+  };
+  Q.signedContract = stayId => Q.contractsOfStay(stayId).filter(f => f.signed !== false && /\.(pdf|png|jpe?g)$/i.test(f.name)).sort((a,b) => String(a.uploadedAt || '').localeCompare(String(b.uploadedAt || '')))[0] || null;
+  const registerContractFile = (stayId, f, reviewOnly = false) => {
+    _.need(reviewOnly ? 'ocr.review' : 'tenants.manage');
+    if (reviewOnly) _.needMs('2', 'OCR hợp đồng');
+    const stay = Q.stay(stayId); if (!stay || !TH.auth.inScope(stay.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao');
     _.checkFile(f.name);
+    if (reviewOnly && !/\.(pdf|png|jpe?g)$/i.test(f.name)) throw new Error('OCR chỉ nhận PDF, JPG, PNG');
+    if (f.size > 30 * 1024 * 1024) throw new Error('File vượt 30 MB');
+    const same = f.blobId && S.one('contractFiles', x => x.stayId === stayId && (x.blobId === f.blobId || (f.hash && x.hash === f.hash)));
+    if (same) {
+      const changes = {};
+      if (same.blobId !== f.blobId) changes.blobId = f.blobId;
+      if (!reviewOnly && f.signed === true && same.signed === false) { changes.signed = true; changes.signedAt = F.nowISO(); }
+      if (Object.keys(changes).length) { S.update('contractFiles', same.id, changes); _.audit('update','contractFile',same.id,'Bổ sung nguồn/xác nhận hợp đồng đã ký'); _.done(); }
+      return S.get('contractFiles',same.id);
+    }
     const v = S.where('contractFiles', x => x.stayId === stayId).length + 1;
-    // D9: file HĐ mới → phiên OCR chờ rà soát của file cũ không áp dụng được nữa
     const olds = new Set(S.where('contractFiles', x => x.stayId === stayId).map(x => x.id));
-    S.where('ocrSessions', o => olds.has(o.fileId) && o.status === 'review').forEach(o => S.update('ocrSessions', o.id, { status: 'superseded', supersededAt: F.nowISO(), supersededBy: 'file' }));
-    const r = S.add('contractFiles', { stayId, name: f.name, size: f.size, version: v, uploadedBy: _.who(), uploadedAt: F.nowISO(), ocr: 'uploaded' });
+    S.where('ocrSessions', o => olds.has(o.fileId) && ['review','uploaded'].includes(o.status)).forEach(o => S.update('ocrSessions', o.id, { status: 'superseded', supersededAt: F.nowISO(), supersededBy: 'file' }));
+    const signed = !reviewOnly && /\.(pdf|png|jpe?g)$/i.test(f.name) && (f.signed === true || (!reviewOnly && f.signed === undefined));
+    const r = S.add('contractFiles', { stayId, name: f.name, size: f.size, blobId: f.blobId, hash: f.hash, source: f.source || 'upload', signed, signedAt: signed ? F.nowISO() : null, version: v, uploadedBy: _.who(), uploadedAt: F.nowISO(), ocr: 'uploaded' });
     _.audit('upload', 'contractFile', r.id, 'Tải file HĐ ' + f.name); _.done(); return r;
   };
+  X.registerContractFile = (stayId,f,reviewOnly=false) => S._batch ? registerContractFile(stayId,f,reviewOnly) : S.atomic(()=>registerContractFile(stayId,f,reviewOnly));
+  X.addContractFile = (stayId, f) => X.registerContractFile(stayId, f);
   /* D8: điều khoản HĐ đã rà soát từ OCR → lượt thuê. Ngày ký / nhận / tính tiền chỉ đổi khi lượt thuê chưa có hóa đơn phát hành
      (hóa đơn đã phát hành không tính lại); trả về trường đã ghi và trường bỏ qua để UI cảnh báo. */
   _.applyStayTerms = (stayId, t, reason) => {
     const s = Q.stay(stayId); if (!s) throw new Error('Không tìm thấy lượt thuê');
     const issued = S.one('invoices', i => i.stayId === stayId && i.lifecycle !== 'draft');
-    const MAP = { endDate: 'endDate', payMonths: 'payMonths', dueDay: 'dueDay', deposit: 'depositAmount', people: 'people', vehicles: 'vehicles', signDate: 'dealDate', moveInDate: 'moveInDate', rentStart: 'rentStart' };
-    const DATES = ['signDate', 'moveInDate', 'rentStart'];
+    const MAP = { endDate: 'endDate', payMonths: 'payMonths', dueDay: 'dueDay', deposit: 'depositAmount', people: 'people', vehicles: 'vehicles', signDate: 'dealDate', moveInDate: 'moveInDate', rentStart: 'rentStart', svcStart:'svcStart' };
+    const DATES = ['signDate', 'moveInDate', 'rentStart', 'svcStart'];
     const patch = {}, applied = [], skipped = [];
     Object.entries(t).forEach(([k, v]) => {
       const f = MAP[k]; if (!f || v === '' || v == null || String(s[f] ?? '') === String(v)) return;

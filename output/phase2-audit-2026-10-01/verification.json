@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-01",
+  "commit": "fe94bc5dd419f875d43a2d00c5b6dffe6adba1d2",
+  "syntaxFiles": 89,
+  "rbacChecks": 442,
+  "tests": {
+    "passed": 266,
+    "failed": 0
+  },
+  "build": {
+    "passed": true,
+    "files": 328
+  },
+  "phase2Ui": {
+    "screenshots": 88,
+    "pageErrors": 0
+  },
+  "smoke": {
+    "passed": 36,
+    "total": 36
+  },
+  "sweep": {
+    "routesPerAccount": 117,
+    "accounts": 8,
+    "pageErrors": 0,
+    "displayErrors": 0
+  },
+  "p0": {
+    "passed": 19,
+    "total": 19
+  },
+  "realIntake": {
+    "passed": true,
+    "coverage": [
+      "real PDFs",
+      "image OCR",
+      "original XLSX",
+      "owner/building/30 rooms",
+      "pending stay",
+      "proposal",
+      "reload originals"
+    ]
+  },
+  "auditFindings": 6,
+  "conclusion": "Runs as mockup; not yet complete against SRS"
+}

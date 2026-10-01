@@ -1,0 +1,16 @@
+﻿
+> timohouse-mockup@4.0.0 prebuild
+> npm run prepare:intake
+
+
+> timohouse-mockup@4.0.0 prepare:intake
+> node scripts/prepare-intake-vendor.mjs
+
+Document readers ready in mockup/vendor/intake
+
+> timohouse-mockup@4.0.0 build
+> node scripts/build.mjs
+
+✓ Cú pháp OK: 90 file JS
+✓ Domain thuần: không dùng DOM/storage/store/ui
+✓ Build xong → dist/  (329 file, 69.71 MB, stamp fe94bc5, 97 thẻ đã gắn ?v=)

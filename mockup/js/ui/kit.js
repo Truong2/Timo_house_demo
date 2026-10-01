@@ -56,8 +56,10 @@
       'close-d': () => d.close(),
       'submit-d': async () => {
         const data = d.data();
+        const submitBtn=d.el.querySelector('[data-act=submit-d]');if(submitBtn.disabled)return;submitBtn.disabled=true;
         try { const r = await onSubmit(data, d); if (r !== false) d.close(); }
         catch (e) { if (e.fields) U.setErrors(d.el, e.fields); U.toast('err', e.fields ? 'Kiểm tra các trường bắt buộc' : 'Không thực hiện được', e.message); }
+        finally { if(submitBtn.isConnected)submitBtn.disabled=false; }
       },
     });
     return d;

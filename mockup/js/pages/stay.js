@@ -89,17 +89,23 @@
         <div>${U.card({ title: 'Các lượt thuê khác cùng phòng ' + room.code, icon: 'history', body: hist.map(h => `<a class="mini-row" href="#/stays/${h.id}"><span class="code">${esc(h.code)}</span><span class="grow truncate">${esc((Q.customer(h.customerId) || {}).name || '')}</span>${K.stayChip(h)}</a>`).join('') || '<span class="muted small">Không có</span>' })}</div></div>`;
     }
     if (tab === 'hop-dong') {
-      const files = S.where('contractFiles', f => f.stayId === s.id);
+      const files = S.where('contractFiles', f => f.stayId === s.id);let uploading=false;
       tb.innerHTML = `<div class="two-col"><div>${U.card({ title: 'File hợp đồng khách', icon: 'file-text', body: `${U.dropzone({ name: 'hd', hint: 'PDF/ảnh hợp đồng đã ký – lưu bản gốc, gắn lượt thuê', multiple: true, accept: '.pdf,image/*' })}
-          <div class="mt12">${files.map(f => { const oc = TH.ms.on('2') && Q.ocrOf ? Q.ocrOf(f.id)[0] : null; return U.fileItem({ name: f.name, size: Math.round(f.size / 1024) + ' KB', date: f.uploadedAt }, `<button type="button" class="btn btn-xs btn-ghost" data-act="ocr" data-id="${f.id}" data-perm="tenants.manage">${f.blobId?'Đọc hợp đồng gốc':'Bổ sung PDF và đọc thật'}</button>${oc?` <a class="btn btn-xs btn-ghost" href="#/ocr/${oc.id}">Phiên mô phỏng cũ ${oc.run}</a>`:''}`); }).join('') || '<span class="muted small">Chưa có file</span>'}</div>
+          <div class="mt12">${files.map(f => { const oc = TH.ms.on('2') && Q.ocrOf ? Q.ocrOf(f.id)[0] : null; return U.fileItem({ name: f.name, size: Math.round(f.size / 1024) + ' KB', date: f.uploadedAt },
+            (f.blobId && TH.ms.on('2') ? U.btn({label:'Tải bản gốc',act:'docdl',size:'btn-xs',attrs:{'data-id':'cf:'+f.id},perm:'documents.download'}) : '')
+            + (TH.ms.on('2') ? U.btn({label:f.blobId?'Đọc hợp đồng gốc':'Bổ sung PDF và đọc thật',act:'ocr',size:'btn-xs',attrs:{'data-id':f.id},perm:'ocr.review'}) : '')
+            + (oc ? ` <a class="btn btn-xs btn-ghost" href="#/ocr/${oc.id}">${oc.real?'Phiên rà soát':'Phiên mô phỏng cũ'} ${oc.run}</a>` : '')); }).join('') || '<span class="muted small">Chưa có file</span>'}</div>
           <button type="button" class="btn btn-primary mt12" data-act="upload" data-perm="tenants.manage">Lưu file đã chọn</button>` })}</div>
         <div>${TH.ms.on('2') ? U.note('info', 'OCR hợp đồng (UI-08)', 'Đọc tự động người thuê, ngày, giá, cọc, biểu phí → màn rà soát đặt bản gốc cạnh từng trường (độ tin cậy, trang/vùng). Chỉ áp dụng vào biểu phí khi đủ trường bắt buộc và đã rà mọi nhóm; OCR không ghi vào hóa đơn.') : U.note('info', 'OCR hợp đồng – Phase 2', 'Phase 1 chỉ tải và lưu file gốc. Đọc tự động các trường (người thuê, giá, cọc, phí dịch vụ) và bàn rà soát OCR làm ở Phase 2; giá áp dụng hiện nhập ở tab Biểu phí.')}
         ${U.card({ title: 'Điều kiện hợp đồng', icon: 'list', body: U.kv([['Giá thuê', F.vndd(s.rent)], ['Giá niêm yết phòng', F.vndd(room.listPrice)], ['Cọc', F.vndd(s.depositAmount)], ['Thời hạn', F.date(s.rentStart) + ' → ' + F.date(s.endDate)], ['Kỳ trả', (s.payMonths || 1) + ' tháng/lần']]) })}</div></div>`;
       U.bindDropzones(tb);
       tb.insertAdjacentHTML('afterbegin',U.card({title:'File gốc từ hồ sơ nhập',body:TH.intakeAttachmentList(s.id)||'Chưa có file gốc trong bộ nhập mới.'}));
       tb.querySelectorAll('[data-file]').forEach(el=>el.onclick=()=>TH.intakeFiles.download(el.dataset.file).catch(e=>U.toast('err',e.message)));
-      U.bind(tb, { upload: async () => { const fs = U.dzFiles(tb, 'hd'); if (!fs.length) return U.toast('warn', 'Chọn file trước');try{for(const f of fs){const blob=await TH.intakeFiles.addFile(f,'tenant');const record=X.addContractFile(s.id,{name:f.name,size:f.size});S.update('contractFiles',record.id,{blobId:blob.id});}U.toast('ok','Đã lưu file gốc trong trình duyệt');TH.router.refresh();}catch(e){U.toast('err',e.message);} },
-        ocr: async (el) => {const f=S.get('contractFiles',el.dataset.id);try{await TH.intakeFiles.startStay(s.id,f.blobId);}catch(e){U.toast('err',e.message);} } });
+      U.bind(tb, { docdl:el=>TH.pages.docDownload(el.dataset.id), upload: async (el) => {if(uploading)return;const fs=U.dzFiles(tb,'hd');if(!fs.length)return U.toast('warn','Chọn file trước');uploading=true;el.disabled=true;
+          try{for(const f of fs){const blob=await TH.intakeFiles.addFile(f,'tenant');try{X.addContractFile(s.id,{name:f.name,size:f.size,blobId:blob.id,hash:blob.hash,signed:true});}catch(e){await TH.intakeFiles.cleanupFile(blob.id);throw e;}}U.toast('ok','Đã lưu file gốc trong trình duyệt');TH.router.refresh();}
+          catch(e){U.toast('err',e.message);}finally{uploading=false;if(el.isConnected)el.disabled=false;}
+        },
+        ocr: async (el) => {const f=S.get('contractFiles',el.dataset.id);try{await TH.intakeFiles.startStay(s.id,f.blobId,f.id);}catch(e){U.toast('err',e.message);} } });
     }
     if (tab === 'bieu-phi') {
       const vs = S.where('rateVersions', v => v.stayId === s.id).sort((a, b) => String(b.from).localeCompare(String(a.from)));
@@ -107,7 +113,7 @@
       tb.innerHTML = `<div class="two-col"><div>${U.card({ title: 'Biểu phí đang áp dụng', icon: 'list', sub: cur ? `Hiệu lực từ ${F.date(cur.from)} · nguồn: ${esc(cur.reason || '')}` : '', actions: U.btn({ label: 'Thêm phiên giá', icon: 'plus', size: 'btn-sm', cls: 'btn-primary', act: 'newrate', perm: 'rates.manage' }),
           body: cur ? `<table class="tbl compact"><thead><tr><th>Loại phí</th><th>Cách tính</th><th class="num">Đơn giá</th><th class="num">SL mặc định</th><th>Dòng in</th></tr></thead><tbody>
           <tr><td><b>Tiền phòng</b></td><td>theo tháng, chia ngày tháng lẻ</td><td class="num">${F.vnd(cur.rent)}</td><td class="num">1</td><td>1</td></tr>
-          ${FEE.map(([k, l]) => { const it = (cur.items || {})[k]; return it && it.unit ? `<tr><td>${l}</td><td>${methodLabel(it.method)}</td><td class="num">${F.vnd(it.unit)}</td><td class="num">${it.method === 'person' ? s.people : it.method === 'vehicle' ? s.vehicles : it.qty || (it.method === 'meter' ? '–' : 1)}</td><td>${TH.data.catalog.feeTypes.find(f => f.key === k).line}</td></tr>` : ''; }).join('')}</tbody></table>` : U.empty({ title: 'Chưa có biểu phí' }) })}</div>
+          ${FEE.map(([k, l]) => { const it = (cur.items || {})[k]; return it && it.unit != null ? `<tr><td>${l}</td><td>${methodLabel(it.method)}</td><td class="num">${F.vnd(it.unit)}</td><td class="num">${it.method === 'person' ? s.people : it.method === 'vehicle' ? s.vehicles : it.qty || (it.method === 'meter' ? '–' : 1)}</td><td>${TH.data.catalog.feeTypes.find(f => f.key === k).line}</td></tr>` : ''; }).join('')}</tbody></table>` : U.empty({ title: 'Chưa có biểu phí' }) })}</div>
         <div>${U.card({ title: 'Lịch sử phiên giá', icon: 'history', body: vs.map((v, i) => `<div class="mini-row"><span>v${vs.length - i}</span><span class="grow">${F.date(v.from)} → ${v.to ? F.date(v.to) : 'nay'}<br><small class="muted">${esc(v.reason || '')}</small></span><b>${F.vnd(v.rent)}</b></div>`).join('') })}
         ${U.note('info', '', 'Phiên giá mới chỉ áp dụng hóa đơn chưa phát hành; hóa đơn đã phát hành giữ giá snapshot.')}</div></div>`;
     }

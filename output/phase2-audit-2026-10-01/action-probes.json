@@ -1,0 +1,55 @@
+{
+  "at": "2026-10-01T07:57:40.682Z",
+  "head": "fe94bc5",
+  "cases": {
+    "baseIntake": {
+      "deal": "dl_101T21A002",
+      "errors": []
+    },
+    "contractVsCommission": {
+      "target": "st_101T21A002",
+      "attachment": [
+        {
+          "type": "tenant_contract",
+          "source": "intakeAttachment"
+        }
+      ],
+      "eligibility": {
+        "ok": false,
+        "missing": [
+          "Chưa có file HĐ đã ký"
+        ],
+        "date": null,
+        "invoiceId": "inv_INV-2026-09-101T21A002"
+      }
+    },
+    "realOcrChangedTerms": {
+      "fieldErrors": {
+        "deposit": "Lượt thuê đã có khác cọc/kỳ trả/người ở/ngày dịch vụ; rà lại điều khoản lượt thuê",
+        "payMonths": "Lượt thuê đã có khác cọc/kỳ trả/người ở/ngày dịch vụ; rà lại điều khoản lượt thuê",
+        "people": "Lượt thuê đã có khác cọc/kỳ trả/người ở/ngày dịch vụ; rà lại điều khoản lượt thuê",
+        "svcStart": "Lượt thuê đã có khác cọc/kỳ trả/người ở/ngày dịch vụ; rà lại điều khoản lượt thuê",
+        "fee:electric": "Phí electric khác biểu phí hiện có; dùng phiên biểu phí có ngày hiệu lực."
+      }
+    },
+    "foreignSale": {
+      "accepted": true,
+      "ownScope": [
+        "emp_NV42064945"
+      ],
+      "assigned": "emp_NV70522410",
+      "canSeeOwnNewDeal": false
+    },
+    "inactiveTransfer": {
+      "accepted": true,
+      "beforeRentable": false,
+      "afterRoom": "r_201T5",
+      "target": "r_201T5"
+    },
+    "newDocumentBinary": {
+      "created": true,
+      "downloadActionAccepted": true,
+      "blobId": null
+    }
+  }
+}

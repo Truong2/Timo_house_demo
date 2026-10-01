@@ -1,0 +1,121 @@
+{
+  "label": "phase2-fixes",
+  "at": "2026-10-01T08:56:30.188Z",
+  "results": [
+    {
+      "id": "P0-1",
+      "name": "Không thu tiền điện hai lần cho cùng một phòng trong kỳ 10",
+      "ok": true,
+      "detail": "1466 hóa đơn nháp kỳ 10; 0 phòng có ≥2 hóa đơn cùng thu điện. 206G6: 206G6A002 điện 580000 / 206G6A003 điện 0"
+    },
+    {
+      "id": "P0-2",
+      "name": "Khách đã nộp phiếu cọc không bị tính cọc lần nữa trên hóa đơn đầu",
+      "ok": true,
+      "detail": "1420 hóa đơn nháp của khách đã có cọc trong sổ; 0 hóa đơn vẫn thu lại cọc"
+    },
+    {
+      "id": "P0-3",
+      "name": "Mọi hóa đơn: tổng in 13 dòng = tổng cần đóng; lệch Excel được gắn cờ",
+      "ok": true,
+      "detail": "1471 hóa đơn, 0 hóa đơn tổng in ≠ tổng cần đóng. 103T25: in 2888000, cần đóng 2888000, đã thu 2120000 → THIEU. Hóa đơn gắn cờ lệch Excel nguồn: 9"
+    },
+    {
+      "id": "P0-4",
+      "name": "Phòng có giá thuê/hóa đơn không bị xếp loại \"đồng hồ chung\"",
+      "ok": true,
+      "detail": "0 phòng xếp sai; HS cao nhất kỳ 9: T24 = 111.41105717321626; tòa có tiền thu nhưng J=0: không; mẫu số phân bổ kỳ 9 = 1428"
+    },
+    {
+      "id": "P0-5a",
+      "name": "Báo cáo KD T8: ô KPI LNR = dòng cuối cầu nối",
+      "ok": true,
+      "detail": "KPI LNR 779688893 · cầu nối 779688893"
+    },
+    {
+      "id": "P0-5b",
+      "name": "Nghiệm thu Báo cáo tổng T8 tính trên số web, chênh Excel giải thích hết từng khoản",
+      "ok": true,
+      "detail": "TCP web 6024500037 − Excel 6013857267 = 10642770: Tòa có trong bảng lương và mẫu số 1.382 nhưng không có cột trong báo cáo Excel: G13, G12A, G14 10405700 | Lương quản lý: dòng lỗi nguồn bảng lương Excel S39, S28, S36 181553 | Phân bổ quỹ chung: 12 ô của sheet tòa Excel khác công thức chung (T5 sal_gm, T12 sal_lead, T32 office, S1 sal_gm, S1 marketing, S3 sal_head, S30 sal_source, S31 sal_repair, S32 sal_lead, S40 sal_acct, G1 sal_repair, G3 sal_repair) 55517 | Chênh lệch khác (chưa giải thích) 0 · còn dư -0.03 · Báo cáo tổng T8 trên số web: DT 7.036.256.236 và giá vốn khớp Excel; chênh chi phí giải thích hết, không còn khoản lạ → PASS"
+    },
+    {
+      "id": "P0-6a",
+      "name": "Nhận cọc → \"đang giữ\"; đảo phiếu cọc → sổ cọc về 0",
+      "ok": true,
+      "detail": "sau nhận: held; sau đảo: số dư sổ cọc 0, trạng thái none"
+    },
+    {
+      "id": "P0-6b",
+      "name": "Phiếu cọc không phân bổ được vào hóa đơn (tránh đếm hai lần)",
+      "ok": true,
+      "detail": "chặn: Phiếu nhận cọc không phân bổ vào hóa đơn – cọc trên hóa đơn thu bằng phiếu \"Thu hóa đơn\""
+    },
+    {
+      "id": "P0-6c",
+      "name": "Chờ nhận phải có cọc; bỏ cọc khi cọc thực nhận = 0 không ghi doanh thu",
+      "ok": true,
+      "detail": "tạo chờ nhận không cọc: chặn; bỏ cọc sau khi đảo phiếu cọc → doanh thu 0"
+    },
+    {
+      "id": "P0-6d",
+      "name": "Phiếu cọc giữ phòng vào dòng 4 \"Cọc phòng mới\" và dòng 3 doanh thu; đảo phiếu thì trừ lại",
+      "ok": true,
+      "detail": "dòng 4 so với trước thao tác: nhận cọc 3tr → +3000000; đảo phiếu → +0; thu phiếu cọc 4tr → +4000000 (dòng 3 +4000000)"
+    },
+    {
+      "id": "P0-6e",
+      "name": "Chuyển phòng: chặn lượt chờ nhận, bắt buộc khách xác nhận phương án cọc, theo dõi phần cọc thiếu",
+      "ok": true,
+      "detail": "lượt chờ nhận: chặn: Chỉ chuyển phòng cho lượt thuê đang ở · chưa xác nhận: chặn: Chọn phương án cọc · sau chuyển: đã có 3600000/5000000, trạng thái partial"
+    },
+    {
+      "id": "P0-7a",
+      "name": "Không khóa kỳ khi chưa chốt lương/phân bổ (bỏ \"force\")",
+      "ok": true,
+      "detail": "chặn: Chưa đủ điều kiện khóa kỳ: bảng lương chưa chốt, phân bổ chưa chốt"
+    },
+    {
+      "id": "P0-7b",
+      "name": "Sau khóa: chặn tính lại lương, duyệt cờ, tham số/phân công/giá chủ nhà hiệu lực trong kỳ",
+      "ok": true,
+      "detail": "bị chặn 5/5: computePayroll=chặn, approveFlag=chặn, setParam=chặn, assign=chặn, ownerRate=chặn"
+    },
+    {
+      "id": "P0-7c",
+      "name": "Sau khóa: đổi dữ liệu nguồn không làm đổi LNR kỳ đã khóa",
+      "ok": true,
+      "detail": "LNR T9 lúc khóa 3294080204 → sau khi đổi hồ sơ NV + giá 200 phòng 3294080204"
+    },
+    {
+      "id": "P0-7d",
+      "name": "Điều chỉnh sau khóa: bắt buộc lý do, số điều chỉnh vào báo cáo kỳ gốc",
+      "ok": true,
+      "detail": "không lý do: chặn; +1.000.000 chi phí khác G1 → LNR 3293080204"
+    },
+    {
+      "id": "P0-8",
+      "name": "Kỳ live: tổng phân bổ = tổng chứng từ quỹ (không phụ phí \"ảo\"); kỳ 08 vẫn tái hiện công thức G1",
+      "ok": true,
+      "detail": "trước khi có chứng từ: phân bổ 0; sau chốt lương: chứng từ quỹ 146513847 → phân bổ 146513847 · kỳ 08 G1 kế toán 181708 (Excel 181.708) · sal_gm: quỹ 12000000 → phân bổ 12000000 · sal_head: quỹ 25470000 → phân bổ 25470000 · sal_lead: quỹ 15690000 → phân bổ 15690000 · sal_source: quỹ 4000000 → phân bổ 4000000 · sal_sales: quỹ 66453847 → phân bổ 66453847 · sal_acct: quỹ 500000 → phân bổ 500000 · sal_repair: quỹ 22400000 → phân bổ 22400000 · office: quỹ 0 → phân bổ 0 · marketing: quỹ 0 → phân bổ 0"
+    },
+    {
+      "id": "P0-9a",
+      "name": "Leader không xem được HĐ chủ nhà / biểu phí / tài chính tòa qua ?tab=",
+      "ok": true,
+      "detail": "chu-nha-hd: không lộ · bieu-phi: không lộ · tai-chinh: không lộ"
+    },
+    {
+      "id": "P0-9b",
+      "name": "Vận hành không mở được hóa đơn/phiếu hoàn của tòa ngoài phạm vi (in, chi tiết, sửa)",
+      "ok": true,
+      "detail": "in hóa đơn: chặn · chi tiết phiếu hoàn HC-202609-0035: chặn · in phiếu hoàn: chặn · sửa phiếu hoàn: chặn: Phiếu hoàn ngoài phạm vi được giao"
+    },
+    {
+      "id": "P0-10",
+      "name": "Vận hành xuất CSV hóa đơn: số tiền bị che như trên màn hình",
+      "ok": true,
+      "detail": "dòng đầu CSV: 101T3A001,101T3,T3,HĐ (TECH),•••,•••,•••,Đủ,issued"
+    }
+  ],
+  "pageErrors": []
+}

@@ -89,7 +89,7 @@ test('D15 – dòng nháp không vào lương thợ / UI-44; hiện riêng "chư
 /* ---------------- Kinh doanh ---------------- */
 test('D3 – hủy deal: lead về trạng thái trước khi chốt, lượt xem không còn "chốt"; chốt lại được', () => {
   const TH = boot({ user: 'admin' }); const S = TH.store, X = TH.actions, Q = TH.q;
-  const l = X.addLead({ phone: '0977123001', source: 'Zalo' }); const r = Q.forSale().find(x => x.kind === 'now').room;
+  const l = X.addLead({ phone: '0977123001', source: 'Zalo', saleId: Q.salesStaff()[0].id }); const r = Q.forSale().find(x => x.kind === 'now').room;
   X.addViewing(l.id, { roomId: r.id, date: '2026-09-27' });
   const d = X.closeDeal({ leadId: l.id, roomId: r.id, price: r.price, deposit: r.price, closeDate: '2026-09-28', billingStart: '2026-10-01', term: 12 });
   assert.equal(Q.lead(l.id).status, 'closed');

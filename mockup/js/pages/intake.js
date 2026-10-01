@@ -66,6 +66,7 @@
       +draft.sourceErrors.map((e,i)=>'<section class="intake-conflict">'+U.note('warn','Nguồn chưa dùng được',esc(e.message))+button('Đã đối chiếu, không dùng giá trị lỗi','dismiss',{'data-index':i})+'</section>').join('')
       +'<details class="intake-details mt16"><summary>Thông tin và nguồn từng trường</summary><div class="intake-review-fields">'+I.fields[kind].map(f=>'<div><b>'+esc(f[1])+'</b><span>'+esc(V.value(f[0],draft.data[f[0]]))+'</span>'+V.sourceButton(f[0],draft.sources[f[0]])+'</div>').join('')+'</div></details>'
       +(draft.rooms.length?'<details class="intake-details mt16"><summary>'+draft.rooms.length+' phòng và nguồn đối chiếu</summary>'+draft.rooms.map(r=>'<div class="intake-source-row"><b>'+esc(r.code)+'</b><span>'+esc(TH.data.catalog.exploitation[r.exploitation]||r.exploitation)+'</span>'+['number','floor','exploitation','listPrice','mgmtPrice','price'].map(key=>'<small>'+esc(V.label(key))+': '+esc(V.value(key,r[key]))+' '+V.sourceButton('room:'+r.code+':'+key,r.sources?.[key]||r.source)+'</small>').join('')+'</div>').join('')+'</details>':'')
+      +(kind==='tenant'&&draft.files.some(f=>/\.(pdf|png|jpe?g)$/i.test(f.name))?'<div class="intake-confirm mt16">'+U.check({name:'contractSigned',checked:draft.contractSigned,attrs:{id:'intake-contract-signed'},label:'File PDF/ảnh đính kèm là hợp đồng đã ký (dùng kiểm tra điều kiện hoa hồng).'})+'</div>':'')
       +'<div class="intake-confirm mt16">'+U.check({name:'reviewed',checked:draft.reviewed,attrs:{id:'intake-confirm',disabled:busy||committing},label:'Tôi đã đối chiếu nguồn, trạng thái, phí, số dư và đồng ý liên kết các hồ sơ hiện có.'})+'</div>';
     function render() {
       if(!active())return;
@@ -100,6 +101,7 @@
       });
       const room=root.querySelector('#intake-existing-room');if(room)room.onchange=()=>{const r=TH.q.room(room.value);if(!r)return;const b=TH.q.building(r.buildingId);change('roomCode',r.code);change('buildingCode',b.code);change('buildingAddress',b.address);render();};
       const party=root.querySelector('#intake-existing-party');if(party)party.onchange=()=>{draft.selectedPartyId=party.value||null;draft.existingChoices={};record({action:'select-existing-party',partyId:draft.selectedPartyId});render();};
+      const signed=root.querySelector('#intake-contract-signed');if(signed)signed.onchange=()=>{record({action:'confirm-signed-contract'});draft.contractSigned=signed.checked;render();};
       const confirm=root.querySelector('#intake-confirm');if(confirm)confirm.onchange=()=>{draft.reviewed=confirm.checked;root.querySelector('[data-intake="commit"]').disabled=!draft.reviewed||!!I.validate(draft).errors.length||busy||committing;};
       root.querySelectorAll('[data-intake]').forEach(el=>el.onclick=async()=>{if(el.disabled)return;try{await action(el);}catch(e){if(active()){message=e.message;messageTone='danger';render();}}});
       root.querySelectorAll('[data-act="intake-mode"]').forEach(el=>{el.disabled=busy||committing;el.onclick=async()=>{if(busy||committing)return;try{mode=el.dataset.key;render();await persist();}catch(e){message=e.message;messageTone='danger';render();}};});

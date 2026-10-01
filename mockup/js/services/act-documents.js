@@ -1,6 +1,6 @@
 /* Kho tài liệu (UI-26) và OCR hợp đồng khách (UI-08 mở rộng; đặc tả dòng 168–173, 371–374, DEC-07, E05/E06).
    Tài liệu: sửa = tải phiên bản mới; tài liệu gắn giao dịch không xóa được; chỉ xem tài liệu của tòa trong phạm vi.
-   OCR: mô phỏng trong mockup (không gọi dịch vụ ngoài) – trường đọc từ dữ liệu lượt thuê, có nhiễu cố định để minh họa ca sai/thiếu (E05) và đã rà (E06).
+   OCR: bản gốc được đọc cục bộ bởi intake-files; giữ phiên mô phỏng từ seed để tra cứu. Hai nguồn dùng cùng biên rà soát và áp dụng (E05/E06).
    "Áp dụng" chỉ khi đủ trường bắt buộc và đã rà mọi nhóm; tạo phiên biểu phí mới qua addRateVersion – không ghi vào hóa đơn. Chạy lại = phiên mới. */
 (function (TH) {
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, A = TH.auth;
@@ -21,19 +21,19 @@
   };
   Q.downloadableDocs = (pred = () => true) => Q.documentsAll().filter(d => d.status === 'current' && pred(d) && Q.canDownloadDoc(d));
   /* Tải xuống (mô phỏng): kiểm quyền + phạm vi, ghi nhật ký */
-  X.downloadDocument = (id) => { _.needMs('2', 'Kho tài liệu (UI-26)');
+  X.downloadDocument = (id, {audit=true}={}) => { _.needMs('2', 'Kho tài liệu (UI-26)');
     _.need('documents.download');
     const d = Q.documentsAll().find(x => x.id === id); if (!d || d.status === 'deleted') throw new Error('Không tìm thấy tài liệu (đã xóa)');
     if (!Q.canDownloadDoc(d)) throw new Error(A.can('documents.view') ? 'Tòa ngoài phạm vi được giao' : 'Tài liệu ngoài phạm vi được tải của bạn');
-    _.audit('download', 'document', id, 'Tải xuống ' + d.name); _.done(); return d;
+    if(audit){_.audit('download', 'document', id, 'Tải xuống ' + d.name); _.done();} return d;
   };
-  Q.documentsAll = () => [...S.all('documents'), ...S.all('contractFiles').map(f => { const s = Q.stay(f.stayId) || {}; const newer = S.one('contractFiles', x => x.stayId === f.stayId && (x.version || 1) > (f.version || 1)); return { id: 'cf:' + f.id, fileId: f.id, blobId:f.blobId, source: 'contractFile', type: 'tenant_contract', name: f.name, size: f.size, objectType: 'stay', objectId: f.stayId, buildingId: s.buildingId, roomId: s.roomId, version: f.version || 1, validTo: s.endDate, uploadedBy: f.uploadedBy, uploadedAt: f.uploadedAt, status: newer ? 'superseded' : 'current', ocrStatus: Q.ocrStatusOf ? Q.ocrStatusOf(f.id) : null }; }),...S.all('intakeAttachments').map(a=>{const oc=a.kind==='owner'&&S.get('ownerContracts',a.targetId),s=a.kind==='tenant'&&Q.stay(a.targetId);return{id:'ia:'+a.id,blobId:a.fileId,source:'intakeAttachment',type:a.kind==='owner'?'owner_contract':'tenant_contract',name:a.name,objectType:a.kind==='owner'?'ownerContract':'stay',objectId:a.targetId,buildingId:oc?.buildingId||s?.buildingId,roomId:s?.roomId,uploadedAt:a.createdAt,status:'current'};})];
+  Q.documentsAll = () => [...S.all('documents'), ...S.all('contractFiles').map(f => { const s = Q.stay(f.stayId) || {}; const newer = S.one('contractFiles', x => x.stayId === f.stayId && (x.version || 1) > (f.version || 1)); return { id: 'cf:' + f.id, fileId: f.id, blobId:f.blobId, source: 'contractFile', type: /\.(pdf|png|jpe?g)$/i.test(f.name) ? 'tenant_contract' : 'other', name: f.name, size: f.size, objectType: 'stay', objectId: f.stayId, buildingId: s.buildingId, roomId: s.roomId, version: f.version || 1, validTo: s.endDate, uploadedBy: f.uploadedBy, uploadedAt: f.uploadedAt, status: newer ? 'superseded' : 'current', ocrStatus: Q.ocrStatusOf ? Q.ocrStatusOf(f.id) : null }; }),...S.all('intakeAttachments').filter(a=>!S.one('contractFiles',f=>f.stayId===a.targetId&&f.blobId===a.fileId)).map(a=>{const oc=a.kind==='owner'&&S.get('ownerContracts',a.targetId),s=a.kind==='tenant'&&Q.stay(a.targetId);return{id:'ia:'+a.id,blobId:a.fileId,source:'intakeAttachment',type:a.kind==='owner'?'owner_contract':a.contractSigned===true?'tenant_contract':'other',name:a.name,objectType:a.kind==='owner'?'ownerContract':'stay',objectId:a.targetId,buildingId:oc?.buildingId||s?.buildingId,roomId:s?.roomId,uploadedAt:a.createdAt,status:'current'};})];
   // E2: chứng từ góp vốn của cổ đông chỉ người có quyền cổ đông (admin / kế toán) thấy
   const shareOk = (d) => d.objectType !== 'shareholder' || A.can('shares.view');
   Q.documentsScoped = () => Q.scoped(Q.documentsAll()).filter(d => d.status !== 'deleted' && shareOk(d));
   Q.docObjectHref = (d) => ({ stay: '#/stays/' + d.objectId, ownerContract: '#/owners/' + d.objectId, building: '#/buildings/' + d.objectId, invoice: '#/billing/invoices/' + d.objectId, refund: '#/refunds/' + d.objectId, payment: '#/billing/receipts/' + d.objectId })[d.objectType] || null;
 
-  X.uploadDocument = (d) => { _.needMs('2', 'Kho tài liệu (UI-26)');
+  X.uploadDocument = (d) => S.atomic(() => { _.needMs('2', 'Kho tài liệu (UI-26)');
     _.need('documents.upload');
     const errs = {};
     const old = d.replaceId ? S.get('documents', d.replaceId) : null;
@@ -42,8 +42,10 @@
     if (!Q.DOC_TYPES.some(x => x[0] === type)) errs.type = 'Chọn loại tài liệu';
     if (!Q.building(bid)) errs.buildingId = 'Chọn tòa';
     else if (!A.inScope(bid)) errs.buildingId = 'Tòa ngoài phạm vi được giao';
+    if (Number(d.size) > 30 * 1024 * 1024) errs.original = 'File vượt giới hạn 30 MB';
     if (!String(d.name || '').trim()) errs.name = 'Chọn file';
     else { try { _.checkFile(d.name); } catch (e) { errs.name = e.message; } }
+    if (!old && d.objectType === 'ownerContract') { const oc=S.get('ownerContracts',d.objectId);if(!oc||oc.buildingId!==bid)errs.objectId='Chọn đúng hợp đồng chủ nhà thuộc tòa'; }
     if (!old && d.objectType === 'stay') { const st = Q.stay(d.objectId); if (!st || st.buildingId !== bid) errs.objectId = 'Nhập mã khách / lượt thuê / phòng đang ở thuộc tòa'; }
     if (!old && d.objectType === 'payment') { const py = S.get('payments', d.objectId); if (!py || (py.buildingId && py.buildingId !== bid)) errs.objectId = 'Nhập mã phiếu thu của tòa'; }
     // B17: gắn phòng / chứng từ chi phải trỏ đúng đối tượng thuộc tòa
@@ -52,10 +54,10 @@
     if (!old && d.objectType === 'expense') { const ex = S.get('expenses', d.objectId); if (!ex || (ex.buildingId && ex.buildingId !== bid)) errs.objectId = 'Nhập mã chứng từ chi của tòa'; }
     if (Object.keys(errs).length) fail(errs);
     if (old) S.update('documents', old.id, { status: 'superseded', supersededAt: F.nowISO() });
-    const doc = S.add('documents', { code: S.nextCode('documents', 'TL-'), type, name: d.name, size: Number(d.size) || 0, objectType: old ? old.objectType : d.objectType || 'building', objectId: old ? old.objectId : d.objectType === 'room' ? d.roomId : d.objectId || bid,
+    const doc = S.add('documents', { code: S.nextCode('documents', 'TL-'), type, name: d.name, blobId: d.blobId || null, hash: d.hash || null, size: Number(d.size) || 0, objectType: old ? old.objectType : d.objectType || 'building', objectId: old ? old.objectId : d.objectType === 'room' ? d.roomId : d.objectId || bid,
       buildingId: bid, roomId: old ? old.roomId : d.objectType === 'stay' ? (Q.stay(d.objectId) || {}).roomId || null : d.roomId || null, version: old ? (old.version || 1) + 1 : 1, prevId: old ? old.id : null, validTo: d.validTo || (old && old.validTo) || null, note: d.note || '', uploadedBy: _.who(), uploadedAt: F.nowISO(), status: 'current' });
     _.audit(old ? 'version' : 'upload', 'document', doc.id, `${old ? 'Phiên bản ' + doc.version + ' của' : 'Tải lên'} ${doc.name}`); _.done(); return doc;
-  };
+  });
   Q.docVersions = (id) => { const out = []; let d = S.get('documents', id); while (d) { out.push(d); d = d.prevId ? S.get('documents', d.prevId) : null; } return out; };
   X.deleteDocument = (id, reason) => { _.needMs('2', 'Kho tài liệu (UI-26)');
     _.need('documents.upload');
@@ -73,9 +75,9 @@
   // Trường bắt buộc trước khi áp dụng (E05, đặc tả §3.3): bên thuê, phòng, ngày ký / nhận / tính tiền / hết hạn, giá, cọc, kỳ và hạn thanh toán
   /* D8: điều khoản HĐ áp vào lượt thuê khi "Áp dụng" (cùng bảng so sánh E06) */
   Q.OCR_TERMS = [['endDate', 'Ngày hết hạn', 'endDate'], ['payMonths', 'Kỳ thanh toán (tháng)', 'payMonths'], ['dueDay', 'Hạn thanh toán (ngày)', 'dueDay'], ['deposit', 'Tiền cọc theo HĐ', 'depositAmount'],
-    ['people', 'Số người ở', 'people'], ['vehicles', 'Số xe', 'vehicles'], ['signDate', 'Ngày ký', 'dealDate'], ['moveInDate', 'Ngày vào ở', 'moveInDate'], ['rentStart', 'Ngày tính tiền phòng', 'rentStart']];
+    ['people', 'Số người ở', 'people'], ['vehicles', 'Số xe', 'vehicles'], ['signDate', 'Ngày ký', 'dealDate'], ['moveInDate', 'Ngày vào ở', 'moveInDate'], ['rentStart', 'Ngày tính tiền phòng', 'rentStart'], ['svcStart', 'Ngày tính tiền dịch vụ', 'svcStart']];
   Q.ocrTermsCompare = (o) => { const s = Q.stay(o.stayId) || {}; const issued = !!S.one('invoices', i => i.stayId === o.stayId && i.lifecycle !== 'draft');
-    return Q.OCR_TERMS.map(([k, l, f]) => { const nv = Q.ocrValue(k, (o.fields.find(x => x.key === k) || {}).value); return { key: k, label: l, cur: s[f] ?? null, next: nv === '' ? null : nv, locked: issued && ['signDate', 'moveInDate', 'rentStart'].includes(k) }; }); };
+    return Q.OCR_TERMS.filter(([k])=>o.real||k!=='svcStart').map(([k, l, f]) => { const nv = Q.ocrValue(k, (o.fields.find(x => x.key === k) || {}).value); return { key: k, label: l, cur: s[f] ?? null, next: nv === '' ? null : nv, locked: issued && ['signDate', 'moveInDate', 'rentStart', 'svcStart'].includes(k) }; }); };
   Q.OCR_REQUIRED = ['name', 'room', 'signDate', 'moveInDate', 'rentStart', 'endDate', 'rent', 'deposit', 'payMonths', 'dueDay'];
   /* Vòng đời OCR của file HĐ (UI-08): mới tải → đang trích xuất → chờ rà soát / không đọc được → đã áp dụng; phiên cũ bị thay khi chạy lại */
   Q.OCR_ST = { uploaded: ['Mới tải', 'gray'], extracting: ['Đang trích xuất', 'blue'], review: ['Chờ rà soát', 'amber'], error: ['Không đọc được', 'red'], applied: ['Đã áp dụng', 'green'], superseded: ['Đã thay bằng lần chạy mới', 'gray'] };
@@ -119,55 +121,99 @@
   const dateOf = (v) => { const s = String(v ?? '').trim(); let m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) { const x = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if (x) m = [0, x[3], x[2].padStart(2, '0'), x[1].padStart(2, '0')]; }
     if (!m) return null; const iso = m[1] + '-' + m[2] + '-' + m[3]; const t = new Date(iso + 'T00:00:00Z'); return !isNaN(t) && t.toISOString().slice(0, 10) === iso ? iso : null; };
   const intIn = (lo, hi) => (v) => { const s = String(v ?? '').trim(); return /^\d+$/.test(s) && +s >= lo && +s <= hi ? +s : null; };
-  const OCR_KIND = { rent: moneyOf, deposit: moneyOf, signDate: dateOf, moveInDate: dateOf, rentStart: dateOf, endDate: dateOf, payMonths: intIn(1, 12), dueDay: intIn(1, 31), people: intIn(0, 30), vehicles: intIn(0, 20), elOpen: intIn(0, 9999999) };
+  const OCR_KIND = { rent: moneyOf, deposit: moneyOf, signDate: dateOf, moveInDate: dateOf, rentStart: dateOf, endDate: dateOf, svcStart: dateOf, payMonths: intIn(1, 12), dueDay: intIn(1, 31), people: intIn(0, 30), vehicles: intIn(0, 20), elOpen: intIn(0, 9999999) };
   const kindOf = (key) => OCR_KIND[key] || (String(key).startsWith('fee_') ? moneyOf : null);
   const OCR_HINT = { money: 'số tiền (vd 3.800 hoặc 4,2 triệu)', date: 'ngày dd/mm/yyyy', int: 'số nguyên' };
   const hintOf = (key) => kindOf(key) === moneyOf ? OCR_HINT.money : kindOf(key) === dateOf ? OCR_HINT.date : OCR_HINT.int;
+
+  const realKeys = [['party','name','name'],['party','phone','phone'],['party','idNo','idNo'],['place','building','buildingCode'],['place','room','roomCode'],['dates','signDate','signDate'],['dates','moveInDate','moveInDate'],['dates','rentStart','startDate'],['dates','svcStart','svcStart'],['dates','endDate','endDate'],['money','rent','rent'],['money','deposit','deposit'],['money','payMonths','payMonths'],['money','dueDay','dueDay'],['meter','people','people'],['meter','vehicles','vehicles'],['meter','elOpen','elOpen']];
+  Q.realOcrRequired = [...Q.OCR_REQUIRED,'phone','building','svcStart'];
+  const sourceConfidence = s => s?.confidence == null ? (s ? 1 : 0) : s.confidence > 1 ? s.confidence / 100 : s.confidence;
+  const realFields = parsed => realKeys.map(([group,key,input])=>{
+    const source=parsed.sources?.[input],value=parsed.data?.[input]??'';
+    return {group,key,label:TH.intake.fields.tenant.find(f=>f[0]===input)?.[1]||key,value,raw:value,source,confidence:sourceConfidence(source),page:source?.page||1,edited:false};
+  }).concat(FEE.map(([key,label,,method])=>{const source=parsed.sources?.['fee:'+key],item=parsed.items?.[key];return {group:'fees',key:'fee_'+key,label,value:item?.unit??'',raw:item?.unit??'',source,page:source?.page||1,confidence:sourceConfidence(source),method:item?.method||method,rawMethod:item?.method||method,rawAction:item?'set':'keep',feeAction:item?'set':'keep',edited:false};}));
+  const requireReal = id => {const o=needOpen(id);if(!o.real)throw new Error('Không phải phiên đọc hợp đồng thật');return o;};
+  X.createRealOcr = (stayId,fileId) => {
+    _.needMs('2','OCR hợp đồng');_.need('ocr.review');const stay=Q.stay(stayId);
+    if(!stay||!A.inScope(stay.buildingId))throw new Error('Lượt thuê ngoài phạm vi');
+    const file=fileId&&S.get('contractFiles',fileId);if(fileId&&(!file||file.stayId!==stayId))throw new Error('File không thuộc lượt thuê');
+    if(file && !/\.(pdf|png|jpe?g)$/i.test(file.name))throw new Error('OCR chỉ đọc PDF, JPG, PNG');
+    if(file&&S.one('contractFiles',f=>f.stayId===stayId&&(f.version||1)>(file.version||1)))throw new Error('Chọn file hợp đồng hiện hành');
+    S.where('ocrSessions',o=>o.stayId===stayId&&o.real&&['review','uploaded','extracting'].includes(o.status)).forEach(o=>S.update('ocrSessions',o.id,{status:'superseded'}));
+    const o=S.add('ocrSessions',{real:true,fileId:fileId||null,stayId,run:Q.ocrOf(fileId).length+1,status:'uploaded',fields:realFields({}),confirmed:{},createdBy:_.who(),createdAt:F.nowISO(),pages:1});_.done();return o;
+  };
+  X.realOcrSource = (sid,fileId,parsed,pages) => {
+    const o=requireReal(sid),file=S.get('contractFiles',fileId);if(!file||file.stayId!==o.stayId)throw new Error('File không thuộc lượt thuê');
+    if(S.one('contractFiles',f=>f.stayId===o.stayId&&(f.version||1)>(file.version||1)))throw new Error('Đã có hợp đồng mới hơn');
+    S.update('ocrSessions',sid,{fileId,fields:realFields(parsed),confirmed:{},status:'review',pages,readAt:F.nowISO(),readBy:_.who()});_.audit('ocr','contractFile',fileId,'Đọc bản gốc thật: '+file.name);_.done();return Q.ocrSession(sid);
+  };
+  X.realOcrFee = (sid,key,action,method) => {
+    const o=requireReal(sid);if(!['keep','set','remove'].includes(action)||!FEE.some(f=>'fee_'+f[0]===key)||!['meter','person','room','vehicle','fixed'].includes(method))throw new Error('Lựa chọn biểu phí không hợp lệ');
+    S.update('ocrSessions',sid,{fields:o.fields.map(f=>f.key===key?{...f,feeAction:action,method,edited:String(f.value)!==String(f.raw)||action!==f.rawAction||method!==f.rawMethod}:f),confirmed:{...o.confirmed,fees:null}});_.done();
+  };
+  Q.realOcrIssues = o => {
+    const fields={};const value=k=>(o.fields.find(f=>f.key===k)||{}).value;
+    for(const key of Q.realOcrRequired)if(value(key)==null||value(key)==='')fields[key]='Thiếu trường bắt buộc';
+    for(const f of o.fields){if(f.group==='fees'&&f.feeAction!=='set')continue;if(Q.ocrValue(f.key,f.value)===null)fields[f.key]='Giá trị không hợp lệ';if(f.group==='fees'&&f.feeAction==='set'&&f.value==='')fields[f.key]='Nhập đơn giá hoặc chọn không thu';}
+    if(!(Q.ocrValue('rent',value('rent'))>0))fields.rent='Giá thuê phải lớn hơn 0';
+    const st=Q.stay(o.stayId),room=st&&Q.room(st.roomId),building=st&&Q.building(st.buildingId);
+    if(TH.intake.code(value('room'))!==TH.intake.code(room?.code))fields.room='Mã phòng không khớp lượt thuê đích';
+    if(TH.intake.code(value('building'))!==TH.intake.code(building?.code))fields.building='Mã tòa không khớp lượt thuê đích';
+    if(value('phone')&&!/^0\d{9}$/.test(String(value('phone'))))fields.phone='SĐT phải có 10 chữ số';
+    const begin=Q.ocrValue('rentStart',value('rentStart')),end=Q.ocrValue('endDate',value('endDate')),sign=Q.ocrValue('signDate',value('signDate'));
+    if(begin&&end&&end<=begin)fields.endDate='Ngày hết hạn phải sau ngày tính tiền';if(sign&&begin&&sign>begin)fields.signDate='Ngày ký không sau ngày tính tiền';
+    const file=S.get('contractFiles',o.fileId);if(!file)fields.file='Chọn hợp đồng gốc';else if(S.one('contractFiles',f=>f.stayId===o.stayId&&(f.version||1)>(file.version||1)))fields.file='File đã được thay bằng hợp đồng mới hơn';
+    return fields;
+  };
+
   /* Giá trị hợp lệ đã chuẩn hóa; undefined = trường tự do; null = không hợp lệ */
   Q.ocrValue = (key, value) => { const fn = kindOf(key); if (!fn) return value; if (value === '' || value == null) return ''; const v = fn(value); return v == null ? null : v; };
   const needOpen = (sid) => { _.needMs('2', 'OCR hợp đồng (UI-08)'); _.need('ocr.review'); const o = Q.ocrSession(sid); if (!o) throw new Error('Không tìm thấy phiên OCR');
-    const st = Q.stay(o.stayId); if (st && !A.inScope(st.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao'); /* D10 */
+    const st = Q.stay(o.stayId); if (!st || !A.inScope(st.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao'); /* D10 */
     if (o.status === 'applied') throw new Error('Phiên đã áp dụng – chạy lại OCR để tạo phiên mới'); if (o.status === 'superseded') throw new Error('Phiên đã được thay bằng lần chạy OCR mới – mở phiên mới nhất'); if (o.status === 'error') throw new Error('File lỗi / thiếu trang – nhập tay ở tab Biểu phí'); return o; };
   X.ocrSetField = (sid, key, value) => {
     const o = needOpen(sid);
     const v = Q.ocrValue(key, value); // "3.800" → 3800 (A7); D11: chữ / ngày sai → lỗi trường
     if (v === null) fail({ [key]: 'Không hợp lệ – nhập ' + hintOf(key) });
-    const fields = o.fields.map(f => f.key === key ? Object.assign({}, f, { value: v, edited: String(v) !== String(f.raw) }) : f);
+    const fields = o.fields.map(f => f.key === key ? Object.assign({}, f, { value: v, edited: String(v) !== String(f.raw) || (o.real && f.group==='fees' && (f.feeAction!==f.rawAction || f.method!==f.rawMethod)) }) : f);
     const g = (o.fields.find(f => f.key === key) || {}).group;
     const confirmed = Object.assign({}, o.confirmed); delete confirmed[g]; // sửa trường → nhóm phải rà lại
     S.update('ocrSessions', sid, { fields, confirmed }); _.done();
   };
   /* Rà xong một nhóm: trường bắt buộc có giá trị; trường độ tin cậy < 70% phải được sửa hoặc người rà xác nhận đúng (ackLow) */
-  Q.ocrGroupIssues = (o, group, ackLow) => o.fields.filter(f => f.group === group).map(f => (Q.OCR_REQUIRED.includes(f.key) && (f.value === '' || f.value == null)) ? f.label + ': thiếu' : Q.ocrValue(f.key, f.value) === null ? f.label + ': không hợp lệ' : (f.confidence < 0.7 && !f.edited && !ackLow) ? f.label + ': độ tin cậy ' + Math.round(f.confidence * 100) + '% – kiểm tra với bản gốc' : null).filter(Boolean);
+  Q.ocrGroupIssues = (o, group, ackLow) => o.fields.filter(f => f.group === group && !(o.real && f.group === 'fees' && f.feeAction !== 'set')).map(f => ((o.real ? Q.realOcrRequired : Q.OCR_REQUIRED).includes(f.key) && (f.value === '' || f.value == null)) ? f.label + ': thiếu' : Q.ocrValue(f.key, f.value) === null ? f.label + ': không hợp lệ' : (f.confidence < 0.7 && !f.edited && !ackLow) ? f.label + ': độ tin cậy ' + Math.round(f.confidence * 100) + '% – kiểm tra với bản gốc' : null).filter(Boolean);
+  X.ocrUnconfirmGroup = (sid,group) => {const o=needOpen(sid);if(!Q.OCR_GROUPS.some(([g])=>g===group))throw new Error('Nhóm không hợp lệ');const confirmed={...o.confirmed};delete confirmed[group];S.update('ocrSessions',sid,{confirmed});_.done();};
   X.ocrConfirmGroup = (sid, group, ackLow) => {
     const o = needOpen(sid);
     const issues = Q.ocrGroupIssues(o, group, ackLow);
     if (issues.length) throw new Error('Chưa rà xong nhóm: ' + issues.join('; '));
     S.update('ocrSessions', sid, { confirmed: Object.assign({}, o.confirmed, { [group]: { by: _.who(), at: F.nowISO() } }) }); _.done();
   };
-  Q.ocrReady = (o) => { const missing = Q.OCR_GROUPS.filter(([g]) => !o.confirmed[g]).map(([, l]) => l); const req = o.fields.filter(f => Q.OCR_REQUIRED.includes(f.key) && (f.value === '' || f.value == null)).map(f => f.label); return { ok: !missing.length && !req.length && o.status === 'review', missing, req }; };
+  Q.ocrReady = o => {const missing=Q.OCR_GROUPS.filter(([g])=>!o.confirmed[g]).map(([,l])=>l),req=o.fields.filter(f=>(o.real?Q.realOcrRequired:Q.OCR_REQUIRED).includes(f.key)&&(f.value===''||f.value==null)).map(f=>f.label);const fieldErrors=o.real?Q.realOcrIssues(o):{};return {ok:!missing.length&&!req.length&&!Object.keys(fieldErrors).length&&o.status==='review',missing,req,fieldErrors};};
   /* Áp dụng: phiên biểu phí mới có ngày hiệu lực – không đổi hóa đơn đã phát hành; lưu bản OCR gốc + bản đã sửa + người xác nhận */
-  X.ocrApply = (sid, d = {}) => {
+  X.ocrApply = (sid, d = {}) => S.atomic(() => {
     const o = needOpen(sid); _.need('rates.manage');
     const file = S.get('contractFiles', o.fileId) || {};
     if (S.one('contractFiles', x => x.stayId === o.stayId && (x.version || 1) > (file.version || 1))) throw new Error('Đã có file HĐ mới hơn cho lượt thuê – chạy OCR trên file mới nhất'); // D9
     const r = Q.ocrReady(o); if (!r.ok) throw new Error('Chưa áp dụng được (E05): ' + [...r.req.map(x => 'thiếu ' + x), ...r.missing.map(x => 'chưa rà nhóm ' + x)].join('; '));
-    if (!d.from) fail({ from: 'Nhập ngày hiệu lực của biểu phí' });
+    if (o.real && !d.confirmed) fail({confirmed:'Xác nhận đối chiếu trước khi áp dụng'});
+    if (!d.from || (o.real && !dateOf(d.from))) fail({ from: 'Nhập ngày hiệu lực hợp lệ của biểu phí' });
     _.guardEffective(d.from, 'biểu phí từ OCR'); // B16: không áp vào kỳ đã khóa
     const val = (k) => (o.fields.find(f => f.key === k) || {}).value;
     const cur = Q.rateOf(o.stayId) || { items: {} }; const items = JSON.parse(JSON.stringify(cur.items || {}));
     const rent = moneyOf(val('rent')); if (!(rent > 0)) fail({ from: 'Giá thuê trên bản OCR không hợp lệ – sửa trường "Giá thuê" trước khi áp dụng' });
-    const bad = o.fields.filter(f => Q.ocrValue(f.key, f.value) === null); if (bad.length) fail({ from: 'Trường không hợp lệ: ' + bad.map(f => f.label).join(', ') });
-    FEE.forEach(([k, , , method]) => { const v = moneyOf(val('fee_' + k)); if (v > 0) items[k] = Object.assign({}, items[k] || { method }, { unit: v }); });
+    const bad = o.fields.filter(f => !(o.real&&f.group==='fees'&&f.feeAction!=='set') && Q.ocrValue(f.key, f.value) === null); if (bad.length) fail({ from: 'Trường không hợp lệ: ' + bad.map(f => f.label).join(', ') });
+    FEE.forEach(([k, , , method]) => {const f=o.fields.find(f=>f.key==='fee_'+k),v=moneyOf(val('fee_'+k));if(o.real){if(f.feeAction==='remove')delete items[k];else if(f.feeAction==='set')items[k]=Object.assign({},items[k]||{}, {unit:v,method:f.method||method});}else if(v!=null)items[k]=Object.assign({},items[k]||{method},{unit:v});});
     const res = X.addRateVersion(o.stayId, { from: d.from, rent, items, reason: 'Áp dụng từ OCR hợp đồng (phiên ' + o.run + ') – ' + (d.reason || 'đã rà soát') }, true);
     // D8: điều khoản HĐ (hết hạn, kỳ / hạn trả, cọc theo HĐ, người / xe, ngày) vào lượt thuê
     const terms = {}; Q.OCR_TERMS.forEach(([k]) => { const v = Q.ocrValue(k, val(k)); if (v !== '' && v != null) terms[k] = v; });
     const tr = _.applyStayTerms(o.stayId, terms, 'OCR phiên ' + o.run);
     const held = X.depositIn(o.stayId); res.terms = tr;
     if (terms.deposit != null && held > 0 && Math.abs(held - terms.deposit) > 0.5) res.depositWarn = { contract: terms.deposit, held };
-    S.update('contractFiles', o.fileId, { ocr: 'applied' });
-    S.update('ocrSessions', sid, { status: 'applied', appliedBy: _.who(), appliedAt: F.nowISO(), rateVersionId: res.version.id, terms: tr, edited: o.fields.filter(f => f.edited).map(f => ({ key: f.key, from: f.raw, to: f.value })) });
+    S.update('contractFiles', o.fileId, { ocr: 'applied', ...(o.real&&d.signed ? {signed:true,signedAt:file.signedAt||F.nowISO()}: {}) });
+    S.update('ocrSessions', sid, { status: 'applied', appliedBy: _.who(), appliedAt: F.nowISO(), rateVersionId: res.version.id, terms: tr, edited: o.fields.filter(f => f.edited).map(f => ({ key: f.key, from: f.raw, to: f.value, ...(o.real&&f.group==='fees'?{action:f.feeAction,method:f.method,fromMethod:f.rawMethod}: {}) })) });
     _.audit('apply', 'ocr', sid, `Áp dụng OCR phiên ${o.run} vào biểu phí từ ${F.date(d.from)} (${o.fields.filter(f => f.edited).length} trường đã sửa)`); _.done();
     return res;
-  };
+  });
 })(window.TH);

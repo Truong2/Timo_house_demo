@@ -1,0 +1,58 @@
+{
+  "viewports": [
+    {
+      "width": 1600,
+      "height": 1000,
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "height": 1000,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    }
+  ],
+  "realApply": {
+    "stay": "st_302TH01A001",
+    "session": "ocr_w6239sdthn",
+    "rateVersion": "rat_6b6nxurwgm",
+    "zeroFee": true,
+    "removedFee": true,
+    "invoicesUnchanged": true,
+    "ledgerUnchanged": true
+  },
+  "documents": {
+    "v1": "doc_odhhgp0zly",
+    "v2": "doc_0q6r4gdzwu",
+    "byteExact": true,
+    "reload": true,
+    "scopedDownloads": [
+      "sale",
+      "kythuat"
+    ]
+  },
+  "reviewRoles": [
+    "vanhanh",
+    "leader",
+    "truongphong"
+  ],
+  "recoveredOriginalKeepsEdits": true,
+  "scope": {
+    "scoped": true,
+    "blobDenied": true,
+    "writeDenied": true
+  },
+  "canceledReadIgnored": true,
+  "missingOriginal": true,
+  "pageErrors": [],
+  "status": "PASS"
+}

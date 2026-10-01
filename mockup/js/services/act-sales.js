@@ -46,9 +46,9 @@
     const depRows = S.where('depositLedger', l => l.stayId === s.id && ['opening', 'receive', 'transfer_in'].includes(l.kind));
     const inv = S.where('invoices', i => i.stayId === s.id && i.lifecycle !== 'draft' && i.kind !== 'deposit_excess').sort((a, b) => a.period.localeCompare(b.period))[0];
     const st = inv ? Q.invState(inv) : null;
-    const file = S.where('contractFiles', f => f.stayId === s.id).sort((a, b) => String(a.uploadedAt).localeCompare(String(b.uploadedAt)))[0];
+    const file = Q.signedContract(s.id);
     const r = Cc.commission.eligible({ depositHeld: X.depositIn(s.id), depositDue: d.deposit, firstMonthPaid: !!(st && st.remaining <= 0.5 && st.paid > 0), hasContract: !!file });
-    const dates = [depRows.map(l => l.date).sort().pop(), st && st.lastPaid, file && String(file.uploadedAt).slice(0, 10)];
+    const dates = [depRows.map(l => l.date).sort().pop(), st && st.lastPaid, file && String(file.signedAt || file.uploadedAt || F.today()).slice(0, 10)];
     return Object.assign(r, { date: r.ok ? dates.filter(Boolean).sort().pop() : null, invoiceId: inv ? inv.id : null });
   };
   const needDeal = (id) => {
@@ -123,15 +123,15 @@
     _.audit('update', 'lead', id, `${l.code}: ${Q.LEAD_ST[status][0]}`); _.done();
   };
 
+  // Recheck at submit time: dropdown availability can be stale.
+  const roomIssue = r => !r ? 'Chọn phòng' : !(r.price > 0) || !Q.rentable(r) ? 'Phòng không khai thác cho thuê' : Q.pendingStay(r.id) || Q.dealHolds(r.id) ? 'Phòng đã có giao dịch / khách chờ nhận' : null;
   /* ---- UI-21 giao dịch chốt ---- */
   X.closeDeal = (d) => { _.needMs('2', 'Kinh doanh (UI-19…22)');
     _.need('deals.close');
     const l = Q.lead(d.leadId); if (!l) throw new Error('Không tìm thấy khách');
     if (!A.inSales(l.saleIds)) throw new Error('Khách ngoài phạm vi kinh doanh của bạn');
     const r = Q.room(d.roomId); const errs = {};
-    if (!r) errs.roomId = 'Chọn phòng';
-    else if (!(r.price > 0) || !Q.rentable(r)) errs.roomId = 'Phòng không khai thác cho thuê';
-    else if (Q.pendingStay(r.id) || Q.dealHolds(r.id)) errs.roomId = 'Phòng đã có giao dịch / khách chờ nhận';
+    if (roomIssue(r)) errs.roomId = roomIssue(r);
     if (!String(d.name || l.name || '').trim()) errs.name = 'Nhập tên khách';
     if (!(Number(d.price) > 0)) errs.price = 'Nhập giá chốt';
     if (!(Number(d.deposit) > 0)) errs.deposit = 'Nhập tiền cọc';
@@ -140,7 +140,10 @@
     if (d.billingStart && d.closeDate && d.billingStart < d.closeDate) errs.billingStart = 'Ngày tính tiền không trước ngày chốt';
     if (d.closeDate && d.closeDate > F.today()) errs.closeDate = 'Ngày chốt không sau hôm nay';
     if (d.moveInDate && d.closeDate && d.moveInDate < d.closeDate) errs.moveInDate = 'Ngày nhận không trước ngày chốt';
-    const saleIds = [...new Set((d.saleIds && d.saleIds.length ? d.saleIds : l.saleIds) || [])]; // không cho một sale nhận hai phần chia trùng
+    const rawSales = d.saleIds === undefined ? l.saleIds : d.saleIds;
+    const saleIds = Array.isArray(rawSales) ? [...new Set(rawSales)] : []; // không cho một sale nhận hai phần chia trùng
+    const scope = A.salesScope(), validSales = new Set(Q.salesStaff().map(e => e.id));
+    if (!saleIds.length || saleIds.some(id => !validSales.has(id) || (scope && !scope.has(id)))) errs.saleIds = 'Chọn sale đang làm việc trong phạm vi của bạn';
     if (!(Number(d.term) > 0)) errs.term = 'Nhập thời hạn HĐ (tháng)';
     if (Object.keys(errs).length) fail(errs);
     _.guardPeriod(F.period(d.closeDate), 'chốt giao dịch');
@@ -209,9 +212,8 @@
     const deal = needDeal(id);
     if (deal.status !== 'closed') throw new Error('Chỉ đổi phòng khi giao dịch chưa nhận phòng');
     const to = Q.room(d.toRoomId); const errs = {};
-    if (!to) errs.toRoomId = 'Chọn phòng mới';
+    if (roomIssue(to)) errs.toRoomId = roomIssue(to);
     else if (to.id === deal.roomId) errs.toRoomId = 'Chọn phòng khác phòng hiện tại';
-    else if (!(to.price > 0) || Q.pendingStay(to.id) || Q.dealHolds(to.id)) errs.toRoomId = 'Phòng không còn trống để chốt';
     if (!String(d.reason || '').trim()) errs.reason = 'Nhập lý do đổi phòng';
     if (Object.keys(errs).length) fail(errs);
     const s = Q.stay(deal.stayId); const from = Q.room(deal.roomId);

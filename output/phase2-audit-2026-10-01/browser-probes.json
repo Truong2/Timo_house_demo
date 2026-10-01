@@ -1,0 +1,22 @@
+{
+  "cases": {
+    "opsOcr": {
+      "permissions": {
+        "review": true,
+        "manage": false
+      },
+      "accepted": false,
+      "message": "Bạn không có quyền thực hiện thao tác này",
+      "visibleToast": "Bạn không có quyền thực hiện thao tác này"
+    },
+    "docsUpload": {
+      "fileInputs": 0,
+      "newDoc": {
+        "id": "doc_surp7jipwa",
+        "blobId": null
+      },
+      "downloadMessage": "Đã tải lên\nAudit-new-PCCC.pdf là bản ghi demo cũ, không có file gốc trong trình duyệt."
+    }
+  },
+  "pageErrors": []
+}

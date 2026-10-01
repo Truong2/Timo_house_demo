@@ -1,0 +1,1703 @@
+﻿
+> timohouse-mockup@4.0.0 precheck
+> npm run prepare:intake
+
+
+> timohouse-mockup@4.0.0 prepare:intake
+> node scripts/prepare-intake-vendor.mjs
+
+Document readers ready in mockup/vendor/intake
+
+> timohouse-mockup@4.0.0 check
+> node scripts/build.mjs --check-only && node scripts/check-rbac.mjs && node --test "tests/*.test.mjs"
+
+✓ Cú pháp OK: 90 file JS
+✓ Domain thuần: không dùng DOM/storage/store/ui
+✓ RBAC: 442 kiểm tra đạt · 53 route · 28 màn Phase 1 + 13 màn Phase 2 · 8 vai trò
+TAP version 13
+# Subtest: tổng 13 dòng = "Tổng cần đóng" Excel cho mọi hóa đơn tháng 9 (trừ lỗi nguồn đã ghi nhận)
+ok 1 - tổng 13 dòng = "Tổng cần đóng" Excel cho mọi hóa đơn tháng 9 (trừ lỗi nguồn đã ghi nhận)
+  ---
+  duration_ms: 66.4324
+  type: 'test'
+  ...
+# Subtest: 403T20: dòng 13 Thu khác = 6 ngày tháng 8, tổng 6.069.892, đã đóng 6.069.000 → Thiếu
+ok 2 - 403T20: dòng 13 Thu khác = 6 ngày tháng 8, tổng 6.069.892, đã đóng 6.069.000 → Thiếu
+  ---
+  duration_ms: 1.7639
+  type: 'test'
+  ...
+# Subtest: tháng lẻ: số ngày = ngày của tháng − ngày vào + 1, mẫu số = số ngày thực của tháng
+ok 3 - tháng lẻ: số ngày = ngày của tháng − ngày vào + 1, mẫu số = số ngày thực của tháng
+  ---
+  duration_ms: 2.074
+  type: 'test'
+  ...
+# Subtest: phòng mới tháng 9: tổng đã thu = 126.912.000
+ok 4 - phòng mới tháng 9: tổng đã thu = 126.912.000
+  ---
+  duration_ms: 0.3623
+  type: 'test'
+  ...
+# Subtest: phá HĐ: 20 phòng, phải thu (chỉ tiền điện) 16.048.000, đã thu 3.662.000
+ok 5 - phá HĐ: 20 phòng, phải thu (chỉ tiền điện) 16.048.000, đã thu 3.662.000
+  ---
+  duration_ms: 7.096
+  type: 'test'
+  ...
+# Subtest: buildLines: chia ngày một lần; cọc, nợ cũ, điện theo chỉ số không chia ngày
+ok 6 - buildLines: chia ngày một lần; cọc, nợ cũ, điện theo chỉ số không chia ngày
+  ---
+  duration_ms: 0.9591
+  type: 'test'
+  ...
+# Subtest: trạng thái thu theo cột AY Excel (Chưa TT / Thiếu / Đủ / Thừa) khớp mọi hóa đơn
+ok 7 - trạng thái thu theo cột AY Excel (Chưa TT / Thiếu / Đủ / Thừa) khớp mọi hóa đơn
+  ---
+  duration_ms: 0.827
+  type: 'test'
+  ...
+# Subtest: công nợ từ ngày 6 tháng N; đúng hạn = đủ trước hết ngày 5
+ok 8 - công nợ từ ngày 6 tháng N; đúng hạn = đủ trước hết ngày 5
+  ---
+  duration_ms: 2.41
+  type: 'test'
+  ...
+# Subtest: phân bổ phiếu thu: không vượt số tiền phiếu, không vượt số còn phải thu
+ok 9 - phân bổ phiếu thu: không vượt số tiền phiếu, không vượt số còn phải thu
+  ---
+  duration_ms: 35.5999
+  type: 'test'
+  ...
+# Subtest: six entry modes converge: owner→room→pending stay with proposal, idempotent and atomic
+ok 10 - six entry modes converge: owner→room→pending stay with proposal, idempotent and atomic
+  ---
+  duration_ms: 1715.9556
+  type: 'test'
+  ...
+# Subtest: source NHÀ G: 302G1 keeps three prices and held deposit; 000G1 is common meter
+ok 11 - source NHÀ G: 302G1 keeps three prices and held deposit; 000G1 is common meter
+  ---
+  duration_ms: 12034.341
+  type: 'test'
+  ...
+# Subtest: permission and conflict block intake before any mutation
+ok 12 - permission and conflict block intake before any mutation
+  ---
+  duration_ms: 1493.5673
+  type: 'test'
+  ...
+# Subtest: contract plus spreadsheet fills missing room prices and exposes conflicting source cells
+ok 13 - contract plus spreadsheet fills missing room prices and exposes conflicting source cells
+  ---
+  duration_ms: 675.1797
+  type: 'test'
+  ...
+# Subtest: existing building address requires an explicit source choice before update
+ok 14 - existing building address requires an explicit source choice before update
+  ---
+  duration_ms: 802.3399
+  type: 'test'
+  ...
+# Subtest: structured intake errors identify fields without changing commit guards
+ok 15 - structured intake errors identify fields without changing commit guards
+  ---
+  duration_ms: 826.8007
+  type: 'test'
+  ...
+# Subtest: tham số có ngày hiệu lực: lấy phiên mới nhất hiệu lực tại ngày
+ok 16 - tham số có ngày hiệu lực: lấy phiên mới nhất hiệu lực tại ngày
+  ---
+  duration_ms: 1.4414
+  type: 'test'
+  ...
+# Subtest: import: chặn \#REF!, thiếu bắt buộc, tiền/ngày sai; đánh dấu trùng mã nguồn
+ok 17 - import: chặn \#REF!, thiếu bắt buộc, tiền/ngày sai; đánh dấu trùng mã nguồn
+  ---
+  duration_ms: 2.2541
+  type: 'test'
+  ...
+# Subtest: Zalo: kiểm tra lại số nợ trước khi gửi
+ok 18 - Zalo: kiểm tra lại số nợ trước khi gửi
+  ---
+  duration_ms: 0.9876
+  type: 'test'
+  ...
+# Subtest: RBAC: chỉ admin/kế toán ghi thu (OQ-09); duyệt hoàn cọc tách vai trò; leader chỉ xem trạng thái nợ
+ok 19 - RBAC: chỉ admin/kế toán ghi thu (OQ-09); duyệt hoàn cọc tách vai trò; leader chỉ xem trạng thái nợ
+  ---
+  duration_ms: 0.2902
+  type: 'test'
+  ...
+# Subtest: P0-1 không thu tiền điện hai lần cho cùng một phòng trong kỳ 2026-10
+ok 20 - P0-1 không thu tiền điện hai lần cho cùng một phòng trong kỳ 2026-10
+  ---
+  duration_ms: 3284.0062
+  type: 'test'
+  ...
+# Subtest: P0-2 khách đã nộp phiếu cọc không bị tính cọc lần nữa trên hóa đơn đầu
+ok 21 - P0-2 khách đã nộp phiếu cọc không bị tính cọc lần nữa trên hóa đơn đầu
+  ---
+  duration_ms: 145.0485
+  type: 'test'
+  ...
+# Subtest: P0-3 mọi hóa đơn: tổng in 13 dòng = tổng cần đóng; lệch Excel được gắn cờ
+ok 22 - P0-3 mọi hóa đơn: tổng in 13 dòng = tổng cần đóng; lệch Excel được gắn cờ
+  ---
+  duration_ms: 720.8726
+  type: 'test'
+  ...
+# Subtest: P0-4 phòng có giá/hóa đơn không bị xếp "đồng hồ chung"; HS kỳ 9 hợp lý
+ok 23 - P0-4 phòng có giá/hóa đơn không bị xếp "đồng hồ chung"; HS kỳ 9 hợp lý
+  ---
+  duration_ms: 1029.4935
+  type: 'test'
+  ...
+# Subtest: P0-5 đối chiếu Báo cáo tổng T8 trên số web; cầu nối = LNR báo cáo KD
+ok 24 - P0-5 đối chiếu Báo cáo tổng T8 trên số web; cầu nối = LNR báo cáo KD
+  ---
+  duration_ms: 524.6965
+  type: 'test'
+  ...
+# Subtest: P0-6 sổ cọc: nhận/đảo phiếu, không phân bổ vào hóa đơn, bỏ cọc, báo cáo, chuyển phòng
+    # Subtest: a) nhận cọc → "đang giữ"; đảo phiếu cọc → sổ cọc về 0
+    ok 1 - a) nhận cọc → "đang giữ"; đảo phiếu cọc → sổ cọc về 0
+      ---
+      duration_ms: 624.9166
+      type: 'test'
+      ...
+    # Subtest: b) phiếu cọc không phân bổ được vào hóa đơn
+    ok 2 - b) phiếu cọc không phân bổ được vào hóa đơn
+      ---
+      duration_ms: 10.1752
+      type: 'test'
+      ...
+    # Subtest: c) chờ nhận phải có cọc; bỏ cọc khi cọc thực nhận = 0 (phiếu đã đảo) không ghi doanh thu
+    ok 3 - c) chờ nhận phải có cọc; bỏ cọc khi cọc thực nhận = 0 (phiếu đã đảo) không ghi doanh thu
+      ---
+      duration_ms: 2.1475
+      type: 'test'
+      ...
+    # Subtest: d) phiếu cọc giữ phòng vào dòng 4 "Cọc phòng mới" và dòng 3 doanh thu
+    ok 4 - d) phiếu cọc giữ phòng vào dòng 4 "Cọc phòng mới" và dòng 3 doanh thu
+      ---
+      duration_ms: 308.6515
+      type: 'test'
+      ...
+    # Subtest: e) chuyển phòng: chặn lượt chờ nhận, bắt buộc xác nhận phương án cọc, theo dõi cọc thiếu
+    ok 5 - e) chuyển phòng: chặn lượt chờ nhận, bắt buộc xác nhận phương án cọc, theo dõi cọc thiếu
+      ---
+      duration_ms: 6.2336
+      type: 'test'
+      ...
+    1..5
+ok 25 - P0-6 sổ cọc: nhận/đảo phiếu, không phân bổ vào hóa đơn, bỏ cọc, báo cáo, chuyển phòng
+  ---
+  duration_ms: 1778.8056
+  type: 'test'
+  ...
+# Subtest: P0-7 khóa kỳ giữ cố định số liệu
+    # Subtest: a) không khóa kỳ khi chưa chốt lương/phân bổ, kể cả truyền force
+    ok 1 - a) không khóa kỳ khi chưa chốt lương/phân bổ, kể cả truyền force
+      ---
+      duration_ms: 1.3049
+      type: 'test'
+      ...
+    # Subtest: b) sau khóa: chặn tính lại lương, duyệt cờ, tham số/phân công/giá chủ nhà hiệu lực trong kỳ
+    ok 2 - b) sau khóa: chặn tính lại lương, duyệt cờ, tham số/phân công/giá chủ nhà hiệu lực trong kỳ
+      ---
+      duration_ms: 439.3188
+      type: 'test'
+      ...
+    # Subtest: c) đổi dữ liệu nguồn không làm đổi LNR kỳ đã khóa
+    ok 3 - c) đổi dữ liệu nguồn không làm đổi LNR kỳ đã khóa
+      ---
+      duration_ms: 70.2592
+      type: 'test'
+      ...
+    # Subtest: d) điều chỉnh sau khóa: bắt buộc lý do, số điều chỉnh vào báo cáo kỳ gốc
+    ok 4 - d) điều chỉnh sau khóa: bắt buộc lý do, số điều chỉnh vào báo cáo kỳ gốc
+      ---
+      duration_ms: 18.4472
+      type: 'test'
+      ...
+    1..4
+ok 26 - P0-7 khóa kỳ giữ cố định số liệu
+  ---
+  duration_ms: 1003.2793
+  type: 'test'
+  ...
+# Subtest: P0-8 kỳ live: tổng phân bổ = tổng chứng từ quỹ; kỳ 08 tái hiện công thức G1
+ok 27 - P0-8 kỳ live: tổng phân bổ = tổng chứng từ quỹ; kỳ 08 tái hiện công thức G1
+  ---
+  duration_ms: 658.0026
+  type: 'test'
+  ...
+# Subtest: P0-9 vận hành không sửa/duyệt phiếu hoàn ngoài phạm vi; ?tab= không mở tab thiếu quyền
+ok 28 - P0-9 vận hành không sửa/duyệt phiếu hoàn ngoài phạm vi; ?tab= không mở tab thiếu quyền
+  ---
+  duration_ms: 341.1529
+  type: 'test'
+  ...
+# Subtest: P0-10 xuất CSV: vận hành bị che cột số tiền như trên màn; kế toán thì không
+ok 29 - P0-10 xuất CSV: vận hành bị che cột số tiền như trên màn; kế toán thì không
+  ---
+  duration_ms: 379.291
+  type: 'test'
+  ...
+# Subtest: Nghiệm thu trong app (TH.pages.acceptance + acceptance1B) đều đạt trên seed sạch
+ok 30 - Nghiệm thu trong app (TH.pages.acceptance + acceptance1B) đều đạt trên seed sạch
+  ---
+  duration_ms: 934.7553
+  type: 'test'
+  ...
+# Subtest: §2.3 mục 6 – dữ liệu nhập tay bảng lương: ngày công sale, lương vệ sinh/bảo vệ theo tòa, tiền công thợ, hỗ trợ
+    # Subtest: ngày công sale → lương = lương cứng × ngày công / 26
+    ok 1 - ngày công sale → lương = lương cứng × ngày công / 26
+      ---
+      duration_ms: 298.4521
+      type: 'test'
+      ...
+    # Subtest: lương vệ sinh/bảo vệ và tiền công thợ vào báo cáo tòa trước khi chốt
+    ok 2 - lương vệ sinh/bảo vệ và tiền công thợ vào báo cáo tòa trước khi chốt
+      ---
+      duration_ms: 900.0341
+      type: 'test'
+      ...
+    # Subtest: đổi nhập tay sau khi tính → chặn chốt; chốt ghi chi phí đúng dòng báo cáo, phần cố định thợ vào quỹ sửa chữa
+    ok 3 - đổi nhập tay sau khi tính → chặn chốt; chốt ghi chi phí đúng dòng báo cáo, phần cố định thợ vào quỹ sửa chữa
+      ---
+      duration_ms: 498.0696
+      type: 'test'
+      ...
+    1..3
+ok 31 - §2.3 mục 6 – dữ liệu nhập tay bảng lương: ngày công sale, lương vệ sinh/bảo vệ theo tòa, tiền công thợ, hỗ trợ
+  ---
+  duration_ms: 3038.5393
+  type: 'test'
+  ...
+# Subtest: UI-27/UI-28 – bấm số ra giao dịch gốc (TH.qr.sources)
+ok 32 - UI-27/UI-28 – bấm số ra giao dịch gốc (TH.qr.sources)
+  ---
+  duration_ms: 1105.0332
+  type: 'test'
+  ...
+# Subtest: UI-38 – điều chỉnh sau khóa hiện trong giao dịch nguồn của ô
+ok 33 - UI-38 – điều chỉnh sau khóa hiện trong giao dịch nguồn của ô
+  ---
+  duration_ms: 749.0048
+  type: 'test'
+  ...
+# Subtest: §3.12b – tháng lẻ lệch quy tắc số ngày thực được gắn cờ: đúng 3 hóa đơn
+ok 34 - §3.12b – tháng lẻ lệch quy tắc số ngày thực được gắn cờ: đúng 3 hóa đơn
+  ---
+  duration_ms: 490.2598
+  type: 'test'
+  ...
+# Subtest: §2.3 mục 3 – lượt thuê chờ nhận có cọc, ba loại ngày, không chồng lượt thuê; import cọc đang giữ
+ok 35 - §2.3 mục 3 – lượt thuê chờ nhận có cọc, ba loại ngày, không chồng lượt thuê; import cọc đang giữ
+  ---
+  duration_ms: 422.3212
+  type: 'test'
+  ...
+# Subtest: §2.3 dòng 11–12 – điện chung chia vào dòng 12 hóa đơn
+ok 36 - §2.3 dòng 11–12 – điện chung chia vào dòng 12 hóa đơn
+  ---
+  duration_ms: 457.6662
+  type: 'test'
+  ...
+# Subtest: §2.3 dòng 20 – HĐ chủ nhà: phụ lục trong thời hạn, tính lại lịch trả, không chi vượt, hủy chi hoàn lại
+ok 37 - §2.3 dòng 20 – HĐ chủ nhà: phụ lục trong thời hạn, tính lại lịch trả, không chi vượt, hủy chi hoàn lại
+  ---
+  duration_ms: 441.5009
+  type: 'test'
+  ...
+# Subtest: §2.3 dòng 22–27 – import hóa đơn nhà cung cấp theo mã KH; chi phí "CHUNG" không tự vào quỹ
+ok 38 - §2.3 dòng 22–27 – import hóa đơn nhà cung cấp theo mã KH; chi phí "CHUNG" không tự vào quỹ
+  ---
+  duration_ms: 495.8101
+  type: 'test'
+  ...
+# Subtest: UI-27 – xuất Excel theo mẫu có tên báo cáo, kỳ, bộ lọc, phiên bản số liệu
+ok 39 - UI-27 – xuất Excel theo mẫu có tên báo cáo, kỳ, bộ lọc, phiên bản số liệu
+  ---
+  duration_ms: 442.2463
+  type: 'test'
+  ...
+# Subtest: Lọc quản lý theo phân công tại cuối kỳ (không theo hôm nay)
+ok 40 - Lọc quản lý theo phân công tại cuối kỳ (không theo hôm nay)
+  ---
+  duration_ms: 399.4191
+  type: 'test'
+  ...
+# Subtest: Đợt 1.1 / UI-12 – sửa hóa đơn nháp: chỉ số → SL, đổi đơn giá bắt buộc lý do, lưu lịch sử; hóa đơn đã phát hành không sửa
+    # Subtest: sửa chỉ số mới dòng 3 → SL = mới − cũ, thành tiền và tổng tính lại
+    ok 1 - sửa chỉ số mới dòng 3 → SL = mới − cũ, thành tiền và tổng tính lại
+      ---
+      duration_ms: 5.2089
+      type: 'test'
+      ...
+    # Subtest: đổi đơn giá không có lý do → chặn; có lý do → lưu
+    ok 2 - đổi đơn giá không có lý do → chặn; có lý do → lưu
+      ---
+      duration_ms: 16.2058
+      type: 'test'
+      ...
+    # Subtest: chỉ số mới nhỏ hơn cũ → chặn
+    ok 3 - chỉ số mới nhỏ hơn cũ → chặn
+      ---
+      duration_ms: 17.1537
+      type: 'test'
+      ...
+    # Subtest: hóa đơn đã phát hành → chặn sửa nháp
+    ok 4 - hóa đơn đã phát hành → chặn sửa nháp
+      ---
+      duration_ms: 5.266
+      type: 'test'
+      ...
+    1..4
+ok 41 - Đợt 1.1 / UI-12 – sửa hóa đơn nháp: chỉ số → SL, đổi đơn giá bắt buộc lý do, lưu lịch sử; hóa đơn đã phát hành không sửa
+  ---
+  duration_ms: 836.9077
+  type: 'test'
+  ...
+# Subtest: Đợt 1.2 / UI-13 – phân bổ phiếu thu theo dòng hóa đơn
+    # Subtest: vượt số còn phải thu của dòng → chặn
+    ok 1 - vượt số còn phải thu của dòng → chặn
+      ---
+      duration_ms: 2.9413
+      type: 'test'
+      ...
+    # Subtest: thu đủ dòng 1 → dòng 1 còn 0, các dòng khác giữ nguyên, hóa đơn "Thiếu"
+    ok 2 - thu đủ dòng 1 → dòng 1 còn 0, các dòng khác giữ nguyên, hóa đơn "Thiếu"
+      ---
+      duration_ms: 11.5557
+      type: 'test'
+      ...
+    # Subtest: phân bổ số dư sang dòng điện của cùng hóa đơn; hóa đơn lượt thuê khác → chặn
+    ok 3 - phân bổ số dư sang dòng điện của cùng hóa đơn; hóa đơn lượt thuê khác → chặn
+      ---
+      duration_ms: 8.7884
+      type: 'test'
+      ...
+    1..3
+ok 42 - Đợt 1.2 / UI-13 – phân bổ phiếu thu theo dòng hóa đơn
+  ---
+  duration_ms: 591.0873
+  type: 'test'
+  ...
+# Subtest: Đợt 1.3 / E14 – trả trước 3 tháng: tiền ghi một lần, tự áp phần từng kỳ khi phát hành
+    # Subtest: kế hoạch 3 kỳ 10/11/12, mỗi kỳ = tiền phòng tháng
+    ok 1 - kế hoạch 3 kỳ 10/11/12, mỗi kỳ = tiền phòng tháng
+      ---
+      duration_ms: 3.7591
+      type: 'test'
+      ...
+    # Subtest: phát hành hóa đơn kỳ 10 → áp đúng phần kỳ 10 vào dòng tiền phòng; phiếu không đổi số tiền
+    ok 2 - phát hành hóa đơn kỳ 10 → áp đúng phần kỳ 10 vào dòng tiền phòng; phiếu không đổi số tiền
+      ---
+      duration_ms: 57.2478
+      type: 'test'
+      ...
+    # Subtest: thiếu kỳ bắt đầu → chặn
+    ok 3 - thiếu kỳ bắt đầu → chặn
+      ---
+      duration_ms: 0.5345
+      type: 'test'
+      ...
+    1..3
+ok 43 - Đợt 1.3 / E14 – trả trước 3 tháng: tiền ghi một lần, tự áp phần từng kỳ khi phát hành
+  ---
+  duration_ms: 559.9837
+  type: 'test'
+  ...
+# Subtest: Đợt 1.4 / UI-18 E18 – vượt cọc thành hóa đơn thu riêng; sổ cọc về 0
+    # Subtest: BD âm: số chi 0, lập INV-…-VC dòng 13 = phần vượt, vào công nợ; sổ cọc = 0
+    ok 1 - BD âm: số chi 0, lập INV-…-VC dòng 13 = phần vượt, vào công nợ; sổ cọc = 0
+      ---
+      duration_ms: 6.1265
+      type: 'test'
+      ...
+    # Subtest: BD dương: chi BD, sổ cọc cũng về 0 (khấu trừ ghi "deduct")
+    ok 2 - BD dương: chi BD, sổ cọc cũng về 0 (khấu trừ ghi "deduct")
+      ---
+      duration_ms: 2.7236
+      type: 'test'
+      ...
+    1..2
+ok 44 - Đợt 1.4 / UI-18 E18 – vượt cọc thành hóa đơn thu riêng; sổ cọc về 0
+  ---
+  duration_ms: 491.6374
+  type: 'test'
+  ...
+# Subtest: Đợt 1.5 / OQ-14 – khách của chủ nhà: bù trừ tiền trả chủ nhà, không là công nợ; phòng chủ nhà ở chỉ thu DV
+    # Subtest: 4 hóa đơn G17 "đã đóng cho chủ" → Đủ, còn nợ 0; kỳ trả chủ nhà 10 giảm đúng tổng
+    ok 1 - 4 hóa đơn G17 "đã đóng cho chủ" → Đủ, còn nợ 0; kỳ trả chủ nhà 10 giảm đúng tổng
+      ---
+      duration_ms: 3.0703
+      type: 'test'
+      ...
+    # Subtest: hủy bù trừ → hóa đơn thành nợ lại, kỳ trả chủ nhà hoàn lại; báo cáo dòng 3 giảm đúng số
+    ok 2 - hủy bù trừ → hóa đơn thành nợ lại, kỳ trả chủ nhà hoàn lại; báo cáo dòng 3 giảm đúng số
+      ---
+      duration_ms: 879.2974
+      type: 'test'
+      ...
+    # Subtest: phòng Timehouse khai thác → chặn "Chủ nhà đã thu"
+    ok 3 - phòng Timehouse khai thác → chặn "Chủ nhà đã thu"
+      ---
+      duration_ms: 0.9603
+      type: 'test'
+      ...
+    # Subtest: lượt thuê chỉ thu dịch vụ: phòng chủ nhà ở giá 0 được; phòng thường giá 0 bị chặn
+    ok 4 - lượt thuê chỉ thu dịch vụ: phòng chủ nhà ở giá 0 được; phòng thường giá 0 bị chặn
+      ---
+      duration_ms: 4.8102
+      type: 'test'
+      ...
+    1..4
+ok 45 - Đợt 1.5 / OQ-14 – khách của chủ nhà: bù trừ tiền trả chủ nhà, không là công nợ; phòng chủ nhà ở chỉ thu DV
+  ---
+  duration_ms: 1339.8253
+  type: 'test'
+  ...
+# Subtest: Đợt 2.1 / UI-38 – tham số có kiểu và khoảng: key lạ, sai kiểu, ngoài khoảng bị chặn
+    # Subtest: key không tồn tại → chặn
+    ok 1 - key không tồn tại → chặn
+      ---
+      duration_ms: 0.8012
+      type: 'test'
+      ...
+    # Subtest: ngày chốt "abc" / 40 → chặn; 20 → nhận số
+    ok 2 - ngày chốt "abc" / 40 → chặn; 20 → nhận số
+      ---
+      duration_ms: 1.775
+      type: 'test'
+      ...
+    # Subtest: Có/Không, danh sách chọn, phần trăm
+    ok 3 - Có/Không, danh sách chọn, phần trăm
+      ---
+      duration_ms: 1.2642
+      type: 'test'
+      ...
+    # Subtest: mốc thu: phải đủ 3 mốc tăng dần
+    ok 4 - mốc thu: phải đủ 3 mốc tăng dần
+      ---
+      duration_ms: 2.979
+      type: 'test'
+      ...
+    1..4
+ok 46 - Đợt 2.1 / UI-38 – tham số có kiểu và khoảng: key lạ, sai kiểu, ngoài khoảng bị chặn
+  ---
+  duration_ms: 429.795
+  type: 'test'
+  ...
+# Subtest: Đợt 2.2 – tham số có tác dụng: mốc lương, phân bổ, trừ ngày ở thêm, nhắc trước hạn
+    # Subtest: milestones đổi → bảng lương kỳ 9 tính theo mốc mới
+    ok 1 - milestones đổi → bảng lương kỳ 9 tính theo mốc mới
+      ---
+      duration_ms: 925.674
+      type: 'test'
+      ...
+    # Subtest: allocDenominator = allRooms → mẫu số kỳ 9 tăng đúng số phòng không giá
+    ok 2 - allocDenominator = allRooms → mẫu số kỳ 9 tăng đúng số phòng không giá
+      ---
+      duration_ms: 431.0895
+      type: 'test'
+      ...
+    # Subtest: refundDeductExtraDays = Có → phiếu hoàn tự trừ tiền ngày ở thêm, có lý do theo tham số
+    ok 3 - refundDeductExtraDays = Có → phiếu hoàn tự trừ tiền ngày ở thêm, có lý do theo tham số
+      ---
+      duration_ms: 371.2184
+      type: 'test'
+      ...
+    # Subtest: nhắc trước hạn: số ngày lấy từ tham số zaloRemindBeforeDays
+    ok 4 - nhắc trước hạn: số ngày lấy từ tham số zaloRemindBeforeDays
+      ---
+      duration_ms: 402.1262
+      type: 'test'
+      ...
+    1..4
+ok 47 - Đợt 2.2 – tham số có tác dụng: mốc lương, phân bổ, trừ ngày ở thêm, nhắc trước hạn
+  ---
+  duration_ms: 2132.5222
+  type: 'test'
+  ...
+# Subtest: Đợt 2.3 / UI-01 – phòng trống: bỏ phòng không giá; phòng cần dọn tách khỏi "ở luôn"
+ok 48 - Đợt 2.3 / UI-01 – phòng trống: bỏ phòng không giá; phòng cần dọn tách khỏi "ở luôn"
+  ---
+  duration_ms: 411.5784
+  type: 'test'
+  ...
+# Subtest: Đợt 2.4 / UI-39 – Zalo: quá hạn từ ngày 6, không lặp trong N ngày, SMS dự phòng, gửi lại không nhân đôi hộp thư
+    # Subtest: quá hạn: ngày 5 chưa nhắc, ngày 6 nhắc (công nợ từ ngày 6); đã nhắc thì 3 ngày sau mới nhắc lại
+    ok 1 - quá hạn: ngày 5 chưa nhắc, ngày 6 nhắc (công nợ từ ngày 6); đã nhắc thì 3 ngày sau mới nhắc lại
+      ---
+      duration_ms: 0.5594
+      type: 'test'
+      ...
+    # Subtest: khách chưa liên kết → có bản ghi SMS (trạng thái, chi phí) + việc gọi gắn SMS
+    ok 2 - khách chưa liên kết → có bản ghi SMS (trạng thái, chi phí) + việc gọi gắn SMS
+      ---
+      duration_ms: 0.7058
+      type: 'test'
+      ...
+    # Subtest: tạo đợt lại cùng ngày → không nhắc lại hóa đơn vừa gửi
+    ok 3 - tạo đợt lại cùng ngày → không nhắc lại hóa đơn vừa gửi
+      ---
+      duration_ms: 78.7646
+      type: 'test'
+      ...
+    # Subtest: gửi lại tin lỗi tạm thời → hộp thư không nhân đôi; đợt đã gửi không gửi lại toàn bộ
+    ok 4 - gửi lại tin lỗi tạm thời → hộp thư không nhân đôi; đợt đã gửi không gửi lại toàn bộ
+      ---
+      duration_ms: 4.1677
+      type: 'test'
+      ...
+    1..4
+ok 49 - Đợt 2.4 / UI-39 – Zalo: quá hạn từ ngày 6, không lặp trong N ngày, SMS dự phòng, gửi lại không nhân đôi hộp thư
+  ---
+  duration_ms: 758.7431
+  type: 'test'
+  ...
+# Subtest: Đợt 3.1 / UI-02, UI-03 – sửa hồ sơ tòa và phòng; mã tòa trùng khác hoa/thường; ngừng khai thác thay cho xóa
+    # Subtest: thêm tòa "s43" khi đã có S43 → chặn
+    ok 1 - thêm tòa "s43" khi đã có S43 → chặn
+      ---
+      duration_ms: 0.828
+      type: 'test'
+      ...
+    # Subtest: sửa tòa: khu vực, địa chỉ, số tầng, tình trạng, ngày nhận; số tầng 99 bị chặn; mã không đổi
+    ok 2 - sửa tòa: khu vực, địa chỉ, số tầng, tình trạng, ngày nhận; số tầng 99 bị chặn; mã không đổi
+      ---
+      duration_ms: 0.9448
+      type: 'test'
+      ...
+    # Subtest: ngừng khai thác tòa còn khách → chặn; tòa mới không khách → được, phòng chuyển inactive
+    ok 3 - ngừng khai thác tòa còn khách → chặn; tòa mới không khách → được, phòng chuyển inactive
+      ---
+      duration_ms: 3.9618
+      type: 'test'
+      ...
+    # Subtest: sửa phòng: đổi giá phải có ngày hiệu lực và lưu lịch sử; phòng có khách không thành đồng hồ chung
+    ok 4 - sửa phòng: đổi giá phải có ngày hiệu lực và lưu lịch sử; phòng có khách không thành đồng hồ chung
+      ---
+      duration_ms: 2.4949
+      type: 'test'
+      ...
+    1..4
+ok 50 - Đợt 3.1 / UI-02, UI-03 – sửa hồ sơ tòa và phòng; mã tòa trùng khác hoa/thường; ngừng khai thác thay cho xóa
+  ---
+  duration_ms: 445.1427
+  type: 'test'
+  ...
+# Subtest: Đợt 3.2 / UI-24 – phân công theo phòng và loại trách nhiệm; phạm vi dữ liệu theo phòng; bỏ phân công
+    # Subtest: phòng không thuộc tòa → chặn; loại trách nhiệm lạ → chặn; hai loại trên cùng phòng không xung đột
+    ok 1 - phòng không thuộc tòa → chặn; loại trách nhiệm lạ → chặn; hai loại trên cùng phòng không xung đột
+      ---
+      duration_ms: 2.0437
+      type: 'test'
+      ...
+    # Subtest: vận hành chỉ thấy hóa đơn / khách của phòng được giao trong tòa đó
+    ok 2 - vận hành chỉ thấy hóa đơn / khách của phòng được giao trong tòa đó
+      ---
+      duration_ms: 6.4481
+      type: 'test'
+      ...
+    # Subtest: người phụ trách tòa và lương không lấy phân công cấp phòng
+    ok 3 - người phụ trách tòa và lương không lấy phân công cấp phòng
+      ---
+      duration_ms: 258.1733
+      type: 'test'
+      ...
+    # Subtest: bỏ phân công: trước ngày bắt đầu bị chặn; sau khi bỏ → hết phạm vi, lịch sử giữ nguyên
+    ok 4 - bỏ phân công: trước ngày bắt đầu bị chặn; sau khi bỏ → hết phạm vi, lịch sử giữ nguyên
+      ---
+      duration_ms: 1.0152
+      type: 'test'
+      ...
+    1..4
+ok 51 - Đợt 3.2 / UI-24 – phân công theo phòng và loại trách nhiệm; phạm vi dữ liệu theo phòng; bỏ phân công
+  ---
+  duration_ms: 861.7429
+  type: 'test'
+  ...
+# Subtest: Đợt 4.1 / UI-38 – tài khoản, khu vực, TK nhận tiền, danh mục mở rộng
+    # Subtest: tài khoản: tạo, sửa vai trò, khóa → không đăng nhập; không tự khóa mình; không khóa admin cuối
+    ok 1 - tài khoản: tạo, sửa vai trò, khóa → không đăng nhập; không tự khóa mình; không khóa admin cuối
+      ---
+      duration_ms: 1.9362
+      type: 'test'
+      ...
+    # Subtest: khu vực và TK nhận: thêm/sửa; trùng tên, số TK sai bị chặn
+    ok 2 - khu vực và TK nhận: thêm/sửa; trùng tên, số TK sai bị chặn
+      ---
+      duration_ms: 0.7916
+      type: 'test'
+      ...
+    # Subtest: danh mục: loại chi phí mới có dòng báo cáo → dùng được ở chi phí; mục đã dùng không xóa, chỉ ngừng dùng có lý do; chức danh, lý do phá HĐ
+    ok 3 - danh mục: loại chi phí mới có dòng báo cáo → dùng được ở chi phí; mục đã dùng không xóa, chỉ ngừng dùng có lý do; chức danh, lý do phá HĐ
+      ---
+      duration_ms: 213.3021
+      type: 'test'
+      ...
+    1..3
+ok 52 - Đợt 4.1 / UI-38 – tài khoản, khu vực, TK nhận tiền, danh mục mở rộng
+  ---
+  duration_ms: 528.4036
+  type: 'test'
+  ...
+# Subtest: Đợt 4.2 / UI-37 – import tòa và nhân viên: đủ cột, kiểm tra tham chiếu, giữ mã nguồn
+    # Subtest: tòa: trùng mã (khác hoa/thường) → trùng; sai nhóm, quản lý lạ, khu vực lạ → lỗi; hợp lệ → tạo đủ khu vực / tầng / ngày nhận
+    ok 1 - tòa: trùng mã (khác hoa/thường) → trùng; sai nhóm, quản lý lạ, khu vực lạ → lỗi; hợp lệ → tạo đủ khu vực / tầng / ngày nhận
+      ---
+      duration_ms: 9.0928
+      type: 'test'
+      ...
+    # Subtest: nhân viên: giữ mã nguồn, SĐT, khu vực; trùng mã → trùng; chức danh lạ → lỗi
+    ok 2 - nhân viên: giữ mã nguồn, SĐT, khu vực; trùng mã → trùng; chức danh lạ → lỗi
+      ---
+      duration_ms: 1.891
+      type: 'test'
+      ...
+    1..2
+ok 53 - Đợt 4.2 / UI-37 – import tòa và nhân viên: đủ cột, kiểm tra tham chiếu, giữ mã nguồn
+  ---
+  duration_ms: 403.9375
+  type: 'test'
+  ...
+# Subtest: Đợt 4.3 – mã tòa duy nhất (không phân biệt hoa/thường), nhóm theo tiền tố; số nghiệm thu không đổi
+ok 54 - Đợt 4.3 – mã tòa duy nhất (không phân biệt hoa/thường), nhóm theo tiền tố; số nghiệm thu không đổi
+  ---
+  duration_ms: 405.6928
+  type: 'test'
+  ...
+# Subtest: P2-AUD-01: real review applies zero/remove/keep fees, terms and one rate version; preserves issued invoices and deposit ledger
+ok 55 - P2-AUD-01: real review applies zero/remove/keep fees, terms and one rate version; preserves issued invoices and deposit ledger
+  ---
+  duration_ms: 1681.7135
+  type: 'test'
+  ...
+# Subtest: P2-AUD-01: field edits, missing values, wrong room, stale file and locked period block apply
+ok 56 - P2-AUD-01: field edits, missing values, wrong room, stale file and locked period block apply
+  ---
+  duration_ms: 2111.3259
+  type: 'test'
+  ...
+# Subtest: P2-AUD-01: failure after rate creation rolls back the complete apply transaction
+ok 57 - P2-AUD-01: failure after rate creation rolls back the complete apply transaction
+  ---
+  duration_ms: 1147.6892
+  type: 'test'
+  ...
+# Subtest: P2-AUD-03: OPS/leader/department review in scope; cannot apply or review out of scope
+ok 58 - P2-AUD-03: OPS/leader/department review in scope; cannot apply or review out of scope
+  ---
+  duration_ms: 2193.2118
+  type: 'test'
+  ...
+# Subtest: P2-AUD-02: signed selector deduplicates canonical/intake sources, excludes spreadsheets and unsigned photos
+ok 59 - P2-AUD-02: signed selector deduplicates canonical/intake sources, excludes spreadsheets and unsigned photos
+  ---
+  duration_ms: 1103.2627
+  type: 'test'
+  ...
+# Subtest: P2-AUD-04: document write failure preserves previous version and all metadata
+ok 60 - P2-AUD-04: document write failure preserves previous version and all metadata
+  ---
+  duration_ms: 936.92
+  type: 'test'
+  ...
+# Subtest: P2-AUD-05: invalid, inactive or out-of-scope sale IDs cause no partial writes
+ok 61 - P2-AUD-05: invalid, inactive or out-of-scope sale IDs cause no partial writes
+  ---
+  duration_ms: 1518.6256
+  type: 'test'
+  ...
+# Subtest: P2-AUD-06: inactive or newly reserved destination blocks transfer and preserves stay/rates/deposit/commission/history
+ok 62 - P2-AUD-06: inactive or newly reserved destination blocks transfer and preserves stay/rates/deposit/commission/history
+  ---
+  duration_ms: 723.9977
+  type: 'test'
+  ...
+# Subtest: P2-AUD-02: intake contract commit enables commission eligibility without creating cash flows; signature date does not backdate eligibility
+ok 63 - P2-AUD-02: intake contract commit enables commission eligibility without creating cash flows; signature date does not backdate eligibility
+  ---
+  duration_ms: 479.7856
+  type: 'test'
+  ...
+# Subtest: F30.1 – Dashboard: HS thực tế / tạm tính theo phạm vi; lọc leader không đếm trùng tòa
+ok 64 - F30.1 – Dashboard: HS thực tế / tạm tính theo phạm vi; lọc leader không đếm trùng tòa
+  ---
+  duration_ms: 2068.8907
+  type: 'test'
+  ...
+# Subtest: F30.3 / F30.4 / F30.5 – mở lại kỳ đã khóa cần duyệt admin + kế toán; lịch sử; so sánh 2 phiên bản chốt
+    # Subtest: ⛔ mở khóa trực tiếp ở Phase 2; yêu cầu phải có lý do
+    ok 1 - ⛔ mở khóa trực tiếp ở Phase 2; yêu cầu phải có lý do
+      ---
+      duration_ms: 12.2631
+      type: 'test'
+      ...
+    # Subtest: kế toán yêu cầu + duyệt; ⛔ kế toán tự duyệt lần 2; admin duyệt → mở
+    ok 2 - kế toán yêu cầu + duyệt; ⛔ kế toán tự duyệt lần 2; admin duyệt → mở
+      ---
+      duration_ms: 14.2484
+      type: 'test'
+      ...
+    # Subtest: sửa dữ liệu, khóa lại → phiên 2; so sánh chỉ ra chênh tòa × dòng
+    ok 3 - sửa dữ liệu, khóa lại → phiên 2; so sánh chỉ ra chênh tòa × dòng
+      ---
+      duration_ms: 33.593
+      type: 'test'
+      ...
+    1..3
+ok 65 - F30.3 / F30.4 / F30.5 – mở lại kỳ đã khóa cần duyệt admin + kế toán; lịch sử; so sánh 2 phiên bản chốt
+  ---
+  duration_ms: 732.7763
+  type: 'test'
+  ...
+# Subtest: F30.6 / F30.8 – hộp thư phản hồi: gán trưởng phòng theo cơ cấu; trạng thái + ghi chú; không thay phiếu thu
+ok 66 - F30.6 / F30.8 – hộp thư phản hồi: gán trưởng phòng theo cơ cấu; trạng thái + ghi chú; không thay phiếu thu
+  ---
+  duration_ms: 475.8081
+  type: 'test'
+  ...
+# Subtest: F30.7 – sự kiện Zalo mới: sắp hết HĐ (35 ngày), đã chi hoàn cọc; gắn lượt thuê, không gửi lặp
+ok 67 - F30.7 – sự kiện Zalo mới: sắp hết HĐ (35 ngày), đã chi hoàn cọc; gắn lượt thuê, không gửi lặp
+  ---
+  duration_ms: 622.9251
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt 5 (bộ nghiệm thu trong app)
+ok 68 - NT-0 – Phase 1 không đổi sau Đợt 5 (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 1082.766
+  type: 'test'
+  ...
+# Subtest: A1 – bảng lương UI-25: lương thợ = lương cứng + thâm niên + tiền công + ăn trưa, khớp UI-47; T8 song song không đổi
+ok 69 - A1 – bảng lương UI-25: lương thợ = lương cứng + thâm niên + tiền công + ăn trưa, khớp UI-47; T8 song song không đổi
+  ---
+  duration_ms: 1463.6426
+  type: 'test'
+  ...
+# Subtest: A2 – tiền công việc chủ nhà chịu không thành chi phí công ty; thợ vẫn nhận đủ tiền công
+ok 70 - A2 – tiền công việc chủ nhà chịu không thành chi phí công ty; thợ vẫn nhận đủ tiền công
+  ---
+  duration_ms: 776.6575
+  type: 'test'
+  ...
+# Subtest: A3 – ⛔ nhập / xác nhận tiền công sau khi bảng lương kỳ đã chốt (không để tiền công mất)
+ok 71 - A3 – ⛔ nhập / xác nhận tiền công sau khi bảng lương kỳ đã chốt (không để tiền công mất)
+  ---
+  duration_ms: 765.7183
+  type: 'test'
+  ...
+# Subtest: A4 – deal và lượt thuê không lệch khi thao tác ở UI-07
+    # Subtest: nhận phòng ở UI-07 → deal "đã nhận" + sự kiện
+    ok 1 - nhận phòng ở UI-07 → deal "đã nhận" + sự kiện
+      ---
+      duration_ms: 38.5885
+      type: 'test'
+      ...
+    # Subtest: bỏ cọc ở UI-07 → deal "bỏ cọc", hoa hồng tính lại trên cọc − tiền ngày đã ở, phòng mở bán lại
+    ok 2 - bỏ cọc ở UI-07 → deal "bỏ cọc", hoa hồng tính lại trên cọc − tiền ngày đã ở, phòng mở bán lại
+      ---
+      duration_ms: 10.1935
+      type: 'test'
+      ...
+    # Subtest: bỏ cọc từ UI-21 vẫn đúng một sự kiện, không tính hai lần
+    ok 3 - bỏ cọc từ UI-21 vẫn đúng một sự kiện, không tính hai lần
+      ---
+      duration_ms: 2.5291
+      type: 'test'
+      ...
+    # Subtest: ⛔ hủy deal khi lượt thuê không còn chờ nhận (dữ liệu cũ lệch trạng thái)
+    ok 4 - ⛔ hủy deal khi lượt thuê không còn chờ nhận (dữ liệu cũ lệch trạng thái)
+      ---
+      duration_ms: 0.6067
+      type: 'test'
+      ...
+    1..4
+ok 72 - A4 – deal và lượt thuê không lệch khi thao tác ở UI-07
+  ---
+  duration_ms: 672.9446
+  type: 'test'
+  ...
+# Subtest: A5 / D18 – mở lại kỳ: dòng điều chỉnh sau khóa tạm gỡ, sửa số gốc chỉ cộng một lần; khóa lại không cộng hai lần
+ok 73 - A5 / D18 – mở lại kỳ: dòng điều chỉnh sau khóa tạm gỡ, sửa số gốc chỉ cộng một lần; khóa lại không cộng hai lần
+  ---
+  duration_ms: 955.1757
+  type: 'test'
+  ...
+# Subtest: A6 – Zalo: 2 đợt tạo liên tiếp trước khi gửi không trùng người nhận (sắp hết HĐ, quá hạn)
+ok 74 - A6 – Zalo: 2 đợt tạo liên tiếp trước khi gửi không trùng người nhận (sắp hết HĐ, quá hạn)
+  ---
+  duration_ms: 647.4418
+  type: 'test'
+  ...
+# Subtest: A7 – OCR: số viết kiểu Việt Nam ("3.800", "4.200.000") được đọc đúng; giá thuê không hợp lệ bị chặn
+ok 75 - A7 – OCR: số viết kiểu Việt Nam ("3.800", "4.200.000") được đọc đúng; giá thuê không hợp lệ bị chặn
+  ---
+  duration_ms: 467.7118
+  type: 'test'
+  ...
+# Subtest: A8 – chi hoa hồng khi kỳ đủ điều kiện đã khóa → ghi kỳ của ngày chi; ⛔ chi trước ngày đủ điều kiện
+ok 76 - A8 – chi hoa hồng khi kỳ đủ điều kiện đã khóa → ghi kỳ của ngày chi; ⛔ chi trước ngày đủ điều kiện
+  ---
+  duration_ms: 1025.6551
+  type: 'test'
+  ...
+# Subtest: A9 – chia trùng: 2 người 25%, 3 người 16,67%, ≥ 4 người chia đều; co giãn theo mức cơ bản; chốt deal nhiều sale
+ok 77 - A9 – chia trùng: 2 người 25%, 3 người 16,67%, ≥ 4 người chia đều; co giãn theo mức cơ bản; chốt deal nhiều sale
+  ---
+  duration_ms: 432.5876
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt A (bộ nghiệm thu trong app)
+ok 78 - NT-0 – Phase 1 không đổi sau Đợt A (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 1051.72
+  type: 'test'
+  ...
+# Subtest: B1 – đổi phòng trước khi nhận: giá mới + biểu dịch vụ tòa mới vào phiên biểu phí (hóa đơn tính đúng)
+ok 79 - B1 – đổi phòng trước khi nhận: giá mới + biểu dịch vụ tòa mới vào phiên biểu phí (hóa đơn tính đúng)
+  ---
+  duration_ms: 775.3392
+  type: 'test'
+  ...
+# Subtest: B2 – hủy chứng từ chi hoa hồng ở UI-15 → gỡ đợt chi, dòng hoa hồng chi lại được
+ok 80 - B2 – hủy chứng từ chi hoa hồng ở UI-15 → gỡ đợt chi, dòng hoa hồng chi lại được
+  ---
+  duration_ms: 426.7908
+  type: 'test'
+  ...
+# Subtest: B3 – import hoa hồng ở mốc 2: chỉ lịch sử ≤ 08/2026 (không cộng hai lần với hoa hồng tính trên web)
+ok 81 - B3 – import hoa hồng ở mốc 2: chỉ lịch sử ≤ 08/2026 (không cộng hai lần với hoa hồng tính trên web)
+  ---
+  duration_ms: 541.4143
+  type: 'test'
+  ...
+# Subtest: B4 – ⛔ sale gắn liên hệ trùng vào khách của sale khác
+ok 82 - B4 – ⛔ sale gắn liên hệ trùng vào khách của sale khác
+  ---
+  duration_ms: 395.5329
+  type: 'test'
+  ...
+# Subtest: B5 – bỏ cọc làm số hoa hồng nhỏ hơn số đã chi → "đã chi đủ" + khoản cần thu hồi (không kẹt chờ duyệt)
+ok 83 - B5 – bỏ cọc làm số hoa hồng nhỏ hơn số đã chi → "đã chi đủ" + khoản cần thu hồi (không kẹt chờ duyệt)
+  ---
+  duration_ms: 451.6955
+  type: 'test'
+  ...
+# Subtest: B7 – đối chiếu NT-1 báo cả tổng theo tỷ lệ gợi ý (không chỉ tự khớp F × H của Excel)
+ok 84 - B7 – đối chiếu NT-1 báo cả tổng theo tỷ lệ gợi ý (không chỉ tự khớp F × H của Excel)
+  ---
+  duration_ms: 423.5794
+  type: 'test'
+  ...
+# Subtest: B8 – xác nhận nhiều dòng: một dòng lỗi → không dòng nào bị áp (hai pha)
+ok 85 - B8 – xác nhận nhiều dòng: một dòng lỗi → không dòng nào bị áp (hai pha)
+  ---
+  duration_ms: 373.6495
+  type: 'test'
+  ...
+# Subtest: B9 – điều chỉnh dòng sổ đã xác nhận: lương thợ, bù trừ chủ nhà đi theo số mới; có lịch sử
+ok 86 - B9 – điều chỉnh dòng sổ đã xác nhận: lương thợ, bù trừ chủ nhà đi theo số mới; có lịch sử
+  ---
+  duration_ms: 622.9847
+  type: 'test'
+  ...
+# Subtest: B10 – dòng ghi vào kỳ khác ngày (có lý do) được tính giống nhau ở UI-47, UI-44 và bảng lương
+ok 87 - B10 – dòng ghi vào kỳ khác ngày (có lý do) được tính giống nhau ở UI-47, UI-44 và bảng lương
+  ---
+  duration_ms: 982.74
+  type: 'test'
+  ...
+# Subtest: B11 – âm dương web: máy giặt/sấy 100% điện (OQ-21); điện trừ cọc chỉ lấy phiếu hoàn đã chi
+ok 88 - B11 – âm dương web: máy giặt/sấy 100% điện (OQ-21); điện trừ cọc chỉ lấy phiếu hoàn đã chi
+  ---
+  duration_ms: 853.4557
+  type: 'test'
+  ...
+# Subtest: B12 – UI-44 theo phạm vi tòa của người xem
+ok 89 - B12 – UI-44 theo phạm vi tòa của người xem
+  ---
+  duration_ms: 379.7722
+  type: 'test'
+  ...
+# Subtest: B13 – bảng kê cổ đông: ⛔ khóa nguồn "như Excel"; kỳ mở lại → khóa phiên 2
+ok 90 - B13 – bảng kê cổ đông: ⛔ khóa nguồn "như Excel"; kỳ mở lại → khóa phiên 2
+  ---
+  duration_ms: 568.2717
+  type: 'test'
+  ...
+# Subtest: B14 – ⛔ tỷ lệ góp có ngày hiệu lực trước bộ tỷ lệ đang dùng
+ok 91 - B14 – ⛔ tỷ lệ góp có ngày hiệu lực trước bộ tỷ lệ đang dùng
+  ---
+  duration_ms: 472.5881
+  type: 'test'
+  ...
+# Subtest: B15 / B16 – OCR: chạy lại thì phiên cũ không áp dụng được; ⛔ áp biểu phí vào kỳ đã khóa
+ok 92 - B15 / B16 – OCR: chạy lại thì phiên cũ không áp dụng được; ⛔ áp biểu phí vào kỳ đã khóa
+  ---
+  duration_ms: 1226.526
+  type: 'test'
+  ...
+# Subtest: B17 – tài liệu gắn phòng lưu đúng phòng; ⛔ phòng khác tòa
+ok 93 - B17 – tài liệu gắn phòng lưu đúng phòng; ⛔ phòng khác tòa
+  ---
+  duration_ms: 1037.1487
+  type: 'test'
+  ...
+# Subtest: B18 / B19 / B21 – hộp thư trưởng phòng; gating theo mốc; trưởng nhóm KD là vai trò riêng
+    # Subtest: trưởng phòng mở được /zalo/inbox; tin chỉ gán cho TPVH hoặc để trống
+    ok 1 - trưởng phòng mở được /zalo/inbox; tin chỉ gán cho TPVH hoặc để trống
+      ---
+      duration_ms: 1.3457
+      type: 'test'
+      ...
+    # Subtest: mốc 1A/1B: ⛔ đăng nhập tài khoản Phase 2, quy tắc Zalo Phase 2, yêu cầu mở lại kỳ
+    ok 2 - mốc 1A/1B: ⛔ đăng nhập tài khoản Phase 2, quy tắc Zalo Phase 2, yêu cầu mở lại kỳ
+      ---
+      duration_ms: 2.3636
+      type: 'test'
+      ...
+    # Subtest: truongkd: vai trò riêng có quyền kinh doanh; leader vận hành không có
+    ok 3 - truongkd: vai trò riêng có quyền kinh doanh; leader vận hành không có
+      ---
+      duration_ms: 0.3689
+      type: 'test'
+      ...
+    1..3
+ok 94 - B18 / B19 / B21 – hộp thư trưởng phòng; gating theo mốc; trưởng nhóm KD là vai trò riêng
+  ---
+  duration_ms: 750.8147
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt B (bộ nghiệm thu trong app)
+ok 95 - NT-0 – Phase 1 không đổi sau Đợt B (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 1147.8043
+  type: 'test'
+  ...
+# Subtest: C-UI21 – sửa ngày nhận dự kiến là sự kiện riêng; thu đủ/thiếu gồm cọc + tháng đầu
+ok 96 - C-UI21 – sửa ngày nhận dự kiến là sự kiện riêng; thu đủ/thiếu gồm cọc + tháng đầu
+  ---
+  duration_ms: 616.244
+  type: 'test'
+  ...
+# Subtest: C-UI22 – chỉ tiêu doanh số theo từng sale có ngày hiệu lực; UI-46 lọc theo sale / team / tòa
+ok 97 - C-UI22 – chỉ tiêu doanh số theo từng sale có ngày hiệu lực; UI-46 lọc theo sale / team / tòa
+  ---
+  duration_ms: 398.7462
+  type: 'test'
+  ...
+# Subtest: C-UI08 – OCR: đủ trường bắt buộc theo đặc tả, vòng đời trạng thái, vận hành rà soát nhưng không áp dụng
+ok 98 - C-UI08 – OCR: đủ trường bắt buộc theo đặc tả, vòng đời trạng thái, vận hành rà soát nhưng không áp dụng
+  ---
+  duration_ms: 612.1949
+  type: 'test'
+  ...
+# Subtest: C-UI26 – HĐ khách nhiều phiên: bản cũ "đã thay"; tải xuống ghi nhật ký, chặn ngoài phạm vi
+ok 99 - C-UI26 – HĐ khách nhiều phiên: bản cũ "đã thay"; tải xuống ghi nhật ký, chặn ngoài phạm vi
+  ---
+  duration_ms: 406.5564
+  type: 'test'
+  ...
+# Subtest: C-UI47 – khách chịu, khách còn ở → "Thu khác" trên hóa đơn nháp (chỉ khi kế toán áp)
+ok 100 - C-UI47 – khách chịu, khách còn ở → "Thu khác" trên hóa đơn nháp (chỉ khi kế toán áp)
+  ---
+  duration_ms: 422.1649
+  type: 'test'
+  ...
+# Subtest: C-UI45 – HS tổng = Σ T / Σ K; HS tạm tính theo tiền nhà đã thu; 3 nhóm phòng trống; nhãn tạm tính theo mốc
+ok 101 - C-UI45 – HS tổng = Σ T / Σ K; HS tạm tính theo tiền nhà đã thu; 3 nhóm phòng trống; nhãn tạm tính theo mốc
+  ---
+  duration_ms: 1292.8913
+  type: 'test'
+  ...
+# Subtest: C-UI27 / UI-44 – trung tâm báo cáo 4 nhóm theo đặc tả, kỳ và trạng thái theo dữ liệu; UI-44 nhóm theo phòng
+ok 102 - C-UI27 / UI-44 – trung tâm báo cáo 4 nhóm theo đặc tả, kỳ và trạng thái theo dữ liệu; UI-44 nhóm theo phòng
+  ---
+  duration_ms: 1138.4586
+  type: 'test'
+  ...
+# Subtest: C-UI38 – hủy / từ chối yêu cầu mở lại phải có lý do; lịch sử ghi lại
+ok 103 - C-UI38 – hủy / từ chối yêu cầu mở lại phải có lý do; lịch sử ghi lại
+  ---
+  duration_ms: 603.2683
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt C (bộ nghiệm thu trong app)
+ok 104 - NT-0 – Phase 1 không đổi sau Đợt C (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 1185.2282
+  type: 'test'
+  ...
+# Subtest: D1 / D6 – khóa lại bảng kê lỗi E24 không làm mất phiên đã khóa; có nút khóa phiên mới sau mở lại kỳ
+ok 105 - D1 / D6 – khóa lại bảng kê lỗi E24 không làm mất phiên đã khóa; có nút khóa phiên mới sau mở lại kỳ
+  ---
+  duration_ms: 711.9681
+  type: 'test'
+  ...
+# Subtest: D7 – chỉ khóa bảng kê khi kỳ báo cáo đã khóa (hoặc kỳ song song Excel)
+ok 106 - D7 – chỉ khóa bảng kê khi kỳ báo cáo đã khóa (hoặc kỳ song song Excel)
+  ---
+  duration_ms: 832.7779
+  type: 'test'
+  ...
+# Subtest: D2 – điều chỉnh dòng chủ nhà chịu: hết chỗ bù trừ thì không ghi gì; người chịu phải hợp lệ; ⛔ đổi người chịu sau chốt lương
+ok 107 - D2 – điều chỉnh dòng chủ nhà chịu: hết chỗ bù trừ thì không ghi gì; người chịu phải hợp lệ; ⛔ đổi người chịu sau chốt lương
+  ---
+  duration_ms: 329.431
+  type: 'test'
+  ...
+# Subtest: D13 – đổi người chịu sau khi "Tính" lương làm đổi chữ ký → phải tính lại
+ok 108 - D13 – đổi người chịu sau khi "Tính" lương làm đổi chữ ký → phải tính lại
+  ---
+  duration_ms: 359.8112
+  type: 'test'
+  ...
+# Subtest: D14 – kỳ sổ theo ngày; ⛔ ghi vào kỳ song song Excel; ⛔ thợ không phải kỹ thuật
+ok 109 - D14 – kỳ sổ theo ngày; ⛔ ghi vào kỳ song song Excel; ⛔ thợ không phải kỹ thuật
+  ---
+  duration_ms: 375.0475
+  type: 'test'
+  ...
+# Subtest: D15 – dòng nháp không vào lương thợ / UI-44; hiện riêng "chưa tính"
+ok 110 - D15 – dòng nháp không vào lương thợ / UI-44; hiện riêng "chưa tính"
+  ---
+  duration_ms: 1198.3406
+  type: 'test'
+  ...
+# Subtest: D3 – hủy deal: lead về trạng thái trước khi chốt, lượt xem không còn "chốt"; chốt lại được
+ok 111 - D3 – hủy deal: lead về trạng thái trước khi chốt, lượt xem không còn "chốt"; chốt lại được
+  ---
+  duration_ms: 514.1454
+  type: 'test'
+  ...
+# Subtest: D4 – trưởng phòng vận hành: xem kinh doanh toàn bộ, không tạo lead / chốt / hủy
+ok 112 - D4 – trưởng phòng vận hành: xem kinh doanh toàn bộ, không tạo lead / chốt / hủy
+  ---
+  duration_ms: 556.1443
+  type: 'test'
+  ...
+# Subtest: D5 – UI-46: số tổng theo phạm vi như các dòng; lọc sale chỉ hiện người được lọc
+ok 113 - D5 – UI-46: số tổng theo phạm vi như các dòng; lọc sale chỉ hiện người được lọc
+  ---
+  duration_ms: 577.4375
+  type: 'test'
+  ...
+# Subtest: D3+ – kiểm tra ngày: ⛔ chốt ngày tương lai, ⛔ nhận / bỏ cọc trước ngày chốt (cả từ UI-07); saleIds không trùng
+ok 114 - D3+ – kiểm tra ngày: ⛔ chốt ngày tương lai, ⛔ nhận / bỏ cọc trước ngày chốt (cả từ UI-07); saleIds không trùng
+  ---
+  duration_ms: 431.1741
+  type: 'test'
+  ...
+# Subtest: D11 – trường OCR: số tiền kiểu Việt Nam, ngày, số nguyên; chữ / số vô lý → lỗi trường
+ok 115 - D11 – trường OCR: số tiền kiểu Việt Nam, ngày, số nguyên; chữ / số vô lý → lỗi trường
+  ---
+  duration_ms: 524.0658
+  type: 'test'
+  ...
+# Subtest: D8 – áp dụng OCR ghi cả điều khoản HĐ vào lượt thuê; ngày đã có hóa đơn phát hành không đổi
+ok 116 - D8 – áp dụng OCR ghi cả điều khoản HĐ vào lượt thuê; ngày đã có hóa đơn phát hành không đổi
+  ---
+  duration_ms: 923.4304
+  type: 'test'
+  ...
+# Subtest: D9 / D10 – file HĐ mới thay phiên OCR của file cũ; vận hành không sửa phiên ngoài phạm vi
+ok 117 - D9 / D10 – file HĐ mới thay phiên OCR của file cũ; vận hành không sửa phiên ngoài phạm vi
+  ---
+  duration_ms: 1339.418
+  type: 'test'
+  ...
+# Subtest: D12 – kho tài liệu: gắn khách / lượt thuê và phiếu thu; ⛔ thay bản không hiện hành; ⛔ tải tài liệu đã xóa; ⛔ file lạ
+ok 118 - D12 – kho tài liệu: gắn khách / lượt thuê và phiếu thu; ⛔ thay bản không hiện hành; ⛔ tải tài liệu đã xóa; ⛔ file lạ
+  ---
+  duration_ms: 2175.2968
+  type: 'test'
+  ...
+# Subtest: D16 – ứng viên Zalo sự kiện lượt thuê có phòng để xem trước (không có hóa đơn)
+ok 119 - D16 – ứng viên Zalo sự kiện lượt thuê có phòng để xem trước (không có hóa đơn)
+  ---
+  duration_ms: 416.6981
+  type: 'test'
+  ...
+# Subtest: D17 – vai trò Phase 2 bị chặn ở mốc 1A/1B kể cả tài khoản tạo mới
+ok 120 - D17 – vai trò Phase 2 bị chặn ở mốc 1A/1B kể cả tài khoản tạo mới
+  ---
+  duration_ms: 358.7002
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt D (bộ nghiệm thu trong app)
+ok 121 - NT-0 – Phase 1 không đổi sau Đợt D (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 823.863
+  type: 'test'
+  ...
+# Subtest: E0.1 – seed: khách cũ của phòng có lượt chờ nhận đã báo trả, bàn giao trước ngày khách mới tính tiền
+ok 122 - E0.1 – seed: khách cũ của phòng có lượt chờ nhận đã báo trả, bàn giao trước ngày khách mới tính tiền
+  ---
+  duration_ms: 618.6221
+  type: 'test'
+  ...
+# Subtest: E0.1 – nhận phòng deal seed: kết thúc lượt cũ ngày 30/09 rồi nhận 01/10; ⛔ nhận khi còn khách cũ
+ok 123 - E0.1 – nhận phòng deal seed: kết thúc lượt cũ ngày 30/09 rồi nhận 01/10; ⛔ nhận khi còn khách cũ
+  ---
+  duration_ms: 355.7507
+  type: 'test'
+  ...
+# Subtest: E0.1 – số liệu không đổi: phòng có lượt chờ nhận vẫn ở nhóm "đang chờ", không vào "trống cuối tháng"
+ok 124 - E0.1 – số liệu không đổi: phòng có lượt chờ nhận vẫn ở nhóm "đang chờ", không vào "trống cuối tháng"
+  ---
+  duration_ms: 348.4109
+  type: 'test'
+  ...
+# Subtest: E1.1 – mốc 1A: action Phase 2 bị chặn ở mức action (không chỉ route); ⛔ gọi trực tiếp từ console
+ok 125 - E1.1 – mốc 1A: action Phase 2 bị chặn ở mức action (không chỉ route); ⛔ gọi trực tiếp từ console
+  ---
+  duration_ms: 608.9505
+  type: 'test'
+  ...
+# Subtest: E1.1 – mốc 1A: bỏ cọc lượt thuê chờ nhận ở UI-07 vẫn chạy (deal đồng bộ, không tính hoa hồng)
+ok 126 - E1.1 – mốc 1A: bỏ cọc lượt thuê chờ nhận ở UI-07 vẫn chạy (deal đồng bộ, không tính hoa hồng)
+  ---
+  duration_ms: 481.0625
+  type: 'test'
+  ...
+# Subtest: E1.2 – Zalo sắp hết HĐ: gia hạn trước khi gửi → bỏ qua "sự kiện không còn đúng"; còn đúng → gửi
+ok 127 - E1.2 – Zalo sắp hết HĐ: gia hạn trước khi gửi → bỏ qua "sự kiện không còn đúng"; còn đúng → gửi
+  ---
+  duration_ms: 557.8521
+  type: 'test'
+  ...
+# Subtest: E1.2 – Zalo đã chi hoàn cọc: phiếu hoàn không còn "đã chi" → bỏ qua (kiểm tra lại thuần)
+ok 128 - E1.2 – Zalo đã chi hoàn cọc: phiếu hoàn không còn "đã chi" → bỏ qua (kiểm tra lại thuần)
+  ---
+  duration_ms: 506.8486
+  type: 'test'
+  ...
+# Subtest: E1.2 – hộp thư: quản lý tòa là trưởng phòng (TPVH) → gán chính người đó
+ok 129 - E1.2 – hộp thư: quản lý tòa là trưởng phòng (TPVH) → gán chính người đó
+  ---
+  duration_ms: 496.2702
+  type: 'test'
+  ...
+# Subtest: E1.3 – tài liệu: loại PCCC; sale chỉ tải HĐ khách của deal mình; kỹ thuật chỉ tải biên bản / ảnh chỉ số tòa có việc; ⛔ ngoài phạm vi
+ok 130 - E1.3 – tài liệu: loại PCCC; sale chỉ tải HĐ khách của deal mình; kỹ thuật chỉ tải biên bản / ảnh chỉ số tòa có việc; ⛔ ngoài phạm vi
+  ---
+  duration_ms: 1074.3875
+  type: 'test'
+  ...
+# Subtest: E2.1 – sổ sửa chữa: ảnh việc sửa, gắn lượt thuê đúng phòng, trạng thái thu chỉ cho khách chịu; ⛔ sai phòng / sai loại file
+ok 131 - E2.1 – sổ sửa chữa: ảnh việc sửa, gắn lượt thuê đúng phòng, trạng thái thu chỉ cho khách chịu; ⛔ sai phòng / sai loại file
+  ---
+  duration_ms: 503.4189
+  type: 'test'
+  ...
+# Subtest: E2.1 – tồn sơn theo điểm: nhập / xuất; ⛔ xuất vượt tồn
+ok 132 - E2.1 – tồn sơn theo điểm: nhập / xuất; ⛔ xuất vượt tồn
+  ---
+  duration_ms: 479.2073
+  type: 'test'
+  ...
+# Subtest: E2.1 – quyết toán ứng chi [GĐ-E2]: chứng từ quỹ, không thêm chi phí; ⛔ quyết toán 2 lần, đổi vật tư / ứng sau quyết toán, kỳ song song Excel
+ok 133 - E2.1 – quyết toán ứng chi [GĐ-E2]: chứng từ quỹ, không thêm chi phí; ⛔ quyết toán 2 lần, đổi vật tư / ứng sau quyết toán, kỳ song song Excel
+  ---
+  duration_ms: 624.7177
+  type: 'test'
+  ...
+# Subtest: E2.2 – import hoa hồng lịch sử: F/G/H/loại ca/I; I ≠ F × H chỉ cảnh báo [GĐ-E4]; ⛔ loại ca lạ, tỷ lệ sai
+ok 134 - E2.2 – import hoa hồng lịch sử: F/G/H/loại ca/I; I ≠ F × H chỉ cảnh báo [GĐ-E4]; ⛔ loại ca lạ, tỷ lệ sai
+  ---
+  duration_ms: 428.9849
+  type: 'test'
+  ...
+# Subtest: E2.3 – UI-22: tỷ lệ riêng theo đối tác trong chính sách; tài khoản đối tác; ⛔ tỷ lệ > 100%, STK sai
+ok 135 - E2.3 – UI-22: tỷ lệ riêng theo đối tác trong chính sách; tài khoản đối tác; ⛔ tỷ lệ > 100%, STK sai
+  ---
+  duration_ms: 436.7828
+  type: 'test'
+  ...
+# Subtest: E2.4 – cổ đông: sửa thông tin có lịch sử; chứng từ góp vốn chỉ admin / kế toán thấy; K/L dòng tổng G1 T8
+ok 136 - E2.4 – cổ đông: sửa thông tin có lịch sử; chứng từ góp vốn chỉ admin / kế toán thấy; K/L dòng tổng G1 T8
+  ---
+  duration_ms: 961.0866
+  type: 'test'
+  ...
+# Subtest: E3.1 – UI-46: lọc loại T/S/G, NV vận hành, cổ đông chỉ giới hạn tòa (không đổi định nghĩa doanh số)
+ok 137 - E3.1 – UI-46: lọc loại T/S/G, NV vận hành, cổ đông chỉ giới hạn tòa (không đổi định nghĩa doanh số)
+  ---
+  duration_ms: 580.3323
+  type: 'test'
+  ...
+# Subtest: E3.2 – UI-43 web: tòa trả điện qua chủ nhà – chi = đơn giá × kWh; chưa có đơn giá → cờ [GĐ-E5]; "như Excel" không đổi (NT-3)
+ok 138 - E3.2 – UI-43 web: tòa trả điện qua chủ nhà – chi = đơn giá × kWh; chưa có đơn giá → cờ [GĐ-E5]; "như Excel" không đổi (NT-3)
+  ---
+  duration_ms: 1044.0092
+  type: 'test'
+  ...
+# Subtest: E3.4 – UI-44: mọi cách gộp giữ khóa gốc để mở đúng phần sổ UI-47; khách chịu có link phiếu hoàn / hóa đơn
+ok 139 - E3.4 – UI-44: mọi cách gộp giữ khóa gốc để mở đúng phần sổ UI-47; khách chịu có link phiếu hoàn / hóa đơn
+  ---
+  duration_ms: 424.4563
+  type: 'test'
+  ...
+# Subtest: E3.5 / E3.6 – leader theo ngày, chỉ team trực tiếp, vai trò phụ trách [GĐ-E6]
+ok 140 - E3.5 / E3.6 – leader theo ngày, chỉ team trực tiếp, vai trò phụ trách [GĐ-E6]
+  ---
+  duration_ms: 267.9206
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt E (bộ nghiệm thu trong app)
+ok 141 - NT-0 – Phase 1 không đổi sau Đợt E (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 683.2847
+  type: 'test'
+  ...
+# Subtest: F25 – domain: kỳ sổ 26 → 25, lương thợ, quyết toán ứng chi
+ok 142 - F25 – domain: kỳ sổ 26 → 25, lương thợ, quyết toán ứng chi
+  ---
+  duration_ms: 15.7273
+  type: 'test'
+  ...
+# Subtest: F25.1 / F25.2 – NT-5, NT-6: sổ T8 như Excel khớp SRC-16; chế độ web cảnh báo dòng ngoài kỳ (K-6)
+ok 143 - F25.1 / F25.2 – NT-5, NT-6: sổ T8 như Excel khớp SRC-16; chế độ web cảnh báo dòng ngoài kỳ (K-6)
+  ---
+  duration_ms: 631.8821
+  type: 'test'
+  ...
+# Subtest: F25.3 / F25.4 – kỹ thuật nhập việc của mình; ⛔ ngày ngoài kỳ phải ghi lý do; ⛔ không xác nhận
+    # Subtest: thêm việc: thợ = chính mình, nháp, kỳ theo ngày
+    ok 1 - thêm việc: thợ = chính mình, nháp, kỳ theo ngày
+      ---
+      duration_ms: 2.1101
+      type: 'test'
+      ...
+    # Subtest: ⛔ ngày 27/09 ghi vào kỳ 09 (thuộc kỳ 10) không có lý do
+    ok 2 - ⛔ ngày 27/09 ghi vào kỳ 09 (thuộc kỳ 10) không có lý do
+      ---
+      duration_ms: 1.038
+      type: 'test'
+      ...
+    # Subtest: ⛔ thiếu tiền / nội dung; ⛔ kỹ thuật không xác nhận; chỉ thấy việc của mình
+    ok 3 - ⛔ thiếu tiền / nội dung; ⛔ kỹ thuật không xác nhận; chỉ thấy việc của mình
+      ---
+      duration_ms: 0.767
+      type: 'test'
+      ...
+    1..3
+ok 144 - F25.3 / F25.4 – kỹ thuật nhập việc của mình; ⛔ ngày ngoài kỳ phải ghi lý do; ⛔ không xác nhận
+  ---
+  duration_ms: 372.8028
+  type: 'test'
+  ...
+# Subtest: F25.5 / F25.6 / F25.7 – xác nhận: chủ nhà chịu → bù trừ trả chủ nhà; khách chi → đề xuất trừ cọc (áp khi xác nhận); tiền công → lương + dòng 41; chốt kỳ sổ → vật tư dòng 41
+    # Subtest: xác nhận 3 dòng
+    ok 1 - xác nhận 3 dòng
+      ---
+      duration_ms: 2.4849
+      type: 'test'
+      ...
+    # Subtest: chủ nhà chịu → kỳ trả chủ nhà được bù trừ 1.000.000
+    ok 2 - chủ nhà chịu → kỳ trả chủ nhà được bù trừ 1.000.000
+      ---
+      duration_ms: 9.2142
+      type: 'test'
+      ...
+    # Subtest: khách chi → chỉ là đề xuất; áp → phiếu hoàn thêm dòng sửa chữa 300.000
+    ok 3 - khách chi → chỉ là đề xuất; áp → phiếu hoàn thêm dòng sửa chữa 300.000
+      ---
+      duration_ms: 2.1425
+      type: 'test'
+      ...
+    # Subtest: tiền công theo sổ → lương thợ kỳ 09 đủ mọi việc; chi phí dòng 41 chỉ việc công ty + khách chịu (chủ nhà đã bù trừ – A2); kỳ song song 08 không lấy
+    ok 4 - tiền công theo sổ → lương thợ kỳ 09 đủ mọi việc; chi phí dòng 41 chỉ việc công ty + khách chịu (chủ nhà đã bù trừ – A2); kỳ song song 08 không lấy
+      ---
+      duration_ms: 422.7985
+      type: 'test'
+      ...
+    # Subtest: chốt kỳ sổ 09: vật tư công ty + khách chịu → chi phí "Sửa chữa" dòng 41 (khách chịu thu hồi qua cọc); ⛔ kỳ 08 song song
+    ok 5 - chốt kỳ sổ 09: vật tư công ty + khách chịu → chi phí "Sửa chữa" dòng 41 (khách chịu thu hồi qua cọc); ⛔ kỳ 08 song song
+      ---
+      duration_ms: 2.3783
+      type: 'test'
+      ...
+    1..5
+ok 145 - F25.5 / F25.6 / F25.7 – xác nhận: chủ nhà chịu → bù trừ trả chủ nhà; khách chi → đề xuất trừ cọc (áp khi xác nhận); tiền công → lương + dòng 41; chốt kỳ sổ → vật tư dòng 41
+  ---
+  duration_ms: 851.0631
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt 2: bộ nghiệm thu trong app (T8 lương 98/101, báo cáo tổng, LNR kinh doanh, T9 1.471 hóa đơn)
+ok 146 - NT-0 – Phase 1 không đổi sau Đợt 2: bộ nghiệm thu trong app (T8 lương 98/101, báo cáo tổng, LNR kinh doanh, T9 1.471 hóa đơn)
+  ---
+  duration_ms: 1176.7112
+  type: 'test'
+  ...
+# Subtest: F26.1 / NT-3 – âm dương điện T7 "như Excel": K 1.234.987.000, L 913.178.913, M +321.808.087; T2 chi 8.135.381; cờ tòa thiếu
+ok 147 - F26.1 / NT-3 – âm dương điện T7 "như Excel": K 1.234.987.000, L 913.178.913, M +321.808.087; T2 chi 8.135.381; cờ tòa thiếu
+  ---
+  duration_ms: 910.7415
+  type: 'test'
+  ...
+# Subtest: F26.2 / NT-4 – âm dương nước T6 "như Excel": 292.728.500 − 207.782.352 = +84.946.148; T2 chi 977.500
+ok 148 - F26.2 / NT-4 – âm dương nước T6 "như Excel": 292.728.500 − 207.782.352 = +84.946.148; T2 chi 977.500
+  ---
+  duration_ms: 665.1167
+  type: 'test'
+  ...
+# Subtest: F26.3 – âm dương web kỳ 09: phải thu = dòng điện hóa đơn đã phát hành + trừ cọc + phòng trống (OQ-20 tách dòng); K = H + B/2 + E; thu − chi thực
+ok 149 - F26.3 – âm dương web kỳ 09: phải thu = dòng điện hóa đơn đã phát hành + trừ cọc + phòng trống (OQ-20 tách dòng); K = H + B/2 + E; thu − chi thực
+  ---
+  duration_ms: 1557.5369
+  type: 'test'
+  ...
+# Subtest: F27.2 – UI-42 chi phí T8: giá vốn + cố định + phát sinh = TCP Báo cáo tổng (6.024.500.037); giá vốn 5.316.928.772
+ok 150 - F27.2 – UI-42 chi phí T8: giá vốn + cố định + phát sinh = TCP Báo cáo tổng (6.024.500.037); giá vốn 5.316.928.772
+  ---
+  duration_ms: 809.7298
+  type: 'test'
+  ...
+# Subtest: F27.3 – UI-44 sửa chữa T8 (như Excel): 233 việc, công 23.350.000 + vật tư 21.981.000; lương vệ sinh 43.200.000
+ok 151 - F27.3 – UI-44 sửa chữa T8 (như Excel): 233 việc, công 23.350.000 + vật tư 21.981.000; lương vệ sinh 43.200.000
+  ---
+  duration_ms: 507.0715
+  type: 'test'
+  ...
+# Subtest: F27.4 – UI-45 phòng vận hành kỳ 09: HS thực tế (công thức lương), lấp đầy, thời gian trống, đúng hạn, phân khúc
+ok 152 - F27.4 – UI-45 phòng vận hành kỳ 09: HS thực tế (công thức lương), lấp đầy, thời gian trống, đúng hạn, phân khúc
+  ---
+  duration_ms: 2847.5747
+  type: 'test'
+  ...
+# Subtest: F27.5 – UI-46 khách & doanh số kỳ 09: % chốt / xem, doanh số theo ngày chốt, hủy tách riêng
+ok 153 - F27.5 – UI-46 khách & doanh số kỳ 09: % chốt / xem, doanh số theo ngày chốt, hủy tách riêng
+  ---
+  duration_ms: 489.2028
+  type: 'test'
+  ...
+# Subtest: F27.1 – UI-27 trung tâm 4 nhóm: có trạng thái; UI-40/41 là Phase 3
+ok 154 - F27.1 – UI-27 trung tâm 4 nhóm: có trạng thái; UI-40/41 là Phase 3
+  ---
+  duration_ms: 731.4875
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt 3 (bộ nghiệm thu trong app)
+ok 155 - NT-0 – Phase 1 không đổi sau Đợt 3 (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 807.4372
+  type: 'test'
+  ...
+# Subtest: F24 / NT-1 – đối chiếu file hoa hồng T8 (SRC-09): Σ I = F × H = 227.476.935,5; không dòng nào lệch công thức
+ok 156 - F24 / NT-1 – đối chiếu file hoa hồng T8 (SRC-09): Σ I = F × H = 227.476.935,5; không dòng nào lệch công thức
+  ---
+  duration_ms: 870.5384
+  type: 'test'
+  ...
+# Subtest: F24 – domain hoa hồng: gợi ý tỷ lệ theo chính sách SRC-09, cơ sở bỏ cọc, điều kiện chi
+ok 157 - F24 – domain hoa hồng: gợi ý tỷ lệ theo chính sách SRC-09, cơ sở bỏ cọc, điều kiện chi
+  ---
+  duration_ms: 851.8439
+  type: 'test'
+  ...
+# Subtest: F21 – khách xem: sale thêm khách, trùng SĐT (E08), phạm vi sale / trưởng nhóm, lượt xem
+    # Subtest: sale chỉ thấy khách của mình; trưởng nhóm KD thấy cả team
+    ok 1 - sale chỉ thấy khách của mình; trưởng nhóm KD thấy cả team
+      ---
+      duration_ms: 3.1376
+      type: 'test'
+      ...
+    # Subtest: thêm khách: SĐT sai bị chặn; mặc định sale là chính mình
+    ok 2 - thêm khách: SĐT sai bị chặn; mặc định sale là chính mình
+      ---
+      duration_ms: 3.9194
+      type: 'test'
+      ...
+    # Subtest: ⛔ E08: trùng SĐT khách xem / khách thuê → báo trùng; gắn vào khách cũ hoặc ghi lý do thì lưu được
+    ok 3 - ⛔ E08: trùng SĐT khách xem / khách thuê → báo trùng; gắn vào khách cũ hoặc ghi lý do thì lưu được
+      ---
+      duration_ms: 5.7271
+      type: 'test'
+      ...
+    # Subtest: lượt xem + trạng thái; ⛔ sale không tự chuyển khách, không giao cho sale khác
+    ok 4 - lượt xem + trạng thái; ⛔ sale không tự chuyển khách, không giao cho sale khác
+      ---
+      duration_ms: 11.1313
+      type: 'test'
+      ...
+    # Subtest: ⛔ khách của sale khác: không thêm lượt xem
+    ok 5 - ⛔ khách của sale khác: không thêm lượt xem
+      ---
+      duration_ms: 3.6805
+      type: 'test'
+      ...
+    1..5
+ok 158 - F21 – khách xem: sale thêm khách, trùng SĐT (E08), phạm vi sale / trưởng nhóm, lượt xem
+  ---
+  duration_ms: 483.2053
+  type: 'test'
+  ...
+# Subtest: F22 – chốt deal → lượt thuê chờ nhận → thu cọc → nhận phòng; UI-19 đếm đúng
+    # Subtest: chốt: tạo khách + lượt thuê chờ nhận (không cần phiếu cọc), phòng rời "trống ở luôn", hoa hồng chờ duyệt
+    ok 1 - chốt: tạo khách + lượt thuê chờ nhận (không cần phiếu cọc), phòng rời "trống ở luôn", hoa hồng chờ duyệt
+      ---
+      duration_ms: 13.8655
+      type: 'test'
+      ...
+    # Subtest: ⛔ chốt trùng phòng đã có giao dịch chờ
+    ok 2 - ⛔ chốt trùng phòng đã có giao dịch chờ
+      ---
+      duration_ms: 3.8061
+      type: 'test'
+      ...
+    # Subtest: ⛔ sale không nhận phòng (không có quyền lượt thuê); kế toán ghi cọc → cọc đủ; admin nhận phòng → đã nhận
+    ok 3 - ⛔ sale không nhận phòng (không có quyền lượt thuê); kế toán ghi cọc → cọc đủ; admin nhận phòng → đã nhận
+      ---
+      duration_ms: 14.6292
+      type: 'test'
+      ...
+    # Subtest: UI-19: đã chốt ≠ đã nhận; deal nhiều sale chia đều doanh số
+    ok 4 - UI-19: đã chốt ≠ đã nhận; deal nhiều sale chia đều doanh số
+      ---
+      duration_ms: 2.5658
+      type: 'test'
+      ...
+    1..4
+ok 159 - F22 – chốt deal → lượt thuê chờ nhận → thu cọc → nhận phòng; UI-19 đếm đúng
+  ---
+  duration_ms: 634.5609
+  type: 'test'
+  ...
+# Subtest: F23 – đổi phòng, hủy, bỏ cọc: sự kiện riêng, hoa hồng tính lại, cọc thành doanh thu dòng 5
+    # Subtest: ⛔ sale không hủy / bỏ cọc / đổi phòng
+    ok 1 - ⛔ sale không hủy / bỏ cọc / đổi phòng
+      ---
+      duration_ms: 0.8042
+      type: 'test'
+      ...
+    # Subtest: đổi phòng: lượt thuê chờ chuyển phòng, phòng cũ mở bán, hoa hồng giữ theo deal
+    ok 2 - đổi phòng: lượt thuê chờ chuyển phòng, phòng cũ mở bán, hoa hồng giữ theo deal
+      ---
+      duration_ms: 9.0536
+      type: 'test'
+      ...
+    # Subtest: hủy (chưa cọc): không doanh số, hoa hồng hủy; ⛔ đã cọc thì phải dùng bỏ cọc
+    ok 3 - hủy (chưa cọc): không doanh số, hoa hồng hủy; ⛔ đã cọc thì phải dùng bỏ cọc
+      ---
+      duration_ms: 7.1664
+      type: 'test'
+      ...
+    # Subtest: bỏ cọc: cọc → doanh thu (forfeit_revenue), không phiếu hoàn; cơ sở hoa hồng = cọc − tiền ngày đã tính
+    ok 4 - bỏ cọc: cọc → doanh thu (forfeit_revenue), không phiếu hoàn; cơ sở hoa hồng = cọc − tiền ngày đã tính
+      ---
+      duration_ms: 3.9229
+      type: 'test'
+      ...
+    1..4
+ok 160 - F23 – đổi phòng, hủy, bỏ cọc: sự kiện riêng, hoa hồng tính lại, cọc thành doanh thu dòng 5
+  ---
+  duration_ms: 477.6256
+  type: 'test'
+  ...
+# Subtest: F24 – duyệt và chi hoa hồng: lý do khi khác gợi ý, điều kiện chi, chi nhiều đợt, chứng từ dòng 40 kỳ đủ điều kiện
+    # Subtest: ⛔ sale không có quyền hoa hồng (CH-01)
+    ok 1 - ⛔ sale không có quyền hoa hồng (CH-01)
+      ---
+      duration_ms: 1.472
+      type: 'test'
+      ...
+    # Subtest: ⛔ duyệt tỷ lệ khác gợi ý / có khoản trừ mà không lý do
+    ok 2 - ⛔ duyệt tỷ lệ khác gợi ý / có khoản trừ mà không lý do
+      ---
+      duration_ms: 0.8484
+      type: 'test'
+      ...
+    # Subtest: ⛔ chi khi chưa đủ điều kiện (thiếu cọc / tháng đầu / HĐ)
+    ok 3 - ⛔ chi khi chưa đủ điều kiện (thiếu cọc / tháng đầu / HĐ)
+      ---
+      duration_ms: 2.6175
+      type: 'test'
+      ...
+    # Subtest: chi 2 đợt: chứng từ "Hoa hồng" dòng 40, kỳ = tháng đủ điều kiện; ⛔ vượt số duyệt
+    ok 4 - chi 2 đợt: chứng từ "Hoa hồng" dòng 40, kỳ = tháng đủ điều kiện; ⛔ vượt số duyệt
+      ---
+      duration_ms: 12.1226
+      type: 'test'
+      ...
+    1..4
+ok 161 - F24 – duyệt và chi hoa hồng: lý do khi khác gợi ý, điều kiện chi, chi nhiều đợt, chứng từ dòng 40 kỳ đủ điều kiện
+  ---
+  duration_ms: 521.6036
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt 1: báo cáo tổng T8, 1.471 hóa đơn T9
+ok 162 - NT-0 – Phase 1 không đổi sau Đợt 1: báo cáo tổng T8, 1.471 hóa đơn T9
+  ---
+  duration_ms: 690.0757
+  type: 'test'
+  ...
+# Subtest: F28 – domain chia: làm tròn từng dòng, chênh dồn CHUNG (OQ-08); Σ = số chia
+ok 163 - F28 – domain chia: làm tròn từng dòng, chênh dồn CHUNG (OQ-08); Σ = số chia
+  ---
+  duration_ms: 41.6734
+  type: 'test'
+  ...
+# Subtest: F28.3 / NT-2 – bảng kê G1 T8 như Excel: Σ Vốn 48.000.000 · LNG 22.990.932 · LNR 14.664.969 · Tổng nhận 62.664.969; từng dòng lệch ≤ 1đ
+ok 164 - F28.3 / NT-2 – bảng kê G1 T8 như Excel: Σ Vốn 48.000.000 · LNG 22.990.932 · LNR 14.664.969 · Tổng nhận 62.664.969; từng dòng lệch ≤ 1đ
+  ---
+  duration_ms: 1008.0126
+  type: 'test'
+  ...
+# Subtest: F28.3 – bảng kê G1 T8 theo Báo cáo tổng web: vốn, LNG khớp; LNR lệch đúng bằng ô C43 Excel dùng mẫu số 1.343 (OQ-04 / K-9)
+ok 165 - F28.3 – bảng kê G1 T8 theo Báo cáo tổng web: vốn, LNG khớp; LNR lệch đúng bằng ô C43 Excel dùng mẫu số 1.343 (OQ-04 / K-9)
+  ---
+  duration_ms: 491.6955
+  type: 'test'
+  ...
+# Subtest: F28.2 / F28.4 – khóa bảng kê: ảnh chụp số; ⛔ tỷ lệ 99% (E24); ⛔ khóa hai lần; ⛔ vận hành không xem
+    # Subtest: khóa kỳ 08 (đủ 100%)
+    ok 1 - khóa kỳ 08 (đủ 100%)
+      ---
+      duration_ms: 74.9893
+      type: 'test'
+      ...
+    # Subtest: sửa tỷ lệ còn 99% từ 01/09: lưu được (cảnh báo), bảng kê 08 đã khóa không đổi; ⛔ khóa kỳ 09
+    ok 2 - sửa tỷ lệ còn 99% từ 01/09: lưu được (cảnh báo), bảng kê 08 đã khóa không đổi; ⛔ khóa kỳ 09
+      ---
+      duration_ms: 748.0515
+      type: 'test'
+      ...
+    # Subtest: ⛔ vận hành / sale không có quyền cổ đông
+    ok 3 - ⛔ vận hành / sale không có quyền cổ đông
+      ---
+      duration_ms: 0.6789
+      type: 'test'
+      ...
+    1..3
+ok 166 - F28.2 / F28.4 – khóa bảng kê: ảnh chụp số; ⛔ tỷ lệ 99% (E24); ⛔ khóa hai lần; ⛔ vận hành không xem
+  ---
+  duration_ms: 1370.2696
+  type: 'test'
+  ...
+# Subtest: F29.1–F29.3 – kho tài liệu: HĐ khách từ lượt thuê, phạm vi tòa, phiên bản mới, ⛔ xóa tài liệu gắn giao dịch
+    # Subtest: vận hành chỉ thấy tài liệu của tòa được giao; gồm HĐ khách
+    ok 1 - vận hành chỉ thấy tài liệu của tòa được giao; gồm HĐ khách
+      ---
+      duration_ms: 2.8638
+      type: 'test'
+      ...
+    # Subtest: tải lên + phiên bản 2; bản cũ thành "bản cũ"
+    ok 2 - tải lên + phiên bản 2; bản cũ thành "bản cũ"
+      ---
+      duration_ms: 373.796
+      type: 'test'
+      ...
+    # Subtest: ⛔ xóa HĐ chủ nhà / HĐ khách (gắn giao dịch)
+    ok 3 - ⛔ xóa HĐ chủ nhà / HĐ khách (gắn giao dịch)
+      ---
+      duration_ms: 5.5064
+      type: 'test'
+      ...
+    1..3
+ok 167 - F29.1–F29.3 – kho tài liệu: HĐ khách từ lượt thuê, phạm vi tòa, phiên bản mới, ⛔ xóa tài liệu gắn giao dịch
+  ---
+  duration_ms: 834.7426
+  type: 'test'
+  ...
+# Subtest: F29.4–F29.7 – OCR: rà soát, ⛔ E05 thiếu / độ tin cậy thấp, E06 áp dụng biểu phí mới, hóa đơn không đổi, chạy lại = phiên mới
+    # Subtest: trạng thái chờ rà soát; trường có trang/vùng, độ tin cậy
+    ok 1 - trạng thái chờ rà soát; trường có trang/vùng, độ tin cậy
+      ---
+      duration_ms: 0.6002
+      type: 'test'
+      ...
+    # Subtest: ⛔ E05: áp dụng khi thiếu cọc / chưa rà nhóm; ⛔ xác nhận nhóm còn thiếu hoặc độ tin cậy thấp chưa kiểm
+    ok 2 - ⛔ E05: áp dụng khi thiếu cọc / chưa rà nhóm; ⛔ xác nhận nhóm còn thiếu hoặc độ tin cậy thấp chưa kiểm
+      ---
+      duration_ms: 176.5319
+      type: 'test'
+      ...
+    # Subtest: E06: sửa cọc + đơn giá điện, rà đủ 6 nhóm → áp dụng: phiên biểu phí mới, hóa đơn đã phát hành không đổi
+    ok 3 - E06: sửa cọc + đơn giá điện, rà đủ 6 nhóm → áp dụng: phiên biểu phí mới, hóa đơn đã phát hành không đổi
+      ---
+      duration_ms: 168.7388
+      type: 'test'
+      ...
+    # Subtest: chạy lại OCR → phiên 2, không ghi đè phiên 1; file mờ → lỗi / thiếu trang; ⛔ vận hành không chạy OCR
+    ok 4 - chạy lại OCR → phiên 2, không ghi đè phiên 1; file mờ → lỗi / thiếu trang; ⛔ vận hành không chạy OCR
+      ---
+      duration_ms: 134.0057
+      type: 'test'
+      ...
+    1..4
+ok 168 - F29.4–F29.7 – OCR: rà soát, ⛔ E05 thiếu / độ tin cậy thấp, E06 áp dụng biểu phí mới, hóa đơn không đổi, chạy lại = phiên mới
+  ---
+  duration_ms: 838.1219
+  type: 'test'
+  ...
+# Subtest: NT-0 – Phase 1 không đổi sau Đợt 4 (bộ nghiệm thu trong app)
+ok 169 - NT-0 – Phase 1 không đổi sau Đợt 4 (bộ nghiệm thu trong app)
+  ---
+  duration_ms: 734.5175
+  type: 'test'
+  ...
+# Subtest: hoàn cọc 301T41: BC 1.270.000, BD 2.530.000; tiền 9 ngày ở thêm hiện riêng, không trừ
+ok 170 - hoàn cọc 301T41: BC 1.270.000, BD 2.530.000; tiền 9 ngày ở thêm hiện riêng, không trừ
+  ---
+  duration_ms: 28.3201
+  type: 'test'
+  ...
+# Subtest: hoàn cọc: BD = I − BC khớp 154 dòng sheet HOÀN CỌC; khấu hao đơn giá 200.000đ/phòng
+ok 171 - hoàn cọc: BD = I − BC khớp 154 dòng sheet HOÀN CỌC; khấu hao đơn giá 200.000đ/phòng
+  ---
+  duration_ms: 7.525
+  type: 'test'
+  ...
+# Subtest: lương T8: T, HS khớp 100%; V/W khớp trừ 3 ngoại lệ nguồn (S39 V51, S28, S36)
+ok 172 - lương T8: T, HS khớp 100%; V/W khớp trừ 3 ngoại lệ nguồn (S39 V51, S28, S36)
+  ---
+  duration_ms: 36.8057
+  type: 'test'
+  ...
+# Subtest: quy tắc cận gần nhất + ca đặc biệt
+ok 173 - quy tắc cận gần nhất + ca đặc biệt
+  ---
+  duration_ms: 8.2182
+  type: 'test'
+  ...
+# Subtest: phân bổ G1 khớp SRC-07 C36–C46 (15 phòng, mẫu số 1.382)
+ok 174 - phân bổ G1 khớp SRC-07 C36–C46 (15 phòng, mẫu số 1.382)
+  ---
+  duration_ms: 0.8066
+  type: 'test'
+  ...
+# Subtest: khấu hao 1,6%/tháng cộng dồn đến đủ nguyên giá
+ok 175 - khấu hao 1,6%/tháng cộng dồn đến đủ nguyên giá
+  ---
+  duration_ms: 0.4776
+  type: 'test'
+  ...
+# Subtest: báo cáo tổng T8: công thức dòng 18–61 tái hiện sheet; cột T+S+G = TỔNG
+ok 176 - báo cáo tổng T8: công thức dòng 18–61 tái hiện sheet; cột T+S+G = TỔNG
+  ---
+  duration_ms: 19.7272
+  type: 'test'
+  ...
+# Subtest: báo cáo kinh doanh T8: GĐ OQ-10 = 790.331.663; như sheet Excel = 685.928.969
+ok 177 - báo cáo kinh doanh T8: GĐ OQ-10 = 790.331.663; như sheet Excel = 685.928.969
+  ---
+  duration_ms: 4.9104
+  type: 'test'
+  ...
+1..177
+# tests 275
+# suites 0
+# pass 275
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 22302.7824

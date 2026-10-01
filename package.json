@@ -30,7 +30,8 @@
     "seed:p2": "python -X utf8 scripts/seed/extract_seed_p2.py",
     "build": "node scripts/build.mjs",
     "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
-    "verify:intake:ui": "node scripts/verify-intake-ui.mjs"
+    "verify:intake:ui": "node scripts/verify-intake-ui.mjs",
+    "verify:p2:fixes": "node scripts/verify-p2-audit-fixes.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.63.0"

@@ -12,7 +12,7 @@ test('B1 – đổi phòng trước khi nhận: giá mới + biểu dịch vụ 
   const TH = boot({ user: 'admin' }); const S = TH.store, X = TH.actions, Q = TH.q;
   const fs = Q.forSale().filter(x => x.kind === 'now').map(x => x.room);
   const a = fs[0], b = fs.find(r => r.buildingId !== a.buildingId);
-  const l = X.addLead({ phone: '0977000222', source: 'Zalo' });
+  const l = X.addLead({ phone: '0977000222', source: 'Zalo', saleId: Q.salesStaff()[0].id });
   const d = X.closeDeal({ leadId: l.id, roomId: a.id, price: a.price, deposit: a.price, closeDate: '2026-09-28', billingStart: '2026-10-01', term: 12 });
   X.transferDeal(d.id, { toRoomId: b.id, price: 3500000, reason: 'Khách đổi ý' });
   const rv = Q.rateOf(d.stayId);
