@@ -110,6 +110,8 @@
           { name: 'labor', label: 'Tiền công', type: 'money' }, { name: 'material', label: 'Vật tư', type: 'money' }, { name: 'bearer', label: 'Người chịu', type: 'select', options: RP.BEARERS, value: 'company' }, { name: 'paintFrom', label: 'Điểm lấy sơn' },
           { name: 'stay', label: 'Gắn lượt thuê', type: 'select', options: [['current', 'Khách đang ở phòng'], ['last', 'Khách vừa trả phòng gần nhất']], placeholder: 'Không gắn', help: 'Việc khách chịu nên gắn lượt thuê để đề xuất trừ cọc / thu khác đúng khách' },
           { name: 'collectStatus', label: 'Trạng thái thu (khách chịu)', type: 'select', options: RP.COLLECT, placeholder: '–' },
+          ...(TH.ms.on('3') && Q.maintTasks ? [{ name: 'maintenanceTaskId', label: 'Gắn lịch bảo dưỡng (UI-35)', type: 'select', placeholder: 'Không gắn', help: 'Việc sửa phát sinh khi bảo dưỡng – phải cùng tòa',
+            options: Q.maintTasks({}).filter(t => t.status !== 'cancelled' && (t.status === 'planned' || (t.doneDate || '') >= TH.calc.dates.addDays(F.today(), -60))).map(t => [t.id, t.code + ' · ' + ((Q.building(t.buildingId) || {}).code || '') + ' · ' + t.kind]) }] : []),
           { name: 'periodReason', label: 'Lý do nếu ngày ngoài kỳ sổ', span: true }, { name: 'note', label: 'Ghi chú', span: true },
           { type: 'html', span: true, html: '<div class="field"><label>Ảnh việc sửa (trước / sau)</label>' + U.dropzone({ name: 'photos', hint: 'JPG, PNG, HEIC hoặc PDF', accept: 'image/*,.pdf' }) + '</div>' }],
         submit: 'Lưu nháp', onSubmit: (x, dd) => { const b = Q.building(x.buildingId); const room = b && x.roomCode ? S.one('rooms', r => r.code === String(x.roomCode).trim() + b.code) : null;

@@ -11,14 +11,19 @@
       .map(r => ({ stay: Q.stay(r.stayId), amount: r.paidAmount || 0, date: String(r.paidAt).slice(0, 10), refundId: r.id }));
   };
   /* Người nhận đang có tin chờ gửi (đợt khác chưa gửi) cùng sự kiện → không đưa vào đợt mới (A6: không gửi lặp) */
-  const queuedKeys = (event) => new Set(S.where('zaloMessages', m => m.event === event && m.status === 'queued').map(m => m.invoiceId || 'st:' + m.stayId));
+  const keyOfMsg = (m) => m.invoiceId || (m.taskId ? 'tk:' + m.taskId : 'st:' + m.stayId);
+  const queuedKeys = (event) => new Set(S.where('zaloMessages', m => m.event === event && m.status === 'queued').map(keyOfMsg));
+  /* Phase 3: nhắc bảo dưỡng – việc còn dự kiến, hạn trong N ngày tới (CH-32); mỗi lần bảo dưỡng nhắc một lần */
+  const taskCandidates = (rule, set) => { const sent = new Set(S.where('zaloMessages', m => m.event === rule.event && !['queued', 'skipped_stale'].includes(m.status)).map(m => m.taskId));
+    return Q.maintDueForReminder(set ? [...set] : null).filter(t => !sent.has(t.id)).map(t => ({ task: t, amount: 0, date: t.dueDate })); };
   X.zaloCandidates = (ruleId, buildingIds, period) => {
     const rule = S.get('zaloRules', ruleId); const q = queuedKeys(rule.event);
-    return candidatesOf(rule, buildingIds, period).filter(c => !q.has(c.invoice ? c.invoice.id : 'st:' + c.stay.id));
+    return candidatesOf(rule, buildingIds, period).filter(c => !q.has(c.invoice ? c.invoice.id : c.task ? 'tk:' + c.task.id : 'st:' + c.stay.id));
   };
   const candidatesOf = (rule, buildingIds, period) => {
     const set = buildingIds && buildingIds.length ? new Set(buildingIds) : null; const t = F.today(); const prm = Q.params(t);
     if (Cc.zalo.STAY_EVENTS.includes(rule.event)) return stayCandidates(rule, set);
+    if ((Cc.zalo.TASK_EVENTS || []).includes(rule.event)) return taskCandidates(rule, set);
     const last = {}; S.all('zaloMessages').forEach(m => { if (m.event === rule.event && m.sentAt && m.status !== 'skipped_paid' && (!last[m.invoiceId] || last[m.invoiceId] < m.sentAt)) last[m.invoiceId] = m.sentAt; });
     const items = S.all('invoices').filter(i => (!set || set.has(i.buildingId)) && (!period || i.period === period) && i.lifecycle !== 'draft' && !i.isBreach).map(inv => {
       const st = Q.invState(inv); return { invoice: inv, remaining: st.remaining, dueTo: inv.dueTo, debtFrom: Cc.dates.billingWindow(inv.period, prm).debtFrom, lastSentAt: last[inv.id] || null, issued: true };
@@ -36,6 +41,8 @@
     const code = S.nextCode('zaloBatches', 'ZB-' + F.today().replace(/-/g, '') + '-', 2);
     const b = S.add('zaloBatches', { id: 'zb_' + code, code, ruleId: rule.id, event: rule.event, templateId: tpl.id, buildingIds: d.buildingIds || [], period: d.period || null, status: 'prepared', createdBy: _.who(), count: cands.length });
     cands.forEach(c => {
+      if (c.task) { const t = c.task; const emp = Q.emp(t.assigneeId || t.leaderId) || {}; // nhân viên: giả định đã liên kết Zalo nội bộ [P]
+        S.add('zaloMessages', { batchId: b.id, invoiceId: null, stayId: null, taskId: t.id, employeeId: emp.id || null, buildingId: t.buildingId, phone: emp.phone || '', zaloLinked: !!emp.id, event: rule.event, amount: 0, date: t.dueDate, status: 'queued', attempts: 0 }); return; }
       if (!c.invoice) { const s = c.stay; const cust = Q.customer(s.customerId) || {}; S.add('zaloMessages', { batchId: b.id, invoiceId: null, stayId: s.id, refundId: c.refundId || null, buildingId: s.buildingId, phone: cust.phone, zaloLinked: cust.zaloLinked, event: rule.event, amount: c.amount, date: c.date, status: 'queued', attempts: 0 }); return; }
       const inv = c.invoice; const s = Q.stay(inv.stayId); const cust = Q.customer(s.customerId);
       S.add('zaloMessages', { batchId: b.id, invoiceId: inv.id, stayId: s.id, buildingId: inv.buildingId, phone: cust.phone, zaloLinked: cust.zaloLinked, event: rule.event,
@@ -45,9 +52,9 @@
   };
   const deliver = (m) => {
     const inv = m.invoiceId ? Q.invoice(m.invoiceId) : null; const st = inv ? Q.invState(inv) : { remaining: 0 };
-    const chk = Cc.zalo.recheck(m, st.remaining, inv ? {} : { stay: Q.stay(m.stayId), refund: m.refundId ? S.get('refunds', m.refundId) : null, asOf: F.today(), warnDays: Q.param('expiryWarnDays') });
+    const chk = Cc.zalo.recheck(m, st.remaining, m.taskId ? { task: S.get('maintenanceTasks', m.taskId), asOf: F.today(), remindDays: Q.param('maintRemindDays') } : inv ? {} : { stay: Q.stay(m.stayId), refund: m.refundId ? S.get('refunds', m.refundId) : null, asOf: F.today(), warnDays: Q.param('expiryWarnDays') });
     if (chk.action === 'skip') return { status: chk.status, error: chk.reason };
-    if (!m.zaloLinked) return { status: 'failed', error: 'NOT_LINKED', errorText: 'Khách chưa liên kết Zalo', amount: chk.amount };
+    if (!m.zaloLinked) return { status: 'failed', error: 'NOT_LINKED', errorText: m.taskId ? 'Chưa giao người nhận nhắc' : 'Khách chưa liên kết Zalo', amount: chk.amount };
     if (m.attempts === 0 && hash(m.id) % 17 === 3) return { status: 'failed', error: 'TIMEOUT', errorText: 'Hết thời gian chờ nhà cung cấp', amount: chk.amount };
     return { status: 'delivered', amount: chk.amount };
   };
@@ -68,6 +75,10 @@
     const msgs = S.where('zaloMessages', m => m.batchId === id && m.status === 'queued');
     msgs.forEach(m => {
       const r = deliver(m); const inv = m.invoiceId ? Q.invoice(m.invoiceId) : null; const st = Q.stay(m.stayId) || {};
+      if (m.taskId) { const t = S.get('maintenanceTasks', m.taskId) || {}; const a = Q.asset(t.assetId) || {};
+        S.update('zaloMessages', m.id, { status: r.status, error: r.error || null, errorText: r.errorText || null, text: Cc.zalo.render(tpl.body, { phong: ((Q.building(t.buildingId) || {}).code || '') + ' – ' + (a.name || ''), han: F.date(t.dueDate), noidung: t.code + ' ' + (t.kind || '') }), attempts: m.attempts + 1, sentAt: F.nowISO() });
+        if (r.status === 'delivered') S.update('maintenanceTasks', t.id, { remindedAt: F.nowISO() }); // nội bộ: lỗi thì nhắc trên web (UI-35, UI-01), không SMS
+        return; }
       const text = inv ? Cc.zalo.render(tpl.body, { ky: F.periodShort(inv.period), phong: Q.roomCode(inv.roomId), sotien: F.vnd(r.amount || m.amount), han: F.date(inv.dueTo), noidung: inv.customerCode })
         : Cc.zalo.render(tpl.body, { ky: '', phong: Q.roomCode(st.roomId), sotien: F.vnd(m.amount), han: F.date(m.date), noidung: st.code });
       S.update('zaloMessages', m.id, { status: r.status, error: r.error || null, errorText: r.errorText || null, amount: r.amount || m.amount, text, attempts: m.attempts + 1, sentAt: F.nowISO() });
@@ -80,7 +91,7 @@
     S.update('zaloBatches', id, Object.assign({ status: 'sent', stats: { delivered: all.filter(m => m.status === 'delivered').length, failed: all.filter(m => m.status === 'failed').length, skipped: all.filter(m => ['skipped_paid', 'skipped_stale'].includes(m.status)).length, sms: S.where('smsMessages', x => x.batchId === id).length } }, retry ? { retriedAt: F.nowISO() } : { sentAt: F.nowISO() }));
     // mô phỏng phản hồi khách → hộp thư trưởng phòng: chỉ tin gửi thành công trong lần này, mỗi tin tối đa một phản hồi
     const sentNow = new Set(msgs.map(m => m.id));
-    all.filter(m => sentNow.has(m.id) && m.status === 'delivered' && hash(m.id) % 29 === 1 && !S.one('zaloInbox', x => x.messageId === m.id)).slice(0, 3).forEach(m => {
+    all.filter(m => sentNow.has(m.id) && m.status === 'delivered' && m.stayId && hash(m.id) % 29 === 1 && !S.one('zaloInbox', x => x.messageId === m.id)).slice(0, 3).forEach(m => {
       const s = Q.stay(m.stayId); const lead = Q.inboxAssignee(m.buildingId);
       S.add('zaloInbox', { batchId: id, messageId: m.id, stayId: m.stayId, buildingId: m.buildingId, text: ['Em chuyển khoản tối nay ạ', 'Cho em xin gia hạn đến ngày 10', 'Phòng em điện sao cao vậy ạ?'][hash(m.id) % 3], at: F.nowISO(), assigneeId: lead ? lead.id : null, status: 'open', customerCode: s.code });
     });

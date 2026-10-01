@@ -8,9 +8,12 @@
     overdue: 'Quá hạn / công nợ',
     contract_expiring: 'Sắp hết hợp đồng',
     refund_paid: 'Đã chi hoàn cọc',
+    maintenance_due: 'Nhắc lịch bảo dưỡng (nội bộ)',
   };
   /* Sự kiện Phase 2 gắn lượt thuê (không gắn hóa đơn): không kiểm tra lại số nợ, mỗi lượt thuê chỉ gửi một lần cho mỗi sự kiện */
   Z.STAY_EVENTS = ['contract_expiring', 'refund_paid'];
+  /* Phase 3: sự kiện gắn lịch bảo dưỡng UI-35 – gửi nhân viên được giao (Zalo nội bộ), mỗi lần bảo dưỡng nhắc một lần */
+  Z.TASK_EVENTS = ['maintenance_due'];
   /* Chọn người nhận theo quy tắc tại ngày asOf. items: [{invoice, remaining, dueTo, debtFrom, lastSentAt, issued}]
      prm: tham số hiệu lực (zaloRemindBeforeDays). Quá hạn = từ ngày thành công nợ (ngày 6 tháng N, OQ-12);
      repeatDays: không gửi lại cùng hóa đơn + cùng sự kiện trong N ngày; tin phát hành chỉ gửi một lần. */
@@ -28,6 +31,13 @@
      Sự kiện lượt thuê (E1, đặc tả UI-39 "chỉ gửi nội dung còn đúng"): ctx = { stay, refund, asOf, warnDays }
      – sắp hết HĐ: lượt thuê còn đang ở, ngày hết hạn chưa đổi (chưa gia hạn), vẫn trong cửa sổ cảnh báo; – đã chi hoàn cọc: phiếu hoàn vẫn "đã chi". */
   Z.recheck = (msg, remaining, ctx = {}) => {
+    if (msg.event === 'maintenance_due') { // ctx = { task, asOf, remindDays }: còn dự kiến, hạn chưa đổi, vẫn trong cửa sổ nhắc
+      const t = ctx.task;
+      if (!t || t.status !== 'planned') return { action: 'skip', status: 'skipped_stale', reason: 'Lịch đã thực hiện / đã hủy' };
+      if (t.dueDate !== msg.date) return { action: 'skip', status: 'skipped_stale', reason: 'Lịch đã đổi ngày dự kiến' };
+      if (ctx.asOf && (t.dueDate < ctx.asOf || (ctx.remindDays != null && C.dates.diffDays(ctx.asOf, t.dueDate) > ctx.remindDays))) return { action: 'skip', status: 'skipped_stale', reason: 'Ngoài cửa sổ nhắc' };
+      return { action: 'send', amount: 0 };
+    }
     if (msg.event === 'contract_expiring') {
       const s = ctx.stay;
       if (!s || s.status !== 'active') return { action: 'skip', status: 'skipped_stale', reason: 'Lượt thuê đã kết thúc' };

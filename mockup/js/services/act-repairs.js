@@ -72,6 +72,9 @@
     if (d.stayId && (!stay || !d.roomId || stay.roomId !== d.roomId)) errs.stayId = 'Lượt thuê không thuộc phòng đã chọn';
     const photos = (d.photos || []).map(f => ({ name: String(f.name || '').trim(), size: Number(f.size) || 0 }));
     if (photos.some(f => !/\.(jpe?g|png|heic|pdf)$/i.test(f.name))) errs.photos = 'Ảnh việc sửa: chỉ nhận JPG, PNG, HEIC hoặc PDF';
+    // Phase 3 (đặc tả dòng 557): dòng sổ có thể gắn lịch bảo dưỡng UI-35 cùng tòa
+    const mtask = d.maintenanceTaskId ? S.get('maintenanceTasks', d.maintenanceTaskId) : null;
+    if (d.maintenanceTaskId && (!mtask || mtask.buildingId !== d.buildingId)) errs.maintenanceTaskId = 'Lịch bảo dưỡng không thuộc tòa đã chọn';
     const period = d.period || (d.date ? Q.repairPeriodOf(d.date) : null);
     if (!errs.period && period && material > 0 && settled(workerId, period)) errs.period = SETTLED(workerId, period);
     // ngày ngoài kỳ sổ đang ghi (K-6): phải chọn đúng kỳ hoặc ghi lý do
@@ -82,7 +85,8 @@
     _.guardPeriod(period, 'ghi sổ sửa chữa');
     const r = S.add('repairLogs', { code: S.nextCode('repairLogs', 'SC-' + period.slice(2, 4) + period.slice(5, 7) + '-'), period, date: d.date, buildingId: b.id, buildingCode: b.code, roomId: d.roomId || null, roomCode: d.roomId ? Q.roomCode(d.roomId).replace(b.code, '') : null,
       desc: d.desc.trim(), jobType: d.jobType, workerId, labor, material, paintFrom: d.paintFrom || null, reason: d.reason || 'other', bearer: d.bearer || 'company', collectStatus: d.collectStatus || null,
-      stayId: d.stayId || null, photos: photos.map(f => Object.assign(f, { at: F.nowISO(), by: _.who() })), note: [d.note, d.periodReason ? 'Ngoài kỳ: ' + d.periodReason : ''].filter(Boolean).join(' · '), periodOverride: !!(d.date && Q.repairPeriodOf(d.date) !== period), status: 'draft', source: 'web', enteredBy: _.who() });
+      stayId: d.stayId || null, maintenanceTaskId: mtask ? mtask.id : null, photos: photos.map(f => Object.assign(f, { at: F.nowISO(), by: _.who() })), note: [d.note, d.periodReason ? 'Ngoài kỳ: ' + d.periodReason : ''].filter(Boolean).join(' · '), periodOverride: !!(d.date && Q.repairPeriodOf(d.date) !== period), status: 'draft', source: 'web', enteredBy: _.who() });
+    if (mtask) S.update('maintenanceTasks', mtask.id, { repairLogIds: [...(mtask.repairLogIds || []), r.id] });
     _.audit('create', 'repair', r.id, `Sổ sửa chữa ${r.code}: ${b.code} ${d.desc} – công ${F.vnd(labor)}, vật tư ${F.vnd(material)}`); _.done(); return r;
   };
   X.voidRepair = (id, reason) => { _.needMs('2', 'Sổ sửa chữa (UI-47)'); _.need('repairs.enter');

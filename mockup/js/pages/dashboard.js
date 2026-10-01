@@ -28,6 +28,8 @@
       if (role === 'sale') { const leads = Q.salesScoped(S.all('leads')); cards.push(U.kpi({ label: 'Khách xem của tôi', value: leads.filter(l => !['closed', 'lost'].includes(l.status)).length, cap: 'đang chăm sóc · <a href="#/sales/leads">mở danh sách</a>', icon: 'eye', tone: 'amber' })); }
     }
     if (TH.auth.can('zalo.inbox') && Q.inboxScoped) { const ib = Q.inboxScoped().filter(x => x.status !== 'done'); cards.push(U.kpi({ label: 'Phản hồi Zalo chờ xử lý', value: ib.length, cap: (role === 'truongphong' ? 'gán cho nhánh của tôi' : 'toàn hệ thống') + ' · <a href="#/zalo/inbox">mở hộp thư</a>', icon: 'inbox', tone: ib.length ? 'amber' : 'gray' })); }
+    // Phase 3: nhắc bảo dưỡng trên web (CH-32) – theo phạm vi tòa của vai trò / nhánh leader (F11)
+    if (TH.ms.on('3') && TH.auth.can('maintenance.view') && Q.maintStats) { const ms = Q.maintStats(); cards.push(U.kpi({ label: 'Bảo dưỡng', value: ms.overdue + ' quá hạn', cap: ms.soon + ' việc trong ' + ms.remindDays + ' ngày tới · <a href="#/assets/maintenance?soon=1">mở lịch UI-35</a>', icon: 'wrench', tone: ms.overdue ? 'red' : ms.soon ? 'amber' : 'gray' })); }
     if (role === 'kythuat' && Q.repairsScoped) { const rs = Q.repairsScoped(S.all('repairLogs')).filter(r => r.status === 'draft'); cards.push(U.kpi({ label: 'Việc sửa chữa chờ xác nhận', value: rs.length, cap: '<a href="#/repairs">mở sổ sửa chữa</a>', icon: 'wrench', tone: 'blue' })); }
     return cards.length ? `<div class="grid grid-${Math.min(4, cards.length)} mt16">${cards.join('')}</div>` : '';
   };

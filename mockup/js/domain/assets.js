@@ -32,5 +32,25 @@
     if (cost > 0 && !(Number(d.depMonths) >= 1)) e.depMonths = 'Nhập số tháng khấu hao (mặc định 63 ≈ 1,6%/tháng)';
     return e;
   };
+  /* ---- Bảo dưỡng (UI-35, đặc tả dòng 549; CH-32) ----
+     Trạng thái theo đặc tả: dự kiến / đã thực hiện / quá hạn (không có "đang thực hiện" – không làm quy trình SLA).
+     "Sắp đến hạn" là CỜ nhắc trước N ngày (tham số maintRemindDays, mặc định 7), không phải trạng thái. */
+  const MT = {};
+  MT.KINDS = { elevator: 'Bảo dưỡng thang máy', pump: 'Bảo dưỡng máy bơm', washer: 'Vệ sinh lồng giặt / bảo dưỡng máy giặt', water_filter: 'Thay lõi / vệ sinh máy lọc nước', decor: 'Kiểm tra đồ décor', other: 'Bảo dưỡng định kỳ' };
+  MT.CYCLES = [[1, 'Hằng tháng'], [3, '3 tháng'], [6, '6 tháng'], [12, 'Hằng năm']];
+  MT.STATUS = { planned: ['Dự kiến', 'blue'], done: ['Đã thực hiện', 'green'], overdue: ['Quá hạn', 'red'], cancelled: ['Đã hủy', 'gray'] };
+  const addMonths = (date, n) => { const [y, m, d] = date.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1 + n, 1)); const last = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate();
+    return t.getUTCFullYear() + '-' + String(t.getUTCMonth() + 1).padStart(2, '0') + '-' + String(Math.min(d, last)).padStart(2, '0'); };
+  MT.addMonths = addMonths;
+  /* Lần kế tiếp theo chu kỳ: giữ lịch (hạn cũ + chu kỳ); làm trễ quá một chu kỳ thì tính từ ngày làm */
+  MT.nextDue = (dueDate, doneDate, cycleMonths) => { if (!cycleMonths) return null; const n = addMonths(dueDate, cycleMonths); return doneDate && n <= doneDate ? addMonths(doneDate, cycleMonths) : n; };
+  /* {status: planned|done|overdue|cancelled, soon, days} tại ngày today */
+  MT.state = (t, today, remindDays = 7) => {
+    if (t.status === 'done' || t.status === 'cancelled') return { status: t.status, soon: false, days: null };
+    const days = C.dates.diffDays(today, t.dueDate);
+    if (days < 0) return { status: 'overdue', soon: false, days };
+    return { status: 'planned', soon: days <= remindDays, days };
+  };
+  A.maint = MT;
   C.assets = A;
 })(window.TH);

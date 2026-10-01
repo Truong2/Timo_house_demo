@@ -1,6 +1,7 @@
 /* UI-39 Thông báo Zalo ZNS (mô phỏng): đợt gửi · quy tắc · mẫu ZNS · nhật ký từng tin · dự phòng SMS/gọi · hộp thư phản hồi. */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc, Z = TH.calc.zalo;
+  const taskLbl = (m) => { const t = S.get('maintenanceTasks', m.taskId) || {}; const a = Q.asset ? Q.asset(t.assetId) || {} : {}; return ((Q.building(t.buildingId) || {}).code || '') + ' · ' + (a.code || ''); };
   const MST = { queued: ['Chờ gửi', 'blue'], delivered: ['Đã nhận', 'green'], failed: ['Lỗi', 'red'], skipped_paid: ['Bỏ qua – đã thanh toán', 'gray'], skipped_stale: ['Bỏ qua – sự kiện không còn đúng', 'gray'] };
   const mchip = (m) => U.chip(MST[m.status][0] + (m.error ? ' · ' + m.error : ''), MST[m.status][1]);
   /* Quy tắc / mẫu Phase 2 (sắp hết HĐ, đã chi hoàn cọc) chỉ hiện khi đã mở mốc 2 */
@@ -44,7 +45,7 @@
       let rows = msgs.slice().sort((a, b) => String(b.sentAt).localeCompare(String(a.sentAt))); if (q.status) rows = rows.filter(m => m.status === q.status);
       tb.innerHTML = K.filters([{ name: 'status', label: 'Trạng thái', options: Object.entries(MST).map(([k, v]) => [k, v[0]]) }], q) + '<div class="mt12">' + K.tableCard('t', rows.length + ' tin') + '</div>';
       K.bindFilters(tb, ['tab']);
-      U.table(tb.querySelector('#t'), { rows, pageSize: 25, cols: [{ key: 't', label: 'Thời điểm', render: m => F.datetime(m.sentAt) }, { key: 'r', label: 'Phòng', render: m => esc(Q.roomCode((Q.invoice(m.invoiceId) || Q.stay(m.stayId) || {}).roomId)) }, { key: 'ph', label: 'SĐT', render: m => esc(Q.pii(m.phone)) },
+      U.table(tb.querySelector('#t'), { rows, pageSize: 25, cols: [{ key: 't', label: 'Thời điểm', render: m => F.datetime(m.sentAt) }, { key: 'r', label: 'Phòng / tài sản', render: m => m.taskId ? esc(taskLbl(m)) : esc(Q.roomCode((Q.invoice(m.invoiceId) || Q.stay(m.stayId) || {}).roomId)) }, { key: 'ph', label: 'SĐT', render: m => esc(Q.pii(m.phone)) },
         { key: 'e', label: 'Sự kiện', render: m => esc(Z.EVENTS[m.event]) }, { key: 'a', label: 'Số tiền gửi', num: true, render: m => F.vnd(m.amount) }, { key: 'x', label: 'Nội dung', render: m => `<span class="small">${esc(m.text || '')}</span>` }, { key: 'n', label: 'Lần', num: true, render: m => m.attempts }, { key: 's', label: 'Trạng thái', render: mchip }] });
     }
     if (tab === 'quy-tac') {
@@ -69,7 +70,7 @@
         { name: 'ruleId', label: 'Sự kiện / quy tắc', type: 'select', req: true, options: S.all('zaloRules').filter(onMs).map(r => [r.id, r.name + (r.on ? '' : ' (đang tắt)')]), value: q.rule || 'zr_overdue' },
         { name: 'period', label: 'Kỳ hóa đơn', type: 'select', options: K.periodOpts(), value: S.meta.period }, { name: 'building', label: 'Tòa (để trống = toàn phạm vi)', type: 'select', options: K.buildingOpts() },
         { type: 'html', span: true, html: '<div id="zprev"></div>' }], submit: 'Tạo đợt', onSubmit: (x) => { const b = X.createZaloBatch({ ruleId: x.ruleId, period: x.period, buildingIds: x.building ? [x.building] : [] }); U.toast('ok', 'Đã tạo đợt ' + b.code); TH.go('#/zalo/batches/' + b.id); } });
-        const prev = () => { const x = d.data(); const c = X.zaloCandidates(x.ruleId, x.building ? [x.building] : [], x.period); d.el.querySelector('#zprev').innerHTML = U.note(c.length ? 'info' : 'warn', `${c.length} người nhận tại ngày ${F.date(F.today())}`, c.slice(0, 6).map(i => i.invoice ? esc(Q.roomCode(i.invoice.roomId)) + ' – ' + F.vnd(i.remaining) : esc(Q.roomCode((i.stay || {}).roomId)) + ' – ' + (i.amount ? F.vnd(i.amount) : F.date(i.date || (i.stay || {}).endDate))).join(' · ') + (c.length > 6 ? ' …' : '')); };
+        const prev = () => { const x = d.data(); const c = X.zaloCandidates(x.ruleId, x.building ? [x.building] : [], x.period); d.el.querySelector('#zprev').innerHTML = U.note(c.length ? 'info' : 'warn', `${c.length} người nhận tại ngày ${F.date(F.today())}`, c.slice(0, 6).map(i => i.task ? esc((Q.building(i.task.buildingId) || {}).code + ' ' + i.task.code) + ' – hạn ' + F.date(i.task.dueDate) : i.invoice ? esc(Q.roomCode(i.invoice.roomId)) + ' – ' + F.vnd(i.remaining) : esc(Q.roomCode((i.stay || {}).roomId)) + ' – ' + (i.amount ? F.vnd(i.amount) : F.date(i.date || (i.stay || {}).endDate))).join(' · ') + (c.length > 6 ? ' …' : '')); };
         d.el.addEventListener('change', prev); prev(); } });
   });
   TH.router.handle('/zalo/batches/:id', (root, p) => {
@@ -78,10 +79,10 @@
     const rows = S.where('zaloMessages', m => m.batchId === b.id);
     const retry = rows.filter(m => m.status === 'failed' && Z.retryable(m.error)).length;
     root.innerHTML = U.pageHead({ title: 'Đợt gửi ' + esc(b.code), back: '#/zalo', sub: `${esc(Z.EVENTS[b.event])} · ${rows.length} tin · tạo bởi ${esc(b.createdBy)}`, acts: [
-      b.status !== 'sent' ? U.btn({ label: Z.STAY_EVENTS.includes(b.event) ? 'Kiểm tra lại sự kiện & gửi' : 'Kiểm tra lại số nợ & gửi', icon: 'send', cls: 'btn-primary', act: 'send', perm: 'zalo.send' }) : '', retry ? U.btn({ label: `Gửi lại ${retry} tin lỗi tạm thời`, icon: 'refresh', act: 'retry', perm: 'zalo.send' }) : ''] })
+      b.status !== 'sent' ? U.btn({ label: (Z.TASK_EVENTS || []).includes(b.event) ? 'Kiểm tra lại lịch bảo dưỡng & gửi' : Z.STAY_EVENTS.includes(b.event) ? 'Kiểm tra lại sự kiện & gửi' : 'Kiểm tra lại số nợ & gửi', icon: 'send', cls: 'btn-primary', act: 'send', perm: 'zalo.send' }) : '', retry ? U.btn({ label: `Gửi lại ${retry} tin lỗi tạm thời`, icon: 'refresh', act: 'retry', perm: 'zalo.send' }) : ''] })
       + `<div class="grid grid-4 mb16">${Object.entries(MST).filter(([k]) => k !== 'skipped_stale' || rows.some(m => m.status === k)).map(([k, v]) => U.kpi({ label: v[0], value: rows.filter(m => m.status === k).length, icon: 'message', tone: v[1] })).join('')}</div>` + K.tableCard('t', 'Tin trong đợt');
-    U.table(root.querySelector('#t'), { rows, pageSize: 30, cols: [{ key: 'r', label: 'Phòng', render: m => esc(Q.roomCode((Q.invoice(m.invoiceId) || Q.stay(m.stayId) || {}).roomId)) }, { key: 'kh', label: 'Mã KH', render: m => esc((Q.stay(m.stayId) || {}).code) }, { key: 'ph', label: 'SĐT', render: m => esc(Q.pii(m.phone)) },
-      { key: 'z', label: 'Zalo', render: m => m.zaloLinked ? U.chip('Đã liên kết', 'green') : U.chip('Chưa liên kết', 'gray') }, { key: 'a', label: 'Số tiền', num: true, render: m => F.vnd(m.amount) }, { key: 'x', label: 'Nội dung / lỗi', render: m => `<span class="small">${esc(m.errorText || m.text || '')}</span>` },
+    U.table(root.querySelector('#t'), { rows, pageSize: 30, cols: [{ key: 'r', label: 'Phòng / tài sản', render: m => m.taskId ? esc(taskLbl(m)) : esc(Q.roomCode((Q.invoice(m.invoiceId) || Q.stay(m.stayId) || {}).roomId)) }, { key: 'kh', label: 'Mã KH / người nhận', render: m => m.taskId ? esc(((S.get('maintenanceTasks', m.taskId) || {}).code || '') + ' · ' + ((Q.emp(m.employeeId) || {}).name || 'chưa giao')) : esc((Q.stay(m.stayId) || {}).code) }, { key: 'ph', label: 'SĐT', render: m => esc(Q.pii(m.phone)) },
+      { key: 'z', label: 'Zalo', render: m => m.taskId ? U.chip('Nội bộ', 'blue') : m.zaloLinked ? U.chip('Đã liên kết', 'green') : U.chip('Chưa liên kết', 'gray') }, { key: 'a', label: 'Số tiền', num: true, render: m => F.vnd(m.amount) }, { key: 'x', label: 'Nội dung / lỗi', render: m => `<span class="small">${esc(m.errorText || m.text || '')}</span>` },
       { key: 'fb', label: 'Dự phòng', render: m => { if (!m.fallback) return ''; const x = S.get('smsMessages', m.smsId) || {}; return U.chip('SMS ' + (x.status === 'sent' ? 'đã gửi' : 'lỗi') + ' + giao gọi', x.status === 'sent' ? 'amber' : 'red'); } }, { key: 's', label: 'Trạng thái', render: mchip }] });
     U.bind(root, { send: () => K.act(() => X.sendZaloBatch(b.id), 'Đã gửi đợt'), retry: () => K.act(() => X.retryZalo(b.id), 'Đã gửi lại') });
   });

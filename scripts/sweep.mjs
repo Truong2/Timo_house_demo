@@ -11,7 +11,7 @@ await new Promise(r => setTimeout(r, 700));
 const b = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 const out = []; let failed = 0;
 /* Phase 3: tài sản / bảo dưỡng / kiểm kê / góp vốn / dự kiến LN / hiệu quả – thêm dần theo đợt P3-1…P3-7 */
-const P3 = ['/assets', '/assets/maintenance', '/assets/inventory', '/shares/capital', '/reports/forecast', '/reports/efficiency', '/buildings/b_G1?tab=tai-san', '/dashboard?period=2026-09'];
+const P3 = ['/assets', '/assets?ownership=company&period=2026-08', '/assets/maintenance?soon=1', '/assets/maintenance?status=done&type=pump', '/assets/maintenance', '/assets/inventory', '/shares/capital', '/reports/forecast', '/reports/efficiency', '/buildings/b_G1?tab=tai-san', '/dashboard?period=2026-09'];
 for (const u of ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong', 'truongkd', 'sale', 'kythuat', 'codong']) {
   const ctx = await b.newContext(); const p = await ctx.newPage(); const errs = [];
   p.on('pageerror', e => errs.push(e.message));

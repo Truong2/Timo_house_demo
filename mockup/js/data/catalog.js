@@ -195,6 +195,8 @@ TH.data.catalog = {
       body: 'Phòng {{phong}} còn nợ {{sotien}}đ kỳ {{ky}} đã quá hạn. Vui lòng thanh toán, nội dung CK: {{noidung}}.' },
     { id: 'zt_expiring', name: 'Thông báo sắp hết hợp đồng', event: 'contract_expiring', status: 'approved', cost: 300, phase: '2',
       body: 'Hợp đồng phòng {{phong}} hết hạn ngày {{han}}. Anh/chị vui lòng báo gia hạn hoặc trả phòng với quản lý tòa.' },
+    { id: 'zt_maint', name: 'Nhắc lịch bảo dưỡng (nội bộ)', event: 'maintenance_due', status: 'approved', cost: 0, phase: '3',
+      body: 'Nhắc bảo dưỡng {{noidung}} tại {{phong}}, ngày dự kiến {{han}}. Cập nhật kết quả ở UI-35 sau khi thực hiện.' },
     { id: 'zt_refund', name: 'Thông báo đã chi hoàn cọc', event: 'refund_paid', status: 'approved', cost: 300, phase: '2',
       body: 'TimoHouse đã chi hoàn cọc phòng {{phong}}: {{sotien}}đ ngày {{han}}. Cảm ơn anh/chị đã ở cùng TimoHouse.' },
   ],
@@ -204,5 +206,6 @@ TH.data.catalog = {
     { id: 'zr_overdue', name: 'Nhắc công nợ từ ngày 6', event: 'overdue', templateId: 'zt_overdue', on: true, time: '10:00', repeatDays: 3 },
     { id: 'zr_expiring', name: 'Báo sắp hết HĐ (35 ngày – tham số)', event: 'contract_expiring', templateId: 'zt_expiring', on: true, time: '09:00', phase: '2' },
     { id: 'zr_refund', name: 'Báo đã chi hoàn cọc', event: 'refund_paid', templateId: 'zt_refund', on: true, time: '16:00', phase: '2' },
+    { id: 'zr_maint', name: 'Nhắc bảo dưỡng trước hạn (7 ngày – tham số)', event: 'maintenance_due', templateId: 'zt_maint', on: true, time: '08:00', phase: '3' },
   ],
 };
