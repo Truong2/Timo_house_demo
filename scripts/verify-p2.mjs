@@ -190,6 +190,60 @@ await group('admin', `() => { const S = TH.store, X = TH.actions, Q = TH.q;
   await go('#/documents', 'fx-c-ui26-tai-xuong-quyen-ocr.png');
 });
 
+/* ---------------- Đợt E (kiểm tra 01/10 + backlog "Chưa làm") – mục 8 kịch bản ---------------- */
+await group('admin', `() => { const S = TH.store, X = TH.actions, Q = TH.q;
+  const deal = S.one('deals', d => d.code === 'GD-2609-036');
+  const w = S.all('employees').find(e => e.title === 'KỸ THUẬT' && e.repairPay);
+  const st = S.one('stays', s => s.status === 'active' && s.buildingId === 'b_T2');
+  const r = X.addRepair({ workerId: w.id, date: '2026-09-18', buildingId: 'b_T2', roomId: st.roomId, stayId: st.id, desc: 'Thay vòi sen, khách làm gãy', jobType: 'water', labor: 120000, material: 380000, bearer: 'tenant', collectStatus: 'QL bank về HT', photos: [{ name: 'truoc.jpg', size: 204800 }, { name: 'sau.jpg', size: 198000 }] });
+  X.confirmRepairs([r.id]); X.setRepairAdvance(w.id, '2026-09', 300000, 'Ứng đầu kỳ'); X.settleRepairAdvance(w.id, '2026-09', { method: 'bank', note: 'Quyết toán kỳ 09' });
+  X.addPaintMove({ kind: 'in', point: 'T20', qty: 5, date: '2026-09-20', note: 'Nhập lô mới' }); X.addPaintMove({ kind: 'out', point: 'T20', qty: 1, date: '2026-09-21', roomCode: st.roomId.slice(2) });
+  const room = S.all('rooms').find(x => x.price > 0);
+  const rows = [{ code: 'HH-2608-91', period: '2026-08', room: room.code, sale: 'CTV A', F: '3500000', G: '12 tháng', H: '50%', caseType: 'Thường', amount: '1750000' }, { code: 'HH-2608-92', period: '2026-08', room: room.code, sale: 'MOITHUE', F: '4100000', G: '12 tháng', H: '65%', caseType: 'Đối tác', amount: '2600000' }];
+  X.commitImport('commissions', 'hoa-hong-lich-su.csv', X.validateImport('commissions', rows));
+  X.savePartner({ name: 'MOITHUE', bank: 'Vietcombank', number: '0011 0022 3344', holder: 'CONG TY MOITHUE' });
+  const sh = Q.shareRatios('b_G1', '2026-08-31').find(x => x.shareholderId !== 'sh_CHUNG').shareholderId;
+  X.updateShareholder(sh, { name: Q.shareholder(sh).name, phone: '0912 345 678', bank: 'TCB ••• 6789', note: '' });
+  X.uploadDocument({ type: 'capital', buildingId: 'b_G1', objectType: 'shareholder', objectId: sh, name: 'uy-nhiem-chi-gop-von-G1.pdf', note: 'Góp vốn đợt 1', size: 250000 });
+  const zb = X.createZaloBatch({ ruleId: 'zr_expiring' }); const m0 = S.where('zaloMessages', m => m.batchId === zb.id)[0]; S.update('stays', m0.stayId, { endDate: '2027-12-31' }); X.sendZaloBatch(zb.id);
+  const tp = Q.teamLeaders('2026-09-30').find(e => e.title === 'TPVH');
+  return { deal: deal.id, sh, zb: zb.id, tp: tp && tp.id }; }`, async ({ go, click, data }) => {
+  await go('#/sales/deals/' + data.deal, 'fe-e0-2-deal-phong-con-khach-cu.png');
+  await go('#/sales?period=2026-09', 'fe-e0-3-tong-quan-hang-nhan-ro.png');
+  await go('#/zalo/batches/' + data.zb, 'fe-e1-2-zalo-bo-qua-su-kien-khong-con-dung.png');
+  await go('#/repairs?period=2026-09&mode=web', 'fe-e2-1-so-sua-chua-luot-thue-anh.png');
+  await click('[data-act=add]', 'fe-e2-1a-them-viec-anh-luot-thue-trang-thai-thu.png');
+  await go('#/repairs?tab=ung-chi&period=2026-09', 'fe-e2-1b-quyet-toan-ung-chi.png');
+  await go('#/repairs?tab=son&period=2026-09', 'fe-e2-1c-ton-son-nhap-xuat.png');
+  await go('#/sales/commission?tab=hoa-hong&src=import', 'fe-e2-2-hoa-hong-import-lich-su.png');
+  await go('#/sales/commission?tab=chinh-sach', 'fe-e2-3-tai-khoan-doi-tac.png', { full: true });
+  await click('[data-act=addp]', 'fe-e2-3b-chinh-sach-ty-le-theo-doi-tac.png');
+  await go('#/shares?building=b_G1&sh=' + data.sh, 'fe-e2-4-co-dong-sua-chung-tu-gop-von.png', { full: true });
+  await go('#/shares/b_G1?source=excel', 'fe-e2-4b-bang-ke-cot-K-L.png', { full: true });
+  await go('#/reports/sales?period=2026-09&group=G&tab=doanh-so', 'fe-e3-1-ui46-loc-nhom-nv-co-dong.png');
+  await go('#/reports/amduong?mode=web&period=2026-09', 'fe-e3-2-ui43-tra-dien-qua-chu-nha.png', { full: true });
+  await go('#/buildings/b_S32?tab=dich-vu-dau-vao', 'fe-e3-2b-ui03-khai-bao-dien-chu-nha.png', { full: true });
+  await go('#/reports/costs?period=2026-08', 'fe-e3-3-ui42-bang-dong-x-toa.png', { full: true });
+  await go('#/reports/repairs?period=2026-09&mode=web&by=bearer', 'fe-e3-4-ui44-gop-nguoi-chiu-chung-tu.png');
+  await go('#/reports/rooms?view=nv&period=2026-09', 'fe-e3-5-ui45-hs-theo-nhan-vien.png');
+  await go('#/reports/rooms?view=occ&period=2026-08', 'fe-e3-5b-ui45-ky-song-song-khong-du-lieu.png');
+  if (data.tp) await go('#/dashboard?leader=' + data.tp + '&direct=1', 'fe-e3-6-dashboard-team-truc-tiep.png');
+});
+
+await group('admin', `() => { const S = TH.store, X = TH.actions;
+  TH.auth.login('sale'); const me = S.session.employeeId; const mine = S.one('deals', d => d.saleIds.includes(me) && d.stayId);
+  TH.auth.login('kythuat'); const w = S.session.employeeId; const rb = (S.one('repairLogs', r => r.workerId === w) || {}).buildingId;
+  TH.auth.login('admin'); X.addContractFile(mine.stayId, { name: 'hop-dong-' + mine.code + '.pdf', size: 320000 });
+  if (rb) X.uploadDocument({ type: 'handover', buildingId: rb, objectType: 'building', objectId: rb, name: 'bien-ban-ban-giao-thiet-bi.pdf', size: 150000 });
+  return { deal: mine.id, rb }; }`, async ({ go, login, data }) => {
+  await login('sale'); await go('#/sales/deals/' + data.deal, 'fe-e1-3-sale-tai-hd-khach-deal-cua-minh.png');
+  await login('kythuat'); await go('#/repairs?tab=tai-lieu&period=2026-08', 'fe-e1-3b-ky-thuat-tai-bien-ban.png');
+});
+
+await group('admin', `() => { TH.ms.set('1A'); return {}; }`, async ({ go }) => {
+  await go('#/zalo', 'fe-e1-1-moc-1A-khong-co-hop-thu.png');
+});
+
 await b.close(); server.kill();
 console.log('Ảnh minh chứng Phase 2: ' + fs.readdirSync(dir).length + ' file trong output/verify-p2/shots/' + (errs.length ? ' · lỗi trang: ' + errs.join(' | ') : ' · không có lỗi trang'));
 if (errs.length) process.exit(1);

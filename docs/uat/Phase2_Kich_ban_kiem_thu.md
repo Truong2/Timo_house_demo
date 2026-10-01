@@ -1,6 +1,6 @@
 # TimoHouse – Kịch bản kiểm thử Phase 2
 
-Phiên bản 0.3 · 30/09/2026 · Trạng thái: **đã sửa lỗi audit 30/09 (mục 6) và rà soát lại (mục 7)**. Tài liệu được cập nhật sau mỗi đợt.
+Phiên bản 0.4 · 01/10/2026 · Trạng thái: **đã sửa lỗi audit 30/09 (mục 6), rà soát lại (mục 7) và làm Đợt E – lỗi kiểm tra 01/10 + toàn bộ backlog mục 7 (mục 8)**. Tài liệu được cập nhật sau mỗi đợt.
 
 **Nguồn đặc tả:**
 - `docs/SRS/TimoHouse_Phan_chia_3_Phase.md` §3;
@@ -81,6 +81,12 @@ Phiên bản 0.3 · 30/09/2026 · Trạng thái: **đã sửa lỗi audit 30/09 
 | GĐ-D8 | **OCR "Áp dụng"** ghi biểu phí (giá, đơn giá dịch vụ) **và** điều khoản HĐ vào lượt thuê: hết hạn, kỳ / hạn thanh toán, cọc theo HĐ, số người, số xe. Ngày ký / nhận / tính tiền chỉ đổi khi lượt thuê chưa có hóa đơn phát hành. Cọc theo HĐ khác số đã thu chỉ cảnh báo, không sửa sổ cọc |
 | GĐ-D18 | **Mở lại kỳ có dòng điều chỉnh sau khóa:** khi đủ 2 duyệt, các dòng điều chỉnh của kỳ **tạm gỡ** khỏi báo cáo (trạng thái "đã gỡ – chờ sửa gốc"); kế toán sửa thẳng chứng từ gốc rồi đánh dấu "đã sửa gốc". Khóa lại còn dòng chưa đánh dấu thì chỉ cảnh báo. Người gửi rút yêu cầu = "hủy"; người khác = "từ chối" |
 | GĐ-C | **Rà soát OCR** mở cho vận hành / leader / trưởng phòng trong phạm vi tòa (đặc tả dòng 172); **áp dụng vào biểu phí** vẫn chỉ admin / kế toán. **HS tổng** = Σ T / Σ K (SRC-13), không phải trung bình HS các tòa; HS tạm tính = tiền nhà **đã thu** tại thời điểm xem |
+| GĐ-E1 | **Tải tài liệu của sale / kỹ thuật** (đợt E): không mở kho tài liệu. Sale / trưởng nhóm KD chỉ tải HĐ khách của deal mình (ở chi tiết giao dịch); kỹ thuật chỉ tải biên bản bàn giao / ảnh chỉ số của tòa có việc sửa của mình (tab "Biên bản & ảnh" ở UI-47) |
+| GĐ-E2 | **Quyết toán ứng chi thợ** là chứng từ quỹ (phiếu chi bổ sung khi công ty trả thêm / phiếu thu khi thợ nộp lại), **không** ghi chi phí mới vì vật tư đã vào chi phí dòng 41 khi chốt kỳ sổ. Mỗi thợ × kỳ sổ quyết toán một lần; sau đó không đổi vật tư / số ứng của kỳ |
+| GĐ-E3 | **Loại ca hoa hồng** khi import lịch sử: Thường / Đối tác / Trùng 2 / Trùng 3 / Bỏ cọc / HĐ ngắn (để trống = Thường) |
+| GĐ-E4 | **Import hoa hồng I ≠ F × H** (lệch > 0,5đ): chỉ cảnh báo, vẫn nhập theo I của file (file khách có 5/265 dòng lệch công thức) |
+| GĐ-E5 | **Tòa trả điện qua chủ nhà** (UI-43 web): chi điện = đơn giá trả chủ nhà × kWh trên hóa đơn đã phát hành; chưa có đơn giá thì gắn cờ, không lấy hóa đơn EVN. Đang áp S32 = 2.500đ/kWh (SRC-14 Sheet1), S39 (hóa đơn ghi "đã tt cho chủ nhà") chờ đơn giá; các tòa còn lại trong 5 tòa Excel ghi "chưa tính tiền chủ nhà" chờ khách chỉ ra |
+| GĐ-E6 | **Vai trò phụ trách** ở bộ lọc leader (UI-01): vận hành = phân công quản lý tòa; kỹ thuật = tòa có việc sửa của thợ trong team ở kỳ sổ; sale = tòa có deal chốt của team trong kỳ. Nhắc thu / thu thực tế / vệ sinh chưa có dữ liệu phân công → trống |
 
 ## 4. Kịch bản
 
@@ -209,6 +215,7 @@ Phiên bản 0.3 · 30/09/2026 · Trạng thái: **đã sửa lỗi audit 30/09 
 | 5 | Mở rộng Dashboard / kỳ / Zalo | F30 | ✅ `tests/p2-ext.test.mjs` (8 ca), 8 ảnh `f30-*` |
 | Audit 30/09 | Sửa 9 lỗi nặng, 22 lỗi trung bình / ẩn danh, bổ sung phần thiếu so với đặc tả (mục 6) | A1–A9, B1–B22, C | ✅ `npm run check` 223 test, RBAC 414 (8 vai trò); smoke 36/36; P0 19/19; P1 còn lại 27 ảnh; quét 104 route × 8 tài khoản 0 lỗi; 65 ảnh Phase 2 (thêm `fx-*`, `f30-6b` bằng truongphong); NT-0…NT-6 không đổi |
 | Rà soát lại 30/09 | Sửa 2 lỗi nặng, 17 lỗi trung bình, 2 tên giả trùng tên thật (mục 7) | D1–D19 | ✅ `npm run check` 240 test (thêm 17 ca `p2-fixes-d`), RBAC 419; smoke 36/36; P0 19/19; P1 còn lại 27 ảnh; quét 104 route × 8 tài khoản 0 lỗi; 65 ảnh Phase 2; NT-0…NT-6 không đổi; quét tên thật trong dữ liệu = 0 |
+| Đợt E 01/10 | Sửa 4 lỗi kiểm tra 01/10 (seed deal chồng khách cũ, nhận phòng, nhãn UI-19, ảnh dính toast) và làm hết backlog mục 7 (mục 8) | E0–E3 | ✅ `npm run check` 266 test (thêm 20 ca `p2-fixes-e`), RBAC 442; smoke 36/36; P0 19/19; quét 117 route × 8 tài khoản 0 lỗi; 88 ảnh Phase 2 (thêm 23 ảnh `fe-*`); NT-0…NT-6 không đổi |
 
 ## 6. Audit 30/09 – lỗi đã sửa
 
@@ -308,9 +315,9 @@ Rà soát độc lập lần 2 trên bản đã sửa (4 mảng, chỉ đọc, c
 | D18 | Mở lại kỳ vẫn cộng dòng điều chỉnh sau khóa → sửa số gốc bị cộng hai lần | GĐ-D18 | A5 / D18, C-UI38 |
 | D19 | 2 tên giả của khách trùng đúng tên chủ tài khoản thật trong file mã HĐ điện nước | Bút danh loại mọi cụm 3 từ có trong các file Excel nguồn; sinh lại dữ liệu (7 tên giả đổi, số liệu không đổi) | quét tên = 0 |
 
-### Chưa làm – chờ khách chọn
+### Chưa làm – chờ khách chọn (✅ đã làm ở Đợt E – mục 8)
 
-Phát hiện ở lần rà soát lại nhưng ngoài phạm vi đợt D (chức năng đặc tả có ghi mà chưa làm, hoặc lỗi nhỏ):
+Phát hiện ở lần rà soát lại nhưng ngoài phạm vi đợt D (chức năng đặc tả có ghi mà chưa làm, hoặc lỗi nhỏ). **Toàn bộ đã làm ở Đợt E theo giả định GĐ-E1…E6** – bảng dưới giữ lại để tra cứu:
 
 | Nhóm | Nội dung |
 |---|---|
@@ -338,3 +345,40 @@ Phát hiện ở lần rà soát lại nhưng ngoài phạm vi đợt D (chức 
 | K-17 | Tỷ lệ **đóng đúng hạn** (UI-45) có tính hóa đơn phòng phá HĐ và phòng mới vào ở không? |
 | K-18 | Dòng sổ sửa chữa **chưa xác nhận** có hiện trong báo cáo chi phí sửa chữa (UI-44) không? (đang không tính, hiện riêng) |
 | K-19 | Đổi tỷ lệ góp **giữa kỳ**: bảng kê dùng tỷ lệ hiệu lực cuối kỳ hay chia theo ngày? |
+
+## 8. Đợt E – kiểm tra 01/10 và làm backlog mục 7
+
+Kiểm tra lại toàn bộ Phase 2 ngày 01/10 (chạy lại check, verify:p2, smoke, sweep, P0) rồi làm hết danh sách "Chưa làm – chờ khách chọn" ở mục 7 theo giả định GĐ-E1…E6 (mục 3). Mỗi mục có test trong `tests/p2-fixes-e.test.mjs` và ảnh `fe-*` trong `output/verify-p2/shots/`.
+
+### Lỗi tìm thấy khi kiểm tra 01/10
+
+| Mã | Lỗi | Sửa | Test / ảnh |
+|---|---|---|---|
+| E0.1 | Seed: 26/26 deal "đã chốt – chờ nhận" nằm trên phòng mà khách cũ vẫn "đang ở" tới 2026-10…2027, không có ngày báo trả → trái quy tắc P2-F22.2, không nhận phòng được khi demo | Khách cũ được ghi báo trả (trước 30 ngày) và dự kiến bàn giao ngày trước khi khách mới tính tiền. Chỉ ghi báo trả, không kết thúc lượt → hóa đơn T9, lương, báo cáo không đổi | E0.1 (3 ca) |
+| E0.2 | UI-21 bấm "Nhận phòng" khi còn khách cũ chỉ báo lỗi | Cảnh báo "Phòng còn khách cũ" kèm ngày báo trả / bàn giao và link mở lượt thuê cũ để kết thúc | `fe-e0-2` |
+| E0.3 | UI-19 "Đã chốt 39" (đếm phòng) cạnh "Giao dịch chốt trong kỳ (40)" (đếm deal); "deal đang chờ nhận" không lọc kỳ mà không ghi rõ | Nhãn ghi "(phòng)" + số giao dịch; "đang chờ nhận (mọi kỳ)". Số không đổi | `fe-e0-3` |
+| E0.4 | Ảnh `f22-5` dính toast E08 của bước trước | `verify-p2` xóa toast trước khi chụp | `f22-5` |
+
+### Backlog mục 7 đã làm
+
+| Mã | Màn | Bổ sung | Test / ảnh |
+|---|---|---|---|
+| E1.1 | Chung | Chặn theo mốc ở **mức action** cho mọi chức năng Phase 2 (kinh doanh, hoa hồng, sổ sửa chữa, cổ đông, kho tài liệu, OCR, hộp thư, duyệt mở lại kỳ). Hoa hồng tự động bỏ qua êm ở 1A để bỏ cọc ở UI-07 vẫn chạy | E1.1 (2 ca) |
+| E1.2 | UI-39 | Kiểm tra lại trước khi gửi cho sự kiện lượt thuê: sắp hết HĐ (còn ở, chưa gia hạn, trong cửa sổ cảnh báo), đã chi hoàn cọc (phiếu vẫn "đã chi") → "Bỏ qua – sự kiện không còn đúng". Hộp thư gán chính TPVH khi trưởng phòng trực tiếp quản lý tòa. Ẩn tab / KPI hộp thư ở 1A/1B | E1.2 (3 ca); `fe-e1-2`, `fe-e1-1` |
+| E1.3 | UI-26 | Loại tài liệu PCCC (nhóm quyền như sổ đỏ). Quyền `documents.download` cho sale / kỹ thuật theo phạm vi hẹp [GĐ-E1] | E1.3; `fe-e1-3`, `fe-e1-3b`; RBAC |
+| E2.1 | UI-47 | Ảnh việc sửa; trạng thái thu ("QL bank về HT"…) nhập từ form và điều chỉnh; gắn lượt thuê (đang ở / vừa trả phòng); tồn sơn = tồn đầu SRC-16 + nhập − xuất; quyết toán ứng chi theo thợ × kỳ [GĐ-E2] | E2.1 (3 ca); `fe-e2-1*` |
+| E2.2 | Import | Hoa hồng lịch sử ≤ 08/2026 đủ cột F, G, H, loại ca [GĐ-E3], I; kiểm I = F × H (lệch chỉ cảnh báo [GĐ-E4]); dòng import xem ở UI-22 (Nguồn: import lịch sử); file mẫu kỳ 08/2026 | E2.2; `fe-e2-2` |
+| E2.3 | UI-22 | Tỷ lệ riêng theo đối tác nhập trong form chính sách; tài khoản nhận của đối tác (chỉ admin / kế toán), cột STK lấy theo đối tác | E2.3; `fe-e2-3*` |
+| E2.4 | UI-31 / UI-32 | Sửa thông tin cổ đông (lưu lịch sử); chứng từ góp vốn gắn cổ đông × tòa góp (chỉ người có quyền cổ đông thấy, không xóa); cột K (LNR/GV) và L (CP/LNG) ở dòng tổng bảng kê và file xuất – G1 T8 như Excel: K 23,96 · L 3,0238 | E2.4; `fe-e2-4*` |
+| E3.1 | UI-46 | Lọc loại T/S/G, NV vận hành, cổ đông (chỉ giới hạn tòa, không đổi định nghĩa doanh số – đặc tả dòng 410) | E3.1; `fe-e3-1` |
+| E3.2 | UI-43 | Tòa trả điện qua chủ nhà: chi = đơn giá trả chủ nhà × kWh trên hóa đơn đã phát hành; chưa có đơn giá → cờ [GĐ-E5]. Seed S32 2.500đ/kWh, S39 chờ đơn giá; khai báo ở UI-03 tab Dịch vụ đầu vào. "Như Excel" không đổi (NT-3, NT-4) | E3.2; `fe-e3-2*` |
+| E3.3 | UI-42 | Bảng dòng × tòa trên màn (bố cục UI-28), bấm ô mở chứng từ gốc của tòa | `fe-e3-3` |
+| E3.4 | UI-44 | Mọi cách gộp mở đúng phần sổ UI-47 (thợ, người chịu, loại việc, lý do, phòng); cột chứng từ liên quan: phiếu hoàn UI-18, hóa đơn, chứng từ chi UI-15 | E3.4; `fe-e3-4` |
+| E3.5 | UI-45 | Lọc trưởng phòng / leader (cả nhánh hoặc chỉ team trực tiếp); xem HS theo nhân viên → tòa (Σ T / Σ K) có link giải thích lương UI-25; kỳ song song Excel hiện "Không có dữ liệu" thay cho 0 | E3.5; `fe-e3-5*` |
+| E3.6 | UI-01 | Lọc "Chỉ team trực tiếp", "Vai trò phụ trách" [GĐ-E6]; danh sách leader / quản lý theo kỳ xem (leader cũ vẫn tìm được); bảng tòa theo phân công cuối kỳ; thẻ HS mở UI-45 | E3.6; `fe-e3-6` |
+
+**Số được phép đổi:** âm dương điện **web** kỳ 09 của tòa S32, S39 (E3.2). Số nghiệm thu NT-0…NT-6 không đổi.
+
+**Kết quả đợt E:** `npm run check` 266 test (thêm 20 ca `p2-fixes-e`), RBAC 442; smoke 36/36; P0 19/19; quét 117 route × 8 tài khoản 0 lỗi; 88 ảnh Phase 2 (thêm 23 ảnh `fe-*`), không lỗi trang.
+
+**Còn chờ khách:** các câu hỏi K-11…K-19 (mục 7) và giả định GĐ-E1…E6 (mục 3).
