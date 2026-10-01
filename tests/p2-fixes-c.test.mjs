@@ -91,6 +91,7 @@ test('C-UI45 – HS tổng = Σ T / Σ K; HS tạm tính theo tiền nhà đã t
 
 test('C-UI27 / UI-44 – trung tâm báo cáo 4 nhóm theo đặc tả, kỳ và trạng thái theo dữ liệu; UI-44 nhóm theo phòng', () => {
   const TH = boot({ user: 'admin' }); const QO = TH.qo;
+  TH.ms.set('2');
   const C = QO.catalog();
   assert.deepEqual(plain(C.map(g => g.label)), ['Kết quả kinh doanh', 'Phòng vận hành', 'Phòng kinh doanh', 'Drill-down']);
   assert.ok(C.flatMap(g => g.items).filter(i => i.status !== 'phase3').every(i => i.period && i.status === 'ready'));

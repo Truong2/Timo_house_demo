@@ -19,7 +19,7 @@
       hireDate: ['2023-', '2024-', '2025-'][hash('hire' + e.key) % 3] + String(1 + hash('hm' + e.key) % 12).padStart(2, '0') + '-01', phone: '09' + String(10000000 + hash('ph' + e.key) % 89999999) }));
     const empByKey = {}; emps.forEach(e => { empByKey[e.key] = e; });
     col('employees', emps);
-    col('users', CAT.users.map(u => ({ id: 'u_' + u.username, username: u.username, role: u.role, employeeId: (empByKey[u.empKey] || {}).id || null, name: (empByKey[u.empKey] || {}).name || u.display, display: u.display, status: 'active', phase: u.phase || null })));
+    col('users', CAT.users.map(u => ({ id: 'u_' + u.username, username: u.username, role: u.role, employeeId: (empByKey[u.empKey] || {}).id || null, shareholderId: u.shKey ? 'sh_' + u.shKey : null, name: (empByKey[u.empKey] || {}).name || u.display, display: u.display, status: 'active', phase: u.phase || null })));
 
     /* --- tòa, phòng --- */
     // Mã tòa chuẩn hóa in hoa: nguồn Excel ghi lẫn s8/S8, t20/T20… → gộp bản ghi trùng (bản in hoa ưu tiên, bản thường bù thông tin thiếu), nhóm T/S/G theo tiền tố mã

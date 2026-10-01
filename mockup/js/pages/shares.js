@@ -44,7 +44,7 @@
   });
 
   TH.router.handle('/shares/:id', (root, p, q) => {
-    const b = Q.building(p.id); if (!b) { root.innerHTML = U.card({ body: U.empty({ title: 'Không tìm thấy tòa' }) }); return; }
+    const b = Q.building(p.id); if (!b || !TH.auth.inScope(b.id)) { root.innerHTML = U.card({ body: U.empty({ title: 'Không tìm thấy tòa trong phạm vi được xem' }) }); return; } // Phase 3: cổ đông chỉ xem tòa mình góp vốn
     const period = q.period || '2026-08'; const source = q.source === 'excel' ? 'excel' : 'web';
     TH.layout.crumb([{ label: 'Cổ đông', href: '#/shares?building=' + b.id }, { label: 'Bảng kê chia ' + b.code }]);
     const run = Q.shareRun(b.id, period, source); const vari = run && run.locked ? null : Q.shareVariance(b.id, period);

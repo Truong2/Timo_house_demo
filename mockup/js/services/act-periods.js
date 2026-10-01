@@ -125,10 +125,13 @@
     else if (RB.ROLES[d.role].phase && !TH.ms.on(RB.ROLES[d.role].phase)) errs.role = 'Vai trò thuộc Phase ' + RB.ROLES[d.role].phase + ' – chưa mở ở mốc hiện tại'; // D17
     const emp = d.employeeId ? S.get('employees', d.employeeId) : null;
     if (d.employeeId && !emp) errs.employeeId = 'Nhân viên không tồn tại';
-    if (RB.ROLES[d.role] && RB.ROLES[d.role].scope !== 'all' && !emp) errs.employeeId = 'Vai trò có phạm vi theo phân công phải gắn nhân viên';
-    if (!emp && !String(d.display || '').trim()) errs.display = 'Nhập tên hiển thị hoặc chọn nhân viên';
+    const isSh = RB.ROLES[d.role] && RB.ROLES[d.role].scope === 'shareholder'; // Phase 3: cổ đông gắn hồ sơ cổ đông, không gắn nhân viên
+    const sh = isSh && d.shareholderId ? S.get('shareholders', d.shareholderId) : null;
+    if (isSh && !sh) errs.shareholderId = 'Vai trò cổ đông phải gắn hồ sơ cổ đông (UI-31)';
+    if (RB.ROLES[d.role] && !isSh && RB.ROLES[d.role].scope !== 'all' && !emp) errs.employeeId = 'Vai trò có phạm vi theo phân công phải gắn nhân viên';
+    if (!emp && !sh && !String(d.display || '').trim()) errs.display = 'Nhập tên hiển thị hoặc chọn nhân viên';
     if (Object.keys(errs).length) fail(errs);
-    const u = S.add('users', { id: 'u_' + username, username, role: d.role, employeeId: emp ? emp.id : null, name: emp ? emp.name : d.display.trim(), display: String(d.display || '').trim() || (emp ? emp.name : username), status: 'active' });
+    const u = S.add('users', { id: 'u_' + username, username, role: d.role, employeeId: emp && !isSh ? emp.id : null, shareholderId: sh ? sh.id : null, phase: (RB.ROLES[d.role] || {}).phase || null, name: sh ? sh.name : emp ? emp.name : d.display.trim(), display: String(d.display || '').trim() || (sh ? sh.name : emp ? emp.name : username), status: 'active' });
     _.audit('create', 'user', u.id, `Tạo tài khoản ${username} (${RB.ROLES[d.role].label})`); _.done(); return u;
   };
   X.updateUser = (id, d) => {
@@ -139,10 +142,13 @@
     else if (role !== u.role && RB.ROLES[role].phase && !TH.ms.on(RB.ROLES[role].phase)) errs.role = 'Vai trò thuộc Phase ' + RB.ROLES[role].phase + ' – chưa mở ở mốc hiện tại'; // D17
     const empId = d.employeeId !== undefined ? (d.employeeId || null) : u.employeeId;
     const emp = empId ? S.get('employees', empId) : null; if (empId && !emp) errs.employeeId = 'Nhân viên không tồn tại';
-    if (RB.ROLES[role] && RB.ROLES[role].scope !== 'all' && !emp) errs.employeeId = 'Vai trò có phạm vi theo phân công phải gắn nhân viên';
+    const isSh = RB.ROLES[role] && RB.ROLES[role].scope === 'shareholder';
+    const shId = isSh ? (d.shareholderId !== undefined ? (d.shareholderId || null) : u.shareholderId) : null;
+    if (isSh && !(shId && S.get('shareholders', shId))) errs.shareholderId = 'Vai trò cổ đông phải gắn hồ sơ cổ đông (UI-31)';
+    if (RB.ROLES[role] && !isSh && RB.ROLES[role].scope !== 'all' && !emp) errs.employeeId = 'Vai trò có phạm vi theo phân công phải gắn nhân viên';
     if (u.role === 'admin' && role !== 'admin' && !S.where('users', x => x.role === 'admin' && x.status === 'active' && x.id !== id).length) errs.role = 'Phải còn ít nhất một quản trị đang hoạt động';
     if (Object.keys(errs).length) fail(errs);
-    S.update('users', id, { role, employeeId: empId, name: emp ? emp.name : (String(d.display || '').trim() || u.name), display: String(d.display || '').trim() || u.display });
+    S.update('users', id, { role, shareholderId: shId, employeeId: isSh ? null : empId, name: emp ? emp.name : (String(d.display || '').trim() || u.name), display: String(d.display || '').trim() || u.display });
     _.audit('update', 'user', id, `Sửa tài khoản ${u.username}: ${RB.ROLES[role].label}`); _.done(); return S.get('users', id);
   };
   X.setUserStatus = (id, status, reason) => {

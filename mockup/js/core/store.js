@@ -10,7 +10,7 @@
     const sig = [D.master && D.master.stays.length, D.p202609 && D.p202609.invoices.length, D.p202609 && D.p202609.payments.length, D.bench202608 ? 1 : 0, (D.catalog.params || []).length, SCHEMA].join('|');
     return TH.f.hash(sig);
   };
-  const defaultMeta = () => ({ today: TH.f.DEMO_TODAY, period: '2026-09', milestone: '2', prefs: {}, seedHash: seedHash() });
+  const defaultMeta = () => ({ today: TH.f.DEMO_TODAY, period: '2026-09', milestone: '3', prefs: {}, seedHash: seedHash() });
 
   S.load = () => {
     S.state = TH.seed.build();

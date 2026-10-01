@@ -1,5 +1,5 @@
-/* Manifest route Phase 1 + Phase 2 – dữ liệu thuần, là nguồn duy nhất cho router, sidebar và scripts/check-rbac.mjs.
-   ui = mã màn hình đặc tả; ms = mốc đầu tiên có màn (1A / 1B / 2); menu = mục sidebar được tô sáng. */
+/* Manifest route Phase 1 + Phase 2 + Phase 3 – dữ liệu thuần, là nguồn duy nhất cho router, sidebar và scripts/check-rbac.mjs.
+   ui = mã màn hình đặc tả; ms = mốc đầu tiên có màn (1A / 1B / 2 / 3); menu = mục sidebar được tô sáng. */
 (function (TH) {
   const R = [
     { path: '/dashboard', ui: 'UI-01', title: 'Tổng quan', menu: 'dashboard', perm: 'dashboard.view', ms: '1A' },
@@ -56,6 +56,13 @@
     { path: '/reports/repairs', ui: 'UI-44', title: 'Chi phí sửa chữa, vệ sinh', menu: 'reports', perm: 'reports.ops', ms: '2' },
     { path: '/reports/rooms', ui: 'UI-45', title: 'Báo cáo phòng vận hành', menu: 'reports', perm: 'reports.ops', ms: '2' },
     { path: '/reports/sales', ui: 'UI-46', title: 'Khách hàng & doanh số sale', menu: 'reports', perm: 'reports.ops', ms: '2' },
+    /* --- Phase 3 --- */
+    { path: '/assets', ui: 'UI-34', title: 'Tài sản & thiết bị', menu: 'assets', perm: 'assets.view', ms: '3' },
+    { path: '/assets/maintenance', ui: 'UI-35', title: 'Lịch bảo dưỡng', menu: 'assets', perm: 'maintenance.view', ms: '3' },
+    { path: '/assets/inventory', ui: 'UI-36', title: 'Kiểm kê tài sản', menu: 'assets', perm: 'inventory.view', ms: '3' },
+    { path: '/shares/capital', ui: 'UI-33', title: 'Góp vốn, cọc, tài sản & chi thực', menu: 'shares', perm: 'capital.view', ms: '3' },
+    { path: '/reports/forecast', ui: 'UI-40', title: 'Dự kiến lợi nhuận', menu: 'reports', perm: 'forecast.view', ms: '3' },
+    { path: '/reports/efficiency', ui: 'UI-41', title: 'Hiệu quả vốn, tài sản & tiền nhà', menu: 'reports', perm: 'efficiency.view', ms: '3' },
   ];
   /* Sidebar (đặc tả §1.2): mục chỉ hiện khi vai trò có quyền và mốc hiện tại đã mở route */
   const NAV = [
@@ -65,6 +72,7 @@
       { key: 'buildings', label: 'Tòa nhà', href: '#/buildings' },
       { key: 'tenants', label: 'Khách hàng', href: '#/tenants' },
       { key: 'repairs', label: 'Sổ sửa chữa', href: '#/repairs' },
+      { key: 'assets', label: 'Tài sản & bảo trì', href: '#/assets', alts: ['#/assets/maintenance', '#/assets/inventory'] },
       { key: 'documents', label: 'Tài liệu', href: '#/documents' },
     ] },
     { group: 'Kinh doanh', icon: 'briefcase', items: [
@@ -77,8 +85,8 @@
       { key: 'billing', label: 'Hóa đơn & thu tiền', href: '#/billing/invoices', alts: ['#/billing/readings', '#/billing/debts'] },
       { key: 'expenses', label: 'Chi phí', href: '#/expenses', alts: ['#/owner-payments'] },
       { key: 'refunds', label: 'Hoàn cọc', href: '#/refunds' },
-      { key: 'shares', label: 'Cổ đông', href: '#/shares' },
-      { key: 'reports', label: 'Báo cáo', href: '#/reports', alts: ['#/reports/costs'] },
+      { key: 'shares', label: 'Cổ đông', href: '#/shares', alts: ['#/shares/capital'] },
+      { key: 'reports', label: 'Báo cáo', href: '#/reports', alts: ['#/reports/costs', '#/reports/efficiency'] },
     ] },
     { group: 'Nhân sự', icon: 'users', items: [
       { key: 'hr', label: 'Nhân sự & lương', href: '#/hr' },
@@ -90,5 +98,6 @@
     { key: 'settings', label: 'Cài đặt', icon: 'settings', href: '#/settings' },
   ];
   TH.routes = { ROUTES: R, NAV, FOOT, PHASE1_UI: ['UI-01', 'UI-02', 'UI-03', 'UI-04', 'UI-05', 'UI-06', 'UI-07', 'UI-08', 'UI-09', 'UI-10', 'UI-11', 'UI-12', 'UI-13', 'UI-14', 'UI-15', 'UI-16', 'UI-17', 'UI-18', 'UI-23', 'UI-24', 'UI-25', 'UI-27', 'UI-28', 'UI-29', 'UI-30', 'UI-37', 'UI-38', 'UI-39'],
-    PHASE2_UI: ['UI-19', 'UI-20', 'UI-21', 'UI-22', 'UI-26', 'UI-31', 'UI-32', 'UI-42', 'UI-43', 'UI-44', 'UI-45', 'UI-46', 'UI-47'] };
+    PHASE2_UI: ['UI-19', 'UI-20', 'UI-21', 'UI-22', 'UI-26', 'UI-31', 'UI-32', 'UI-42', 'UI-43', 'UI-44', 'UI-45', 'UI-46', 'UI-47'],
+    PHASE3_UI: ['UI-33', 'UI-34', 'UI-35', 'UI-36', 'UI-40', 'UI-41'] };
 })(window.TH);

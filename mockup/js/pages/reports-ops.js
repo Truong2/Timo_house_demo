@@ -20,7 +20,8 @@
   TH.pages.reportHubP2 = () => `<div class="mt16">${QO.catalog().map(g => `<h3 class="mt16 mb8">${esc(g.label)}</h3><div class="grid grid-3">${g.items.map(it => {
     const st = ST[it.status] || ST.undefined; const inner = `<div class="card-b"><div class="row between"><span class="chip gray">${esc(it.ui)}</span>${U.chip(st[0], st[1], true)}</div><h3 class="mt8">${esc(it.title)}</h3>
       <p class="small muted mt4">${esc(it.formula)}</p><div class="small mt8">${it.period ? 'Dữ liệu mới nhất: <b>' + esc(F.periodLabel(it.period)) + '</b>' : 'Chưa có dữ liệu'}${it.note ? ' · ' + esc(it.note) : ''}</div></div>`;
-    return it.href && it.status === 'ready' ? `<a class="card rep-card" href="${it.href}">${inner}</a>` : `<div class="card rep-card muted-card">${inner}</div>`; }).join('')}</div>`).join('')}</div>`;
+    const okR = it.href && (TH.routes.ROUTES.find(r => '#' + r.path === it.href.split('?')[0]) || {}).perm; // ẩn link khi vai trò không có quyền màn đích (vd UI-40 với cổ đông)
+    return it.href && it.status === 'ready' && (!okR || TH.auth.can(okR)) ? `<a class="card rep-card" href="${it.href}">${inner}</a>` : `<div class="card rep-card muted-card">${inner}</div>`; }).join('')}</div>`).join('')}</div>`;
 
   /* ---------- UI-42 ---------- */
   TH.router.handle('/reports/costs', (root, p, q) => {

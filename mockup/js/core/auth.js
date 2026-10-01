@@ -7,7 +7,7 @@
     if (!u) throw new Error('Tài khoản không tồn tại hoặc đã khóa');
     const ph = u.phase || (R.ROLES[u.role] || {}).phase; // D17: tài khoản tạo mới mang vai trò Phase 2 cũng bị chặn
     if (ph && TH.ms && !TH.ms.on(ph)) throw new Error('Tài khoản thuộc Phase ' + ph + ' – chưa mở ở mốc hiện tại'); // B19
-    S.setSession({ userId: u.id, username: u.username, role: u.role, name: u.name, employeeId: u.employeeId, at: TH.f.nowISO() });
+    S.setSession({ userId: u.id, username: u.username, role: u.role, name: u.name, employeeId: u.employeeId, shareholderId: u.shareholderId || null, at: TH.f.nowISO() });
     A._scope = null; A._rscope = null;
     return u;
   };
@@ -34,6 +34,11 @@
     const d = date || TH.f.today();
     const key = S.version + '|' + d + '|' + S.session.userId;
     if (A._scope && A._scope.key === key) return A._scope.set;
+    if (scope === 'shareholder') { // Phase 3 – cổ đông: tòa có tỷ lệ góp > 0 hiệu lực tại ngày xem (CH-23, đặc tả dòng 69)
+      const sh = S.session.shareholderId;
+      const set = new Set(S.all('shareRatios').filter(r => sh && r.shareholderId === sh && r.pct > 0 && (!r.from || r.from <= d) && (!r.to || d <= r.to)).map(r => r.buildingId));
+      A._scope = { key, set }; return set;
+    }
     const emps = scope === 'branch' ? A.branchOf(S.session.employeeId, d) : new Set([S.session.employeeId]);
     const set = new Set(S.all('assignments').filter(a => emps.has(a.employeeId) && (!a.from || a.from <= d) && (!a.to || d <= a.to)).map(a => a.buildingId));
     A._scope = { key, set };
@@ -43,7 +48,7 @@
   /* Phạm vi phòng (UI-24 phân công theo phòng): trong tòa mà người dùng / nhánh CHỈ có phân công cấp phòng → chỉ thấy các phòng đó. {buildingId: Set(roomId)}; tòa không có trong map = thấy cả tòa */
   A.roomScope = (date) => {
     if (!S.session) return {};
-    const scope = (R.ROLES[S.session.role] || {}).scope; if (scope === 'all') return {};
+    const scope = (R.ROLES[S.session.role] || {}).scope; if (scope === 'all' || scope === 'shareholder') return {};
     const d = date || TH.f.today();
     const key = S.version + '|' + d + '|' + S.session.userId;
     if (A._rscope && A._rscope.key === key) return A._rscope.map;
@@ -65,6 +70,7 @@
     if ((R.ROLES[role] || {}).scope === 'branch' || (R.ROLES[role] || {}).sales === 'branch') return A.branchOf(S.session.employeeId, d);
     return null;
   };
+  A.shareholderId = () => S.session && (R.ROLES[S.session.role] || {}).scope === 'shareholder' ? S.session.shareholderId : null;
   A.inSales = (saleIds, date) => { const s = A.salesScope(date); return !s || (saleIds || []).some(id => s.has(id)); };
   A.canRoute = (meta) => !meta || !meta.perm || A.can(meta.perm);
   /* Ẩn nút theo quyền: [data-perm="payments.record"] */

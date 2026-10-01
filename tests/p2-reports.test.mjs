@@ -95,10 +95,13 @@ test('F27.5 – UI-46 khách & doanh số kỳ 09: % chốt / xem, doanh số th
 
 test('F27.1 – UI-27 trung tâm 4 nhóm: có trạng thái; UI-40/41 là Phase 3', () => {
   const TH = boot({ user: 'truongphong' });
+  TH.ms.set('2'); // ở mốc 2, UI-40/41 là Phase 3
   const C = TH.qo.catalog();
   assert.deepEqual(plain(C.map(g => g.key)), ['kq', 'vh', 'kd', 'toa']);
   const all = C.flatMap(g => g.items);
   assert.ok(all.filter(x => ['UI-40', 'UI-41'].includes(x.ui)).every(x => x.status === 'phase3'));
+  TH.ms.set('3'); // mốc 3: có link màn hình
+  assert.ok(TH.qo.catalog().flatMap(g => g.items).filter(x => ['UI-40', 'UI-41'].includes(x.ui)).every(x => x.href && x.status !== 'phase3'));
   assert.ok(all.filter(x => x.status === 'ready').every(x => x.href));
   assert.ok(!TH.auth.can('reports.export'), 'trưởng phòng xem, không xuất');
 });

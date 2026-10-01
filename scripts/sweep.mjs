@@ -10,7 +10,9 @@ const server = spawn(process.execPath, [path.join(ROOT, 'scripts', 'serve.mjs')]
 await new Promise(r => setTimeout(r, 700));
 const b = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 const out = []; let failed = 0;
-for (const u of ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong', 'truongkd', 'sale', 'kythuat']) {
+/* Phase 3: tài sản / bảo dưỡng / kiểm kê / góp vốn / dự kiến LN / hiệu quả – thêm dần theo đợt P3-1…P3-7 */
+const P3 = ['/assets', '/assets/maintenance', '/assets/inventory', '/shares/capital', '/reports/forecast', '/reports/efficiency', '/buildings/b_G1?tab=tai-san', '/dashboard?period=2026-09'];
+for (const u of ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong', 'truongkd', 'sale', 'kythuat', 'codong']) {
   const ctx = await b.newContext(); const p = await ctx.newPage(); const errs = [];
   p.on('pageerror', e => errs.push(e.message));
   await p.goto(`http://localhost:${PORT}/#/login`); await p.waitForTimeout(600);
@@ -30,11 +32,13 @@ for (const u of ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong', 'truongk
     '/reports?period=2026-09', ...['gv', 'fixed', 'var'].map(t => '/reports/costs?period=2026-08&tab=' + t), '/reports/costs?period=2026-09', '/reports/amduong', '/reports/amduong?tab=nuoc', '/reports/amduong?mode=web', '/reports/amduong?tab=nuoc&mode=web', '/reports/amduong?tab=san-luong',
     '/reports/repairs', '/reports/repairs?by=reason&mode=web', ...['hs', 'occ', 'pay', 'seg'].map(v => '/reports/rooms?view=' + v), '/reports/rooms?period=2026-08', '/reports/sales', '/reports/sales?tab=doanh-so', '/reports/sales?by=team',
     '/shares', '/shares?building=b_T2', '/shares?building=b_G1&sh=sh_CHUNG', '/sales/commission?tab=hoa-hong&src=import', '/reports/rooms?view=nv', '/reports/rooms?view=occ&period=2026-08', '/reports/repairs?by=worker', '/reports/repairs?by=bearer', '/reports/sales?group=G', '/reports/amduong?mode=web&period=2026-09', '/dashboard?resp=sale', '/hr/payroll?period=2026-09&tab=van-hanh&emp=x', '/repairs?tab=tai-lieu', '/repairs?tab=son&period=2026-09', '/repairs?tab=ung-chi&period=2026-09', '/shares/b_G1', '/shares/b_G1?source=excel', '/shares/b_G1?period=2026-09', '/documents', '/documents?type=owner_contract&all=1', ids.ocr ? '/ocr/' + ids.ocr : '/documents', ids.cfStay ? `/stays/${ids.cfStay}?tab=hop-dong` : '/documents',
-    '/zalo?tab=hop-thu', '/zalo?tab=quy-tac', `/stays/${ids.st}?tab=zalo`, '/settings?tab=ky', '/dashboard?period=2026-08'];
+    '/zalo?tab=hop-thu', '/zalo?tab=quy-tac', `/stays/${ids.st}?tab=zalo`, '/settings?tab=ky', '/dashboard?period=2026-08',
+    /* Phase 3 */
+    P3];
   const bad = [];
-  for (const r of routes) { await p.evaluate(h => { location.hash = h; }, '#' + r); await p.waitForTimeout(250); const t = await p.evaluate(() => (document.getElementById('content') || document.body).innerText); if (/Lỗi hiển thị trang|undefined|NaN|\[object Object\]/.test(t)) bad.push(r + ' → ' + (t.match(/.{0,60}(Lỗi hiển thị trang|undefined|NaN|\[object Object\]).{0,60}/) || [''])[0].replace(/\n/g, ' ')); }
+  for (const r of routes.flat()) { await p.evaluate(h => { location.hash = h; }, '#' + r); await p.waitForTimeout(250); const t = await p.evaluate(() => (document.getElementById('content') || document.body).innerText); if (/Lỗi hiển thị trang|undefined|NaN|\[object Object\]/.test(t)) bad.push(r + ' → ' + (t.match(/.{0,60}(Lỗi hiển thị trang|undefined|NaN|\[object Object\]).{0,60}/) || [''])[0].replace(/\n/g, ' ')); }
   failed += bad.length + errs.length;
-  out.push(`${u}: ${routes.length} route, ${bad.length} trang có lỗi hiển thị, ${errs.length} lỗi JS${bad.length ? '\n  ' + bad.join('\n  ') : ''}${errs.length ? '\n  ' + errs.slice(0, 5).join('\n  ') : ''}`);
+  out.push(`${u}: ${routes.flat().length} route, ${bad.length} trang có lỗi hiển thị, ${errs.length} lỗi JS${bad.length ? '\n  ' + bad.join('\n  ') : ''}${errs.length ? '\n  ' + errs.slice(0, 5).join('\n  ') : ''}`);
   await ctx.close();
 }
 console.log(out.join('\n')); await b.close(); server.kill();

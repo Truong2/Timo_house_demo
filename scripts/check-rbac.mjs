@@ -1,4 +1,4 @@
-/* Kiểm tra tĩnh phân quyền & phạm vi Phase 1 + Phase 2 dựa trên manifest route (core/routes.js) và ma trận quyền (domain/rbac-policy.js).
+/* Kiểm tra tĩnh phân quyền & phạm vi Phase 1 + Phase 2 + Phase 3 dựa trên manifest route (core/routes.js) và ma trận quyền (domain/rbac-policy.js).
    node scripts/check-rbac.mjs  → exit 1 nếu có lỗi. */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -8,22 +8,23 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ctx = { console }; ctx.window = ctx; vm.createContext(ctx);
 for (const f of ['core/format.js', 'domain/rbac-policy.js', 'core/routes.js', 'data/catalog.js']) vm.runInContext(fs.readFileSync(path.join(ROOT, 'mockup/js', f), 'utf8'), ctx, { filename: f });
-const TH = ctx.TH; const R = TH.calc.rbac; const { ROUTES, NAV, FOOT, PHASE1_UI, PHASE2_UI } = TH.routes;
-const MS_ORDER = ['1A', '1B', '2']; const msOn = (cur, ms) => MS_ORDER.indexOf(cur) >= MS_ORDER.indexOf(ms);
+const TH = ctx.TH; const R = TH.calc.rbac; const { ROUTES, NAV, FOOT, PHASE1_UI, PHASE2_UI, PHASE3_UI } = TH.routes;
+const MS_ORDER = ['1A', '1B', '2', '3']; const msOn = (cur, ms) => MS_ORDER.indexOf(cur) >= MS_ORDER.indexOf(ms);
 const errs = []; let checks = 0;
 const expect = (cond, msg) => { checks++; if (!cond) errs.push(msg); };
 
-/* 1. Mọi route có quyền hợp lệ và mốc 1A/1B/2 */
+/* 1. Mọi route có quyền hợp lệ và mốc 1A/1B/2/3 */
 ROUTES.forEach(r => { expect(r.perm && R.POLICY[r.perm], `route ${r.path}: quyền "${r.perm}" không có trong rbac-policy`); expect(MS_ORDER.includes(r.ms), `route ${r.path}: thiếu mốc ms`); expect(/^UI-\d\d$/.test(r.ui), `route ${r.path}: mã UI sai`); });
 expect(new Set(ROUTES.map(r => r.path)).size === ROUTES.length, 'trùng path trong manifest');
 
-/* 2. Tập màn hình = đúng phạm vi Phase 1 (22 màn 1A + 6 màn 1B) + Phase 2 (13 màn), không lẫn màn Phase 3; màn Phase 1 không nằm sau mốc 2 */
+/* 2. Tập màn hình = đúng phạm vi Phase 1 (22 màn 1A + 6 màn 1B) + Phase 2 (13 màn) + Phase 3 (6 màn); màn Phase 1 không nằm sau mốc 2, màn Phase 3 chỉ ở mốc 3 */
 const uis = new Set(ROUTES.flatMap(r => [r.ui, ...(r.also || [])]));
-const scope = [...PHASE1_UI, ...PHASE2_UI];
-expect(uis.size === scope.length && scope.every(u => uis.has(u)), `tập UI-ID khác phạm vi Phase 1 + 2: ${[...uis].sort().join(',')}`);
-['UI-33', 'UI-34', 'UI-35', 'UI-36', 'UI-40', 'UI-41'].forEach(u => expect(!uis.has(u), `${u} thuộc Phase 3 nhưng có route`));
+const scope = [...PHASE1_UI, ...PHASE2_UI, ...PHASE3_UI];
+expect(uis.size === scope.length && scope.every(u => uis.has(u)), `tập UI-ID khác phạm vi Phase 1 + 2 + 3: ${[...uis].sort().join(',')}`);
+expect(JSON.stringify([...PHASE3_UI].sort()) === JSON.stringify(['UI-33', 'UI-34', 'UI-35', 'UI-36', 'UI-40', 'UI-41']), 'Phase 3 phải đúng 6 màn UI-33…36, UI-40, UI-41 (§7.3)');
+PHASE3_UI.forEach(u => expect(ROUTES.filter(r => r.ui === u).length && ROUTES.filter(r => r.ui === u).every(r => r.ms === '3'), `${u} phải thuộc mốc 3`));
 PHASE2_UI.forEach(u => expect(ROUTES.filter(r => r.ui === u).every(r => r.ms === '2'), `${u} phải thuộc mốc 2`));
-PHASE1_UI.forEach(u => expect(ROUTES.filter(r => r.ui === u || (r.also || []).includes(u)).some(r => r.ms !== '2'), `${u} (Phase 1) không được chỉ có route mốc 2`));
+PHASE1_UI.forEach(u => expect(ROUTES.filter(r => r.ui === u || (r.also || []).includes(u)).some(r => !['2', '3'].includes(r.ms)), `${u} (Phase 1) không được chỉ có route mốc 2/3`));
 const ms1B = new Set(ROUTES.filter(r => r.ms === '1B').map(r => r.ui));
 ['UI-16', 'UI-25', 'UI-27', 'UI-28', 'UI-29', 'UI-30'].forEach(u => expect(ms1B.has(u), `${u} phải thuộc mốc 1B`));
 
@@ -34,26 +35,36 @@ navItems.forEach(n => expect(!!routeOf(n.href), `sidebar "${n.label}" trỏ tớ
 const visibleNav = (role, ms) => navItems.filter(n => [n.href, ...(n.alts || [])].some(h => { const r = routeOf(h); return R.can(role, r.perm) && msOn(ms, r.ms); })).map(n => n.key);
 navItems.forEach(n => (n.alts || []).forEach(h => expect(!!routeOf(h), `sidebar "${n.label}" alt trỏ route không tồn tại (${h})`)));
 const P2FULL = ['dashboard', 'owners', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings'];
+const P3FULL = ['dashboard', 'owners', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings'];
 const expected = {
-  admin: { '1A': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'hr', 'zalo', 'import', 'settings'], '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL },
-  ketoan: { '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL },
-  vanhanh: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'billing', 'refunds'] },
-  leader: { '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'documents', 'billing', 'hr'] },
-  truongphong: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'reports', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo'] },
+  admin: { '1A': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'hr', 'zalo', 'import', 'settings'], '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL, '3': P3FULL },
+  ketoan: { '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL, '3': P3FULL },
+  vanhanh: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'billing', 'refunds'], '3': ['dashboard', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'billing', 'refunds'] },
+  leader: { '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'documents', 'billing', 'hr'], '3': ['dashboard', 'buildings', 'tenants', 'assets', 'documents', 'billing', 'hr'] },
+  truongphong: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'reports', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo'], '3': ['dashboard', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo'] },
   truongkd: { '2': ['dashboard', 'buildings', 'sales', 'leads', 'deals'] },
   sale: { '2': ['dashboard', 'buildings', 'sales', 'leads', 'deals'] },
-  kythuat: { '2': ['dashboard', 'buildings', 'repairs'] },
+  kythuat: { '2': ['dashboard', 'buildings', 'repairs'], '3': ['dashboard', 'buildings', 'repairs', 'assets'] },
+  codong: { '3': ['dashboard', 'shares', 'reports'] }, // ở mốc 1A–2 tài khoản cổ đông bị chặn đăng nhập (auth.login)
 };
 Object.entries(expected).forEach(([role, byMs]) => Object.entries(byMs).forEach(([ms, keys]) => { const got = visibleNav(role, ms); expect(JSON.stringify(got) === JSON.stringify(keys), `sidebar ${role}@${ms}: ${got.join(',')} ≠ ${keys.join(',')}`); }));
 
 /* 4. Quyền nhạy cảm chỉ admin/kế toán (CH-01, GĐ OQ-09); Phase 2: hoa hồng, chia cổ đông, áp OCR vào biểu phí, xác nhận sổ sửa chữa */
 ['payments.record', 'payments.reverse', 'debts.viewAmounts', 'customers.pii', 'hr.salary', 'payroll.manage', 'expenses.manage', 'allocation.manage', 'invoices.issue', 'owners.view',
-  'commission.view', 'commission.approve', 'commission.pay', 'shares.view', 'shares.lock', 'rates.manage', 'repairs.confirm'].forEach(p => expect(R.POLICY[p].every(r => ['admin', 'ketoan'].includes(r)), `quyền nhạy cảm ${p} lộ cho: ${R.POLICY[p].join(',')}`));
+  'commission.view', 'commission.approve', 'commission.pay', 'shares.manage', 'shares.lock', 'rates.manage', 'repairs.confirm',
+  'assets.manage', 'assets.dispose', 'inventory.enter', 'capital.manage', 'forecast.manage'].forEach(p => expect(R.POLICY[p].every(r => ['admin', 'ketoan'].includes(r)), `quyền nhạy cảm ${p} lộ cho: ${R.POLICY[p].join(',')}`));
 expect(R.POLICY['debts.viewStatus'].includes('leader') && R.POLICY['debts.viewStatus'].includes('vanhanh'), 'leader/vận hành phải xem được trạng thái nợ');
 /* 5. Duyệt hoàn cọc kép: mỗi vai trò một quyền riêng */
 expect(JSON.stringify(R.POLICY['refunds.approve.admin']) === '["admin"]' && JSON.stringify(R.POLICY['refunds.approve.ketoan']) === '["ketoan"]', 'duyệt hoàn cọc phải tách admin / kế toán');
-/* 6. Vai trò cổ đông là Phase 3; vai trò sale/kỹ thuật gắn mốc Phase 2 */
-expect(!R.ROLES.codong, 'vai trò cổ đông (Phase 3) không được xuất hiện');
+/* 6. Vai trò cổ đông là Phase 3, chỉ xem (đặc tả dòng 69-71, CH-23); vai trò sale/kỹ thuật gắn mốc Phase 2 */
+expect(R.ROLES.codong && R.ROLES.codong.phase === '3' && R.ROLES.codong.scope === 'shareholder', 'vai trò cổ đông phải thuộc Phase 3, phạm vi theo tòa góp vốn');
+const CODONG = ['dashboard.view', 'reports.view', 'shares.view', 'capital.view', 'efficiency.view', 'documents.download'];
+expect(JSON.stringify(R.perms.filter(p => R.can('codong', p)).sort()) === JSON.stringify([...CODONG].sort()), `cổ đông chỉ được quyền xem: ${R.perms.filter(p => R.can('codong', p)).join(',')}`);
+expect(JSON.stringify(R.POLICY['shares.view']) === '["admin","ketoan","codong"]', 'shares.view chỉ admin, kế toán, cổ đông');
+expect(!R.can('codong', 'forecast.view'), 'GĐ-P3 O1: cổ đông chưa xem UI-40 (số toàn hệ thống, không chia tòa)');
+/* 6d. Kiểm kê (CH-33): admin + kế toán duyệt kép, mỗi vai trò một quyền */
+expect(JSON.stringify(R.POLICY['inventory.approve.admin']) === '["admin"]' && JSON.stringify(R.POLICY['inventory.approve.ketoan']) === '["ketoan"]', 'duyệt kiểm kê phải tách admin / kế toán');
+expect(R.can('kythuat', 'maintenance.done') && !R.can('kythuat', 'maintenance.plan') && !R.can('kythuat', 'assets.value'), 'kỹ thuật: đánh dấu bảo dưỡng xong, không lập lịch, không thấy giá trị tài sản');
 expect(['sale', 'kythuat', 'truongkd'].every(k => R.ROLES[k] && R.ROLES[k].phase === '2'), 'vai trò sale / kỹ thuật / trưởng nhóm KD phải gắn mốc 2');
 expect(TH.data.catalog.users.filter(u => R.ROLES[u.role] && R.ROLES[u.role].phase).every(u => u.phase === R.ROLES[u.role].phase), 'tài khoản demo vai trò Phase 2 phải gắn mốc (ẩn ở 1A/1B)');
 ['sales.view', 'deals.close'].forEach(p => expect(!R.can('leader', p), `leader vận hành (TNVH) không có quyền ${p} – thuộc trưởng nhóm KD`));
@@ -78,9 +89,12 @@ fs.readdirSync(pageDir).forEach(f => { const src = fs.readFileSync(path.join(pag
 /* 9. Tab có quyền phải chặn cả khi mở thẳng bằng ?tab= (K.pickTab), không chỉ ẩn nút tab */
 fs.readdirSync(pageDir).forEach(f => { const src = fs.readFileSync(path.join(pageDir, f), 'utf8'); if (/\{ key: '[^']+', label: '[^']+', perm: '/.test(src)) expect(src.includes('K.pickTab('), `${f}: có tab gắn quyền nhưng không dùng K.pickTab – mở ?tab= sẽ lộ nội dung`); });
 /* 10. Trang theo :id của dữ liệu theo tòa (hóa đơn, phiếu hoàn, lượt thuê, tòa – kể cả bản in) phải kiểm phạm vi tòa */
-const SCOPED = /^\/(?:print\/)?(?:invoice|billing\/invoices|refund|refunds|stays|buildings)\/:id$/; let scopedRoutes = 0;
+const SCOPED = /^\/(?:print\/)?(?:invoice|billing\/invoices|refund|refunds|stays|buildings|shares)\/:id$/; let scopedRoutes = 0;
 fs.readdirSync(pageDir).forEach(f => { fs.readFileSync(path.join(pageDir, f), 'utf8').split("TH.router.handle('").slice(1).forEach(chunk => { const route = chunk.slice(0, chunk.indexOf("'")); if (!SCOPED.test(route)) return; scopedRoutes++; expect(/inScope\(/.test(chunk.slice(0, 900)), `${f}: route ${route} không kiểm phạm vi tòa (inScope)`); }); });
-expect(scopedRoutes === 6, `kỳ vọng 6 route :id theo tòa, tìm thấy ${scopedRoutes}`);
+expect(scopedRoutes === 7, `kỳ vọng 7 route :id theo tòa, tìm thấy ${scopedRoutes}`);
+
+/* 12. Action Phase 3 chặn theo mốc ở mức action (needMs('3')) */
+['act-assets.js', 'act-maintenance.js', 'act-inventory.js', 'act-capital.js', 'act-forecast.js'].forEach(f => { const p = path.join(ROOT, 'mockup/js/services', f); if (fs.existsSync(p)) expect(fs.readFileSync(p, 'utf8').includes("_.needMs('3'"), `${f}: action Phase 3 phải chặn theo mốc (_.needMs('3'))`); });
 
 /* 11. Phân công theo phòng (UI-24): phạm vi phòng áp trong Q.scoped – người được giao phòng không thấy phòng khác cùng tòa; các danh sách theo phòng phải đi qua Q.scoped */
 const qSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/services/q.js'), 'utf8'), authSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/core/auth.js'), 'utf8');
@@ -89,4 +103,4 @@ expect(/A\.inScopeRoom = /.test(authSrc) && /A\.roomScope = /.test(authSrc), 'au
 ['billing-invoices.js', 'billing-debts.js', 'tenants.js', 'refunds.js', 'billing-receipts.js'].forEach(f => expect(fs.readFileSync(path.join(pageDir, f), 'utf8').includes('Q.scoped('), `${f}: danh sách theo phòng không dùng Q.scoped – phân công theo phòng bị lộ`));
 
 if (errs.length) { console.error(`✗ RBAC: ${errs.length}/${checks} kiểm tra lỗi\n - ` + errs.join('\n - ')); process.exit(1); }
-console.log(`✓ RBAC: ${checks} kiểm tra đạt · ${ROUTES.length} route · ${PHASE1_UI.length} màn Phase 1 + ${PHASE2_UI.length} màn Phase 2 · ${Object.keys(R.ROLES).length} vai trò`);
+console.log(`✓ RBAC: ${checks} kiểm tra đạt · ${ROUTES.length} route · ${PHASE1_UI.length} màn Phase 1 + ${PHASE2_UI.length} màn Phase 2 + ${PHASE3_UI.length} màn Phase 3 · ${Object.keys(R.ROLES).length} vai trò`);

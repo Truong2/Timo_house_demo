@@ -178,6 +178,7 @@ TH.data.catalog = {
     { username: 'truongkd', role: 'truongkd', empKey: 'NV70522410', display: 'Trưởng nhóm kinh doanh', phase: '2' },
     { username: 'sale', role: 'sale', empKey: 'NV42064945', display: 'Nhân viên kinh doanh', phase: '2' },
     { username: 'kythuat', role: 'kythuat', empKey: 'NV94361688', display: 'Thợ sửa chữa', phase: '2' },
+    { username: 'codong', role: 'codong', shKey: 'CD-01', display: 'Cổ đông G1 (chỉ xem)', phase: '3' }, // Phase 3 – không gắn nhân viên; shKey trỏ cổ đông trong seed
   ],
 
   zaloTemplates: [

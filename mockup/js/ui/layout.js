@@ -23,7 +23,7 @@
         <a class="brand" href="#/dashboard"><img src="assets/logo.svg" alt=""><div><b>TimoHouse</b><small>Quản lý nhà cho thuê</small></div></a>
         <nav class="nav">${navHtml}</nav>
         <div class="nav-foot">${footHtml}
-          <div class="ms-chip" data-tip="${esc('Đang dùng: ' + ms.name + '. Để phase sau: ' + TH.ms.DEFERRED.join(' · '))}">${I('flag')}<span>${esc(ms.label)}</span></div>
+          <div class="ms-chip" data-tip="${esc('Đang dùng: ' + ms.name + '. Ngoài phạm vi: ' + TH.ms.DEFERRED.join(' · '))}">${I('flag')}<span>${esc(ms.label)}</span></div>
         </div>
       </aside>
       <div class="main">

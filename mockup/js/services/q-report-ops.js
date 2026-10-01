@@ -193,8 +193,11 @@
         { ui: 'UI-29', title: 'Báo cáo tổng (LN dòng tiền)', href: '#/reports/total', formula: 'báo cáo lợi nhuận kinh doanh thực thu (gồm cọc mới và mua sắm tb) – SRC-13', period: lastRep, status: st(lastRep) },
         { ui: 'UI-30', title: 'Báo cáo kinh doanh', href: '#/reports/business', formula: 'không gồm cọc mới, hoàn cọc, mua sắm tb; khấu hao thiết bị 1,6% (GĐ OQ-10)', period: lastRep, status: st(lastRep) },
         { ui: 'UI-42', title: 'Chi phí giá vốn / cố định / phát sinh', href: '#/reports/costs', formula: 'các mục giá vốn / chi phí vận hành / chi phí phát sinh trong báo cáo nhà; từng nhà và toàn hệ thống', period: lastRep, status: st(lastRep) },
-        { ui: 'UI-40', title: 'Dự kiến lợi nhuận', formula: 'có / không tính cọc mới, hoàn cọc, mua sắm thiết bị', status: 'phase3' },
-        { ui: 'UI-41', title: 'Hiệu quả đầu tư', formula: 'LN/vốn, LN/tài sản, biên LN tiền nhà', status: 'phase3' }] },
+        ...(TH.ms.on('3') ? (() => { const fc = Q.forecastLatestPeriod ? Q.forecastLatestPeriod() : null; return [ // Phase 3: UI-40 / UI-41
+          { ui: 'UI-40', title: 'Dự kiến lợi nhuận', href: '#/reports/forecast', formula: 'một bộ đầu vào → bản dòng tiền (có cọc mới, hoàn cọc, mua sắm thiết bị) và bản kinh doanh (khấu hao) – SRC-14', period: fc, status: st(fc) },
+          { ui: 'UI-41', title: 'Hiệu quả vốn, tài sản & tiền nhà', href: '#/reports/efficiency', formula: 'LN/vốn = LNR/GV (dòng 51) · LN/tài sản = LNR / giá trị TS còn lại · biên tiền nhà = DT tiền phòng / tiền thuê (dòng 59)', period: lastRep, status: st(lastRep) }]; })()
+        : [{ ui: 'UI-40', title: 'Dự kiến lợi nhuận', formula: 'có / không tính cọc mới, hoàn cọc, mua sắm thiết bị', status: 'phase3' },
+          { ui: 'UI-41', title: 'Hiệu quả đầu tư', formula: 'LN/vốn, LN/tài sản, biên LN tiền nhà', status: 'phase3' }])] },
       { key: 'vh', label: 'Phòng vận hành', items: [
         { ui: 'UI-45', title: 'Hiệu suất NV vận hành (HS)', href: '#/reports/rooms?view=hs', formula: 'HS thực tế / HS tạm tính (UI-01) – cùng công thức bảng lương (OQ-18)', period: lastLive, status: st(lastLive) },
         { ui: 'UI-45', title: 'Tỷ lệ lấp đầy, thời gian trống', href: '#/reports/rooms?view=occ', formula: 'từng nhà và hệ thống; lọc trưởng phòng, khu vực (OQ-06)', period: lastLive, status: st(lastLive) },
