@@ -56,7 +56,22 @@
       S.quotaError = false;
     } catch (e) { S.quotaError = true; console.warn('store save', e); }
   };
-  S.save = () => { clearTimeout(S._t); S._t = setTimeout(persist, 80); };
+  S.save = () => { if (S._batch) return; clearTimeout(S._t); S._t = setTimeout(persist, 80); };
+  // Intake commits one complete business aggregate, with no partial writes/events.
+  S.atomic = fn => {
+    if (S._batch) throw new Error('Giao dịch đang thực hiện');
+    clearTimeout(S._t);
+    const snapshot = JSON.stringify({ state: S.state, dirty: S._dirty, version: S.version });
+    S._batch = true;
+    try {
+      const result = fn();
+      localStorage.setItem(KEY, JSON.stringify({ schema: SCHEMA, meta: S.meta, session: S.session, ops: S._dirty }));
+      S.quotaError = false; S._batch = false; S.emit('change'); return result;
+    } catch (e) {
+      const old = JSON.parse(snapshot); S.state = old.state; S._dirty = old.dirty; S.version = old.version; S._idx = {}; S._batch = false;
+      throw e;
+    }
+  };
   S.saveNow = () => { clearTimeout(S._t); persist(); };
   S.usage = () => { try { return (localStorage.getItem(KEY) || '').length * 2; } catch (e) { return 0; } };
   const mark = (c, obj) => { (S._dirty[c] = S._dirty[c] || {})[obj.id] = obj; S.version++; delete S._idx[c]; S.save(); };
@@ -86,7 +101,7 @@
   S.setMeta = (patch) => { Object.assign(S.meta, patch); S.version++; S.save(); };
   S.setSession = (sess) => { S.session = sess; S.saveNow(); };
   S.on = (fn) => S.listeners.push(fn);
-  S.emit = (what, detail) => { S.listeners.forEach(fn => { try { fn(what, detail); } catch (e) { console.error(e); } }); };
+  S.emit = (what, detail) => { if (S._batch) return; S.listeners.forEach(fn => { try { fn(what, detail); } catch (e) { console.error(e); } }); };
   /* Xóa mọi thao tác, quay về dữ liệu demo gốc (giữ phiên đăng nhập) */
   S.reset = () => { const sess = S.session; S._dirty = {}; S.meta = defaultMeta(); S.session = sess; persist(); S.load(); };
   S.dirtyCount = () => Object.values(S._dirty).reduce((s, m) => s + Object.keys(m).length, 0);

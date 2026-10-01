@@ -3,6 +3,10 @@
 (function (TH) {
   const R = [
     { path: '/dashboard', ui: 'UI-01', title: 'Tổng quan', menu: 'dashboard', perm: 'dashboard.view', ms: '1A' },
+    { path: '/owners', ui: 'UI-04', title: 'Chủ nhà', menu: 'owners', perm: 'owners.view', ms: '1A' },
+    { path: '/owners/new', ui: 'UI-04', title: 'Thêm chủ nhà', menu: 'owners', perm: 'owners.manage', ms: '1A' },
+    { path: '/owner-profiles/:id', ui: 'UI-04', title: 'Hồ sơ chủ nhà', menu: 'owners', perm: 'owners.view', ms: '1A' },
+    { path: '/tenants/intake', ui: 'UI-07', title: 'Thêm khách hàng', menu: 'tenants', perm: 'tenants.manage', ms: '1A' },
     { path: '/buildings', ui: 'UI-02', title: 'Tòa nhà', menu: 'buildings', perm: 'buildings.view', ms: '1A' },
     { path: '/buildings/:id', ui: 'UI-03', title: 'Chi tiết tòa nhà', menu: 'buildings', perm: 'buildings.view', ms: '1A' },
     { path: '/owners/:id', ui: 'UI-04', title: 'Chủ nhà & hợp đồng đầu vào', menu: 'buildings', perm: 'owners.view', ms: '1A' },
@@ -57,8 +61,9 @@
   const NAV = [
     { key: 'dashboard', label: 'Tổng quan', icon: 'home', href: '#/dashboard' },
     { group: 'Vận hành', icon: 'building', items: [
+      { key: 'owners', label: 'Chủ nhà', href: '#/owners' },
       { key: 'buildings', label: 'Tòa nhà', href: '#/buildings' },
-      { key: 'tenants', label: 'Khách thuê', href: '#/tenants' },
+      { key: 'tenants', label: 'Khách hàng', href: '#/tenants' },
       { key: 'repairs', label: 'Sổ sửa chữa', href: '#/repairs' },
       { key: 'documents', label: 'Tài liệu', href: '#/documents' },
     ] },

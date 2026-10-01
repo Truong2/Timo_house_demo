@@ -16,6 +16,8 @@ Cài đặt → Hệ thống demo → chọn mốc. Mốc 1A ẩn Báo cáo, Ph�
 
 ## Kịch bản gợi ý
 
+Luồng nhập hợp đồng: đăng nhập `admin` → Chủ nhà → Thêm chủ nhà → tải `docs/contracts_demo/Hop_dong_chu_nha_TH01_demo_dong_bo.pdf` → chọn khu vực/người quản lý còn thiếu → xác nhận 30 phòng; sau đó Khách hàng → Thêm khách hàng → tải PDF khách P302 trong cùng thư mục → rà soát và xác nhận. Hồ sơ khách chờ nhận phòng; 9 triệu ghi trên hợp đồng nằm ở đề xuất thu, kế toán đối chiếu chứng từ trước khi ghi phiếu. Có thể chọn nhập tay hoặc XLSX/CSV trong cùng màn. Bản nháp và file gốc được giữ ở trình duyệt này.
+
 1. **Go-live (1A):** Tòa nhà → S43 → tab Phòng → chọn phòng trống → Tạo lượt thuê "chờ nhận" + cọc → Hóa đơn & thu tiền → Chỉ số (kỳ 10) → Tạo kỳ hóa đơn (wizard) → Phát hành → Xem/in (4 mẫu) → Ghi thu một phần → Công nợ → Khách thuê → Kết thúc thuê (phá HĐ / hết hạn) → Hoàn cọc (admin duyệt, đăng nhập `ketoan` duyệt, ghi chi) → Thông báo Zalo (tạo đợt, gửi, gửi lại tin lỗi) → Tổng quan.
 2. **Chốt tháng (1B):** Nhân sự & lương → Bảng lương (kỳ 08, đối chiếu Excel, duyệt ca HS>100) → Chốt → Chi phí → Phân bổ chung (mẫu số 1.382) → Chốt → Báo cáo tổng / Báo cáo kinh doanh / theo tòa → Cài đặt → Kỳ → Khóa kỳ 08.
 

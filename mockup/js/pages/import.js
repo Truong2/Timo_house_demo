@@ -19,7 +19,7 @@
     const perm = X.importPermFor(type);
     const jobs = S.all('importJobs').slice().reverse();
     let parsed = null, mapping = {}, results = null, fileName = '';
-    root.innerHTML = U.pageHead({ title: 'Import dữ liệu', sub: 'Không import ô tổng; ngày thiếu không tự gán theo tên file; ô lỗi công thức bị chặn' })
+    root.innerHTML = U.pageHead({ title: 'Import dữ liệu', sub: 'Không import ô tổng; ngày thiếu không tự gán theo tên file; ô lỗi công thức bị chặn', acts: [U.btn({label:'Chủ nhà — Excel/CSV',href:'#/owners/new?mode=excel',perm:'owners.manage'}),U.btn({label:'Khách hàng — Excel/CSV',href:'#/tenants/intake?mode=excel',perm:'tenants.manage'})] })
       + `<div class="obj-tiles mb16">${Object.entries(I.SCHEMAS).filter(([k]) => TH.ms.on('1B') || !['vendorBills', 'commissions'].includes(k)).map(([k, v]) => `<a class="obj-tile ${k === type ? 'on' : ''}" href="#/import?type=${k}">${esc(v.label)}</a>`).join('')}</div>`
       + (TH.auth.can(perm) ? '' : U.note('warn', 'Không có quyền nhập loại dữ liệu này', 'Chỉ xem được mẫu và lịch sử.'))
       + (sc.hint ? U.note('info', sc.label, esc(sc.hint)) : '')

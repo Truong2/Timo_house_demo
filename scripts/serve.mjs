@@ -11,10 +11,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const useDist = process.argv.includes('--dist');
 const DIR = path.join(ROOT, useDist ? 'dist' : 'mockup');
 const PORT = Number(process.env.PORT) || 8765;
+// PDF.js module worker and local OCR WASM.
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.csv': 'text/csv; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.woff2': 'font/woff2' };
 
 if (!fs.existsSync(path.join(DIR, 'index.html'))) { console.error(`Không thấy ${path.relative(ROOT, DIR)}/index.html${useDist ? ' – chạy "npm run build" trước.' : ''}`); process.exit(1); }
 
+MIME['.mjs'] = 'text/javascript; charset=utf-8'; MIME['.wasm'] = 'application/wasm';
 http.createServer((req, res) => {
   const urlPath = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   let file = path.normalize(path.join(DIR, urlPath === '/' ? 'index.html' : urlPath));

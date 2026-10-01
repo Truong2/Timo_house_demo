@@ -33,10 +33,10 @@ const navItems = [...NAV.flatMap(n => n.items || [n]), ...FOOT];
 navItems.forEach(n => expect(!!routeOf(n.href), `sidebar "${n.label}" trỏ tới route không tồn tại (${n.href})`));
 const visibleNav = (role, ms) => navItems.filter(n => [n.href, ...(n.alts || [])].some(h => { const r = routeOf(h); return R.can(role, r.perm) && msOn(ms, r.ms); })).map(n => n.key);
 navItems.forEach(n => (n.alts || []).forEach(h => expect(!!routeOf(h), `sidebar "${n.label}" alt trỏ route không tồn tại (${h})`)));
-const P2FULL = ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings'];
+const P2FULL = ['dashboard', 'owners', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings'];
 const expected = {
-  admin: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'hr', 'zalo', 'import', 'settings'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL },
-  ketoan: { '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL },
+  admin: { '1A': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'hr', 'zalo', 'import', 'settings'], '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL },
+  ketoan: { '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL },
   vanhanh: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'billing', 'refunds'] },
   leader: { '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'documents', 'billing', 'hr'] },
   truongphong: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'reports', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo'] },

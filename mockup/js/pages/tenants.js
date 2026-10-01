@@ -1,7 +1,7 @@
 /* UI-06 Khách thuê / lượt thuê (chế độ xem: đang ở, chờ nhận, sắp hết hạn, đã kết thúc, phá HĐ) · UI-07 tạo khách & lượt thuê. */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc;
-  const VIEWS = [['active', 'Đang ở'], ['pending', 'Chờ nhận (đã cọc)'], ['expiring', 'Sắp hết hạn'], ['ended', 'Đã kết thúc'], ['broken', 'Phá HĐ / bỏ trốn'], ['all', 'Tất cả']];
+  const VIEWS = [['active', 'Đang ở'], ['pending', 'Chờ nhận / giữ phòng'], ['expiring', 'Sắp hết hạn'], ['ended', 'Đã kết thúc'], ['broken', 'Phá HĐ / bỏ trốn'], ['all', 'Tất cả']];
   TH.router.handle('/tenants', (root, p, q) => {
     const view = q.view || 'active';
     const warn = Q.param('expiryWarnDays');
@@ -18,8 +18,8 @@
     if (q.q) rows = rows.filter(s => { const c = Q.customer(s.customerId) || {}; return K.match(q.q, s.code, c.name, c.phone, Q.roomCode(s.roomId)); });
     const debtOf = (s) => (inv[s.id] || []).reduce((t, i) => t + Q.invState(i).remaining, 0);
     const brMap = {}; (TH.data.p202609.breach || []).forEach(b => { brMap[b.code] = b; });
-    root.innerHTML = U.pageHead({ title: 'Khách thuê', sub: 'Mỗi lượt thuê có mã KH riêng (mã phòng + A001…); cùng phòng khác khách là lượt thuê khác', acts: [
-      U.btn({ label: 'Xuất', icon: 'download', act: 'exp' }), U.btn({ label: 'Xem công nợ', icon: 'alert-triangle', href: '#/billing/debts' }), U.btn({ label: 'Tạo khách / lượt thuê', icon: 'user-plus', cls: 'btn-primary', href: '#/tenants/new', perm: 'tenants.manage' })] })
+    root.innerHTML = U.pageHead({ title: 'Khách hàng', sub: 'Hồ sơ khách liên kết các lượt thuê; không gộp các lượt thuê chỉ vì chung phòng', acts: [
+      U.btn({ label: 'Xuất', icon: 'download', act: 'exp' }), U.btn({ label: 'Xem công nợ', icon: 'alert-triangle', href: '#/billing/debts' }), U.btn({ label: 'Thêm khách hàng', icon: 'user-plus', cls: 'btn-primary', href: '#/tenants/intake', perm: 'tenants.manage' })] })
       + U.statusTabs(VIEWS.map(([k, l]) => ({ key: k, label: l, count: counts[k] })), view, 'view')
       + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã KH, mã phòng, tên, SĐT…' }, { name: 'building', label: 'Tòa', options: K.buildingOpts() },
         { name: 'debt', label: 'Công nợ', options: [['1', 'Có nợ']] }, { name: 'zalo', label: 'Zalo', options: [['true', 'Đã liên kết'], ['false', 'Chưa liên kết']] }], q)

@@ -30,11 +30,11 @@
     if (cur && d.status !== 'active' && d.rentStart && d.rentStart <= (cur.plannedLeaveDate || cur.endDate)) errs.rentStart = `Phòng còn khách ${cur.code} đến ${F.date(cur.plannedLeaveDate || cur.endDate)} – ghi ngày báo trả của khách cũ trước, hoặc chọn ngày sau đó`;
     // Lượt thuê chờ nhận phải có cọc thực nhận (SRS §2.3 mục 3): phiếu cọc hôm nay, hoặc cọc đang giữ khi import số dư
     const depIn = d.depositReceived ? Number(d.depositReceived.amount) || 0 : 0;
-    if (d.status !== 'active' && !d.dealId && !(depIn > 0) && !(Number(d.openingDeposit) > 0)) errs.depAmount = 'Lượt thuê chờ nhận phải có cọc đã nhận';
+    if (d.status !== 'active' && !d.dealId && !d.confirmedContract && !(depIn > 0) && !(Number(d.openingDeposit) > 0)) errs.depAmount = 'Lượt thuê chờ nhận phải có cọc đã nhận hoặc hợp đồng đã xác nhận';
     if (room && Q.pendingStay(room.id)) errs.roomId = 'Phòng đã có khách cọc chờ nhận';
     if (Object.keys(errs).length) { const e = new Error('Dữ liệu chưa hợp lệ'); e.fields = errs; throw e; }
     const code = nextStayCode(room.code);
-    const cust = S.add('customers', { id: 'KH-' + code, name: d.name.trim(), phone: d.phone.replace(/\s/g, ''), idNo: d.idNo || '', occupation: d.occupation || 'Người đi làm', zaloLinked: !!d.zaloLinked });
+    const cust = (d.customerId && S.get('customers', d.customerId)) || S.add('customers', { id: 'KH-' + code, name: d.name.trim(), phone: d.phone.replace(/\s/g, ''), idNo: d.idNo || '', occupation: d.occupation || '', zaloLinked: !!d.zaloLinked });
     const stay = S.add('stays', { id: 'st_' + code, code, roomId: room.id, buildingId: room.buildingId, customerId: cust.id, status: d.status === 'active' ? 'active' : 'pending', endType: null,
       dealDate, moveInDate: d.moveInDate || d.rentStart, rentStart: d.rentStart, svcStart: d.svcStart || d.rentStart, endDate: d.endDate,
       depositAmount: Number(d.deposit) || 0, depositStatus: 'none', rent: Number(d.rent), listPrice: room.listPrice, people: Number(d.people) || 1, vehicles: Number(d.vehicles) || 0, payMonths: Number(d.payMonths) || 1, source: d.dealId ? 'deal' : 'web', dealId: d.dealId || null });
@@ -42,7 +42,7 @@
     S.add('rateVersions', { stayId: stay.id, from: d.rentStart, to: null, rent: Number(d.rent), items: JSON.parse(JSON.stringify(items)), reason: 'Biểu phí khi tạo lượt thuê', source: 'web' });
     S.update('rooms', room.id, { status: stay.status === 'active' ? 'occupied' : (Q.currentStay(room.id) ? room.status : 'reserved') });
     // Import cọc đang giữ trước go-live → số dư đầu kỳ trong sổ cọc (không phải doanh thu kỳ này)
-    if (Number(d.openingDeposit) > 0) { S.add('depositLedger', { stayId: stay.id, buildingId: stay.buildingId, kind: 'opening', amount: Number(d.openingDeposit), date: d.rentStart, period: F.period(d.rentStart), note: 'Cọc đang giữ (import số dư)' }); X.syncDepositStatus(stay.id); }
+    if (Number(d.openingDeposit) > 0) { const opened=d.openingDepositDate||d.rentStart;S.add('depositLedger', { stayId: stay.id, buildingId: stay.buildingId, kind: 'opening', amount: Number(d.openingDeposit), date: opened, period: F.period(opened), note: 'Cọc đang giữ (import số dư)' }); X.syncDepositStatus(stay.id); }
     if (d.depositReceived && Number(d.depositReceived.amount) > 0) {
       X.recordPayment({ stayId: stay.id, type: 'deposit', amount: Number(d.depositReceived.amount), receivedAt: d.depositReceived.date || F.today(), method: d.depositReceived.method || 'bank', allocations: [], note: 'Nhận cọc giữ phòng' }, true);
     }

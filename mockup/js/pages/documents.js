@@ -36,8 +36,8 @@
       newv: (el) => { const d = S.get('documents', el.dataset.id); K.formDrawer({ title: 'Phiên bản mới – ' + esc(d.name), modal: true, fields: [{ name: 'name', label: 'Tên file', value: d.name, req: true }, { name: 'validTo', label: 'Hiệu lực đến', type: 'date', value: d.validTo || '' }, { name: 'note', label: 'Nội dung thay đổi', span: true }], submit: 'Tải phiên bản ' + ((d.version || 1) + 1), onSubmit: (x) => { X.uploadDocument(Object.assign({}, x, { replaceId: d.id, size: d.size })); U.toast('ok', 'Đã tạo phiên bản mới'); } }); },
       ver: (el) => { const vs = Q.docVersions(el.dataset.id); U.drawer({ title: 'Các phiên bản', body: U.timeline(vs.map(v => ({ when: F.date(String(v.uploadedAt).slice(0, 10)), title: 'v' + v.version + ' · ' + v.name, sub: esc((v.uploadedBy || '') + (v.note ? ' · ' + v.note : '')), color: v.status === 'current' ? 'green' : 'gray' }))) }); },
       del: (el) => K.formDrawer({ title: 'Xóa tài liệu', modal: true, note: U.note('warn', '', 'Tài liệu gắn HĐ chủ nhà / lượt thuê / hóa đơn / phiếu thu / phiếu hoàn / chứng từ chi không xóa được – chỉ tải phiên bản mới.'), fields: [{ name: 'reason', label: 'Lý do', req: true, span: true }], submit: 'Xóa', onSubmit: (x) => { X.deleteDocument(el.dataset.id, x.reason); U.toast('ok', 'Đã xóa'); } }),
-      dl: (el) => { const d = K.act(() => X.downloadDocument(el.dataset.id)); if (d) U.toast('ok', 'Đã tải ' + d.name, 'Mô phỏng – ghi nhật ký tải xuống'); },
-      ocr: (el) => { const s = Q.ocrOf(el.dataset.id)[0]; if (s) TH.go('#/ocr/' + s.id); else { const o = K.act(() => X.runOcr(el.dataset.id)); if (o) TH.go('#/ocr/' + o.id); } },
+      dl: async (el) => { const d = K.act(() => X.downloadDocument(el.dataset.id)); if (!d) return; if(d.blobId){try{await TH.intakeFiles.download(d.blobId);U.toast('ok','Đã tải '+d.name);}catch(e){U.toast('err',e.message);}}else U.toast('info',d.name+' là bản ghi demo cũ, không có file gốc trong trình duyệt.'); },
+      ocr: async (el) => {const f=S.get('contractFiles',el.dataset.id);try{await TH.intakeFiles.startStay(f.stayId,f.blobId);}catch(e){U.toast('err',e.message);} },
     });
   });
 

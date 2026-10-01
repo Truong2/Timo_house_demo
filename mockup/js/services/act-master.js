@@ -47,11 +47,11 @@
   };
   X.addRoom = (buildingId, d) => {
     _.need('buildings.manage');
-    const b = Q.building(buildingId); const num = Number(d.number);
-    if (!num) throw new Error('Nhập số phòng');
+    const b = Q.building(buildingId); const num = String(d.number ?? '').trim().toUpperCase();
+    if (!b || !/^\d+[A-Z]*$/.test(num)) throw new Error('Nhập số phòng (cho phép hậu tố chữ)');
     const code = num + b.code;
     if (S.get('rooms', 'r_' + code)) throw new Error('Phòng ' + code + ' đã tồn tại');
-    const r = S.add('rooms', { id: 'r_' + code, code, buildingId, number: num, floor: Number(d.floor) || Math.floor(num / 100), listPrice: Number(d.listPrice) || 0, mgmtPrice: Number(d.mgmtPrice) || Number(d.listPrice) || 0, price: Number(d.price) || Number(d.listPrice) || 0,
+    const r = S.add('rooms', { id: 'r_' + code, code, buildingId, number: num, floor: Number(d.floor) || Math.floor(parseInt(num,10) / 100), listPrice: Number(d.listPrice) || 0, mgmtPrice: d.mgmtPrice!=null?Number(d.mgmtPrice):Number(d.listPrice)||0, price: d.price!=null?Number(d.price):Number(d.listPrice)||0,
       area: Number(d.area) || null, readyDate: d.readyDate || null, exploitation: d.exploitation || 'timehouse', status: 'vacant_ready', type: d.type || 'Phòng đơn' });
     _.audit('create', 'room', r.id, 'Thêm phòng ' + code); _.done(); return r;
   };
@@ -122,7 +122,9 @@
     const until = F.addMonths(cur, 12); let n = 0;
     for (let f = from; f < until && (!oc.endDate || f <= oc.endDate); f = F.addMonths(f, oc.payCycleMonths)) {
       if (S.one('ownerPayments', o => o.contractId === contractId && o.from === f)) continue;
-      S.add('ownerPayments', { contractId, buildingId: oc.buildingId, from: f, months: oc.payCycleMonths, dueDate: TH.calc.dates.addDays(f, oc.payDay - 1), amountDue: opAmount(contractId, f, oc.payCycleMonths), paid: 0, paidAt: null }); n++;
+      const dueMonth=F.addMonths(f, Number(oc.dueMonthOffset)||0),last=TH.calc.dates.addDays(F.addMonths(dueMonth,1),-1).slice(-2);
+      const months=Array.from({length:oc.payCycleMonths},(_,i)=>F.addMonths(f,i)).filter(month=>!oc.endDate||month<=oc.endDate).length;
+      S.add('ownerPayments', { contractId, buildingId: oc.buildingId, from: f, months, dueDate: dueMonth.slice(0,8)+String(Math.min(oc.payDay,+last)).padStart(2,'0'), amountDue: opAmount(contractId, f, months), paid: 0, paidAt: null }); n++;
     }
     return n;
   };
@@ -135,14 +137,14 @@
     if (!d.startDate) errs.startDate = 'Nhập ngày bắt đầu';
     if (!d.endDate || (d.startDate && d.endDate <= d.startDate)) errs.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
     if (!(Number(d.monthlyRent) > 0)) errs.monthlyRent = 'Nhập giá thuê/tháng';
-    if (![1, 2, 3, 6, 12].includes(Number(d.payCycleMonths))) errs.payCycleMonths = 'Chọn kỳ trả';
-    const payDay = Number(d.payDay) || 5; if (payDay < 1 || payDay > 28) errs.payDay = 'Ngày trả từ 1 đến 28';
+    if (![1, 2, 3, 4, 6, 12].includes(Number(d.payCycleMonths))) errs.payCycleMonths = 'Chọn kỳ trả';
+    const payDay = Number(d.payDay) || 5; if (payDay < 1 || payDay > 31) errs.payDay = 'Ngày trả từ 1 đến 31';
     if (b && S.one('ownerContracts', c => c.buildingId === b.id && (!c.endDate || c.endDate >= (d.startDate || F.today())))) errs.buildingId = 'Tòa đã có HĐ đầu vào còn hiệu lực – dùng phụ lục';
     if (Object.keys(errs).length) { const e = new Error('Dữ liệu chưa hợp lệ'); e.fields = errs; throw e; }
     _.guardEffective(d.startDate, 'HĐ chủ nhà');
     const owner = d.ownerId ? S.get('owners', d.ownerId) : S.add('owners', { name: d.ownerName.trim(), phone: d.ownerPhone || '', idNo: d.ownerIdNo || '', bank: d.ownerBank || '' });
     const code = d.code || 'HĐCN-' + b.code + (S.where('ownerContracts', c => c.buildingId === b.id).length ? '-' + (S.where('ownerContracts', c => c.buildingId === b.id).length + 1) : '');
-    const oc = S.add('ownerContracts', { id: 'oc_' + code, code, buildingId: b.id, ownerId: owner.id, signDate: d.signDate || d.startDate, startDate: d.startDate, endDate: d.endDate, deposit: Number(d.deposit) || 0, payCycleMonths: Number(d.payCycleMonths), payDay, status: 'active', source: 'web' });
+    const oc = S.add('ownerContracts', { id: 'oc_' + code, code, buildingId: b.id, ownerId: owner.id, signDate: d.signDate || d.startDate, startDate: d.startDate, endDate: d.endDate, deposit: Number(d.deposit) || 0, payCycleMonths: Number(d.payCycleMonths), payDay, dueMonthOffset:Number(d.dueMonthOffset)||0, status: 'active', source: 'web' });
     S.add('ownerRateVersions', { contractId: oc.id, from: d.startDate, to: null, monthlyRent: Number(d.monthlyRent), reason: 'Giá theo HĐ gốc' });
     const n = X.buildOwnerSchedule(oc.id);
     _.audit('create', 'ownerContract', oc.id, `HĐ chủ nhà ${code} tòa ${b.code}: ${F.vnd(Number(d.monthlyRent))}/tháng, ${n} kỳ trả`); _.done(); return oc;

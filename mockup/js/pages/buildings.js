@@ -91,7 +91,7 @@
       <h4 class="mt16 mb8">Lịch sử lượt thuê (${stays.length})</h4>
       <table class="tbl compact"><thead><tr><th>Mã KH</th><th>Khách</th><th>Từ</th><th>Đến</th><th>Trạng thái / loại kết thúc</th></tr></thead><tbody>
       ${stays.map(s => `<tr><td><a href="#/stays/${s.id}">${esc(s.code)}</a></td><td>${esc((Q.customer(s.customerId) || {}).name || '')}</td><td>${F.date(s.rentStart)}</td><td>${F.date(s.endDate)}</td><td>${K.stayChip(s)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Chưa có</td></tr>'}</tbody></table>`,
-      footer: [U.btn({ label: 'Sửa phòng', icon: 'pencil', act: 'editroom', perm: 'buildings.manage' }), U.btn({ label: 'Đổi trạng thái phòng', icon: 'refresh', act: 'status', perm: 'rooms.status' }), U.btn({ label: 'Tạo lượt thuê', icon: 'user-plus', cls: 'btn-primary', href: '#/tenants/new?room=' + room.id, perm: 'tenants.manage' })].join('') });
+      footer: [U.btn({ label: 'Sửa phòng', icon: 'pencil', act: 'editroom', perm: 'buildings.manage' }), U.btn({ label: 'Đổi trạng thái phòng', icon: 'refresh', act: 'status', perm: 'rooms.status' }), U.btn({ label: 'Thêm khách hàng', icon: 'user-plus', cls: 'btn-primary', href: '#/tenants/intake?room=' + room.id, perm: 'tenants.manage' })].join('') });
     TH.auth.enforceUI(d.el);
     U.bind(d.el, { editroom: () => editRoom(room, () => d.close()), status: () => K.formDrawer({ title: 'Đổi trạng thái ' + room.code, modal: true, size: 'sm', fields: [
       { name: 'status', label: 'Trạng thái mới', type: 'select', req: true, options: Object.entries(TH.data.catalog.roomStatuses).filter(([k]) => !['occupied', 'reserved'].includes(k)).map(([k, v]) => [k, v.label]) },

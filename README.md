@@ -16,7 +16,8 @@ Mốc mặc định là **Phase 2** (đổi ở Cài đặt → Hệ thống dem
 ## Chạy
 
 ```bash
-npm run dev        # http://localhost:8765 (Node ≥ 20, không cần npm install để chạy)
+npm install        # cài bộ đọc PDF/OCR/XLSX cho luồng hợp đồng
+npm run dev        # http://localhost:8765 (Node ≥ 20; tự chuẩn bị thư viện đọc file trong mockup/vendor/intake)
 npm test           # node:test – số golden từ Excel (domain) + hồi quy 10 lỗi P0 + các mục P1 chạy trên app dựng từ seed (tests/_app.mjs)
 npm run check      # cú pháp + domain thuần + RBAC + unit test
 npm run smoke      # luồng 1A + 1B trên Chrome thật (cần npm install và Chrome); --shots để chụp ảnh
@@ -26,6 +27,8 @@ npm run verify:p1r # ảnh minh chứng các mục P1 còn lại (sửa nháp, p
 npm run verify:p2  # ảnh minh chứng Phase 2 theo kịch bản F21–F30 → output/verify-p2/shots/
 npm run sweep      # mọi route × 8 tài khoản demo: không lỗi JS / lỗi hiển thị
 npm run build      # mockup/ → dist/ (Netlify: netlify.toml)
+node scripts/verify-intake.mjs        # Chrome: 2 PDF mẫu, ảnh OCR, Excel gốc NHÀ G, lưu lại trình duyệt
+node scripts/verify-intake-modes.mjs  # Chrome: nhập tay và XLSX mẫu cho cả chủ nhà/khách hàng
 npm run seed       # sinh lại dữ liệu demo Phase 1 từ file Excel (Python 3 + openpyxl)
 npm run seed:p2    # sinh lại dữ liệu đối chiếu Phase 2 (hoa hồng T8, cổ đông G1, âm dương T6/T7, sổ sửa chữa T8) – không đụng seed Phase 1
 ```
@@ -33,6 +36,8 @@ npm run seed:p2    # sinh lại dữ liệu đối chiếu Phase 2 (hoa hồng T
 Tài khoản demo (mật khẩu bất kỳ): `admin`, `ketoan`, `vanhanh`, `leader`, `truongphong`; Phase 2 thêm `truongkd` (trưởng nhóm kinh doanh), `sale`, `kythuat`. Đổi vai trò nhanh ở menu góc phải.
 
 ## Dữ liệu demo
+
+Luồng hợp đồng mới: **Vận hành → Chủ nhà → Thêm chủ nhà**, sau đó **Vận hành → Khách hàng → Thêm khách hàng**. Mỗi màn có trích xuất PDF/ảnh, nhập tay và XLSX/CSV; có thể bổ sung Excel và sửa tay trong cùng bản nháp. Bản nháp/file gốc lưu bằng IndexedDB ở trình duyệt đang sử dụng. Hai hợp đồng TH01 trong `docs/contracts_demo/` là dữ liệu mẫu chưa ký. Danh mục và ánh xạ nguồn khách hàng: `docs/SRS/TimoHouse_Nguon_du_lieu_Luong_hop_dong.md`.
 
 `scripts/seed/extract_seed.py` đọc file Excel khách gửi trong `docs_timonouse/` (hóa đơn tháng 9, báo cáo kinh doanh tháng 8, bảng lương tháng 8, danh sách mã điện nước mạng) và sinh `mockup/js/data/seed-*.js` + `tests/fixtures/*.json`.
 

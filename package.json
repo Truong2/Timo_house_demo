@@ -8,6 +8,11 @@
     "node": ">=20"
   },
   "scripts": {
+    "prepare:intake": "node scripts/prepare-intake-vendor.mjs",
+    "precheck": "npm run prepare:intake",
+    "pretest": "npm run prepare:intake",
+    "predev": "npm run prepare:intake",
+    "prebuild": "npm run prepare:intake",
     "dev": "node scripts/serve.mjs",
     "dev:dist": "node scripts/serve.mjs --dist",
     "test": "node --test \"tests/*.test.mjs\"",
@@ -28,5 +33,11 @@
   },
   "devDependencies": {
     "playwright-core": "^1.63.0"
+  },
+  "dependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
+    "@tesseract.js-data/vie": "1.0.0",
+    "pdfjs-dist": "5.4.624",
+    "tesseract.js": "7.0.0"
   }
 }
