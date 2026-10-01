@@ -29,11 +29,18 @@ npm run sweep      # mọi route × 8 tài khoản demo: không lỗi JS / lỗi
 npm run build      # mockup/ → dist/ (Netlify: netlify.toml)
 node scripts/verify-intake.mjs        # Chrome: 2 PDF mẫu, ảnh OCR, Excel gốc NHÀ G, lưu lại trình duyệt
 node scripts/verify-intake-modes.mjs  # Chrome: nhập tay và XLSX mẫu cho cả chủ nhà/khách hàng
+npm run verify:intake:ui # Chrome: UI chủ nhà/hợp đồng, nháp/nguồn/xung đột/quyền + ảnh 4 kích thước → output/verify-intake-ui/
 npm run seed       # sinh lại dữ liệu demo Phase 1 từ file Excel (Python 3 + openpyxl)
 npm run seed:p2    # sinh lại dữ liệu đối chiếu Phase 2 (hoa hồng T8, cổ đông G1, âm dương T6/T7, sổ sửa chữa T8) – không đụng seed Phase 1
 ```
 
 Tài khoản demo (mật khẩu bất kỳ): `admin`, `ketoan`, `vanhanh`, `leader`, `truongphong`; Phase 2 thêm `truongkd` (trưởng nhóm kinh doanh), `sale`, `kythuat`. Đổi vai trò nhanh ở menu góc phải.
+
+## Giao diện nhập hợp đồng
+
+Danh sách chủ nhà có tìm kiếm, bộ lọc tòa/trạng thái và bảng phân trang. Hồ sơ chủ nhà liên kết nhiều hợp đồng, file gốc và lịch sử xác nhận. Luồng nhập chủ nhà/khách hàng dùng chung 4 bước, hỗ trợ chuyển giữa hợp đồng, nhập tay và Excel/CSV trong cùng bản nháp. PDF/ảnh gốc nằm cạnh form để đối chiếu; danh sách phòng sửa qua bảng/drawer, phí dịch vụ khai báo theo từng dòng. Chỉ xác nhận khi dữ liệu hợp lệ và đã rà soát.
+
+Kiểm tra UI: chạy `npm run dev` ở một terminal, rồi `npm run verify:intake:ui` ở terminal khác. Có thể đặt `CHROME_PATH` nếu Chrome nằm ở vị trí khác. Ảnh nghiệm thu và kết quả được ghi vào `output/verify-intake-ui/`.
 
 ## Dữ liệu demo
 

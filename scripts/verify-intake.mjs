@@ -8,7 +8,7 @@ const errors=[];page.on('pageerror',e=>errors.push(e.message));
 try{
  await page.goto('http://localhost:8765');
  await page.evaluate(()=>{TH.auth.login('admin');TH.go('#/owners/new');});
- await page.waitForSelector('#intake-file');
+ await page.waitForSelector('#intake-file',{state:'attached'});
  await page.locator('#intake-file').setInputFiles(path.resolve('docs/contracts_demo/Hop_dong_chu_nha_TH01_demo_dong_bo.pdf'));
  await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã đọc'),{},{timeout:60000});
  const ownerExtraction=await page.evaluate(async()=>{const ds=await TH.intakeFiles.drafts('owner');return ds.find(d=>d.data.buildingCode==='TH01');});
@@ -18,11 +18,11 @@ try{
  await page.locator('#intake-managerId').selectOption(await page.evaluate(()=>TH.store.all('employees')[0].id));
  await page.locator('[data-step="3"]').click();
  await page.locator('#intake-confirm').check();
- await page.locator('[data-intake="commit"]').click();
+ if(await page.locator('[data-intake="commit"]').isDisabled())throw new Error('Review blocked: '+await page.locator('[role="alert"]').innerText());await page.locator('[data-intake="commit"]').click();
  await page.waitForURL(/owner-profiles/);
  assert.equal(await page.evaluate(()=>TH.store.where('rooms',r=>r.buildingId==='b_TH01').length),30);
  await page.evaluate(()=>TH.go('#/tenants/intake'));
- await page.waitForSelector('#intake-file');
+ await page.waitForSelector('#intake-file',{state:'attached'});
  await page.locator('#intake-file').setInputFiles(path.resolve('docs/contracts_demo/Hop_dong_khach_thue_P302_TH01_demo_dong_bo.pdf'));
  await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã đọc'),{},{timeout:60000});
  const tenantExtraction=await page.evaluate(async()=>{const ds=await TH.intakeFiles.drafts('tenant');return ds.find(d=>d.data.roomCode==='302TH01');});
@@ -42,15 +42,15 @@ try{
  const ocr=await page.evaluate(async()=>{const ds=await TH.intakeFiles.drafts('tenant');return ds.at(-1)?.extractedPages?.[0]?.text.slice(0,250);});
  assert.match(ocr,/HỢP ĐỒNG|HOP DONG|BÊN|BEN/i);
  await page.evaluate(()=>TH.go('#/tenants/intake?mode=excel'));
- await page.waitForSelector('#intake-file');
+ await page.waitForSelector('#intake-file',{state:'attached'});
  const workbook=fs.readdirSync('docs_timonouse').find(n=>n.startsWith('Hoá đơn')&&n.endsWith('.xlsx'));
  await page.locator('#intake-file').setInputFiles(path.resolve('docs_timonouse',workbook));
  await page.waitForSelector('#intake-sheet',{timeout:60000});
  await page.locator('#intake-sheet').selectOption({label:'NHÀ G'});
  await page.locator('[data-intake="sheet"]').click();
  await page.waitForFunction(()=>document.body.textContent.includes('302G1'),{timeout:30000});
- await page.locator('p:has-text("302G1") [data-intake="queue"]').first().click();
+ await page.locator('tr:has-text("302G1") [data-intake="queue"]').first().click();
  const source=await page.evaluate(async()=>{const ds=await TH.intakeFiles.drafts('tenant');const d=ds.find(d=>d.data.roomCode==='302G1'&&d.sources.rent?.sheet==='NHÀ G');return{price:d.data.rent,list:d.data.listPrice,mgmt:d.data.mgmtPrice,oldDeposit:d.data.openingDeposit,source:d.sources.rent.cell};});
  assert.deepEqual(source,{price:3800000,list:4000000,mgmt:3800000,oldDeposit:3800000,source:'I11'});
  assert.deepEqual(errors,[]);console.log('PASS: real PDFs, image OCR, original XLSX, owner/building/30 rooms, pending stay, proposal, reload originals');
-}finally{await browser.close();}
+}catch(e){console.error('PAGE:',await page.locator('#content').innerText());await page.screenshot({path:'tmp/intake-failure.png',fullPage:true});throw e;}finally{await browser.close();}

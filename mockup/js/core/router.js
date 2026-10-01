@@ -32,6 +32,8 @@
   R.render = () => {
     const { path, query } = R.parse();
     const app = document.getElementById('app');
+    if (R._rendering) { R._again = true; return; }
+    document.getElementById('content')?._dispose?.();
     if (!TH.store.session) {
       if (path !== '/login') R._after = location.hash;
       app.className = ''; TH.layout.reset(); TH.pages.login(app); R.current = { path: '/login' }; return;
@@ -39,7 +41,6 @@
     if (path === '/login') { R.go(R._after && !R._after.includes('/login') ? R._after : '#/dashboard'); R._after = null; return; }
     const m = R.match(path);
     if (!m) { R.go('#/dashboard'); return; }
-    if (R._rendering) { R._again = true; return; }
     R._rendering = true;
     try {
       const printMode = !!m.meta.print;
@@ -74,7 +75,7 @@
     R._rendering = false;
     if (R._again) { R._again = false; R.render(); }
   };
-  R.refresh = () => { const y = window.scrollY; R.render(); window.scrollTo(0, y); };
+  R.refresh = () => { if (document.getElementById('content')?._deferRefresh?.()) return; const y = window.scrollY; R.render(); window.scrollTo(0, y); };
   R.start = () => { window.addEventListener('hashchange', R.render); R.render(); };
   TH.router = R; TH.pages = TH.pages || {}; TH.go = R.go;
 })(window.TH);

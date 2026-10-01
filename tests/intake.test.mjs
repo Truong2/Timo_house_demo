@@ -105,3 +105,25 @@ test('existing building address requires an explicit source choice before update
   t.intake.commit(d);
   assert.equal(t.store.get('buildings','b_TH01').address,d.data.buildingAddress);
 });
+
+
+test('structured intake errors identify fields without changing commit guards',()=>{
+  const t=boot(),owner=ownerDraft(t);
+  owner.data.phone='123';owner.data.endDate=owner.data.startDate;owner.data.payMonths=5;owner.rooms[1].exploitation='timehouse';
+  const review=t.intake.validate(owner);
+  assert.match(review.fieldErrors.phone,/10 chữ số/);
+  assert.match(review.fieldErrors.endDate,/sau ngày bắt đầu/);
+  assert.match(review.fieldErrors.payMonths,/Kỳ thanh toán/);
+  assert.match(review.fieldErrors.rooms,/đồng hồ chung/);
+  assert.ok(review.errors.includes(review.fieldErrors.phone));
+  assert.throws(()=>t.intake.commit(owner));
+  assert.equal(t.store.get('intakeResults',owner.id),null);
+  const valid=ownerDraft(t);assert.deepEqual(Object.keys(t.intake.validate(valid).fieldErrors),[]);t.intake.commit(valid);
+  const tenant=tenantDraft(t);tenant.data.openingDebt=100000;tenant.data.openingDeposit=100000;
+  const incomplete=t.intake.validate(tenant);
+  assert.match(incomplete.fieldErrors.openingPeriod,/kỳ/);
+  assert.match(incomplete.fieldErrors.openingAsOf,/ngày/);
+  tenant.data.openingAsOf='2026-09-01';tenant.data.openingPeriod='2026-09';
+  tenant.items.water.unit=-1;
+  assert.match(t.intake.validate(tenant).fieldErrors['fee:water'],/Biểu phí/);
+});

@@ -1,0 +1,108 @@
+/* UI regression: owners, drafts, sources, rooms, fees, commit guards and responsive evidence. */
+import {chromium} from 'playwright-core';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const context=await browser.newContext({viewport:{width:1600,height:1000}}),page=await context.newPage(),errors=[],checks=[];
+const out='output/verify-intake-ui';await fs.mkdir(out+'/shots',{recursive:true});
+page.on('pageerror',e=>errors.push(e.message));
+const go=async route=>{await page.evaluate(r=>TH.go('#'+r),route);await page.waitForFunction(r=>TH.router.current?.path===r.split('?')[0],route);};
+const field=async(key,value)=>{const e=page.locator('#intake-'+key);if(await e.evaluate(x=>x.tagName==='SELECT'))await e.selectOption(String(value));else await e.fill(String(value));await e.dispatchEvent('change');};
+const step=async n=>{await page.locator('[data-step="'+n+'"]').click();await page.waitForFunction(n=>document.querySelector('.wz-step[aria-current=step]')?.dataset.step===String(n),n);};
+const shot=async(label)=>{await page.screenshot({path:out+'/shots/'+label+'.png',fullPage:true});const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));assert.ok(overflow.scroll<=overflow.width+1,label+' overflows page: '+JSON.stringify(overflow));};
+try{
+  await page.goto('http://localhost:8765');await page.evaluate(()=>TH.auth.login('admin'));
+  await go('/owners');await page.waitForSelector('#owner-list');
+  assert.equal(await page.locator('#owner-list tbody tr').count(),20);
+  await page.locator('#owner-list [data-act=page][data-p="2"]').first().click();
+  assert.equal(await page.locator('#owner-list .pager .on').innerText(),'2');
+  await page.locator('#owner-list th[data-key=name]').click();
+  const visible=await page.locator('#owner-list tbody tr').evaluateAll(rows=>rows.map(r=>({id:r.dataset.rk,name:r.querySelector('td a b').textContent,href:r.querySelector('td a').getAttribute('href')})));
+  for(const row of visible)assert.ok(row.href.includes('/'+row.id+'?'),row.name+' opens wrong profile');
+  assert.deepEqual(visible.map(r=>r.name),visible.map(r=>r.name).sort((a,b)=>a.localeCompare(b,'vi')));
+  const ownerName=await page.locator('#owner-list tbody tr td a b').first().innerText();
+  await page.locator('[data-f=q]').fill(ownerName);await page.waitForFunction(name=>TH.router.parse().query.q===name,ownerName);
+  await page.locator('#owner-list tbody tr td a').first().click();await page.waitForSelector('#owner-contracts');
+  await page.locator('.back-btn').click();await page.waitForSelector('#owner-list');
+  assert.equal(await page.locator('[data-f=q]').inputValue(),ownerName);checks.push('owner paging, sorting, correct links and return filters');
+  await page.evaluate(()=>{
+    const S=TH.store;S.add('owners',{id:'owner-ui-multi',name:'Chủ nhà nhiều hợp đồng UI',phone:'0912345678',idNo:'001234567890',partyType:'legal',bank:'Ngân hàng demo'});
+    const buildings=S.all('buildings').slice(0,2);
+    for(const [i,b] of buildings.entries()){S.add('ownerContracts',{id:'oc-ui-'+i,ownerId:'owner-ui-multi',buildingId:b.id,code:'HD-UI-'+i,contractCode:'HD-UI-'+i,startDate:i?'2027-01-01':'2020-01-01',endDate:i?'2029-01-01':'2025-01-01',payCycleMonths:3});}
+  });
+  await go('/owners?q=HD-UI');await page.waitForSelector('#owner-list');assert.equal(await page.locator('#owner-list tbody tr').count(),1);assert.match(await page.locator('#owner-list').innerText(),/Pháp nhân/);
+  await page.locator('[data-f=status]').selectOption('expired');await page.waitForFunction(()=>TH.router.parse().query.status==='expired');assert.equal(await page.locator('#owner-list tbody tr').count(),1);
+  const secondBuilding=await page.evaluate(()=>TH.store.get('ownerContracts','oc-ui-1').buildingId);
+  await go('/owners?q=HD-UI&building='+secondBuilding+'&status=expired');await page.waitForSelector('#owner-list');assert.match(await page.locator('#owner-list').innerText(),/Không tìm thấy chủ nhà/);
+  await go('/owners?q=HD-UI&building='+secondBuilding+'&status=future');await page.waitForSelector('#owner-list');
+  await page.locator('#owner-list tbody tr td a').first().click();await page.waitForSelector('#owner-contracts');assert.equal(await page.locator('#owner-contracts tbody tr').count(),2);checks.push('one owner with multiple buildings/contracts; combined filters match the same contract');
+  await go('/owners/new?mode=manual');await page.waitForSelector('#intake-name');await field('name','CHỦ NHÀ UI');await field('phone','123');
+  assert.equal(await page.locator('#intake-phone').getAttribute('aria-invalid'),'true');
+  await page.locator('[data-act=intake-mode][data-key=contract]').click();assert.equal(await page.locator('#intake-name').inputValue(),'CHỦ NHÀ UI');
+  await page.locator('[data-intake=save]').click();await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã lưu'));
+  const draftId=await page.evaluate(()=>TH.router.parse().query.draft);await page.reload();await page.waitForSelector('#intake-name');assert.equal(await page.locator('#intake-name').inputValue(),'CHỦ NHÀ UI');
+  await page.locator('[data-intake=drafts]').click();await page.waitForSelector('.overlay');assert.match(await page.locator('.overlay').innerText(),/CHỦ NHÀ UI/);await page.locator('.overlay [data-act=close]').click();
+  await step(3);assert.equal(await page.locator('[data-intake=commit]').isDisabled(),true);await page.locator('#intake-confirm').check();assert.equal(await page.locator('[data-intake=commit]').isDisabled(),true);
+  await page.locator('[data-intake=error][data-key=phone]').click();await page.waitForSelector('#intake-phone');assert.equal(await page.locator('#intake-phone').getAttribute('aria-invalid'),'true');checks.push('draft persistence, mode switching, field errors and commit guard');
+  await go('/owners/new');await page.waitForSelector('#intake-file',{state:'attached'});
+  await page.locator('#intake-file').setInputFiles(path.resolve('docs/contracts_demo/Hop_dong_chu_nha_TH01_demo_dong_bo.pdf'));
+  await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã đọc'),{},{timeout:60000});
+  await page.waitForFunction(()=>document.querySelector('#intake-preview-stage canvas')?.height>150);
+  await page.locator('[data-intake=page-next]').click();assert.match(await page.locator('#intake-page-count').innerText(),/Trang 2/);
+  await page.locator('[data-intake=zoom-in]').click();assert.equal(await page.locator('#intake-zoom').innerText(),'125%');await page.locator('[data-intake=zoom-out]').click();
+  await page.locator('[data-intake=source][data-key=name]').click();await page.waitForSelector('.overlay');assert.ok(!(await page.locator('.overlay').innerText()).includes('"raw"'));assert.match(await page.locator('#intake-page-count').innerText(),/Trang 1/);await page.locator('.overlay [data-act=close]').click();
+  const ownerDraft=await page.evaluate(()=>TH.router.parse().query.draft);
+  await step(2);await field('areaId','A2');const manager=await page.evaluate(()=>TH.store.all('employees')[0].id);await field('managerId',manager);
+  assert.equal(await page.locator('#intake-rooms tbody tr').count(),30);
+  await page.locator('#intake-rooms [data-intake=room-edit]').first().click();await page.waitForSelector('.overlay');await page.locator('.overlay [name=listPrice]').fill('0');await page.locator('.overlay [data-act=submit-d]').click();
+  await step(3);await page.locator('#intake-confirm').check();assert.equal(await page.locator('[data-intake=commit]').isDisabled(),false);
+  await step(2);await page.locator('#intake-rooms [data-intake=room-edit]').first().click();await page.locator('.overlay [name=price]').fill('4600000');await page.locator('.overlay [data-act=submit-d]').click();await step(3);assert.equal(await page.locator('#intake-confirm').isChecked(),false);
+  await page.locator('[data-intake=save]').click();await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã lưu'));
+  const savedRooms=await page.evaluate(async id=>(await TH.intakeFiles.getDraft(id)).rooms,ownerDraft);assert.equal(savedRooms[0].listPrice,0);assert.equal(savedRooms[0].price,4600000);checks.push('PDF preview, page/zoom/source linking, structured rooms, zero values and review reset');
+  await page.locator('#intake-confirm').check();await page.locator('[data-intake=commit]').click();await page.waitForSelector('#owner-contracts');
+  const profileRoute=await page.evaluate(()=>TH.router.parse().path);
+  await page.locator('#owner-contracts tbody tr td a').first().click();await page.waitForFunction(()=>document.querySelector('.page-head h1')?.textContent.includes('Chủ nhà & hợp đồng'));await page.locator('.back-btn').click();await page.waitForSelector('#owner-contracts');await page.locator('[data-act=owner-history]').click();await page.waitForSelector('.overlay');assert.match(await page.locator('.overlay').innerText(),/Xác nhận hồ sơ/);assert.ok(!(await page.locator('.overlay').innerText()).includes('"sources"'));await page.locator('.overlay [data-act=close]').click();
+  await go('/tenants/intake?mode=manual');await page.waitForSelector('#intake-name');await step(2);
+  await page.locator('[data-fee=water]').fill('0');await page.locator('[data-fee=water]').dispatchEvent('change');await page.locator('[data-intake=save]').click();await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã lưu'));
+  const feeDraft=await page.evaluate(()=>TH.router.parse().query.draft);
+  assert.equal(await page.evaluate(async id=>(await TH.intakeFiles.getDraft(id)).items.water.unit,feeDraft),0);
+  await page.locator('[data-fee=water]').fill('');await page.locator('[data-fee=water]').dispatchEvent('change');await page.locator('[data-intake=save]').click();await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã lưu'));
+  assert.equal(await page.evaluate(async id=>'water' in (await TH.intakeFiles.getDraft(id)).items,feeDraft),false);
+  await page.locator('[data-fee=water]').fill('abc');await page.locator('[data-fee=water]').dispatchEvent('change');assert.match(await page.locator('[data-field="fee:water"] .err').innerText(),/Biểu phí/);
+  await page.locator('[data-fee=water]').fill('');await page.locator('[data-fee=water]').dispatchEvent('change');checks.push('fee zero is distinct from blank and invalid text is rejected');
+  // Cancel a pending reader: the deliberately delayed result must not alter the draft.
+  await go('/tenants/intake');await page.waitForSelector('#intake-file',{state:'attached'});
+  await page.evaluate(()=>{const B=TH.intakeFiles;window.originalContractReader=B.contract;B.contract=()=>new Promise(resolve=>window.completePendingRead=()=>resolve([{page:1,text:'Họ tên khách: KHÁCH ĐỌC MUỘN',method:'pdf-text'}]));});
+  await page.locator('#intake-file').setInputFiles(path.resolve('docs/contracts_demo/Hop_dong_khach_thue_P302_TH01_demo_dong_bo.pdf'));
+  await page.waitForFunction(()=>!!window.completePendingRead);await page.locator('[data-intake=cancel]').click();await page.evaluate(()=>{completePendingRead();TH.intakeFiles.contract=originalContractReader;});await page.waitForTimeout(100);assert.equal(await page.locator('#intake-name').inputValue(),'');checks.push('canceled extraction cannot merge late results');
+  await go('/owners/new?mode=excel');await page.waitForSelector('#intake-file',{state:'attached'});
+  const bulkBase={name:'CHỦ NHÀ BULK UI',phone:'0998989811',idNo:'001000000011',operatorName:'TimoHouse',buildingCode:'TUI91',buildingAddress:'Địa chỉ kiểm thử UI',contractCode:'HD-BULK-UI-1',signDate:'2026-09-27',startDate:'2026-10-01',handoverDate:'2026-10-01',endDate:'2028-09-30',rent:12000000,deposit:12000000,payMonths:3,dueDay:10,areaId:'A2',managerId:manager,number:'101',floor:1,exploitation:'timehouse',listPrice:4500000,mgmtPrice:4400000,price:4300000};
+  const bulkRows=[bulkBase,{...bulkBase,name:'CHỦ NHÀ BULK LỖI',phone:'123',idNo:'001000000012',buildingCode:'TUI92',contractCode:'HD-BULK-UI-2'},{...bulkBase,name:'CHỦ NHÀ BULK UI 3',phone:'0998989813',idNo:'001000000013',buildingCode:'TUI93',contractCode:'HD-BULK-UI-3'}];
+  const keys=Object.keys(bulkBase),cell=v=>JSON.stringify(String(v??'')),csv=keys.map(cell).join(',')+'\n'+bulkRows.map(r=>keys.map(k=>cell(r[k])).join(',')).join('\n');
+  await page.locator('#intake-file').setInputFiles({name:'bulk-ui.csv',mimeType:'text/csv',buffer:Buffer.from('\uFEFF'+csv,'utf8')});await page.waitForSelector('#intake-sheet');await page.locator('[data-intake=sheet]').click();await page.waitForSelector('#intake-queue');
+  assert.equal(await page.locator('#intake-queue tbody tr').count(),3);for(const e of await page.locator('[data-select]').all())await e.check();
+  await page.locator('[data-intake=batch]').click();await page.waitForSelector('.overlay');await page.locator('.overlay [data-act=yes]').click();await page.waitForFunction(()=>document.querySelector('#intake-progress')?.textContent.includes('Đã nhập 2 bộ hợp lệ; 1 bộ lỗi'));
+  assert.equal(await page.evaluate(()=>TH.store.where('buildings',b=>/^TUI9[123]$/.test(b.code)).length),2);assert.equal(await page.evaluate(()=>TH.store.get('buildings','b_TUI92')),null);assert.equal(await page.locator('#intake-queue').count(),1);checks.push('bulk intake commits valid selected rows, preserves invalid draft and queue');
+  const removedFileDraft=await page.evaluate(async id=>{const d=await TH.intakeFiles.getDraft(id);d.id='intake-ui-missing';d.files=[{id:'missing-original',name:'missing.pdf',size:100}];await TH.intakeFiles.saveDraft(d);return d.id;},ownerDraft);
+  await go('/owners/new?draft='+removedFileDraft);await page.waitForFunction(()=>document.querySelector('#intake-preview-stage')?.textContent.includes('Không mở được file gốc'));assert.equal(await page.locator('#intake-name').inputValue(),'PHÍ VĂN THẮNG');checks.push('missing original preserves draft');
+  // Conflicting source selection clears reviewed state, even when the current value is kept.
+  const conflictDraft=await page.evaluate(async id=>{const d=await TH.intakeFiles.getDraft(id);d.id='intake-ui-conflict';d.reviewed=true;d.conflicts=[{key:'rent',before:d.data.rent,next:120000000,source:{file:'other.xlsx',sheet:'DATA',cell:'F2',raw:'120000000'}}];await TH.intakeFiles.saveDraft(d);return d.id;},ownerDraft);
+  await go('/owners/new?draft='+conflictDraft+'&step=3');await page.waitForSelector('[data-intake=resolve]');await page.locator('[data-intake=resolve][data-choice=old]').click();assert.equal(await page.locator('#intake-confirm').isChecked(),false);checks.push('conflict resolution clears reviewed state');
+  for(const size of [{width:1600,height:1000},{width:1440,height:1000},{width:1024,height:768},{width:390,height:844}]){
+    await page.setViewportSize(size);const suffix=size.width+'x'+size.height;
+    await go('/owners');await page.waitForSelector('#owner-list');await shot('owners-'+suffix);
+    await go(profileRoute);await page.waitForSelector('#owner-contracts');await shot('owner-profile-'+suffix);
+    await go('/owners/new?draft='+ownerDraft+'&step=2');await page.waitForSelector('#intake-rooms');await page.waitForFunction(()=>document.querySelector('#intake-preview-stage canvas')?.height>150);await shot('owner-rooms-'+suffix);
+    await go('/owners/new?draft='+ownerDraft+'&step=3');await page.waitForSelector('#intake-confirm');await page.waitForFunction(()=>document.querySelector('#intake-preview-stage canvas')?.height>150);await shot('owner-review-'+suffix);
+    await go('/tenants/intake?draft='+feeDraft+'&mode=manual&step=2');await page.waitForSelector('[data-fee=water]');await shot('tenant-fees-'+suffix);
+    await go('/owners/new?draft='+conflictDraft+'&step=3');await page.waitForSelector('[data-intake=resolve]');await page.waitForFunction(()=>document.querySelector('#intake-preview-stage canvas')?.height>150);await shot('source-conflict-'+suffix);
+  }
+  checks.push('24 responsive screenshots with no horizontal page overflow');
+  await page.evaluate(()=>TH.auth.login('ketoan'));await go('/owners');await page.waitForSelector('#owner-list');assert.equal(await page.locator('a[href*="/owners/new"]').count(),0);
+  await go('/owners/new');await page.waitForFunction(()=>document.querySelector('#content')?.textContent.includes('403'));
+  await page.evaluate(()=>TH.auth.login('vanhanh'));await go('/owners');await page.waitForFunction(()=>document.querySelector('#content')?.textContent.includes('403'));assert.ok(!(await page.locator('#content').innerText()).includes('0912345678'));
+  await go('/tenants/intake');await page.waitForFunction(()=>document.querySelector('#content')?.textContent.includes('403'));checks.push('accountant view only and operator direct-route restrictions');
+  assert.deepEqual(errors,[]);await fs.rm(out+'/failure.png',{force:true});await fs.writeFile(out+'/result.json',JSON.stringify({passed:true,checks,pageErrors:errors},null,2));console.log('PASS: '+checks.join('; '));
+}catch(e){await page.screenshot({path:out+'/failure.png',fullPage:true});await fs.writeFile(out+'/result.json',JSON.stringify({passed:false,checks,pageErrors:errors,error:e.message},null,2));console.error('PAGE:',(await page.locator('#content').innerText()).slice(0,6000));throw e;}
+finally{await browser.close();}

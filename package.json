@@ -29,7 +29,8 @@
     "sweep": "node scripts/sweep.mjs",
     "seed:p2": "python -X utf8 scripts/seed/extract_seed_p2.py",
     "build": "node scripts/build.mjs",
-    "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist ."
+    "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
+    "verify:intake:ui": "node scripts/verify-intake-ui.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.63.0"

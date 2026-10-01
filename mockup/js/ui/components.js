@@ -121,7 +121,7 @@
     });
   };
   U.onChange = (root, handlers) => root.addEventListener('change', (e) => { const el = e.target.closest('[data-on]'); if (!el) return; const h = handlers[el.dataset.on]; if (h) try { h(el, e); } catch (err) { U.toast('err', 'Lỗi', err.message); } });
-  U.onInput = (root, fn) => root.addEventListener('input', (e) => { if (e.target.matches('[data-money]')) { const v = F.num(e.target.value); const pos = e.target.selectionStart; e.target.value = v ? F.vnd(v) : ''; } fn && fn(e); });
+  U.onInput = (root, fn) => root.addEventListener('input', (e) => { if (e.target.matches('[data-money]')) { const raw = e.target.value; const v = F.num(raw); if(raw.trim()===''||/^-?\d[\d.,\s]*$/.test(raw.trim()))e.target.value = raw.trim() === '' ? '' : F.vnd(v); } fn && fn(e); });
   U.formData = (root) => { const o = {}; root.querySelectorAll('input[name],select[name],textarea[name]').forEach(el => { if (el.type === 'checkbox') o[el.name] = el.checked; else if (el.type === 'radio') { if (el.checked) o[el.name] = el.value; } else if (el.hasAttribute('data-money')) o[el.name] = F.num(el.value); else if (el.type === 'number') o[el.name] = el.value === '' ? '' : Number(el.value); else o[el.name] = el.value; }); return o; };
   U.setErrors = (root, errs) => { root.querySelectorAll('.field.invalid').forEach(f => { f.classList.remove('invalid'); const e = f.querySelector('.err'); if (e) e.remove(); }); Object.entries(errs || {}).forEach(([k, msg]) => { const f = root.querySelector(`[data-field="${k}"]`) || (root.querySelector(`[name="${k}"]`) || {}).closest?.('.field'); if (f) { f.classList.add('invalid'); f.insertAdjacentHTML('beforeend', `<div class="err">${esc(msg)}</div>`); } }); };
   /* overlays */

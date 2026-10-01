@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "checks": [
+    "owner paging, sorting, correct links and return filters",
+    "one owner with multiple buildings/contracts; combined filters match the same contract",
+    "draft persistence, mode switching, field errors and commit guard",
+    "PDF preview, page/zoom/source linking, structured rooms, zero values and review reset",
+    "fee zero is distinct from blank and invalid text is rejected",
+    "canceled extraction cannot merge late results",
+    "bulk intake commits valid selected rows, preserves invalid draft and queue",
+    "missing original preserves draft",
+    "conflict resolution clears reviewed state",
+    "24 responsive screenshots with no horizontal page overflow",
+    "accountant view only and operator direct-route restrictions"
+  ],
+  "pageErrors": []
+}

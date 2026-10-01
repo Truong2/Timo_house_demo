@@ -21,7 +21,10 @@ try{
   await fill({name:own.name,phone:own.phone,idNo:own.idNo});await page.locator('[data-step="1"]').click();
   await fill({operatorName:own.operatorName,contractCode:own.contractCode,signDate:own.signDate,startDate:own.startDate,handoverDate:own.handoverDate,endDate:own.endDate,rent:own.rent,deposit:own.deposit,payMonths:4,dueDay:31});
   await page.locator('[data-step="2"]').click();await fill({buildingCode:own.buildingCode,buildingAddress:own.buildingAddress,areaId:own.areaId,managerId:manager});
-  await page.locator('#intake-rooms').fill('101 | 1 | timehouse | 4500000 | 4400000 | 4300000');await page.locator('#intake-rooms').dispatchEvent('change');
+   await page.locator('[data-intake=room-edit]').first().click();
+   for(const [key,value] of Object.entries({number:'101',floor:'1',listPrice:'4500000',mgmtPrice:'4400000',price:'4300000'})) await page.locator('.overlay [name='+key+']').fill(value);
+   await page.locator('.overlay [name=exploitation]').selectOption('timehouse');
+   await page.locator('.overlay [data-act=submit-d]').click();
   await steps();await page.waitForURL(/owner-profiles/);
   assert.equal(await page.evaluate(()=>TH.store.get('rooms','r_101TH02').price),4300000);
   assert.equal(await page.evaluate(()=>TH.store.one('ownerPayments',p=>p.buildingId==='b_TH02').dueDate),'2026-10-31');
