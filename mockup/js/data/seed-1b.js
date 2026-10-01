@@ -66,7 +66,11 @@
       const v = o.v, b = bId(code);
       if (!st.buildings.some(x => x.id === b)) return;
       Object.entries(CATOF).forEach(([line, cat]) => { const row = TH.data.catalog.reportLines.find(l => l.code === line).row; if (v[row]) add({ category: cat, reportLine: line, scope: 'building', buildingId: b, amount: v[row], note: 'Excel T8 – ' + TH.data.catalog.reportLines.find(l => l.code === line).label }); });
-      if (v[21]) { add({ category: 'equipment', reportLine: 'cost_equip', scope: 'building', buildingId: b, amount: v[21], isEquipment: true, depRate: 0.016, note: 'Mua sắm thiết bị T8' }); st.equipment.push({ id: 'eq_08_' + code, buildingId: b, name: 'Thiết bị mua T8/2026', purchaseDate: '2026-08-25', cost: v[21], depRate: 0.016, source: 'expense' }); }
+      if (v[21]) { const eid = 'exp_b08_' + st.expenses.length; add({ category: 'equipment', reportLine: 'cost_equip', scope: 'building', buildingId: b, amount: v[21], isEquipment: true, depMonths: 63, note: 'Mua sắm thiết bị T8' });
+        // tài sản công ty UI-34: 63 tháng = 1,6%/tháng (GĐ OQ-11) – khấu hao T8 không đổi (566.080)
+        st.assets.push({ id: 'as_08_' + code, code: 'TS-' + code + '-001', name: 'Thiết bị mua T8/2026', type: 'other', ownership: 'company', buildingId: b, roomId: null, position: 'Theo chứng từ Excel T8', qty: 1, condition: 'good',
+          receivedDate: '2026-08-25', cost: v[21], depStart: '2026-08-25', depMonths: 63, openingPeriod: null, warrantyTo: null, source: 'expense', expenseId: eid, ownerContractId: null, capitalRef: null, docs: [], note: 'SRC-04 dòng 22 (mua sắm thêm thiết bị)', status: 'active', disposal: null,
+          history: [{ at: '2026-08-31T17:00:00', date: '2026-08-25', by: 'Import Excel SRC-04', kind: 'create', after: { buildingId: b, roomId: null, position: '' }, reason: 'Chi mua sắm UI-15' }] }); }
       if (v[35]) add({ category: 'salary', reportLine: 'sal_clean', scope: 'building', buildingId: b, amount: v[35], note: 'Lương vệ sinh theo tòa (Excel T8)' });
       if (v[38]) add({ category: 'salary', reportLine: 'sal_guard', scope: 'building', buildingId: b, amount: v[38], note: 'Lương bảo vệ (Excel T8)' });
       const comm = (v[40] || 0) - FUND08.F_MKT * excelRooms(code) / 1382;

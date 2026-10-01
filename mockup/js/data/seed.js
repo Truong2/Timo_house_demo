@@ -224,7 +224,7 @@
       { id: '2026-10', status: 'open', source: 'web', note: 'Đang lập hóa đơn (chốt số 22/09)' },
     ]);
     col('expenses', []);
-    col('equipment', []);
+    col('assets', []); // Phase 3: thay collection equipment – tài sản chủ nhà + công ty (UI-34)
     col('allocationRuns', []); col('payrollRuns', []); col('adjustments', []); col('reportSnapshots', []); col('reportSnapshotVersions', []); col('payrollManual', []);
     col('zaloTemplates', CAT.zaloTemplates.map(t => Object.assign({}, t)));
     col('zaloRules', CAT.zaloRules.map(t => Object.assign({}, t)));

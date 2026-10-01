@@ -15,7 +15,7 @@
       { name: 'roomId', label: 'Phòng (hoa hồng / sửa chữa theo phòng)', type: 'select', options: [] },
       { name: 'amount', label: 'Số tiền', type: 'money', req: true }, { name: 'date', label: 'Ngày chi', type: 'date', req: true, value: F.today() }, { name: 'period', label: 'Kỳ hưởng (YYYY-MM)', req: true, value: S.meta.period, help: 'Có thể khác tháng chi' },
       { name: 'vendor', label: 'Nhà cung cấp / người nhận' }, { name: 'method', label: 'Phương thức', type: 'select', options: [['bank', 'Chuyển khoản'], ['cash', 'Tiền mặt']], value: 'bank' },
-      ...(is1B ? [{ name: 'depRate', label: 'Khấu hao/tháng (thiết bị)', value: Q.param('depRate'), help: 'Báo cáo tổng: nguyên giá một lần · Báo cáo KD: khấu hao cộng dồn (GĐ OQ-11)' }] : []),
+      ...(is1B ? [{ name: 'depMonths', label: 'Số tháng khấu hao (thiết bị)', type: 'number', value: Q.param('depMonthsDefault') || 63, help: '63 tháng ≈ 1,6%/tháng, tháng cuối 0,8% · Báo cáo tổng: nguyên giá một lần · Báo cáo KD: khấu hao (GĐ OQ-11)' }] : []),
       { name: 'code', label: 'Mã chứng từ (để trống = tự sinh)' }, { name: 'note', label: 'Nội dung', type: 'textarea', span: true },
       { type: 'html', span: true, html: '<div id="line-hint" class="small muted"></div>' }],
       submit: 'Lưu chi phí', onSubmit: (x) => { X.addExpense(x); U.toast('ok', 'Đã lưu chi phí'); } });
@@ -28,7 +28,7 @@
       if (bid && rs.dataset.b !== bid) { rs.dataset.b = bid; rs.innerHTML = '<option value="">–</option>' + (Q.roomsByBuilding()[bid] || []).map(r => `<option value="${r.id}">${esc(r.code)}</option>`).join(''); }
       const fund = CAT().funds.find(f => f.code === el.querySelector('[name=fundCode]').value);
       el.querySelector('#line-hint').innerHTML = 'Dòng báo cáo: <b>' + esc(scope === 'fund' && fund ? lineLabel(fund.reportLine) : cat ? lineLabel(cat.reportLine) : '–') + '</b>' + (cat && cat.key === 'owner_deposit' ? ' (không vào lợi nhuận)' : '');
-      const dep = el.querySelector('[data-field=depRate]'); if (dep) dep.hidden = !(cat && cat.equipment);
+      const dep = el.querySelector('[data-field=depMonths]'); if (dep) dep.hidden = !(cat && cat.equipment);
     };
     el.addEventListener('change', sync); sync();
   };
@@ -56,7 +56,7 @@
       { key: 'cat', label: 'Loại', render: e => esc(catLabel(e.category)) }, { key: 'sc', label: 'Tòa / quỹ', render: e => e.scope === 'fund' ? U.chip((CAT().funds.find(f => f.code === e.fundCode) || {}).label || 'Quỹ chung', 'purple') : `<b>${esc((Q.building(e.buildingId) || {}).code || '')}</b>${e.roomId ? ' · ' + esc(Q.roomCode(e.roomId)) : ''}` },
       { key: 'line', label: 'Dòng báo cáo', render: e => `<span class="small">${esc(lineLabel(e.reportLine))}</span>` }, { key: 'd', label: 'Ngày chi', sortable: true, sortVal: e => e.date, render: e => F.date(e.date) },
       { key: 'p', label: 'Kỳ hưởng', render: e => F.periodShort(e.period) + (F.period(e.date) !== e.period ? ' ' + U.chip('khác tháng chi', 'amber') : '') },
-      { key: 'a', label: 'Số tiền', num: true, sortable: true, sortVal: e => e.amount, render: e => F.vnd(e.amount) + (e.isEquipment ? `<br><small class="muted">KH ${F.pctv(e.depRate)}/tháng</small>` : '') },
+      { key: 'a', label: 'Số tiền', num: true, sortable: true, sortVal: e => e.amount, render: e => F.vnd(e.amount) + (e.isEquipment ? `<br><small class="muted">KH ${e.depMonths ? e.depMonths + ' tháng' : F.pctv(e.depRate) + '/tháng'}</small>` : '') },
       { key: 's', label: 'Nguồn', render: e => U.chip({ manual: 'Nhập tay', import: 'Import', payroll: 'Bảng lương', ownerPayment: 'Tiền nhà', bench: 'Excel T8' }[e.source] || e.source, 'gray') },
       { key: 'x', label: '', render: e => e.source !== 'payroll' ? U.actBtn({ icon: 'trash', label: 'Hủy khoản chi', act: 'void', attrs: { 'data-id': e.id }, perm: 'expenses.manage' }) : '' }] });
     U.bind(root, { adj: () => TH.pages.adjustDrawer(period, { reportLine: 'other' }), add: form, void: (el) => K.formDrawer({ title: 'Hủy khoản chi', modal: true, size: 'sm', fields: [{ name: 'reason', label: 'Lý do', type: 'textarea', req: true, span: true }], submit: 'Hủy khoản', onSubmit: (d) => { X.voidExpense(el.dataset.id, d.reason); U.toast('ok', 'Đã hủy'); } }),

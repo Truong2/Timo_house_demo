@@ -52,7 +52,7 @@
     { label: '− Cọc phòng mới (không phải doanh thu kinh doanh)', value: -total.dep_new },
     { label: '+ Hoàn cọc cộng lại (GĐ OQ-10)', value: biz.rev_total - (total.rev_total - total.dep_new) },
     { label: '+ Mua sắm thiết bị (nguyên giá, bỏ khỏi chi phí KD)', value: total.cost_equip },
-    { label: '− Khấu hao thiết bị của kỳ (1,6%/tháng, cộng dồn)', value: -biz.cost_equip },
+    { label: '− Khấu hao + thanh lý thiết bị của kỳ (theo số tháng từng tài sản UI-34; mặc định 63 tháng ≈ 1,6%)', value: -biz.cost_equip },
     { label: '= LNR Báo cáo kinh doanh', value: biz.lnr },
   ];
   C.report = R;

@@ -2,7 +2,7 @@
    Chỉ bản ghi đã thêm/sửa/xóa được lưu (không lưu toàn bộ ~1.500 hóa đơn) → không vượt quota. */
 (function (TH) {
   const KEY = 'timohouse-p1-v1';
-  const SCHEMA = 1;
+  const SCHEMA = 2; // 2: Phase 3 – equipment → assets
   const S = { state: null, meta: null, session: null, version: 0, listeners: [], _dirty: {}, _idx: {}, _t: null, KEY };
 
   const seedHash = () => {

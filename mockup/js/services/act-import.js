@@ -42,6 +42,12 @@
       // Lượt thuê đang có trên web (cùng phòng, cùng SĐT, cùng ngày vào) → trùng dữ liệu hiện có, không chỉ trùng lần import trước
       if (type === 'stays' && r.status === 'ok') { const room = S.get('rooms', 'r_' + String(d.room).toUpperCase()); const phone = String(d.phone || '').replace(/\s/g, '');
         if (room && S.all('stays').some(s => s.roomId === room.id && ['active', 'pending'].includes(s.status) && ((Q.customer(s.customerId) || {}).phone === phone || s.rentStart === d.moveIn))) { r.status = 'duplicate'; r.errs.push('Phòng ' + room.code + ' đã có lượt thuê hiệu lực trùng khách/ngày vào'); } }
+      // Phase 3: số dư tài sản – nguồn sở hữu, số tháng KH, kỳ bắt đầu ghi sổ (YYYY-MM)
+      if (type === 'equipment' && r.status === 'ok') {
+        if (d.ownership && !['Chủ nhà', 'Công ty'].includes(String(d.ownership).trim())) { r.status = 'error'; r.errs.push('Nguồn sở hữu ghi "Chủ nhà" hoặc "Công ty": ' + d.ownership); }
+        else if (d.depMonths && !(Number(d.depMonths) >= 1)) { r.status = 'error'; r.errs.push('Số tháng KH là số ≥ 1'); }
+        else if (d.openingPeriod && !/^\d{4}-\d{2}$/.test(d.openingPeriod)) { r.status = 'error'; r.errs.push('Kỳ bắt đầu ghi sổ dạng YYYY-MM'); }
+        else if (String(d.ownership).trim() === 'Chủ nhà' && Number(d.cost) > 0) r.warns.push('Tài sản chủ nhà không ghi nguyên giá – bỏ qua nguyên giá (CH-15)'); }
       if (type === 'openingDebt' && !S.get('stays', 'st_' + d.stay)) { r.status = 'error'; r.errs.push('Mã KH/lượt thuê không tồn tại: ' + d.stay); }
       if (type === 'expenses' && !TH.data.catalog.expenseCategories.some(c => c.active !== false && (c.key === d.category || c.label === d.category))) { r.status = 'error'; r.errs.push('Loại chi phí không có trong danh mục (hoặc đã ngừng dùng): ' + d.category); }
       // Tòa (UI-02 import): mã trùng web (không phân biệt hoa/thường) → trùng; nhóm phải khớp tiền tố mã; quản lý và khu vực phải tồn tại – không tự gán mặc định
@@ -76,7 +82,11 @@
         else if (type === 'commissions') { const room = S.get('rooms', 'r_' + d.room.toUpperCase()); const ex = X.addExpense({ code: d.code, date: d.period + '-15', period: d.period, category: 'commission', scope: 'building', buildingId: room.buildingId, roomId: room.id, amount: d.amount, vendor: d.sale, source: 'import', note: 'Hoa hồng ' + room.code }, true);
           // E2: giữ chi tiết dòng lịch sử (F/G/H/loại ca/I) để tra ở UI-22 – không trộn vào hoa hồng tính theo giao dịch web
           S.add('commissionImports', { code: d.code, period: d.period, roomId: room.id, buildingId: room.buildingId, recipient: d.sale, F: d.F, G: d.G || '', H: d.H, caseType: I.caseOf(d.caseType), amount: d.amount, expected: TH.calc.commission.amount(d.F, d.H), expenseId: ex.id, warns: r.warns || [] }); }
-        else if (type === 'equipment') { const b = S.one('buildings', x => x.code === String(d.building).toUpperCase()); S.add('equipment', { buildingId: b.id, name: d.name, purchaseDate: d.purchaseDate, cost: d.cost, depRate: Q.param('depRate'), source: 'opening' }); }
+        else if (type === 'equipment') { const b = S.one('buildings', x => x.code === String(d.building).toUpperCase()); const room = d.room ? S.one('rooms', x => x.buildingId === b.id && (x.code === String(d.room).toUpperCase() || String(x.number) === String(d.room))) : null;
+          // Phase 3: số dư thiết bị → tài sản công ty UI-34; chỉ ghi khấu hao từ kỳ bắt đầu ghi sổ (mặc định kỳ sau kỳ khóa gần nhất)
+          const lastClosed = S.all('periods').filter(p => p.status === 'closed').map(p => p.id).sort().pop();
+          X._createAsset({ name: d.name, type: TH.calc.assets.classify(d.type || d.name), ownership: d.ownership === 'Chủ nhà' ? 'owner' : 'company', buildingId: b.id, roomId: room ? room.id : null, qty: Number(d.qty) || 1, receivedDate: d.purchaseDate, depStart: d.purchaseDate,
+            cost: d.ownership === 'Chủ nhà' ? 0 : d.cost, depMonths: Number(d.depMonths) || null, openingPeriod: d.openingPeriod || (lastClosed ? TH.calc.dates.nextPeriod(lastClosed) : null), source: 'opening' }); }
         else if (type === 'openingDebt') { const s = S.get('stays', 'st_' + d.stay); S.add('invoices', { id: 'inv_OPEN-' + d.stay + '-' + d.period, code: 'OPEN-' + d.period + '-' + d.stay, period: d.period, stayId: s.id, roomId: s.roomId, buildingId: s.buildingId, customerCode: s.code, lifecycle: 'issued', kind: 'opening', lines: [[11, null, null, 1, 1, d.amount, d.amount]], totalDue: d.amount, dueTo: d.period + '-01', dueFrom: d.period + '-01', cutoff: d.period + '-01', issueDate: d.period + '-01', note: 'Công nợ đầu kỳ (import)' }); }
         else if (type === 'staff') { const T = TH.data.catalog.titles; const tk = T[d.title] ? d.title : Object.entries(T).find(([k, v]) => v.toLowerCase() === String(d.title).toLowerCase())[0]; const area = X.findArea(d.area);
           X.addEmployee({ code: String(d.code).trim(), name: d.name, title: tk, hireDate: d.hireDate, phone: d.phone || '', areaId: area ? area.id : null }); }

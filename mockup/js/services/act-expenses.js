@@ -35,9 +35,11 @@
     const code = d.code || S.nextCode('expenses', 'CP-' + d.period.replace('-', '') + '-');
     const e = S.add('expenses', { id: 'exp_' + code, code, date: d.date, period: d.period, enteredAt: F.today(), category: d.category, reportLine: (d.source === 'payroll' && d.reportLine) || (fund ? fund.reportLine : cat.reportLine),
       scope: d.scope, buildingId: d.scope === 'building' ? d.buildingId : null, roomId: d.roomId || null, fundCode: fund ? fund.code : null, vendor: d.vendor || '', amount: Number(d.amount),
-      method: d.method || 'bank', note: d.note || '', source: d.source || 'manual', refId: d.refId || null, isEquipment: !!cat.equipment, depRate: cat.equipment ? (Number(d.depRate) || Q.param('depRate')) : null,
+      method: d.method || 'bank', note: d.note || '', source: d.source || 'manual', refId: d.refId || null, isEquipment: !!cat.equipment, depMonths: cat.equipment ? (Number(d.depMonths) || Number(Q.param('depMonthsDefault')) || 63) : null,
       enteredBy: _.who(), status: 'posted', evidence: d.evidence || null });
-    if (cat.equipment) S.add('equipment', { buildingId: e.buildingId, name: d.note || 'Thiết bị', purchaseDate: d.date, cost: e.amount, depRate: e.depRate, source: 'expense', expenseId: e.id });
+    // Phase 3: khoản mua sắm thiết bị tạo tài sản công ty ở UI-34 (nguồn khấu hao Báo cáo KD); Báo cáo tổng vẫn ghi nguyên giá theo chứng từ này
+    if (cat.equipment && e.scope === 'building') X._createAsset({ name: d.note || 'Thiết bị', type: TH.calc.assets.classify(d.note), ownership: 'company', buildingId: e.buildingId, roomId: e.roomId, qty: Number(d.qty) || 1,
+      receivedDate: d.date, depStart: d.date, cost: e.amount, depMonths: e.depMonths, source: 'expense', expenseId: e.id });
     _.audit('create', 'expense', e.id, `Chi phí ${code}: ${F.vnd(e.amount)} – ${cat.label}`);
     if (!silent) _.done(); return e;
   };
@@ -46,6 +48,7 @@
     if (!String(reason || '').trim()) throw new Error('Nhập lý do hủy');
     const e = S.get('expenses', id); _.guardPeriod(e.period, 'hủy chi phí');
     if (e.source === 'payroll') throw new Error('Chi phí lương sinh từ bảng lương đã chốt – điều chỉnh ở bảng lương');
+    if (e.isEquipment) X._voidAssetOfExpense(id); // P3-1: hủy chứng từ mua → gỡ tài sản khỏi khấu hao (trước đây thiết bị vẫn khấu hao tiếp)
     S.update('expenses', id, { status: 'void', voidReason: reason, voidBy: _.who() });
     // Hủy khoản chi tiền nhà → trả lại số đã chi của kỳ trả chủ nhà (UI-05)
     // Hủy chứng từ chi hoa hồng (UI-22) → gỡ đợt chi, dòng hoa hồng chi lại được

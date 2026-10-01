@@ -191,7 +191,7 @@
     return [
       { key: 'kq', label: 'Kết quả kinh doanh', items: [
         { ui: 'UI-29', title: 'Báo cáo tổng (LN dòng tiền)', href: '#/reports/total', formula: 'báo cáo lợi nhuận kinh doanh thực thu (gồm cọc mới và mua sắm tb) – SRC-13', period: lastRep, status: st(lastRep) },
-        { ui: 'UI-30', title: 'Báo cáo kinh doanh', href: '#/reports/business', formula: 'không gồm cọc mới, hoàn cọc, mua sắm tb; khấu hao thiết bị 1,6% (GĐ OQ-10)', period: lastRep, status: st(lastRep) },
+        { ui: 'UI-30', title: 'Báo cáo kinh doanh', href: '#/reports/business', formula: 'không gồm cọc mới, hoàn cọc, mua sắm tb; khấu hao thiết bị theo số tháng từng tài sản UI-34, mặc định 63 tháng ≈ 1,6% (GĐ OQ-10, OQ-11)', period: lastRep, status: st(lastRep) },
         { ui: 'UI-42', title: 'Chi phí giá vốn / cố định / phát sinh', href: '#/reports/costs', formula: 'các mục giá vốn / chi phí vận hành / chi phí phát sinh trong báo cáo nhà; từng nhà và toàn hệ thống', period: lastRep, status: st(lastRep) },
         ...(TH.ms.on('3') ? (() => { const fc = Q.forecastLatestPeriod ? Q.forecastLatestPeriod() : null; return [ // Phase 3: UI-40 / UI-41
           { ui: 'UI-40', title: 'Dự kiến lợi nhuận', href: '#/reports/forecast', formula: 'một bộ đầu vào → bản dòng tiền (có cọc mới, hoàn cọc, mua sắm thiết bị) và bản kinh doanh (khấu hao) – SRC-14', period: fc, status: st(fc) },

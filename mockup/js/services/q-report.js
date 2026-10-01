@@ -52,7 +52,7 @@
       (pv.buildingCosts || []).forEach(c => add(m, c.buildingId, c.line, c.amount)); // lương vệ sinh/bảo vệ, tiền công thợ nhập tay (chưa chốt)
     }
     src.payroll = pr ? `${pr.code} (${pr.status === 'closed' ? 'đã chốt – chi phí lương theo tòa' : 'tạm tính'})` : 'Xem trước bảng lương (chưa lưu phiên)';
-    const dep = TH.calc.depreciation.forPeriod(S.all('equipment'), period, Q.param('depRate', pe));
+    const dep = Q.depOfPeriod(period); // Phase 3: tài sản công ty UI-34, khấu hao theo số tháng từng tài sản + thanh lý
     src.depreciation = dep; return dep;
   };
   /* type: 'total' | 'business'; bizMode: 'gd' (giả định OQ-10) | 'excel' (tái hiện sheet KD) */

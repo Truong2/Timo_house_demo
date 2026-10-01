@@ -20,12 +20,17 @@ TH.data.catalog = {
     { key: 'allocDenominator', type: 'enum', options: [['systemRooms', 'Tổng phòng hệ thống có giá thuê (OQ-04)'], ['allRooms', 'Mọi phòng đang khai thác, kể cả phòng không giá']], label: 'Mẫu số phân bổ = tổng phòng hệ thống của kỳ', value: 'systemRooms', unit: '', oq: 'OQ-04', group: 'Chi phí' },
     { key: 'bizAddBackRefund', type: 'bool', label: 'Báo cáo kinh doanh cộng lại hoàn cọc', value: true, unit: '', oq: 'OQ-10', group: 'Báo cáo' },
     { key: 'bizDepreciation', type: 'bool', label: 'Báo cáo kinh doanh tính khấu hao thiết bị', value: true, unit: '', oq: 'OQ-10', group: 'Báo cáo' },
-    { key: 'depRate', type: 'pct', min: 0, max: 0.2, label: 'Tỷ lệ khấu hao thiết bị/tháng (cộng dồn)', value: 0.016, unit: '', oq: 'OQ-11', group: 'Báo cáo' },
+    { key: 'depRate', type: 'pct', min: 0, max: 0.2, label: 'Tỷ lệ khấu hao như Excel (dự kiến LN: J3 × tỷ lệ; thiết bị cũ không có số tháng)', value: 0.016, unit: '', oq: 'OQ-11', group: 'Báo cáo' },
     { key: 'zaloRemindBeforeDays', type: 'int', min: 0, max: 15, label: 'Nhắc Zalo trước hạn', value: 2, unit: 'ngày', oq: 'CH-34', group: 'Zalo' },
     /* --- Phase 2 --- */
     { key: 'salesTarget', type: 'money', min: 0, max: 2000000000, label: 'Chỉ tiêu doanh số sale / tháng (Σ giá chốt)', value: 40000000, unit: 'đ', oq: 'OQ-25', group: 'Kinh doanh' },
     { key: 'repairCycleStartDay', type: 'int', min: 1, max: 28, label: 'Sổ sửa chữa: kỳ bắt đầu từ ngày (tháng trước) đến ngày trước đó tháng này', value: 26, unit: 'ngày', oq: 'OQ-23', group: 'Sửa chữa' },
     { key: 'amduongVacantInIncome', type: 'bool', label: 'Âm dương: tính điện/nước phòng trống, không thu được vào tổng thu (như Excel)', value: true, unit: '', oq: 'OQ-20', group: 'Báo cáo' },
+    /* --- Phase 3 --- */
+    { key: 'depMonthsDefault', type: 'int', min: 1, max: 240, label: 'Số tháng khấu hao mặc định của tài sản công ty (63 ≈ 1,6%/tháng, tháng cuối 0,8%)', value: 63, unit: 'tháng', oq: 'OQ-11', group: 'Tài sản' },
+    { key: 'maintRemindDays', type: 'int', min: 0, max: 60, label: 'Nhắc lịch bảo dưỡng trước hạn (người phụ trách, web + Zalo)', value: 7, unit: 'ngày', oq: 'CH-32', group: 'Tài sản' },
+    { key: 'shareRemindDays', type: 'int', min: 0, max: 60, label: 'Nhắc cổ đông góp tiền nhà trước hạn trả chủ nhà', value: 7, unit: 'ngày', oq: 'CH-29', group: 'Tài sản' },
+    { key: 'forecastDraftDay', type: 'int', min: 1, max: 28, label: 'Ngày lập bảng dự kiến lợi nhuận trong tháng (cùng ngày chốt số hóa đơn)', value: 22, unit: 'ngày', oq: 'OQ-19', group: 'Kế hoạch' },
   ].map(p => Object.assign({ effectiveFrom: '2026-01-01', effectiveTo: null }, p)),
 
   /* Loại phí & ánh xạ dòng in */

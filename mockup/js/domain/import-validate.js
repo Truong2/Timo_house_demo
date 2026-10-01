@@ -13,7 +13,8 @@
     // E2: lịch sử hoa hồng ≤ 08/2026 theo mẫu SRC-09 – F giá chốt, G thời hạn / bỏ cọc, H tỷ lệ, loại ca, I thành tiền (kiểm I = F × H)
     commissions: { label: 'Hoa hồng (lịch sử theo phòng)', hint: 'Chỉ kỳ đến 08/2026 (từ 09/2026 tính trên UI-22). H ghi 50% hoặc 0,5. Loại ca: Thường / Đối tác / Trùng 2 / Trùng 3 / Bỏ cọc / HĐ ngắn. I khác F × H quá 0,5đ chỉ cảnh báo.',
       cols: [['code', 'Mã khoản', true], ['period', 'Kỳ ghi nhận', true], ['room', 'Mã phòng', true], ['sale', 'Người nhận (sale / đối tác)', true], ['F', 'Giá chốt (F)', true, 'money'], ['G', 'Thời hạn / bỏ cọc (G)'], ['H', 'Tỷ lệ (H)', true, 'rate'], ['caseType', 'Loại ca'], ['amount', 'Thành tiền (I)', true, 'money']] },
-    equipment: { label: 'Thiết bị đã mua (số dư khấu hao)', cols: [['building', 'Mã tòa', true], ['name', 'Tên thiết bị', true], ['purchaseDate', 'Ngày mua', true, 'date'], ['cost', 'Nguyên giá', true, 'money']] },
+    equipment: { label: 'Tài sản / thiết bị đã mua (số dư khấu hao)', cols: [['building', 'Mã tòa', true], ['name', 'Tên thiết bị', true], ['purchaseDate', 'Ngày mua', true, 'date'], ['cost', 'Nguyên giá', true, 'money'],
+      ['type', 'Loại', false], ['ownership', 'Nguồn sở hữu', false], ['room', 'Phòng', false], ['qty', 'Số lượng', false], ['depMonths', 'Số tháng KH', false], ['openingPeriod', 'Kỳ bắt đầu ghi sổ', false]] },
     staff: { label: 'Nhân viên', hint: 'Giữ mã NV của nguồn; chức danh theo danh mục (mã hoặc tên); khu vực nếu ghi phải có sẵn.', cols: [['code', 'Mã NV', true], ['name', 'Họ tên', true], ['title', 'Chức danh', true], ['hireDate', 'Ngày vào làm', true, 'date'], ['phone', 'SĐT'], ['area', 'Khu vực']] },
   };
   const parseMoney = (v) => {

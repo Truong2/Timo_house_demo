@@ -110,7 +110,8 @@
     const period = S.meta.period; const invs = Q.invoicesOf(period).filter(i => i.buildingId === b.id && i.lifecycle !== 'draft');
     const due = invs.reduce((s, i) => s + i.totalDue, 0), rem = invs.reduce((s, i) => s + Q.invState(i).remaining, 0);
     const tabs = [{ key: 'tong-quan', label: 'Tổng quan' }, { key: 'phong', label: 'Phòng', count: rooms.length }, { key: 'chu-nha-hd', label: 'Chủ nhà & HĐ', perm: 'owners.view' }, { key: 'lich-tra', label: 'Lịch trả chủ nhà', perm: 'ownerPayments.view' },
-      { key: 'nhan-su', label: 'Nhân sự' }, { key: 'dich-vu-dau-vao', label: 'Dịch vụ đầu vào', perm: 'expenses.view' }, { key: 'tai-chinh', label: 'Tài chính', perm: 'debts.viewAmounts' }];
+      { key: 'nhan-su', label: 'Nhân sự' }, { key: 'dich-vu-dau-vao', label: 'Dịch vụ đầu vào', perm: 'expenses.view' }, { key: 'tai-chinh', label: 'Tài chính', perm: 'debts.viewAmounts' },
+      ...(TH.ms.on('3') ? [{ key: 'tai-san', label: 'Tài sản', perm: 'assets.view' }] : [])]; // Phase 3: liên kết UI-34 / UI-35 / UI-36
     const tab = K.pickTab(tabs, q.tab || 'tong-quan', 'tong-quan');
     root.innerHTML = U.pageHead({ title: 'Tòa ' + esc(b.code) + ' ' + U.chip('Nhà ' + b.group, 'blue') + (b.level ? ' ' + U.chip(b.level, 'gray') : ''), back: '#/buildings', sub: `${esc(b.address)} · Quản lý: ${mgr ? esc(mgr.name) : 'chưa phân công'} · Nhận nhà ${F.date(b.operatedFrom)}`,
       acts: [U.btn({ label: 'Chủ nhà / HĐ', icon: 'file-text', href: oc ? '#/owners/' + oc.id : '#', perm: 'owners.view' }), U.btn({ label: 'Sửa hồ sơ tòa', icon: 'pencil', act: 'editb', perm: 'buildings.manage' }), U.btn({ label: 'Thêm phòng', icon: 'plus', cls: 'btn-primary', act: 'addroom', perm: 'buildings.manage' })] })
@@ -191,6 +192,7 @@
         fields: [{ name: 'on', label: 'Trả điện qua chủ nhà', type: 'check', checkLabel: 'Tòa trả tiền điện qua chủ nhà', value: !!v.electricViaOwner }, { name: 'unitPrice', label: 'Đơn giá (đ/kWh)', type: 'number', value: vo.unitPrice || '' }, { name: 'from', label: 'Hiệu lực từ', type: 'date', value: vo.from || F.today() }, { name: 'note', label: 'Căn cứ', span: true, value: vo.note || '' }],
         submit: 'Lưu', onSubmit: (x) => { X.setElectricViaOwner(b.id, x); U.toast('ok', 'Đã cập nhật'); } }); } });
     }
+    if (tab === 'tai-san') body.innerHTML = TH.pages.buildingAssetsTab(b);
     if (tab === 'tai-chinh') {
       const exps = S.where('expenses', e => e.buildingId === b.id && e.status !== 'void');
       body.innerHTML = `<div class="grid grid-2">${U.card({ title: 'Hóa đơn theo kỳ', icon: 'receipt', body: S.all('periods').map(pp => { const iv = Q.invoicesOf(pp.id).filter(i => i.buildingId === b.id && i.lifecycle !== 'draft'); if (!iv.length) return ''; const d = iv.reduce((s, i) => s + i.totalDue, 0), r = iv.reduce((s, i) => s + Q.invState(i).remaining, 0); return `<div class="mini-row"><span>${F.periodLabel(pp.id)}</span><span class="grow tr">Phải thu ${F.vnd(d)}</span><b class="tr" style="width:160px">Còn nợ ${F.vnd(r)}</b></div>`; }).join('') })}
