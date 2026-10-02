@@ -20,10 +20,15 @@
     && (!f.q || (a.code + ' ' + a.name + ' ' + (a.position || '')).toLowerCase().includes(String(f.q).toLowerCase())));
   /* Tài sản công ty có giá trị, chưa hủy → nguồn khấu hao; buildingId = tòa đặt cuối kỳ */
   Q.depItems = (period) => { const pe = period ? DT.periodEnd(period) : F.today();
-    return S.all('assets').filter(a => a.ownership === 'company' && a.cost > 0 && a.status !== 'void').map(a => Object.assign({}, a, { buildingId: Q.assetBuildingAt(a, pe) })); };
+    return S.all('assets').filter(a => a.ownership === 'company' && a.cost > 0 && !['void', 'removed'].includes(a.status) && (!period || !a.openingPeriod || a.openingPeriod <= period)).map(a => Object.assign({}, a, { buildingId: Q.assetBuildingAt(a, pe) })); };
   Q.depOfPeriod = (period) => DP.forPeriod(Q.depItems(period), period, Q.param('depRate', DT.periodEnd(period)));
-  /* Giá trị còn lại tài sản công ty của tòa cuối kỳ (UI-41 LN/tài sản) – chỉ tài sản đã ghi sổ web (openingPeriod ≤ kỳ) */
-  Q.assetNbv = (bid, period) => Q.depItems(period).filter(a => a.buildingId === bid && (!a.openingPeriod || a.openingPeriod <= period)).reduce((t, a) => t + DP.nbv(a, period), 0);
+  /* Tài sản công ty có giá trị tại cuối kỳ (UI-41) – gồm số dư đầu kỳ chưa ghi khấu hao web (openingPeriod > kỳ): giá trị đã có thật, chỉ khấu hao mới bắt đầu ghi từ openingPeriod */
+  Q.nbvItems = (period) => { const pe = DT.periodEnd(period);
+    return S.all('assets').filter(a => a.ownership === 'company' && a.cost > 0 && !['void', 'removed'].includes(a.status) && (a.depStart || a.receivedDate || '') <= pe).map(a => Object.assign({}, a, { buildingId: Q.assetBuildingAt(a, pe) })); };
+  /* Giá trị còn lại tài sản công ty của tòa cuối kỳ (UI-41 LN/tài sản, GĐ OQ-24) */
+  Q.assetNbv = (bid, period) => Q.nbvItems(period).filter(a => a.buildingId === bid).reduce((t, a) => t + DP.nbv(a, period), 0);
+  /* Tòa đã có số dư tài sản nền (import UI-37 hoặc đầu tư ban đầu UI-33) → mẫu số LN/tài sản đủ; chỉ có vài món mua lẻ thì "chờ dữ liệu" */
+  Q.assetBaseline = (bid, period) => Q.nbvItems(period).some(a => a.buildingId === bid && (a.source === 'opening' || a.source === 'initial'));
   Q.assetDepSchedule = (a, toPeriod) => DP.schedule(a, toPeriod || F.period(F.today()));
   /* Đã có khấu hao ghi vào kỳ đã khóa → không hủy / sửa giá trị, chỉ thanh lý */
   Q.assetBookedInClosed = (a) => S.all('periods').filter(p => p.status === 'closed').some(p => { const r = DP.ofItem(a, p.id); return r && r.amount > 0; });
@@ -92,22 +97,46 @@
     _.done(); return Q.asset(id);
   };
   /* Thanh lý (GĐ OQ-11): kỳ thanh lý ghi một lần giá trị còn lại vào Báo cáo KD dòng 21; tiền thu thanh lý chỉ ghi nhận (GĐ-P3 O4) */
-  X.disposeAsset = (id, d) => {
-    _.need('assets.dispose'); _.needMs('3', 'Thanh lý tài sản (UI-34)');
-    const a = Q.asset(id); if (!a) throw new Error('Không tìm thấy tài sản');
-    const errs = {}; const date = d.date || F.today(); const period = F.period(date);
+  const disposeErrors = (a, d, date) => {
+    const errs = {}, period = F.period(date);
     if (a.ownership !== 'company') errs.reason = 'Chỉ thanh lý tài sản công ty – tài sản chủ nhà trả lại khi kết thúc HĐ (UI-04)';
     if (a.status !== 'active') errs.reason = 'Tài sản đã ' + AS.STATUS[a.status].toLowerCase();
     if (!String(d.reason || '').trim()) errs.reason = errs.reason || 'Nhập lý do thanh lý';
     if (a.depStart && period < a.depStart.slice(0, 7)) errs.date = 'Ngày thanh lý trước ngày bắt đầu khấu hao';
     if (Number(d.proceeds) < 0) errs.proceeds = 'Tiền thu không âm';
-    if (Object.keys(errs).length) fail(errs);
-    _.guardPeriod(period, 'thanh lý tài sản');
-    const remain = a.cost > 0 ? DP.nbv(a, DT.prevPeriod(period)) : 0;
+    return errs;
+  };
+  /* Ghi thanh lý một tài sản đã kiểm tra; trả giá trị còn lại ghi một lần */
+  const disposeOne = (a, d, date) => {
+    const period = F.period(date), remain = a.cost > 0 ? DP.nbv(a, DT.prevPeriod(period)) : 0;
     const disposal = { date, period, reason: d.reason, proceeds: Number(d.proceeds) || 0, remaining: remain, by: _.who(), at: F.nowISO() };
-    S.update('assets', id, { status: 'disposed', disposal, history: [...(a.history || []), { at: F.nowISO(), date, by: _.who(), kind: 'dispose', before: { status: a.status }, after: { status: 'disposed' }, reason: d.reason }] });
-    _.audit('update', 'asset', id, `Thanh lý ${a.code} kỳ ${F.periodShort(period)}: ghi một lần giá trị còn lại ${F.vnd(remain)}${disposal.proceeds ? ' · tiền thu ' + F.vnd(disposal.proceeds) : ''}`);
+    S.update('assets', a.id, { status: 'disposed', disposal, history: [...(a.history || []), { at: F.nowISO(), date, by: _.who(), kind: 'dispose', before: { status: a.status }, after: { status: 'disposed' }, reason: d.reason }] });
+    return disposal;
+  };
+  X.disposeAsset = (id, d) => {
+    _.need('assets.dispose'); _.needMs('3', 'Thanh lý tài sản (UI-34)');
+    const a = Q.asset(id); if (!a) throw new Error('Không tìm thấy tài sản');
+    const date = d.date || F.today(), errs = disposeErrors(a, d, date);
+    if (Object.keys(errs).length) fail(errs);
+    _.guardPeriod(F.period(date), 'thanh lý tài sản');
+    const disposal = disposeOne(a, d, date);
+    _.audit('update', 'asset', id, `Thanh lý ${a.code} kỳ ${F.periodShort(disposal.period)}: ghi một lần giá trị còn lại ${F.vnd(disposal.remaining)}${disposal.proceeds ? ' · tiền thu ' + F.vnd(disposal.proceeds) : ''}`);
     _.done(); return Q.asset(id);
+  };
+  /* Trả nhà trước hạn (GĐ OQ-11): thanh lý một lần mọi tài sản công ty còn dùng của tòa; tài sản chủ nhà trả lại theo phụ lục bàn giao, không ghi giá trị */
+  X.disposeBuildingAssets = (bid, d = {}) => {
+    _.need('assets.dispose'); _.needMs('3', 'Trả nhà – thanh lý tài sản (UI-34)');
+    const b = Q.building(bid); if (!b || !TH.auth.inScope(bid)) throw new Error('Tòa không tồn tại hoặc ngoài phạm vi');
+    const date = d.date || F.today(), list = S.where('assets', a => a.buildingId === bid && a.ownership === 'company' && a.status === 'active');
+    if (!String(d.reason || '').trim()) fail({ reason: 'Nhập lý do (trả nhà trước hạn, chấm dứt HĐ chủ nhà…)' });
+    if (!list.length) fail({ reason: 'Tòa không còn tài sản công ty đang dùng' });
+    const bad = list.map(a => [a, disposeErrors(a, { reason: d.reason }, date)]).filter(([, e]) => Object.keys(e).length);
+    if (bad.length) fail({ date: bad.map(([a, e]) => a.code + ': ' + Object.values(e)[0]).join('; ') });
+    _.guardPeriod(F.period(date), 'thanh lý tài sản khi trả nhà');
+    let total = 0;
+    S.atomic(() => { list.forEach(a => { total += disposeOne(a, { reason: d.reason }, date).remaining; }); });
+    _.audit('update', 'building', bid, `Trả nhà ${b.code} – thanh lý ${list.length} tài sản công ty kỳ ${F.periodShort(F.period(date))}: ghi một lần giá trị còn lại ${F.vnd(total)} – ${d.reason}`);
+    _.done(); return { count: list.length, remaining: total };
   };
   /* Hủy chứng từ mua (UI-15): chưa khấu hao kỳ khóa → tài sản 'void'; đã khấu hao kỳ khóa → chặn, dùng Thanh lý */
   X._voidAssetOfExpense = (expenseId) => {

@@ -1,6 +1,6 @@
 # TimoHouse UI — Best Match Selection
 
-Bộ này gom các ảnh UI tốt nhất đã được chọn từ các vòng generate/rà soát trong cuộc hội thoại, theo cấu trúc B01 → B08.
+Bộ này gom các ảnh UI tốt nhất đã được chọn từ các vòng generate/rà soát trong cuộc hội thoại, theo cấu trúc B01 → B09.
 
 ## Số lượng
 - B01: 8 ảnh
@@ -11,7 +11,8 @@ Bộ này gom các ảnh UI tốt nhất đã được chọn từ các vòng ge
 - B06: 6 ảnh
 - B07: 10 ảnh
 - B08: 8 ảnh
-- Tổng: 65 ảnh
+- B09: 17 ảnh (UI-40/41, UI-03A, E30…E43)
+- Tổng: 82 ảnh
 
 ## Cách đặt tên
 - `UI-xx_*`: màn hình nghiệp vụ chính.
@@ -28,3 +29,7 @@ Bộ này gom các ảnh UI tốt nhất đã được chọn từ các vòng ge
 - B08: dùng toàn bộ batch mới nhất gồm Tài liệu, Tài sản, Bảo dưỡng, Kiểm kê, Import, Cấu hình, E25 và E26.
 
 Nguồn tham chiếu: `TimoHouse_Plan_Mockup_UI_v1.md`.
+
+## Cập nhật Phase 3 — 02/10/2026
+
+B07/UI-33 và B08/UI-34…36 đã thay bằng ảnh chụp web 1600×1000. B09 có 17 ảnh mới, danh mục đánh số đến E43. E27…E29 thuộc mở rộng leader/team của kế hoạch v1.1, chưa có ảnh riêng trong bộ này. Xem [bảng đối chiếu](Phase3_Doi_chieu_dac_ta_vs_anh_cu.md) và [UAT](../uat/Phase3_Kich_ban_kiem_thu.md); 8 ảnh responsive 390/1024 và F37 ở output/verify-p3/shots.

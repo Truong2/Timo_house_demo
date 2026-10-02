@@ -63,7 +63,7 @@
     // UI-33 góp vốn / chi thực: cổ đông chỉ xem dòng của mình
     'capital.view': ['admin', 'ketoan', 'codong'], 'capital.manage': FIN,
     // UI-40 dự kiến lợi nhuận: số toàn hệ thống, không chia tòa → cổ đông chưa xem (GĐ-P3 O1); UI-41 hiệu quả theo tòa
-    'forecast.view': ['admin', 'ketoan', 'truongphong'], 'forecast.manage': FIN, 'efficiency.view': ['admin', 'ketoan', 'truongphong', 'codong'],
+    'forecast.view': ['admin', 'ketoan', 'truongphong', 'codong'], 'forecast.manage': FIN, 'efficiency.view': ['admin', 'ketoan', 'truongphong', 'codong'], // forecast.view: CH-23 / đặc tả UI-40 – cổ đông xem (GĐ-P3-01 đã chốt), không tạo / so sánh / xuất
     'reports.drill': ['admin', 'ketoan', 'truongphong'], // mở chứng từ gốc từ ô báo cáo (UI-28) – cổ đông chỉ xem số tổng
   };
   const can = (role, perm) => !!(POLICY[perm] && POLICY[perm].includes(role));

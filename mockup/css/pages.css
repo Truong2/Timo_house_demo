@@ -123,3 +123,6 @@ table.rpt{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 .ocr-tbl input.inp{width:100%;min-width:0}.ocr-tbl td:nth-child(2){width:48%}
 .ocr-line.low{background:#FEF2F2;border-radius:4px;padding:0 4px}
 .muted-card{opacity:.75}
+.inventory-layout{grid-template-columns:260px minmax(0,1fr)}
+.inventory-layout>div{min-width:0}
+@media(max-width:760px){.inventory-layout{grid-template-columns:minmax(0,1fr)}.inventory-layout>div:first-child .card-b{max-height:250px;overflow-y:auto}}

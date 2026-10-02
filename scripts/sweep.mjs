@@ -11,7 +11,10 @@ await new Promise(r => setTimeout(r, 700));
 const b = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
 const out = []; let failed = 0;
 /* Phase 3: tài sản / bảo dưỡng / kiểm kê / góp vốn / dự kiến LN / hiệu quả – thêm dần theo đợt P3-1…P3-7 */
-const P3 = ['/assets', '/assets?ownership=company&period=2026-08', '/assets/maintenance?soon=1', '/assets/maintenance?status=done&type=pump', '/assets/maintenance', '/assets/inventory', '/shares/capital', '/reports/forecast', '/reports/efficiency', '/buildings/b_G1?tab=tai-san', '/dashboard?period=2026-09'];
+const P3 = ['/assets', '/assets?ownership=company&period=2026-08', '/assets/maintenance?soon=1', '/assets/maintenance?status=done&type=pump', '/assets/maintenance', '/assets/inventory', '/assets/inventory?period=2026-08&building=b_G1',
+  ...['lich-dong', 'chi-thuc', 'tai-san-coc', 'dau-tu-ban-dau', 'lich-su'].map(tab => '/shares/capital?building=b_G1&tab=' + tab), '/shares/capital?building=b_T2&sh=sh_CHUNG',
+  ...['dau-vao', 'chi-phi', 'ket-qua', 'so-sanh', 'phien-ban'].map(tab => '/reports/forecast?period=2026-09&tab=' + tab), '/reports/forecast?period=2026-08&tab=so-sanh&mode=web', '/reports/forecast?period=2026-01',
+  '/reports/efficiency', '/reports/efficiency?basis=total&source=excel', '/reports/efficiency?group=G&source=web', '/reports/efficiency?period=2026-09&source=excel', '/buildings/b_G1?tab=tai-san', '/dashboard?period=2026-09'];
 for (const u of ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong', 'truongkd', 'sale', 'kythuat', 'codong']) {
   const ctx = await b.newContext(); const p = await ctx.newPage(); const errs = [];
   p.on('pageerror', e => errs.push(e.message));
@@ -39,7 +42,7 @@ for (const u of ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong', 'truongk
   for (const r of routes.flat()) { await p.evaluate(h => { location.hash = h; }, '#' + r); await p.waitForTimeout(250); const t = await p.evaluate(() => (document.getElementById('content') || document.body).innerText); if (/Lỗi hiển thị trang|undefined|NaN|\[object Object\]/.test(t)) bad.push(r + ' → ' + (t.match(/.{0,60}(Lỗi hiển thị trang|undefined|NaN|\[object Object\]).{0,60}/) || [''])[0].replace(/\n/g, ' ')); }
   failed += bad.length + errs.length;
   out.push(`${u}: ${routes.flat().length} route, ${bad.length} trang có lỗi hiển thị, ${errs.length} lỗi JS${bad.length ? '\n  ' + bad.join('\n  ') : ''}${errs.length ? '\n  ' + errs.slice(0, 5).join('\n  ') : ''}`);
-  await ctx.close();
+  await ctx.close(); console.log(out[out.length - 1]);
 }
-console.log(out.join('\n')); await b.close(); server.kill();
+console.log('Tổng lỗi: ' + failed); await b.close(); server.kill();
 if (failed) process.exit(1);

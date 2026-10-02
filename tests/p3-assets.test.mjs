@@ -15,9 +15,9 @@ test('NT-11 – 17 thiết bị T8 (63 tháng ≈ 1,6%) khấu hao 566.080/thán
   assert.equal(TH.calc.depreciation.rateOf(items[0]), 0.016, 'n = 63 → đúng 1,6%');
   assert.equal(Q.depOfPeriod('2026-08').total, 566080);
   assert.equal(Q.depOfPeriod('2026-09').total, 566080);
-  assert.ok(near(Q.depOfPeriod('2031-10').total, 283040), 'tháng 63: nửa mức');
-  assert.equal(Q.depOfPeriod('2031-11').total, 0);
-  let sum = 0; const D = TH.calc.dates; for (let p = '2026-08'; p <= '2031-11'; p = D.nextPeriod(p)) sum += Q.depOfPeriod(p).total;
+  assert.ok(near(TH.calc.depreciation.forPeriod(items, '2031-10').total, 283040), 'cohort T8 tháng 63: nửa mức');
+  assert.equal(TH.calc.depreciation.forPeriod(items, '2031-11').total, 0);
+  let sum = 0; const D = TH.calc.dates; for (let p = '2026-08'; p <= '2031-11'; p = D.nextPeriod(p)) sum += TH.calc.depreciation.forPeriod(items, p).total;
   assert.ok(near(sum, 35380000, 1));
   assert.equal(TH.qr.build('2026-08', 'business').cols.TOTAL.cost_equip, 566080, 'Báo cáo KD T8 dòng 21 không đổi');
 });
@@ -60,6 +60,7 @@ test('P3-1 – sửa lỗi hủy chứng từ mua: tài sản bị gỡ khỏi k
 
 test('P3-1 – import số dư thiết bị (UI-37): tài sản công ty, chỉ ghi khấu hao từ kỳ bắt đầu ghi sổ; giá trị còn lại tính từ ngày mua', () => {
   const TH = boot({ user: 'admin' }); const Q = TH.q, X = TH.actions, S = TH.store;
+  const before = Q.depOfPeriod('2026-10').byBuilding.b_G1 || 0;
   const v = X.validateImport('equipment', [{ building: 'G1', name: 'Máy giặt tầng 2', purchaseDate: '2026-06-10', cost: '6500000', room: '', qty: '1', depMonths: '', openingPeriod: '2026-10' }]);
   assert.equal(v.filter(r => r.status === 'error').length, 0);
   assert.ok(!attempt(() => 0).value && X.validateImport('equipment', [{ building: 'G1', name: 'x', purchaseDate: '2026-06-10', cost: '1', ownership: 'Khách thuê' }])[0].status === 'error', 'nguồn sở hữu sai');
@@ -67,9 +68,11 @@ test('P3-1 – import số dư thiết bị (UI-37): tài sản công ty, chỉ 
   const a = S.one('assets', x => x.source === 'opening' && x.name === 'Máy giặt tầng 2');
   assert.ok(a && a.type === 'washer' && a.depMonths === 63 && a.openingPeriod === '2026-10');
   assert.equal(Q.depOfPeriod('2026-09').byBuilding.b_G1, undefined, 'kỳ trước ghi sổ: không ghi khấu hao');
-  assert.equal(Q.depOfPeriod('2026-10').byBuilding.b_G1, 104000);
+  assert.equal(Q.depOfPeriod('2026-10').byBuilding.b_G1 - before, 104000);
   assert.equal(TH.calc.depreciation.nbv(a, '2026-10'), 6500000 - 5 * 104000);
-  assert.equal(Q.assetNbv('b_G1', '2026-09'), 0, 'UI-41: chưa ghi sổ thì chưa tính vào mẫu số LN/tài sản');
+  // UI-41 (GĐ-P3-03 đã chốt): giá trị còn lại tính từ ngày mua, kể cả trước kỳ ghi sổ web → mẫu số LN/tài sản; khấu hao vẫn chỉ ghi từ openingPeriod
+  assert.ok(Math.abs(Q.assetNbv('b_G1', '2026-09') - 38862000 * (1 - 11 * 0.016) - (6500000 - 4 * 104000)) < 1, 'UI-41: số dư nền tính vào mẫu số');
+  assert.ok(Q.assetBaseline('b_G1', '2026-09'));
 });
 
 test('P3-1 – thêm / chuyển vị trí: giá trị chỉ khi có chứng từ, tài sản chủ nhà không giá trị, chuyển ghi lịch sử; ⛔ kỹ thuật, mốc 2', () => {
@@ -106,4 +109,21 @@ test('P3-1 – seed: 13 hạng mục bàn giao SRC-10 (chủ nhà, không giá t
 test('NT-0 – Phase 1 không đổi sau P3-1 (bộ nghiệm thu trong app)', () => {
   const TH = boot({ user: 'admin', pages: true });
   assert.deepEqual(plain(TH.pages.acceptance().filter(a => !a.ok).map(a => a.name)), []);
+});
+
+test('OQ-11 trả nhà trước hạn: thanh lý một lần mọi tài sản công ty còn dùng của tòa; tài sản chủ nhà giữ nguyên; ⛔ thiếu lý do, kỳ khóa, vai trò không có quyền', () => {
+  const TH = boot({ user: 'ketoan' }); const Q = TH.q, X = TH.actions, S = TH.store;
+  const comp = S.where('assets', a => a.buildingId === 'b_G1' && a.ownership === 'company' && a.status === 'active'), owner = S.where('assets', a => a.buildingId === 'b_G1' && a.ownership === 'owner');
+  assert.equal(comp.length, 8); assert.ok(owner.length > 0);
+  assert.ok(!attempt(() => X.disposeBuildingAssets('b_G1', { date: '2026-10-05' })).ok, 'bắt buộc lý do');
+  const r = X.disposeBuildingAssets('b_G1', { date: '2026-10-05', reason: 'Chủ nhà lấy lại nhà trước hạn' });
+  assert.equal(r.count, 8); assert.ok(Math.abs(r.remaining - 38862000 * (1 - 11 * 0.016)) < 1, 'G1 mua 11/2025: đầu T10 còn 82,4%');
+  assert.ok(Math.abs(Q.depOfPeriod('2026-10').byBuilding.b_G1 - r.remaining) < 1, 'Báo cáo KD dòng 21 kỳ 10 = tổng giá trị còn lại');
+  assert.equal(Q.depOfPeriod('2026-11').byBuilding.b_G1, undefined);
+  assert.ok(comp.every(a => Q.asset(a.id).status === 'disposed' && Q.asset(a.id).history.at(-1).kind === 'dispose'));
+  assert.ok(owner.every(a => Q.asset(a.id).status === a.status), 'tài sản chủ nhà không thanh lý');
+  assert.ok(!attempt(() => X.disposeBuildingAssets('b_G1', { date: '2026-10-05', reason: 'lần 2' })).ok, 'không còn tài sản công ty');
+  closePeriod(TH, '2026-09');
+  assert.ok(/đã khóa/.test(attempt(() => X.disposeBuildingAssets('b_S4', { date: '2026-09-20', reason: 'thử' })).msg));
+  TH.auth.login('vanhanh'); assert.ok(!attempt(() => X.disposeBuildingAssets('b_S4', { date: '2026-10-05', reason: 'thử' })).ok);
 });

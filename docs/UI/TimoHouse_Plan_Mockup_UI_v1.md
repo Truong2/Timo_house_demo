@@ -1,13 +1,13 @@
 # TimoHouse — kế hoạch tạo mockup UI đầy đủ
 
-Ngày: 27/09/2026 · Trạng thái: kế hoạch thiết kế v1.0.
+Ngày lập: 27/09/2026 · Cập nhật: 02/10/2026 · Trạng thái: v1.2 — Phase 3 đã implement và bổ sung ảnh web.
 
-**Tài liệu nền:** `TimoHouse_Dac_ta_man_hinh_web_va_luong_nghiep_vu_v1.md`, nội dung Draft v1.2. Screen ID UI-01…UI-38 giữ nguyên để nối dữ liệu, action và luồng. Tài liệu này lập kế hoạch; các ảnh mockup chưa được tạo.
+**Tài liệu nền:** `TimoHouse_Dac_ta_man_hinh_web_va_luong_nghiep_vu_v1.md`, nội dung Draft v1.2. Screen ID UI-01…UI-38 giữ nguyên để nối dữ liệu, action và luồng. B07/UI-33 và B08/UI-34…36 đã thay ảnh web; B09 bổ sung Phase 3.
 
 ## 1. Phạm vi và kết quả cần có
 
 - Web admin desktop với sidebar **Tổng quan, Vận hành, Kinh doanh, Tài chính, Nhân sự**; Cài đặt/Import ở cuối theo quyền.
-- **38 màn hình nghiệp vụ chính**, 26 khung trạng thái bổ sung và một bộ thiết kế nền. Tổng mục tiêu **64 khung nghiệp vụ + bộ nền B00**. Một screen ID có thể được thể hiện bằng nhiều tab/modal/khung; 64 là danh sách tối thiểu, không phải giới hạn nếu bảng dài cần ảnh tiếp nối.
+- Bộ B01…B09 có **40 màn chính**, kế hoạch **43 khung trạng thái E01…E43**. Hiện có **82 ảnh**: 40 màn chính, 40 E-frame (E01…E26, E30…E43), UI-23A và UI-03A. E27…E29 là mở rộng leader/team trong kế hoạch v1.1, chưa có ảnh riêng trong bộ này. Ứng dụng có 47 screen ID; minh chứng Phase 2 bổ sung ở `output/verify-p2/shots`.
 - Đủ dữ liệu mẫu, tìm kiếm/bộ lọc, action chính/phụ, trạng thái, quyền và đường chuyển màn. Hai báo cáo bám Excel: **Báo cáo tổng** và **Báo cáo kinh doanh**. Hóa đơn khách nhận bám sheet `HĐ (VP)`, `HĐ (VP-HẰNG)`, `HĐ (TECH)`; phiếu hoàn cọc bám mẫu riêng.
 - Mỗi batch xuất ảnh từng màn riêng, bảng action/đích điều hướng, ghi chú các field bắt buộc và bảng kiểm. Không ghép nhiều màn nhỏ vào một ảnh khiến chữ khó đọc. Với báo cáo/hóa đơn dày dữ liệu, dùng khung tiếp nối hoặc bản toàn trang có thể phóng to.
 - Toàn bộ tên, CCCD, số điện thoại, ngân hàng và tài khoản nhận tiền trong mockup phải là dữ liệu giả lập/che bớt. Chỉ sử dụng các số đối chiếu đã nêu rõ từ nguồn, không biến dữ liệu demo thành dữ liệu công ty thật.
@@ -75,7 +75,8 @@ Khách mới giữa tháng; trả trước ba tháng; thu thiếu/dư; cùng ph�
 | B06 | Nhân sự, phân công, lương | UI-23–UI-25 | 3 | B04–B05 và Word lương |
 | B07 | Hai báo cáo và cổ đông | UI-27–UI-33 | 7 | B04–B06, workbook báo cáo/G1 |
 | B08 | Tài liệu, tài sản/bảo trì, import/quyền | UI-26, UI-34–UI-38 | 6 | B00–B07 |
-| **Tổng** | | **UI-01…UI-38** | **38** | |
+| B09 | Phase 3: dự kiến, hiệu quả và E30…E43 | UI-40, UI-41; UI-03A | 2 | B07/B08, SRC-14 |
+| **Tổng màn chính trong bộ ảnh** | | **UI-01…UI-38, UI-40/UI-41** | **40** | |
 
 Batch kết thúc bằng kiểm tra sidebar, dữ liệu và luồng nối vào batch trước. Nếu một quy tắc còn chưa xác nhận, thể hiện trạng thái nháp/cần rà soát ở màn liên quan để vẫn hoàn thành thiết kế.
 
@@ -150,20 +151,27 @@ Mỗi dòng dưới đây là một khung nghiệp vụ chính tối thiểu. V�
 | UI-30 Báo cáo KD | Cùng bố cục, số và công thức của sheet KD; cọc/thiết bị hiển thị theo nguồn | Chuyển Tổng↔KD, xem cầu nối, xuất; không giả định “ẩn dòng” là xong phép tính |
 | UI-31 Cổ đông/tỷ lệ | Người demo, tòa, tỷ lệ, hiệu lực, tổng 100% | Thêm/sửa tỷ lệ có ngày, xem kỳ; cảnh báo tổng sai |
 | UI-32 Bảng chia G1 | Tỷ lệ, C22/C73/C74 và H/I/J/M, tổng, làm tròn | Tính thử/chốt bản kê/xuất; mở căn cứ; không dùng M làm số đã trả |
-| UI-33 Góp/chi thực | Lịch phải góp, thực góp, số được nhận/đã trả/còn lại, chứng từ; tab cọc/tài sản | Ghi giao dịch thủ công, xem lịch sử và liên kết bản kê |
+| UI-33 Góp/chi thực | Lịch từ UI-05 × tỷ lệ tại hạn, gồm CHUNG; góp/rút/chi độc lập; M khóa/đã trả/còn lại; tài sản-cọc/đầu tư/lịch sử | Không chi trước khóa hoặc vượt M; hủy cần lý do; 8 khoản không trùng; cổ đông chỉ giao dịch của mình; subnav UI-31/32/33 |
 
 ### B08 — Tài liệu, tài sản và quản trị
 
 | Màn | Dữ liệu/bố cục | Action và chuyển màn |
 |---|---|---|
 | UI-26 Tài liệu | Loại file, đối tượng, tòa/phòng, người/ngày tải, phiên bản/quyền | Upload, xem/tải, phiên bản cũ, mở hồ sơ liên quan |
-| UI-34 Tài sản | Mã/loại, chủ sở hữu, tòa/phòng, số lượng, hiện trạng, chứng từ mua | Thêm/sửa/chuyển vị trí, mở lịch bảo dưỡng/kiểm kê |
-| UI-35 Bảo dưỡng | Thiết bị, lịch/chu kỳ, người xử lý, quá hạn, kết quả và chi phí | Lập lịch/hoàn thành, đính ảnh, ghi chi UI-15 |
-| UI-36 Kiểm kê | Kỳ/tòa, tài sản, sổ/thực, tình trạng/chênh, người kiểm | Nhập kết quả, xuất chênh, đề xuất sửa danh mục có lý do |
+| UI-34 Tài sản | 6 loại; Chủ nhà/Công ty; mã phòng nguồn; SL/tình trạng; nguyên giá/NBV/số tháng KH; chứng từ UI-15/UI-04/UI-37 | Thêm từ chứng từ, sửa, chuyển có lịch sử, thanh lý phần còn lại; chặn kỳ khóa; mặc định 63 tháng; mở bảo dưỡng/kiểm kê |
+| UI-35 Bảo dưỡng | Dự kiến/Đã thực hiện/Quá hạn; sắp hạn là cờ; thiết bị, chu kỳ, leader/team, người/đơn vị, kết quả, chứng từ chi | Lập lịch, hoàn thành sinh lần tiếp; nhập tay không tự lặp; không SLA; chi qua một chứng từ UI-15 |
+| UI-36 Kiểm kê | Phiên từng tòa/tháng tự mở ngày 1; sổ/thực/chênh SL tách tình trạng; người kiểm/ảnh | Render không ghi store; nhập, xuất chênh, đề xuất có lý do; admin + kế toán khác người duyệt mới sửa danh mục; không sinh chi phí |
 | UI-37 Import | Loại dữ liệu, file/template, mapping cột, preview hợp lệ/lỗi/trùng | Tải mẫu, upload, map, kiểm tra, nhập hợp lệ/xuất lỗi; giữ nguồn dòng |
 | UI-38 Cấu hình | Tabs danh mục/quyền/phạm vi tòa/kỳ/chính sách có hiệu lực | Lưu phiên, phân quyền, khóa kỳ/điều chỉnh; quyền nhạy cảm riêng |
 
-## 6. 26 khung trạng thái bổ sung bắt buộc
+### B09 — Dự kiến lợi nhuận, hiệu quả và minh chứng Phase 3
+
+| Màn | Dữ liệu/bố cục | Action và chuyển màn |
+|---|---|---|
+| UI-40 Dự kiến | Đầu vào J3…J7/E4/G4, 24 dòng, hai panel dòng tiền/KD; 8 chỉ số phụ SRC-14 (tiền nhà, GV, DV, lương, CPPS, HC, TCP, LN /DT); kỳ/phiên bản/Excel-web; phạm vi tòa | Tạo phiên bản bất biến; chọn ngày lập và tòa loại trừ lấy gợi ý; sửa cần lý do; xuất; so UI-29/UI-30 khi chốt; không drill tòa; cổ đông chỉ xem |
+| UI-41 Hiệu quả | LN/vốn=LNR/GV; LN/tài sản=LNR KD/NBV, chỉ tòa có số dư tài sản nền; DT phòng/tiền thuê; nhóm/khu vực/TP; Chờ dữ liệu khi thiếu số dư nền | Lọc cơ sở/nguồn, xuất; drill khi có quyền; cổ đông chỉ tòa mình, không Excel/TP/drill |
+| UI-03A Tab Tài sản | Tài sản chủ nhà/công ty, cọc chủ nhà, bảo dưỡng và kiểm kê | Mở UI-34/35/36 giữ tòa |
+## 6. 43 khung trạng thái bổ sung — E01…E43
 
 Modal hoặc tab dưới đây là **ảnh riêng** nếu chứa form/bảng khác biệt; mỗi ảnh thể hiện đủ dữ liệu và action. Component lỗi/empty/loading dùng bộ B00 để áp dụng cho các màn còn lại.
 
@@ -195,6 +203,23 @@ Modal hoặc tab dưới đây là **ảnh riêng** nếu chứa form/bảng kh�
 | E24 | B07 / UI-31 | Sửa tỷ lệ khiến tổng ≠100%; cảnh báo và chặn chốt phân chia |
 | E25 | B08 / UI-37 | Preview import lỗi/trùng, nguồn dòng, lựa chọn xử lý và file lỗi |
 | E26 | B08 / UI-38 | Vai trò quản lý chỉ thấy tòa được giao; lương/cổ đông/CCCD bị hạn chế; không lộ qua export |
+| E27 | B06 / UI-23 | Cây tổ chức chọn trưởng phòng Vận hành 2 → bảng thành viên, phòng/việc theo team; kỹ thuật dùng chung 3 phòng vận hành chỉ có một hồ sơ và nhiều dòng phân công |
+| E28 | B04 / UI-14 + B01 / UI-03 | Chọn `Team của tôi`/leader → lọc phòng và công nợ cần nhắc; hiện người vận hành A, người thực nhận B, hạn, lần nhắc và số còn nợ; drill-down phiếu thu không thay số |
+| E29 | B06 / UI-23–UI-24 | Chuyển thành viên/leader hiệu lực ngày 16; xem ngày 15 và 16 cho hai kết quả khác nhau, xung đột hoặc vòng lặp quản lý được chặn, lý do và người sửa lưu lịch sử |
+| E30 | B09 / UI-34 | Thêm tài sản công ty từ chứng từ |
+| E31 | B09 / UI-34 | Thanh lý vào KD dòng 21; preview theo ngày chọn |
+| E32 | B09 / UI-34 | Chuyển vị trí và lịch sử trước/sau |
+| E33 | B09 / UI-35 | Hoàn thành bảo dưỡng và lần kế tiếp |
+| E34 | B09 / UI-36 | Đề xuất danh mục bắt buộc lý do |
+| E35 | B09 / UI-36 | Admin và kế toán khác người duyệt |
+| E36 | B09 / UI-33 | Chi thực không vượt M của run web đã khóa |
+| E37 | B09 / UI-33 | Đầu tư ban đầu G1; 8 khoản tính một lần |
+| E38 | B09 / UI-33 | Tài sản và cọc chủ nhà phải thu hồi |
+| E39 | B09 / UI-40 | Các phiên bản dự kiến bất biến |
+| E40 | B09 / UI-40 | Dự kiến so với UI-29/UI-30 khi chốt |
+| E41 | B09 / UI-41 | Chờ dữ liệu khi tòa chưa có số dư tài sản nền |
+| E42 | B09 / Cổ đông | URL tòa ngoài scope bị chặn |
+| E43 | B09 / UI-39 | Đợt Zalo nhắc bảo dưỡng mô phỏng |
 
 **Phủ toàn bộ tab:** khi dựng batch, đối chiếu đặc tả UI-xx với ảnh chính và E tương ứng. Tab chứa dữ liệu khác mà chưa xuất hiện (ví dụ giao dịch góp vốn, tài sản/cọc, hồ sơ nhân sự) phải thêm ảnh tiếp nối mang hậu tố `-tab-*`. Tên tab trong ảnh chính không được tính là đã hoàn tất nội dung tab.
 
@@ -208,8 +233,8 @@ Modal hoặc tab dưới đây là **ảnh riêng** nếu chứa form/bảng kh�
 | L04 Kết thúc thuê | UI-07 → UI-17 → UI-18 | Cọc/khấu trừ/số tính hoàn và thực chi tách rõ; không nhập lại thành chi phí thường |
 | L05 Chi đến lợi nhuận | UI-15 → UI-16 → UI-28 → UI-29/UI-30 | Một khoản chi nguồn; hai cách tổng hợp theo hai sheet |
 | L06 Lương vận hành | UI-24 + UI-13 → UI-25 | Thu theo đúng kỳ/mốc, minh bạch công thức đang chờ xác nhận |
-| L07 Cổ đông | UI-31 + UI-28 → UI-32 → UI-33 | Tỷ lệ đủ 100%, bản kê khác giao dịch tiền thực |
-| L08 Bảo trì | UI-34 → UI-35 → UI-15 → UI-28 | Chi phí có một chứng từ gốc và liên kết thiết bị |
+| L07 Cổ đông | UI-31 → UI-32 khóa → UI-33 lịch góp/chi thực/đầu tư → UI-41 | M khác tiền đã trả; chỉ chi phần còn lại; khóa lại giữ tiền đã chi; codong chỉ tòa mình, không drill/Excel/ghi |
+| L08 Bảo trì | UI-34 → UI-35 → UI-15 → UI-30; UI-36 → hai duyệt → UI-34; nhắc UI-39 | Một chứng từ chi; hoàn thành sinh lần sau; kiểm kê không sinh chi; thanh lý vào KD dòng 21 |
 | L09 Import | UI-37 → preview lỗi → sửa → màn danh sách đích | Import lại không tạo trùng số thu/chi |
 
 Ảnh mockup tĩnh cần ghi action đích trong tài liệu đi kèm. Nếu làm prototype có tương tác sau đó, hotspot bám cùng ID/action và dùng đúng bộ dữ liệu này.
@@ -226,7 +251,7 @@ Modal hoặc tab dưới đây là **ảnh riêng** nếu chứa form/bảng kh�
 
 ### 8.2. Bảng kiểm nghiệm thu
 
-- **Độ phủ:** 38 screen ID xuất hiện đủ; 26 khung E và các tab có nội dung đều có ảnh hoặc frame; action trong đặc tả đều được thấy hoặc được mô tả khi nào xuất hiện.
+- **Độ phủ:** B01…B09 có 40 màn chính và 40 E-frame đã chụp, cộng UI-23A/UI-03A. Kế hoạch đánh số đến E43; E27…E29 chưa có ảnh riêng. Tab và action Phase 3 được đối chiếu trong UAT; app có 47 screen ID.
 - **Điều hướng:** 5 mục chính; menu con đúng nhóm; breadcrumb/back/filter; role không được phép không thấy dữ liệu nhạy cảm.
 - **Dữ liệu:** cùng phòng/khách/kỳ không đổi số giữa ảnh; tổng/số dư khớp; tiền cọc/chi phí/công nợ riêng; báo cáo tháng 8 không trộn giao dịch demo tháng 9.
 - **Báo cáo:** đúng hai loại, đúng cột C–F và nhóm dòng; hệ số/tỷ lệ đúng nguồn; chi tiết tòa không thành báo cáo thứ ba.
@@ -236,4 +261,6 @@ Modal hoặc tab dưới đây là **ảnh riêng** nếu chứa form/bảng kh�
 
 ## 9. Thứ tự bắt đầu
 
-**Bắt đầu B00 → B01 → B02 → B03 → B04 → B05 → B06 → B07 → B08.** B00 xác lập phong cách; B04 và B07 là hai batch cần đối chiếu số và mẫu Excel kỹ nhất. Kế hoạch này bao phủ chức năng web đã mô tả; Mini App là bộ màn riêng khi được yêu cầu. Các chính sách còn mở được thiết kế bằng trạng thái cần rà soát, không tự chuyển thành quy tắc nghiệp vụ đã duyệt.
+**Bắt đầu B00 → B01 → B02 → B03 → B04 → B05 → B06 → B07 → B08 → B09.** B00 xác lập phong cách; B04 và B07 là hai batch cần đối chiếu số và mẫu Excel kỹ nhất. Kế hoạch này bao phủ chức năng web đã mô tả; Mini App là bộ màn riêng khi được yêu cầu. Các chính sách còn mở được thiết kế bằng trạng thái cần rà soát, không tự chuyển thành quy tắc nghiệp vụ đã duyệt.
+
+**Đối chiếu Phase 3:** [Đặc tả và ảnh cũ](Phase3_Doi_chieu_dac_ta_vs_anh_cu.md); [UAT](../uat/Phase3_Kich_ban_kiem_thu.md). M web G1 62.672.849 khác benchmark nguồn 62.664.969,25 (OQ-04/làm tròn); S4 nguồn 3.440.000 → thanh lý T10 3.329.920. O1…O6 vẫn chờ khách xác nhận.

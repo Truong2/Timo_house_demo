@@ -5,6 +5,10 @@
   const pct = (v) => String(Math.round(v * 100) / 100).replace('.', ',') + '%';
   const dec = (v, d = 2) => v == null ? '–' : Number(v).toLocaleString('vi-VN', { maximumFractionDigits: d });
   TH.router.handle('/shares', (root, p, q) => {
+    if (TH.auth.role() === 'codong') {
+      const sh = Q.shareholder(TH.auth.shareholderId()), rows = Q.scopedBuildings().map(b => ({ b, pct: Q.shareRatios(b.id).filter(r => r.shareholderId === sh.id).reduce((s, r) => s + r.pct, 0) }));
+      root.innerHTML = U.pageHead({ title: 'Cổ phần của tôi', sub: sh.code + ' · ' + sh.name }) + (rows.length ? TH.pages.shareNav(rows[0].b.id, '/shares') : '') + U.card({ title: 'Tòa có tỷ lệ góp hiệu lực', body: `<table class="tbl compact"><thead><tr><th>Tòa</th><th>Tỷ lệ của tôi</th><th></th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.b.code)}</td><td>${r.pct}%</td><td><a href="#/shares/${r.b.id}">Bảng kê chia</a> · <a href="#/shares/capital?building=${r.b.id}">Góp vốn / chi thực</a></td></tr>`).join('')}</tbody></table>` }); return;
+    }
     const blds = Q.shareBuildings();
     const bid = q.building || (blds[0] || {}).id;
     const date = q.date || F.today();
@@ -22,6 +26,7 @@
           body: shx.rows.length ? `<table class="tbl compact"><thead><tr><th>Tòa</th><th class="num">Tỷ lệ</th><th>Hiệu lực từ</th><th></th></tr></thead><tbody>${shx.rows.map(x => `<tr><td><b>${esc(x.b.code)}</b></td><td class="num">${pct(x.r.pct)}</td><td>${F.date(x.r.from)}</td><td><a href="#/shares/${x.b.id}">Bảng kê chia</a></td></tr>`).join('')}</tbody></table>` : U.empty({ title: 'Không tham gia tòa nào tại ngày này' }) })
         + '<div class="mt12">' + U.card({ title: 'Chứng từ góp vốn', icon: 'file-text', body: TH.pages.docDownloadList(Q.documentsScoped().filter(d => d.objectType === 'shareholder' && d.objectId === shx.sh.id && d.status === 'current')) }) + '</div></div>' : '')
       + `<div class="grid grid-2 mt16"><div>${K.tableCard('t', 'Tỷ lệ góp hiệu lực ' + F.date(date))}</div><div>${K.tableCard('h', 'Lịch sử tỷ lệ')}</div></div>`;
+    if (TH.ms.on('3') && bid) root.insertAdjacentHTML('afterbegin', TH.pages.shareNav(bid, '/shares'));
     K.bindFilters(root);
     U.table(root.querySelector('#t'), { rows: ratios, noPager: true, empty: U.empty({ icon: 'percent', title: 'Tòa chưa có tỷ lệ góp', text: 'Bấm "Sửa tỷ lệ" để nhập.' }), cols: [
       { key: 'c', label: 'Mã', render: r => esc((Q.shareholder(r.shareholderId) || {}).code) }, { key: 'n', label: 'Nhà đầu tư', render: r => { const sh = Q.shareholder(r.shareholderId) || {}; return esc(sh.name) + (sh.common ? ' ' + U.chip('nhận chênh làm tròn', 'blue') : ''); } },
@@ -45,13 +50,13 @@
 
   TH.router.handle('/shares/:id', (root, p, q) => {
     const b = Q.building(p.id); if (!b || !TH.auth.inScope(b.id)) { root.innerHTML = U.card({ body: U.empty({ title: 'Không tìm thấy tòa trong phạm vi được xem' }) }); return; } // Phase 3: cổ đông chỉ xem tòa mình góp vốn
-    const period = q.period || '2026-08'; const source = q.source === 'excel' ? 'excel' : 'web';
+    const period = q.period || '2026-08'; const source = TH.auth.role() !== 'codong' && q.source === 'excel' ? 'excel' : 'web';
     TH.layout.crumb([{ label: 'Cổ đông', href: '#/shares?building=' + b.id }, { label: 'Bảng kê chia ' + b.code }]);
-    const run = Q.shareRun(b.id, period, source); const vari = run && run.locked ? null : Q.shareVariance(b.id, period);
+    const run = Q.shareRun(b.id, period, source); const vari = TH.auth.role() === 'codong' || run && run.locked ? null : Q.shareVariance(b.id, period);
     const relock = run && run.locked && Q.shareRelockable(b.id, period);
-    const excelAvail = !!Q.shareBase(b.id, period, 'excel');
+    const excelAvail = TH.auth.role() !== 'codong' && !!Q.shareBase(b.id, period, 'excel');
     const drill = '#/reports/buildings?period=' + period + '&group=' + b.group + '&building=' + b.id; // C22 / C73 / C74 → báo cáo tòa UI-28
-    root.innerHTML = U.pageHead({ title: 'Bảng kê chia lãi – tòa ' + esc(b.code), back: '#/shares?building=' + b.id, sub: 'Cơ sở luôn là Báo cáo tổng của tòa (doanh thu gồm cọc mới); lấy số theo mã chỉ tiêu, không theo địa chỉ ô · làm tròn từng dòng, chênh dồn CHUNG (OQ-08)',
+    root.innerHTML = TH.pages.shareNav(b.id, '/shares/' + b.id) + U.pageHead({ title: 'Bảng kê chia lãi – tòa ' + esc(b.code), back: '#/shares?building=' + b.id, sub: 'Cơ sở luôn là Báo cáo tổng của tòa (doanh thu gồm cọc mới); lấy số theo mã chỉ tiêu, không theo địa chỉ ô · làm tròn từng dòng, chênh dồn CHUNG (OQ-08)',
       acts: [U.btn({ label: 'Xuất Excel', icon: 'download', act: 'exp' }), run && source === 'web' && (!run.locked ? Q.shareLockable(period) : relock) ? U.btn({ label: run.locked ? 'Khóa phiên mới' : 'Khóa bảng kê', icon: 'lock', cls: 'btn-primary', act: 'lock', perm: 'shares.lock' }) : ''] })
       + K.filters([{ name: 'period', label: 'Kỳ', options: S.all('periods').map(x => [x.id, F.periodLabel(x.id)]), value: '2026-08', all: false }, { name: 'source', label: 'Nguồn số', options: [['web', 'Báo cáo tổng tòa (web)'], ...(excelAvail ? [['excel', 'Như Excel SRC-07 (đối chiếu)']] : [])], value: 'web', all: false }], q)
       + (!run ? U.card({ body: U.empty({ title: 'Chưa có số báo cáo tòa kỳ này' }) }) : `<div class="mt16"></div>`

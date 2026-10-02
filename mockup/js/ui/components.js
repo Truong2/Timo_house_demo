@@ -130,7 +130,7 @@
   U.drawer = ({ title, sub = '', body = '', footer = '', wide = false, modal = false, size = '', onMount, onClose }) => {
     const returnFocus = document.activeElement;
     const ov = U.el(`<div class="overlay ${modal ? 'center' : ''}"><div class="${modal ? 'modal ' + size : 'drawer ' + (wide ? 'wide' + (wide === 'x' ? ' xwide' : '') : '')}" role="dialog" aria-modal="true"><div class="drawer-h"><div><h2>${title}</h2>${sub ? `<div class="sub">${sub}</div>` : ''}</div><button type="button" class="close-x" data-act="close" aria-label="Đóng">${I('x')}</button></div><div class="drawer-b">${body}</div>${footer ? `<div class="drawer-f">${footer}</div>` : ''}</div></div>`);
-    const close = (res) => { if (!ov.parentNode) return; ov.remove(); U.openCount--; if (U.openCount <= 0) { U.openCount = 0; document.body.classList.remove('modal-open'); } onClose && onClose(res); if (returnFocus && document.contains(returnFocus) && returnFocus.focus) setTimeout(() => returnFocus.focus(), 0); };
+    const close = (res) => { if (!ov.parentNode) return; ov.remove(); U.openCount--; if (U.openCount <= 0) { U.openCount = 0; document.body.classList.remove('modal-open'); } onClose && onClose(res); if (returnFocus && document.contains(returnFocus) && returnFocus.focus) setTimeout(() => { if (U.openCount === 0 || OV().contains(returnFocus)) returnFocus.focus(); }, 0); };
     ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
     ov.querySelector('[data-act=close]').onclick = () => close();
     ov.addEventListener('keydown', (e) => { if (e.key === 'Escape') return close(); if (e.key === 'Tab') { const focusable = [...ov.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x => x.offsetParent !== null); if (!focusable.length) return; const first = focusable[0], last = focusable[focusable.length - 1]; if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } } });
@@ -138,7 +138,7 @@
     U.onInput(ov); U.bindDropzones(ov);
     const api = { el: ov, box: ov.firstElementChild, body: ov.querySelector('.drawer-b'), close, data: () => U.formData(ov) };
     onMount && onMount(api);
-    setTimeout(() => { const f = ov.querySelector('input:not([hidden]),select,textarea,button.btn-primary'); f && f.focus && f.focus(); }, 30);
+    setTimeout(() => { if (!ov.isConnected || ov.contains(document.activeElement)) return; const f = ov.querySelector('input:not([hidden]),select,textarea,button.btn-primary'); f && f.focus && f.focus(); }, 30);
     return api;
   };
   U.modal = (o) => U.drawer(Object.assign({ modal: true }, o));

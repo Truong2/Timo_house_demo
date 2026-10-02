@@ -9,7 +9,7 @@
   A.OWNERSHIP = [['owner', 'Chủ nhà'], ['company', 'Công ty']];
   A.CONDITIONS = [['good', 'Sử dụng bình thường'], ['repair', 'Cần sửa'], ['broken', 'Hỏng'], ['missing', 'Mất / không thấy']];
   A.SOURCES = { expense: 'Chi mua sắm UI-15', opening: 'Import số dư UI-37', handover: 'Phụ lục bàn giao UI-04', initial: 'Đầu tư ban đầu UI-33', manual: 'Nhập tay' };
-  A.STATUS = { active: 'Đang dùng', disposed: 'Đã thanh lý', void: 'Đã hủy (chứng từ mua bị hủy)' };
+  A.STATUS = { active: 'Đang dùng', disposed: 'Đã thanh lý', void: 'Đã hủy (chứng từ mua bị hủy)', removed: 'Đã loại khỏi danh mục (kiểm kê)' };
   const lab = (list) => (k) => (list.find(x => x[0] === k) || [k, k || ''])[1];
   A.typeLabel = lab(A.TYPES); A.ownLabel = lab(A.OWNERSHIP); A.condLabel = lab(A.CONDITIONS);
   /* Phân loại tên thiết bị theo từ khóa (import / chi mua sắm không ghi loại) */
@@ -51,6 +51,9 @@
     if (days < 0) return { status: 'overdue', soon: false, days };
     return { status: 'planned', soon: days <= remindDays, days };
   };
+  /* Loại chi phí UI-15 khi ghi chi phí bảo dưỡng: thang máy → bảo trì thang máy (giá vốn dòng 27), còn lại → sửa chữa, thay thế, bảo trì (dòng 41) */
+  MT.COST_CATEGORIES = { repair: 'Sửa chữa, thay thế, bảo trì – dòng 41', util_elevator: 'Bảo trì thang máy – giá vốn dòng 27' };
+  MT.costCategory = (assetType) => assetType === 'elevator' ? 'util_elevator' : 'repair';
   A.maint = MT;
   C.assets = A;
 })(window.TH);

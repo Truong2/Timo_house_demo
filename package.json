@@ -28,6 +28,8 @@
     "verify:p2": "node scripts/verify-p2.mjs",
     "sweep": "node scripts/sweep.mjs",
     "seed:p2": "python -X utf8 scripts/seed/extract_seed_p2.py",
+    "seed:p3": "python -X utf8 scripts/seed/extract_seed_p3.py",
+    "verify:p3": "node scripts/verify-p3.mjs",
     "build": "node scripts/build.mjs",
     "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
     "verify:intake:ui": "node scripts/verify-intake-ui.mjs",

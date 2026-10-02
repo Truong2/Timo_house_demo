@@ -68,6 +68,7 @@
   K.csv = (name, headers, rows, maskCols) => { if (maskCols) rows = K.maskCols(headers, rows, maskCols); F.download(name, F.csv(rows, headers)); U.toast('ok', 'Đã xuất ' + name, rows.length + ' dòng'); };
   /* Tab theo URL (?tab=) chỉ mở khi vai trò có quyền của tab – ẩn nút tab thôi chưa đủ */
   K.pickTab = (tabs, cur, def) => { const t = tabs.find(x => x.key === cur); return t && (!t.perm || TH.auth.can(t.perm)) ? cur : def; };
+  K.wrapTables = root => root.querySelectorAll('.card-b>table.tbl').forEach(table => { const wrap = document.createElement('div'); wrap.className = 'tbl-wrap'; table.replaceWith(wrap); wrap.appendChild(table); });
   /* Xuất CSV: các cột số tiền bị che trên màn (không có quyền xem số tiền) cũng bị che trong file */
   K.maskCols = (headers, rows, cols, perm = 'debts.viewAmounts') => {
     if (TH.auth.can(perm)) return rows;

@@ -192,7 +192,7 @@
         fields: [{ name: 'on', label: 'Trả điện qua chủ nhà', type: 'check', checkLabel: 'Tòa trả tiền điện qua chủ nhà', value: !!v.electricViaOwner }, { name: 'unitPrice', label: 'Đơn giá (đ/kWh)', type: 'number', value: vo.unitPrice || '' }, { name: 'from', label: 'Hiệu lực từ', type: 'date', value: vo.from || F.today() }, { name: 'note', label: 'Căn cứ', span: true, value: vo.note || '' }],
         submit: 'Lưu', onSubmit: (x) => { X.setElectricViaOwner(b.id, x); U.toast('ok', 'Đã cập nhật'); } }); } });
     }
-    if (tab === 'tai-san') body.innerHTML = TH.pages.buildingAssetsTab(b);
+    if (tab === 'tai-san') { body.innerHTML = TH.pages.buildingAssetsTab(b); U.bind(body, { returnAll: () => TH.pages.returnBuildingForm(b.id) }); }
     if (tab === 'tai-chinh') {
       const exps = S.where('expenses', e => e.buildingId === b.id && e.status !== 'void');
       body.innerHTML = `<div class="grid grid-2">${U.card({ title: 'Hóa đơn theo kỳ', icon: 'receipt', body: S.all('periods').map(pp => { const iv = Q.invoicesOf(pp.id).filter(i => i.buildingId === b.id && i.lifecycle !== 'draft'); if (!iv.length) return ''; const d = iv.reduce((s, i) => s + i.totalDue, 0), r = iv.reduce((s, i) => s + Q.invState(i).remaining, 0); return `<div class="mini-row"><span>${F.periodLabel(pp.id)}</span><span class="grow tr">Phải thu ${F.vnd(d)}</span><b class="tr" style="width:160px">Còn nợ ${F.vnd(r)}</b></div>`; }).join('') })}

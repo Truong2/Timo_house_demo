@@ -6,14 +6,14 @@ import vm from 'node:vm';
 import { ROOT, DOMAIN } from './_load.mjs';
 
 const JS = (f) => path.join(ROOT, 'mockup', 'js', f);
-export const DATA_ALL = ['data/catalog.js', 'data/seed-master.js', 'data/seed-2026-09.js', 'data/seed-2026-08-bench.js', 'data/seed.js', 'data/seed-1b.js', 'data/seed-p2.js', 'data/seed-phase2.js', 'data/seed-phase3.js'];
+export const DATA_ALL = ['data/catalog.js', 'data/seed-master.js', 'data/seed-2026-09.js', 'data/seed-2026-08-bench.js', 'data/seed.js', 'data/seed-1b.js', 'data/seed-p2.js', 'data/seed-phase2.js', 'data/seed-phase3.js', 'data/seed-p3.js', 'data/seed-phase3-rest.js'];
 export const CORE = ['core/store.js', 'core/milestone.js', 'core/auth.js', 'core/routes.js'];
 export const SERVICES = ['services/q.js', 'services/act-core.js', 'services/act-master.js', 'services/act-stays.js', 'services/act-billing.js', 'services/act-receipts.js',
   'services/act-refunds.js', 'services/act-expenses.js', 'services/act-zalo.js', 'services/act-hr.js', 'services/act-import.js', 'services/act-periods.js',
   'services/act-payroll.js', 'services/act-allocation.js', 'services/q-report.js',
-  'services/act-sales.js', 'services/act-commission.js', 'services/act-repairs.js', 'services/q-report-ops.js', 'services/act-shares.js', 'services/act-documents.js', 'services/act-intake.js', 'services/act-assets.js', 'services/act-maintenance.js'];
+  'services/act-sales.js', 'services/act-commission.js', 'services/act-repairs.js', 'services/q-report-ops.js', 'services/act-shares.js', 'services/act-documents.js', 'services/act-intake.js', 'services/act-assets.js', 'services/act-maintenance.js', 'services/act-inventory.js', 'services/act-capital.js', 'services/q-forecast.js', 'services/act-forecast.js', 'services/q-efficiency.js'];
 /* Trang chỉ nạp để lấy TH.pages.acceptance / acceptance1B (đăng ký route bằng router giả) */
-export const ACCEPTANCE_PAGES = ['pages/settings.js', 'pages/reports.js'];
+export const ACCEPTANCE_PAGES = ['pages/settings.js', 'pages/reports.js', 'pages/acceptance3.js'];
 
 // Đọc file một lần cho mọi context trong cùng tiến trình test
 const src = new Map();

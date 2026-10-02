@@ -30,11 +30,20 @@
     if (TH.auth.can('zalo.inbox') && Q.inboxScoped) { const ib = Q.inboxScoped().filter(x => x.status !== 'done'); cards.push(U.kpi({ label: 'Phản hồi Zalo chờ xử lý', value: ib.length, cap: (role === 'truongphong' ? 'gán cho nhánh của tôi' : 'toàn hệ thống') + ' · <a href="#/zalo/inbox">mở hộp thư</a>', icon: 'inbox', tone: ib.length ? 'amber' : 'gray' })); }
     // Phase 3: nhắc bảo dưỡng trên web (CH-32) – theo phạm vi tòa của vai trò / nhánh leader (F11)
     if (TH.ms.on('3') && TH.auth.can('maintenance.view') && Q.maintStats) { const ms = Q.maintStats(); cards.push(U.kpi({ label: 'Bảo dưỡng', value: ms.overdue + ' quá hạn', cap: ms.soon + ' việc trong ' + ms.remindDays + ' ngày tới · <a href="#/assets/maintenance?soon=1">mở lịch UI-35</a>', icon: 'wrench', tone: ms.overdue ? 'red' : ms.soon ? 'amber' : 'gray' })); }
+    if (TH.ms.on('3') && TH.auth.can('inventory.enter')) { const iv = Q.inventoryStats(period); cards.push(U.kpi({ label: 'Kiểm kê ' + F.periodShort(period), value: iv.pending + '/' + iv.total + ' tòa chưa xong', cap: '<a href="#/assets/inventory?period=' + period + '">Mở kiểm kê UI-36</a>', icon: 'clipboard-check', tone: iv.pending ? 'amber' : 'green' })); }
     if (role === 'kythuat' && Q.repairsScoped) { const rs = Q.repairsScoped(S.all('repairLogs')).filter(r => r.status === 'draft'); cards.push(U.kpi({ label: 'Việc sửa chữa chờ xác nhận', value: rs.length, cap: '<a href="#/repairs">mở sổ sửa chữa</a>', icon: 'wrench', tone: 'blue' })); }
     return cards.length ? `<div class="grid grid-${Math.min(4, cards.length)} mt16">${cards.join('')}</div>` : '';
   };
   TH.router.handle('/dashboard', (root, p, q) => {
     const period = q.period || S.meta.period;
+    if (TH.auth.role() === 'codong') {
+      const bs = Q.scopedBuildings(), upcoming = Q.capitalSchedule().filter(l => l.dueDate >= F.today()), next = upcoming.map(l => l.dueDate).sort()[0], due = upcoming.filter(l => l.dueDate === next).reduce((s, l) => s + l.remaining, 0);
+      const locked = Q.capitalPayouts().sort((a, b) => b.period.localeCompare(a.period)), last = (locked[0] || {}).period, amount = locked.filter(l => l.period === last).reduce((s, l) => s + l.due, 0);
+      const rep = TH.qr.get(period, 'business'), lnr = bs.reduce((s, b) => s + ((rep.byBuilding[b.id] || {}).lnr || 0), 0);
+      root.innerHTML = U.pageHead({ title: 'Tổng quan cổ đông', sub: (Q.shareholder(TH.auth.shareholderId()) || {}).name + ' · chỉ tòa có tỷ lệ góp hiệu lực' }) + K.filters([{ name: 'period', label: 'Kỳ', options: K.periodOpts(), value: period, all: false }], q)
+        + '<div class="grid grid-3 mt16 mb16">' + U.kpi({ label: 'Phải góp kỳ tới', value: F.vnd(due), cap: next ? F.date(next) : 'Chưa có lịch', icon: 'wallet', tone: 'amber' }) + U.kpi({ label: 'M bảng kê đã khóa gần nhất', value: F.vnd(amount), cap: last || 'Chưa có bảng kê đã khóa', icon: 'coins', tone: 'blue' }) + U.kpi({ label: 'LNR kinh doanh tòa góp vốn', value: F.vnd(lnr), cap: F.periodLabel(period), icon: 'trending-up', tone: 'green' }) + '</div>'
+        + U.card({ title: 'Tòa góp vốn của tôi', body: bs.map(b => `<div class="mini-row"><b>${esc(b.code)}</b><span>${Q.shareRatios(b.id).filter(r => r.shareholderId === TH.auth.shareholderId()).reduce((s, r) => s + r.pct, 0)}%</span><a href="#/shares/${b.id}?period=${period}">Bảng kê</a><a href="#/shares/capital?building=${b.id}">Góp vốn / chi thực</a><a href="#/reports/business?period=${period}&building=${b.id}">Báo cáo KD</a></div>`).join('') || U.empty({ title: 'Chưa có tỷ lệ góp hiệu lực' }) }); K.bindFilters(root); return;
+    }
     const money = TH.auth.can('dashboard.money'), opsView = TH.auth.can('debts.viewStatus');
     const pe = TH.calc.dates.periodEnd(period); const dd = pe < F.today() ? pe : F.today(); const bs = scopeBuildings(q, dd); const bset = new Set(bs.map(b => b.id));
     const vac = Q.vacancy();

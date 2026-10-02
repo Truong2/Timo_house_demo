@@ -3,7 +3,7 @@
    mã phòng dạng 501S43; giá trị chỉ khi có chứng từ (link UI-15 / UI-04 / UI-37, không phải "HD-xxxx"); khấu hao theo số tháng + thanh lý (OQ-11). */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc, A = TH.auth, AS = TH.calc.assets, DT = TH.calc.dates;
-  const OWN_TONE = { owner: 'purple', company: 'blue' }, COND_TONE = { good: 'green', repair: 'amber', broken: 'red', missing: 'red' }, ST_TONE = { active: 'green', disposed: 'gray', void: 'gray' };
+  const OWN_TONE = { owner: 'purple', company: 'blue' }, COND_TONE = { good: 'green', repair: 'amber', broken: 'red', missing: 'red' }, ST_TONE = { active: 'green', disposed: 'gray', void: 'gray', removed: 'gray' };
   /* Thanh điều hướng con UI-34 | UI-35 | UI-36 */
   TH.pages.assetNav = (cur) => { const items = [['/assets', 'Tài sản (UI-34)'], ['/assets/maintenance', 'Lịch bảo dưỡng (UI-35)'], ['/assets/inventory', 'Kiểm kê (UI-36)']]
     .filter(([p]) => { const r = TH.routes.ROUTES.find(x => x.path === p); return A.canRoute(r) && TH.ms.on(r.ms); });
@@ -25,12 +25,12 @@
     const f = { building: q.building, type: q.type, ownership: q.ownership, condition: q.condition, status: q.status || '', room: q.room, q: q.q };
     let rows = Q.assets(Object.assign({}, f, { status: q.status === 'all' ? '' : f.status }));
     if (!q.status) rows = rows.filter(a => a.status === 'active');
-    const comp = rows.filter(a => a.ownership === 'company' && a.cost > 0);
+    const comp = rows.filter(a => a.ownership === 'company' && a.cost > 0 && (!a.openingPeriod || a.openingPeriod <= period));
     const cost = comp.reduce((t, a) => t + a.cost, 0), nbv = comp.reduce((t, a) => t + TH.calc.depreciation.nbv(a, period), 0);
     const dep = Q.depOfPeriod(period); const sc = A.buildingScope(); const depIn = Object.entries(dep.byBuilding).filter(([b]) => (!sc || sc.has(b)) && (!q.building || b === q.building)).reduce((t, [, v]) => t + v, 0);
     const ms = Q.maintStats ? Q.maintStats({ building: q.building }) : null; const iv = Q.inventoryStats ? Q.inventoryStats(S.meta.period, { building: q.building }) : null;
     root.innerHTML = U.pageHead({ title: 'Tài sản & thiết bị', sub: 'Danh sách tài sản chủ nhà (phụ lục bàn giao – không khấu hao) và tài sản công ty (danh sách đầu tư – khấu hao theo số tháng, GĐ OQ-11). Giao dịch mua gốc nằm ở UI-15.',
-      acts: [U.btn({ label: 'Xuất danh sách', icon: 'download', act: 'exp' }), U.btn({ label: 'Nhập từ file (UI-37)', icon: 'upload', href: '#/import?type=equipment', perm: 'import.master' }), U.btn({ label: 'Thêm tài sản', icon: 'plus', cls: 'btn-primary', act: 'add', perm: 'assets.manage' })] })
+      acts: [U.btn({ label: 'Xuất danh sách', icon: 'download', act: 'exp' }), U.btn({ label: 'Nhập từ file (UI-37)', icon: 'upload', href: '#/import?type=equipment', perm: 'import.master' }), q.building ? U.btn({ label: 'Trả nhà – thanh lý toàn bộ', icon: 'log-out', act: 'returnAll', perm: 'assets.dispose' }) : '', U.btn({ label: 'Thêm tài sản', icon: 'plus', cls: 'btn-primary', act: 'add', perm: 'assets.manage' })] })
       + TH.pages.assetNav('/assets')
       + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Dòng tài sản', value: rows.length, cap: 'Σ số lượng ' + F.num0(rows.reduce((t, a) => t + (a.qty || 0), 0)) + ' · chủ nhà ' + rows.filter(a => a.ownership === 'owner').length + ' · công ty ' + rows.filter(a => a.ownership === 'company').length, icon: 'package', tone: 'blue' })}
         ${canVal ? U.kpi({ label: 'Tài sản công ty có giá trị', value: F.vnd(nbv), cap: 'còn lại cuối ' + F.periodShort(period) + ' · nguyên giá ' + F.vnd(cost) + ' · ' + comp.length + ' tài sản', icon: 'wallet', tone: 'teal' }) : ''}
@@ -39,7 +39,7 @@
         ${iv ? U.kpi({ label: 'Kiểm kê ' + F.periodShort(S.meta.period), value: iv.pending + '/' + iv.total + ' tòa', cap: 'chưa duyệt đủ admin + kế toán (CH-33)', icon: 'clipboard-check', tone: iv.pending ? 'amber' : 'green' }) : ''}</div>`
       + K.filters([{ name: 'q', label: 'Từ khóa', type: 'search', placeholder: 'Mã, tên, vị trí…' }, { name: 'type', label: 'Loại', options: AS.TYPES }, { name: 'ownership', label: 'Nguồn sở hữu', options: AS.OWNERSHIP }, { name: 'building', label: 'Tòa', options: K.buildingOpts() },
         ...(q.building ? [{ name: 'room', label: 'Phòng', options: (Q.roomsByBuilding()[q.building] || []).map(r => [r.id, r.code]) }] : []), { name: 'condition', label: 'Tình trạng', options: AS.CONDITIONS },
-        { name: 'status', label: 'Trạng thái', options: [['disposed', 'Đã thanh lý'], ['void', 'Đã hủy'], ['all', 'Mọi trạng thái']], all: 'Đang dùng' }, ...(canVal ? [{ name: 'period', label: 'Kỳ tính giá trị', options: K.periodOpts(), value: period, all: false }] : [])], q)
+        { name: 'status', label: 'Trạng thái', options: [['disposed', 'Đã thanh lý'], ['removed', 'Đã loại (kiểm kê)'], ['void', 'Đã hủy'], ['all', 'Mọi trạng thái']], all: 'Đang dùng' }, ...(canVal ? [{ name: 'period', label: 'Kỳ tính giá trị', options: K.periodOpts(), value: period, all: false }] : [])], q)
       + '<div id="tb" class="mt16"></div>';
     K.bindFilters(root);
     const tb = root.querySelector('#tb');
@@ -50,7 +50,7 @@
       { key: 't', label: 'Loại', render: a => esc(AS.typeLabel(a.type)) }, { key: 'o', label: 'Nguồn sở hữu', render: a => U.chip(AS.ownLabel(a.ownership), OWN_TONE[a.ownership]) },
       { key: 'w', label: 'Tòa / phòng / vị trí', render: where }, { key: 'q', label: 'SL', num: true, render: a => F.num0(a.qty) },
       { key: 'cd', label: 'Tình trạng', render: a => U.chip(AS.condLabel(a.condition), COND_TONE[a.condition] || 'gray', true) }, { key: 'rd', label: 'Ngày nhận / bàn giao', sortable: true, sortVal: a => a.receivedDate, render: a => F.date(a.receivedDate) },
-      ...(canVal ? [{ key: 'v', label: 'Nguyên giá / còn lại', num: true, render: a => a.cost > 0 ? F.vnd(a.cost) + `<br><small class="muted">còn ${F.vnd(TH.calc.depreciation.nbv(a, period))}</small>` : `<span class="muted small">${a.ownership === 'owner' ? 'không ghi (chủ nhà)' : 'chưa có chứng từ'}</span>` },
+      ...(canVal ? [{ key: 'v', label: 'Nguyên giá / còn lại', num: true, render: a => a.openingPeriod && a.openingPeriod > period ? '<small class="muted">Chờ ghi nhận ' + F.periodShort(a.openingPeriod) + '</small>' : a.cost > 0 ? F.vnd(a.cost) + `<br><small class="muted">còn ${F.vnd(TH.calc.depreciation.nbv(a, period))}</small>` : `<span class="muted small">${a.ownership === 'owner' ? 'không ghi (chủ nhà)' : 'chưa có chứng từ'}</span>` },
         { key: 'kh', label: 'Số tháng KH', render: a => a.cost > 0 ? `${monthsDone(a, period)}/${a.depMonths} tháng` + (a.openingPeriod ? `<br><small class="muted">ghi sổ từ ${F.periodShort(a.openingPeriod)}</small>` : '') : '–' }] : []),
       { key: 'e', label: 'Chứng từ', render: evidence }, { key: 'wt', label: 'Bảo hành đến', render: a => a.warrantyTo ? F.date(a.warrantyTo) : '–' },
       { key: 'm', label: 'Bảo dưỡng tiếp theo', render: a => { const t = nextMaint(a); return t ? `${F.date(t.dueDate)}${t.state.status === 'overdue' ? ' ' + U.chip('quá hạn', 'red') : t.state.soon ? ' ' + U.chip('sắp đến hạn', 'amber') : ''}` : '<span class="muted">–</span>'; } },
@@ -58,11 +58,12 @@
       footer: canVal ? (all) => `<tr><td colspan="8"><b>Tổng ${all.length} tài sản</b></td><td class="num"><b>${F.vnd(all.reduce((t, a) => t + (a.cost || 0), 0))}</b></td><td colspan="5"></td></tr>` : null });
     U.bind(root, {
       add: () => assetForm(q.building),
+      returnAll: () => returnBuildingForm(q.building),
       view: (el) => detail(el.dataset.id, period),
       exp: () => K.xls('tai-san-' + period + '.xls', 'Tài sản', ['Danh sách tài sản & thiết bị (UI-34)', ['Kỳ tính giá trị', F.periodLabel(period)], ['Phạm vi', sc ? 'Tòa được giao' : 'Toàn hệ thống'], ['Xuất lúc', F.datetime(F.nowISO())]],
         ['Mã', 'Tên', 'Loại', 'Nguồn sở hữu', 'Tòa', 'Phòng', 'Vị trí', 'SL', 'Tình trạng', 'Ngày nhận', ...(canVal ? ['Nguyên giá', 'Còn lại', 'Số tháng KH'] : []), 'Nguồn chứng từ', 'Trạng thái'],
         rows.map(a => [a.code, a.name, AS.typeLabel(a.type), AS.ownLabel(a.ownership), (Q.building(a.buildingId) || {}).code, a.roomId ? Q.roomCode(a.roomId) : '', a.position, a.qty, AS.condLabel(a.condition), a.receivedDate,
-          ...(canVal ? [a.cost || '', a.cost ? TH.calc.depreciation.nbv(a, period) : '', a.depMonths || ''] : []), AS.SOURCES[a.source] || '', AS.STATUS[a.status]])),
+          ...(canVal ? [a.cost || '', a.openingPeriod && a.openingPeriod > period ? 'Chờ ghi nhận ' + a.openingPeriod : a.cost ? TH.calc.depreciation.nbv(a, period) : '', a.depMonths || ''] : []), AS.SOURCES[a.source] || '', AS.STATUS[a.status]])),
     });
     if (q.asset) setTimeout(() => detail(q.asset, period), 0);
   });
@@ -94,10 +95,11 @@
     submit: 'Chuyển', onSubmit: (x) => { X.moveAsset(a.id, x); U.toast('ok', 'Đã chuyển vị trí'); } });
     d.el.addEventListener('change', (e) => { if (e.target.name !== 'buildingId') return; const rs = d.el.querySelector('[name=roomId]'); rs.innerHTML = '<option value="">–</option>' + roomOpts(e.target.value).map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join(''); }); };
   const disposeForm = (a) => { const pr = F.period(F.today()); const remain = TH.calc.depreciation.nbv(a, DT.prevPeriod(pr));
-    K.formDrawer({ title: 'Thanh lý ' + a.code, sub: 'Kỳ thanh lý ghi một lần giá trị còn lại vào Báo cáo kinh doanh dòng 21 (GĐ OQ-11); Báo cáo tổng không đổi', modal: true,
-      note: U.note('warn', 'Giá trị còn lại đầu kỳ ' + F.periodShort(pr) + ': ' + F.vnd(remain) + 'đ', 'Tiền thu thanh lý chỉ ghi nhận, chưa vào doanh thu (GĐ-P3 O4). Không thanh lý trong kỳ đã khóa.'),
+    const d = K.formDrawer({ title: 'Thanh lý ' + a.code, sub: 'Kỳ thanh lý ghi một lần giá trị còn lại vào Báo cáo kinh doanh dòng 21 (GĐ OQ-11); Báo cáo tổng không đổi', modal: true,
+      note: '<div id="disposal-preview">' + U.note('warn', 'Giá trị còn lại đầu kỳ ' + F.periodShort(pr) + ': ' + F.vnd(remain) + 'đ', 'Tiền thu thanh lý chỉ ghi nhận, chưa vào doanh thu (GĐ-P3 O4). Không thanh lý trong kỳ đã khóa.') + '</div>',
       fields: [{ name: 'date', label: 'Ngày thanh lý', type: 'date', value: F.today(), req: true }, { name: 'proceeds', label: 'Tiền thu thanh lý (nếu có)', type: 'money' }, { name: 'reason', label: 'Lý do', type: 'textarea', req: true, span: true }],
-      submit: 'Thanh lý', onSubmit: (x) => { X.disposeAsset(a.id, x); U.toast('ok', 'Đã thanh lý ' + a.code); } }); };
+      submit: 'Thanh lý', onSubmit: (x) => { X.disposeAsset(a.id, x); U.toast('ok', 'Đã thanh lý ' + a.code); } });
+    d.el.querySelector('[name=date]').addEventListener('change', e => { const p = F.period(e.target.value || F.today()), remaining = TH.calc.depreciation.nbv(a, DT.prevPeriod(p)); d.el.querySelector('#disposal-preview').innerHTML = U.note('warn', 'Giá trị còn lại đầu kỳ ' + F.periodShort(p) + ': ' + F.vnd(remaining) + 'đ', 'Tiền thu thanh lý chỉ ghi nhận, chưa vào doanh thu. Kỳ đã khóa không thanh lý được.'); }); };
 
   /* ---- Drawer chi tiết: Thông tin | Khấu hao | Lịch sử vị trí | Bảo dưỡng | Kiểm kê | Tệp ---- */
   const HK = { create: 'Tạo', move: 'Chuyển vị trí', edit: 'Sửa', dispose: 'Thanh lý', void: 'Hủy theo chứng từ', inventory: 'Kiểm kê' };
@@ -132,21 +134,31 @@
     U.bind(d.el, { dtab: (el) => { cur = el.dataset.key; d.el.querySelectorAll('[data-act=dtab]').forEach(x => x.classList.toggle('on', x.dataset.key === cur)); d.el.querySelector('#ab').innerHTML = body(); },
       ed: () => { d.close(); editForm(a); }, mv: () => { d.close(); moveForm(a); }, dp: () => { d.close(); disposeForm(a); } });
   };
+  /* Trả nhà trước hạn (GĐ OQ-11): thanh lý một lần mọi tài sản công ty còn dùng của tòa */
+  const returnBuildingForm = (bid) => { const b = Q.building(bid), comp = Q.assets({ building: bid, ownership: 'company', status: 'active' });
+    const preview = (date) => { const p = F.period(date || F.today()); return U.note('warn', comp.length + ' tài sản công ty · giá trị còn lại đầu kỳ ' + F.periodShort(p) + ': ' + F.vnd(comp.reduce((t, a) => t + (a.cost > 0 ? TH.calc.depreciation.nbv(a, DT.prevPeriod(p)) : 0), 0)) + 'đ',
+      'Ghi một lần vào Báo cáo kinh doanh dòng 21 kỳ thanh lý; Báo cáo tổng không đổi. Tài sản chủ nhà trả lại theo phụ lục bàn giao, không ghi giá trị. Không thanh lý trong kỳ đã khóa.'); };
+    const d = K.formDrawer({ title: 'Trả nhà ' + (b ? b.code : '') + ' – thanh lý toàn bộ', sub: 'Trả nhà trước hạn / chấm dứt HĐ chủ nhà (GĐ OQ-11)', modal: true, note: '<div id="return-preview">' + preview(F.today()) + '</div>',
+      fields: [{ name: 'date', label: 'Ngày trả nhà', type: 'date', value: F.today(), req: true }, { name: 'reason', label: 'Lý do', type: 'textarea', req: true, span: true }],
+      submit: 'Thanh lý ' + comp.length + ' tài sản', onSubmit: (x) => { const r = X.disposeBuildingAssets(bid, x); U.toast('ok', 'Đã thanh lý ' + r.count + ' tài sản', 'Giá trị còn lại ' + F.vnd(r.remaining) + 'đ'); } });
+    d.el.querySelector('[name=date]').addEventListener('change', e => { d.el.querySelector('#return-preview').innerHTML = preview(e.target.value); }); };
+  TH.pages.returnBuildingForm = returnBuildingForm;
   TH.pages.assetDetail = detail;
 
   /* ---- UI-03 tab Tài sản: liên kết UI-34 / UI-35 / UI-36, cọc chủ nhà UI-04 (chỉ liệt kê, không vào doanh thu) ---- */
   TH.pages.buildingAssetsTab = (b) => {
     const all = Q.assets({ building: b.id }); const own = all.filter(a => a.ownership === 'owner'), comp = all.filter(a => a.ownership === 'company');
     const period = S.meta.period; const canVal = A.can('assets.value');
+    const bookedNbv = a => a.openingPeriod && a.openingPeriod > period ? 0 : TH.calc.depreciation.nbv(a, period);
     const oc = S.one('ownerContracts', c => c.buildingId === b.id);
     const nxt = (Q.maintOfBuilding ? Q.maintOfBuilding(b.id) : []).filter(t => t.status === 'planned').sort((x, y) => x.dueDate.localeCompare(y.dueDate))[0];
-    const iv = Q.inventorySession ? Q.inventorySession(period, b.id) : null;
-    const list = (arr) => arr.length ? `<div class="tbl-wrap"><table class="tbl compact"><thead><tr><th>Mã</th><th>Tên</th><th>Loại</th><th>Vị trí</th><th class="num">SL</th><th>Tình trạng</th>${canVal ? '<th class="num">Còn lại</th>' : ''}</tr></thead><tbody>${arr.map(a => `<tr><td><a href="#/assets?building=${b.id}&asset=${a.id}">${esc(a.code)}</a></td><td>${esc(a.name)}</td><td>${esc(AS.typeLabel(a.type))}</td><td class="small">${a.roomId ? esc(Q.roomCode(a.roomId)) : esc(a.position || '')}</td><td class="num">${F.num0(a.qty)}</td><td>${U.chip(AS.condLabel(a.condition), COND_TONE[a.condition], true)}</td>${canVal ? `<td class="num">${a.cost > 0 ? F.vnd(TH.calc.depreciation.nbv(a, period)) : '–'}</td>` : ''}</tr>`).join('')}</tbody></table></div>` : U.empty({ icon: 'package', title: 'Chưa có tài sản' });
+    const iv = Q.inventorySession && period <= F.period(F.today()) ? Q.inventorySession(period, b.id) : null;
+    const list = (arr) => arr.length ? `<div class="tbl-wrap"><table class="tbl compact"><thead><tr><th>Mã</th><th>Tên</th><th>Loại</th><th>Vị trí</th><th class="num">SL</th><th>Tình trạng</th>${canVal ? '<th class="num">Còn lại</th>' : ''}</tr></thead><tbody>${arr.map(a => `<tr><td><a href="#/assets?building=${b.id}&asset=${a.id}">${esc(a.code)}</a></td><td>${esc(a.name)}</td><td>${esc(AS.typeLabel(a.type))}</td><td class="small">${a.roomId ? esc(Q.roomCode(a.roomId)) : esc(a.position || '')}</td><td class="num">${F.num0(a.qty)}</td><td>${U.chip(AS.condLabel(a.condition), COND_TONE[a.condition], true)}</td>${canVal ? `<td class="num">${a.openingPeriod && a.openingPeriod > period ? 'Chờ ghi nhận ' + F.periodShort(a.openingPeriod) : a.cost > 0 ? F.vnd(bookedNbv(a)) : '–'}</td>` : ''}</tr>`).join('')}</tbody></table></div>` : U.empty({ icon: 'package', title: 'Chưa có tài sản' });
     return `<div class="grid grid-4 mb16">${U.kpi({ label: 'Tài sản chủ nhà', value: own.length + ' dòng', cap: 'phụ lục bàn giao – không khấu hao', icon: 'home', tone: 'purple' })}
-        ${U.kpi({ label: 'Tài sản công ty', value: comp.length + ' dòng', cap: canVal ? 'còn lại ' + F.vnd(comp.reduce((t, a) => t + TH.calc.depreciation.nbv(a, period), 0)) + 'đ' : '', icon: 'package', tone: 'blue' })}
+        ${U.kpi({ label: 'Tài sản công ty', value: comp.length + ' dòng', cap: canVal ? 'còn lại đã ghi sổ ' + F.vnd(comp.reduce((t, a) => t + bookedNbv(a), 0)) + 'đ' : '', icon: 'package', tone: 'blue' })}
         ${A.can('owners.view') && oc ? U.kpi({ label: 'Cọc chủ nhà (UI-04)', value: F.vnd(oc.deposit || 0), cap: 'phải thu hồi khi kết thúc HĐ – không vào doanh thu', icon: 'lock', tone: 'teal' }) : ''}
         ${U.kpi({ label: 'Bảo dưỡng kế tiếp', value: nxt ? F.date(nxt.dueDate) : '–', cap: nxt ? esc(nxt.kind) : 'chưa có lịch', icon: 'wrench', tone: nxt && nxt.dueDate < F.today() ? 'red' : 'gray' })}</div>`
-      + `<div class="row wrap gap8 mb12"><a class="btn btn-ghost btn-sm" href="#/assets?building=${b.id}">Mở UI-34 tài sản</a>${A.can('maintenance.view') ? `<a class="btn btn-ghost btn-sm" href="#/assets/maintenance?building=${b.id}">Lịch bảo dưỡng UI-35</a>` : ''}${A.can('inventory.view') ? `<a class="btn btn-ghost btn-sm" href="#/assets/inventory?building=${b.id}">Kiểm kê UI-36${iv ? ' · ' + esc(TH.pages.invStatusLabel ? TH.pages.invStatusLabel(iv) : '') : ''}</a>` : ''}</div>`
+      + `<div class="row wrap gap8 mb12">${comp.length ? U.btn({ label: 'Trả nhà – thanh lý toàn bộ', icon: 'log-out', act: 'returnAll', perm: 'assets.dispose', size: 'btn-sm' }) : ''}<a class="btn btn-ghost btn-sm" href="#/assets?building=${b.id}">Mở UI-34 tài sản</a>${A.can('maintenance.view') ? `<a class="btn btn-ghost btn-sm" href="#/assets/maintenance?building=${b.id}">Lịch bảo dưỡng UI-35</a>` : ''}${A.can('inventory.view') ? `<a class="btn btn-ghost btn-sm" href="#/assets/inventory?building=${b.id}">Kiểm kê UI-36${iv ? ' · ' + esc(TH.pages.invStatusLabel ? TH.pages.invStatusLabel(iv) : '') : ''}</a>` : ''}</div>`
       + U.card({ title: 'Tài sản chủ nhà – phụ lục bàn giao (' + own.length + ')', icon: 'home', body: list(own), bodyCls: 'flush' })
       + U.card({ title: 'Tài sản công ty (' + comp.length + ')', icon: 'package', body: list(comp), bodyCls: 'flush', cls: 'mt16' });
   };

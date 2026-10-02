@@ -4,11 +4,13 @@
 (function (TH) {
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, SH = TH.calc.share, D = TH.calc.dates;
   const fail = (fields, msg = 'Dữ liệu chưa hợp lệ') => { const e = new Error(msg); e.fields = fields; throw e; };
-  Q.shareholder = (id) => S.get('shareholders', id);
-  Q.shareRatios = (bid, date) => { const d = date || F.today(); return S.where('shareRatios', r => r.buildingId === bid && (!r.from || r.from <= d) && (!r.to || d <= r.to)); };
-  Q.shareBuildings = () => [...new Set(S.all('shareRatios').map(r => r.buildingId))].map(id => Q.building(id)).filter(Boolean);
+  Q.shareholder = (id) => { const h = S.get('shareholders', id); if (!h || TH.auth.role() !== 'codong') return h; const { phone, bank, history, ...visible } = h; return visible; };
+  Q.shareRatios = (bid, date) => { if (!TH.auth.inScope(bid)) return []; const d = date || F.today(); return S.where('shareRatios', r => r.buildingId === bid && (!r.from || r.from <= d) && (!r.to || d <= r.to)); };
+  Q.shareBuildings = () => [...new Set(S.all('shareRatios').map(r => r.buildingId))].filter(id => TH.auth.inScope(id)).map(id => Q.building(id)).filter(Boolean);
   /* Cơ sở chia: web = Báo cáo tổng của tòa trong kỳ; excel = ô C22/C73/C74 của bảng kê SRC-07 (chỉ G1 tháng 8) */
   Q.shareBase = (bid, period, source = 'web') => {
+    if (!TH.auth.inScope(bid)) return null;
+    if (TH.auth.role() === 'codong') source = 'web';
     if (source === 'excel') {
       const E = TH.data.p2 && TH.data.p2.shares; if (!E || 'b_' + E.building !== bid || E.period !== period) return null;
       return { rent: E.excel.C22, lng: E.excel.C73, lnr: E.excel.C74, gv: E.excel.C34, tcp: E.excel.C72, rev: E.excel.C2, src: 'Excel SRC-07 ' + E.sheet + ' (C22, C73, C74)' };
@@ -27,6 +29,8 @@
     return Object.assign({ locked: false, buildingId: bid, period, source, base, valid: SH.valid(ratios) }, sp);
   };
   Q.shareRun = (bid, period, source = 'web') => {
+    if (!TH.auth.inScope(bid)) return null;
+    if (TH.auth.role() === 'codong') source = 'web';
     const locked = lastLocked(bid, period);
     return locked ? Object.assign({ locked: true }, locked) : computeRun(bid, period, source);
   };
@@ -36,6 +40,7 @@
   Q.shareRelockable = (bid, period) => { const prev = lastLocked(bid, period); return !!prev && reopensOf(period) > (prev.reopens || 0); };
   /* Chênh bảng kê web so với Excel (G1 tháng 8) – dòng giải thích (K-9 / OQ-04) */
   Q.shareVariance = (bid, period) => {
+    if (TH.auth.role() === 'codong' || !TH.auth.inScope(bid)) return null;
     const w = Q.shareBase(bid, period, 'web'), e = Q.shareBase(bid, period, 'excel'); if (!w || !e) return null;
     return { rent: w.rent - e.rent, lng: w.lng - e.lng, lnr: w.lnr - e.lnr, oq04: 25000000 * 15 / 1343 - 25000000 * 15 / 1382 };
   };

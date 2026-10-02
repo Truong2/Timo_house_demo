@@ -82,3 +82,14 @@ test('NT-0 – Phase 1 không đổi sau P3-2 (bộ nghiệm thu trong app)', ()
   const TH = boot({ user: 'admin', pages: true });
   assert.deepEqual(plain(TH.pages.acceptance().filter(a => !a.ok).map(a => a.name)), []);
 });
+
+test('P3-2 – chi phí bảo dưỡng thang máy ghi giá vốn dòng 27 (bảo trì thang máy), không vào sửa chữa dòng 41; chọn loại khác được; ⛔ loại lạ', () => {
+  const TH = boot({ user: 'ketoan' }); const Q = TH.q, X = TH.actions, S = TH.store;
+  const el = Q.maintTasks({ status: 'planned' }).filter(x => x.assetType === 'elevator');
+  const r = X.completeMaintenance(el[0].id, { doneDate: '2026-09-29', vendor: 'Thang máy Thành Công', result: 'Bảo dưỡng định kỳ đạt', cost: 1500000 });
+  const e = S.get('expenses', r.task.expenseId); assert.equal(e.reportLine, 'cost_elev'); assert.equal(e.source, 'maintenance');
+  const r2 = X.completeMaintenance(el[1].id, { doneDate: '2026-09-29', vendor: 'x', result: 'Thay cáp', cost: 700000, costCategory: 'repair' });
+  assert.equal(S.get('expenses', r2.task.expenseId).reportLine, 'repair', 'sửa chữa phát sinh thang máy chọn dòng 41');
+  const bad = attempt(() => X.completeMaintenance(r.next.id, { doneDate: '2026-09-29', vendor: 'x', result: 'ok', cost: 1, costCategory: 'office' }));
+  assert.ok(!bad.ok && bad.fields.costCategory);
+});

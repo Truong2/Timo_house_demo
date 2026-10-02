@@ -14,6 +14,7 @@
      kỹ thuật chỉ tải biên bản / ảnh chỉ số của tòa có việc sửa của mình (không mở kho tài liệu) */
   Q.canDownloadDoc = (d) => {
     if (!d || d.status === 'deleted' || !A.can('documents.download') || !shareOk(d)) return false;
+    if (A.role() === 'codong') return A.inScope(d.buildingId) && d.type === 'capital' && d.objectType === 'shareholder' && d.objectId === A.shareholderId();
     if (A.can('documents.view')) return A.inScope(d.buildingId);
     if (A.can('sales.view')) return d.type === 'tenant_contract' && !!S.one('deals', x => x.stayId === d.objectId && A.inSales(x.saleIds));
     if (A.can('repairs.enter')) return ['handover', 'meter_photo'].includes(d.type) && !!S.one('repairLogs', r => r.workerId === (S.session || {}).employeeId && r.buildingId === d.buildingId);
@@ -30,7 +31,7 @@
   Q.documentsAll = () => [...S.all('documents'), ...S.all('contractFiles').map(f => { const s = Q.stay(f.stayId) || {}; const newer = S.one('contractFiles', x => x.stayId === f.stayId && (x.version || 1) > (f.version || 1)); return { id: 'cf:' + f.id, fileId: f.id, blobId:f.blobId, source: 'contractFile', type: /\.(pdf|png|jpe?g)$/i.test(f.name) ? 'tenant_contract' : 'other', name: f.name, size: f.size, objectType: 'stay', objectId: f.stayId, buildingId: s.buildingId, roomId: s.roomId, version: f.version || 1, validTo: s.endDate, uploadedBy: f.uploadedBy, uploadedAt: f.uploadedAt, status: newer ? 'superseded' : 'current', ocrStatus: Q.ocrStatusOf ? Q.ocrStatusOf(f.id) : null }; }),...S.all('intakeAttachments').filter(a=>!S.one('contractFiles',f=>f.stayId===a.targetId&&f.blobId===a.fileId)).map(a=>{const oc=a.kind==='owner'&&S.get('ownerContracts',a.targetId),s=a.kind==='tenant'&&Q.stay(a.targetId);return{id:'ia:'+a.id,blobId:a.fileId,source:'intakeAttachment',type:a.kind==='owner'?'owner_contract':a.contractSigned===true?'tenant_contract':'other',name:a.name,objectType:a.kind==='owner'?'ownerContract':'stay',objectId:a.targetId,buildingId:oc?.buildingId||s?.buildingId,roomId:s?.roomId,uploadedAt:a.createdAt,status:'current'};})];
   // E2: chứng từ góp vốn của cổ đông chỉ người có quyền cổ đông (admin / kế toán) thấy
   const shareOk = (d) => d.objectType !== 'shareholder' || A.can('shares.view');
-  Q.documentsScoped = () => Q.scoped(Q.documentsAll()).filter(d => d.status !== 'deleted' && shareOk(d));
+  Q.documentsScoped = () => Q.scoped(Q.documentsAll()).filter(d => d.status !== 'deleted' && shareOk(d) && (A.role() !== 'codong' || Q.canDownloadDoc(d)));
   Q.docObjectHref = (d) => ({ stay: '#/stays/' + d.objectId, ownerContract: '#/owners/' + d.objectId, building: '#/buildings/' + d.objectId, invoice: '#/billing/invoices/' + d.objectId, refund: '#/refunds/' + d.objectId, payment: '#/billing/receipts/' + d.objectId })[d.objectType] || null;
 
   X.uploadDocument = (d) => S.atomic(() => { _.needMs('2', 'Kho tài liệu (UI-26)');
@@ -63,6 +64,7 @@
     _.need('documents.upload');
     const d = S.get('documents', id); if (!d) throw new Error(String(id).startsWith('cf:') ? 'File HĐ khách gắn lượt thuê – không xóa, chỉ tải phiên bản mới' : 'Không tìm thấy tài liệu');
     if (LINKED.includes(d.objectType)) throw new Error('Tài liệu gắn ' + (Q.OBJ_TYPES[d.objectType] || 'giao dịch').toLowerCase() + ' – không xóa được, chỉ tải phiên bản mới');
+    if (S.one('inventorySessions', s => s.lines.some(l => (l.docIds || []).includes(id))) || S.one('shareTxns', t => t.docId === id)) throw new Error('Tài liệu đã gắn kiểm kê/giao dịch vốn – chỉ tải phiên bản mới');
     if (!A.inScope(d.buildingId)) throw new Error('Tòa ngoài phạm vi được giao');
     if (!String(reason || '').trim()) fail({ reason: 'Nhập lý do xóa' });
     S.update('documents', id, { status: 'deleted', deletedBy: _.who(), deletedAt: F.nowISO(), deleteReason: reason });

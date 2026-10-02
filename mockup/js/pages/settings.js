@@ -159,7 +159,7 @@
       U.table(tb.querySelector('#t'), { rows, pageSize: 30, cols: [{ key: 'a', label: 'Thời điểm', render: r => F.datetime(r.at) }, { key: 'u', label: 'Người', render: r => esc(r.userName) + ' <span class="muted small">' + esc((RB.ROLES[r.role] || {}).label || '') + '</span>' }, { key: 'x', label: 'Thao tác', render: r => U.chip(r.action, 'gray') }, { key: 's', label: 'Nội dung', render: r => esc(r.summary) }] });
     }
     if (tab === 'doi-chieu') {
-      const rows = TH.pages.acceptance();
+      const rows = [...TH.pages.acceptance(), ...(TH.ms.on('3') && TH.pages.acceptance3 ? TH.pages.acceptance3() : [])];
       tb.innerHTML = U.card({ title: 'Đối chiếu nghiệm thu với số liệu Excel của khách', icon: 'clipboard-check', sub: `${rows.filter(r => r.ok).length}/${rows.length} tiêu chí đạt`, body: rows.map(r => `<div class="acc-row ${r.ok ? 'ok' : 'fail'}"><span class="acc-ms">${r.ms}</span><div class="grow"><b>${esc(r.name)}</b><div class="small muted">${esc(r.detail)}</div></div>${r.ok ? U.chip('PASS', 'green') : U.chip('FAIL', 'red')}</div>`).join('') });
     }
     if (tab === 'he-thong') {

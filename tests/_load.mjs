@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const JS = (f) => path.join(ROOT, 'mockup', 'js', f);
 export const DOMAIN = ['core/format.js', 'domain/dates.js', 'domain/params.js', 'domain/rbac-policy.js', 'domain/billing.js', 'domain/payments.js', 'domain/refund.js', 'domain/zalo-rules.js',
-  'domain/import-validate.js', 'domain/depreciation.js', 'domain/payroll.js', 'domain/allocation.js', 'domain/report.js', 'domain/commission.js', 'domain/repairs.js', 'domain/share.js', 'domain/intake.js', 'domain/assets.js'];
+  'domain/import-validate.js', 'domain/depreciation.js', 'domain/payroll.js', 'domain/allocation.js', 'domain/report.js', 'domain/commission.js', 'domain/repairs.js', 'domain/share.js', 'domain/intake.js', 'domain/assets.js', 'domain/capital.js', 'domain/forecast.js', 'domain/efficiency.js'];
 export const DATA = ['data/catalog.js', 'data/seed-master.js', 'data/seed-2026-09.js', 'data/seed-2026-08-bench.js'];
 
 export function load(files = DOMAIN) {

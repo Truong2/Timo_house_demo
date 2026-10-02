@@ -1,5 +1,5 @@
 /* Phase 3 – Lịch bảo dưỡng & kết quả (UI-35; đặc tả dòng 549, CH-32, F10, F11). Không có SLA / duyệt nhiều cấp.
-   Mỗi lần bảo dưỡng là một bản ghi; khai báo chu kỳ thì hoàn thành tự tạo lần kế tiếp. Chi phí ghi qua UI-15 (dòng 41 sửa chữa, nguồn "maintenance")
+   Mỗi lần bảo dưỡng là một bản ghi; khai báo chu kỳ thì hoàn thành tự tạo lần kế tiếp. Chi phí ghi qua UI-15 (thang máy → dòng 27 bảo trì thang máy, còn lại dòng 41 sửa chữa; nguồn "maintenance")
    – chứng từ bảo dưỡng là bản gốc duy nhất, không tự sinh việc sửa chữa UI-47. Nhắc trước maintRemindDays ngày trên web và Zalo nội bộ (UI-39). */
 (function (TH) {
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, MT = TH.calc.assets.maint;
@@ -66,10 +66,13 @@
     const cost = Number(d.cost) || 0;
     if (cost < 0) errs.cost = 'Chi phí không âm';
     if (cost > 0 && !TH.auth.can('expenses.manage')) errs.cost = 'Ghi chi phí cần quyền kế toán (UI-15) – để trống, kế toán ghi sau';
+    // Thang máy: phí bảo trì là giá dịch vụ đầu vào (giá vốn dòng 27), không phải sửa chữa phát sinh (dòng 41)
+    const category = d.costCategory || MT.costCategory(t.assetType);
+    if (cost > 0 && !Object.keys(MT.COST_CATEGORIES).includes(category)) errs.costCategory = 'Loại chi phí bảo dưỡng không hợp lệ';
     (d.photos || []).forEach(f => { if (!/\.(jpe?g|png|heic|pdf)$/i.test(f.name || '')) errs.photos = 'Ảnh / biên bản: JPG, PNG, HEIC hoặc PDF'; });
     if (Object.keys(errs).length) fail(errs);
     let expenseId = null;
-    if (cost > 0) { const e = X.addExpense({ category: 'repair', scope: 'building', buildingId: t.buildingId, amount: cost, date: doneDate, period: d.costPeriod || F.period(doneDate), vendor: d.vendor || t.vendor || '', source: 'maintenance', refId: t.id, note: 'Bảo dưỡng ' + t.code + ' – ' + t.kind }, true); expenseId = e.id; }
+    if (cost > 0) { const e = X.addExpense({ category, scope: 'building', buildingId: t.buildingId, amount: cost, date: doneDate, period: d.costPeriod || F.period(doneDate), vendor: d.vendor || t.vendor || '', source: 'maintenance', refId: t.id, note: 'Bảo dưỡng ' + t.code + ' – ' + t.kind }, true); expenseId = e.id; }
     let next = null;
     if (t.cycleMonths) next = X._createMaint({ assetId: t.assetId, kind: t.kind, cycleMonths: t.cycleMonths, dueDate: MT.nextDue(t.dueDate, doneDate, t.cycleMonths), leaderId: t.leaderId, assigneeId: t.assigneeId, vendor: t.vendor, prevId: t.id });
     S.update('maintenanceTasks', id, { status: 'done', doneDate, performerId: d.performerId || null, vendor: d.vendor || t.vendor || '', result: String(d.result).trim(), note: d.note || t.note || '',

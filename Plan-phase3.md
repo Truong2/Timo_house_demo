@@ -1,5 +1,34 @@
 # Plan – Phase 3: Tài sản, bảo dưỡng, kiểm kê, góp vốn, dự kiến LN, hiệu quả vốn (nghiệp vụ ↔ UI khớp nhau)
 
+## Trạng thái triển khai — 02/10/2026
+
+P3-0…P3-2 đã có trước lượt kiểm tra; P3-3…P3-8 đã bổ sung trong lượt implement này. Sáu route Phase 3 có màn hoạt động.
+
+| Đợt | Trạng thái | Minh chứng |
+|---|---|---|
+| P3-0…2 | Có sẵn, đã kiểm tra lại | p3-rbac/assets/maintenance; UI-34/35, E30…E33, E43 |
+| P3-3 | Đã implement kiểm kê và duyệt kép | p3-inventory; UI-36, E34/E35 |
+| P3-4 | Đã implement vốn, đầu tư và extractor | p3-capital, fixtures/phase3-source.json; UI-33, E36…E38 |
+| P3-5 | Đã implement dự kiến và phiên bản | p3-forecast; 9 sheet benchmark; UI-40, E39/E40 |
+| P3-6 | Đã implement hiệu quả vốn/tài sản | p3-efficiency; UI-41, E41 |
+| P3-7 | Đã implement phạm vi cổ đông xuyên suốt | p3-shareholder, sweep 9 tài khoản; E42, Đối chiếu NT-7…11 |
+| P3-8 | Đã bổ sung verifier, ảnh và tài liệu | docs/UI/B09, UAT Phase 3, bảng lệch, 2 bản Plan Mockup UI |
+
+Kết quả và các giả định còn mở nằm trong [UAT Phase 3](docs/uat/Phase3_Kich_ban_kiem_thu.md). Đây là nghiệm thu kỹ thuật mockup; O1…O6/GĐ vẫn chờ khách xác nhận nghiệp vụ.
+
+Kiểm tra cuối sau review nghiệp vụ: **320/320 test**, **519 kiểm tra RBAC**, **36/36 smoke**, **19/19 P0**, P2 không lỗi trang, **1.287 lượt route/9 vai trò không lỗi**, **62/62 browser Phase 3**; build thành công. 21 ảnh chính/E-frame đã rà soát và cập nhật. Các phần còn thiếu và sửa sau review được gộp trong một commit Phase 3.
+
+**Hiệu chỉnh số theo nguồn và hồi quy:** G1 T8 khóa theo web có M **62.672.849**, benchmark Excel giữ **62.664.969,25** (OQ-04/làm tròn đã có ở Phase 2). S4 nguyên giá **3.440.000** → thanh lý T10 **3.329.920**; **1.355.200** chỉ đúng với ví dụ nguyên giá 1.400.000. UI-05 và trạng thái trả chủ nhà giữ nguyên; lịch góp suy ra, giao dịch góp/rút/chi lưu riêng. Thành phần nhập tay J4 lưu trong inputMeta.adjustments, đã gồm trong tổng ô, không cộng lại vào E3.
+
+## Sửa sau review nghiệp vụ — 02/10/2026
+
+Đối chiếu lại đặc tả, sửa 4 lệch chính và các lệch nhỏ (chi tiết và GĐ còn mở: [UAT Phase 3](docs/uat/Phase3_Kich_ban_kiem_thu.md) mục 4):
+- **UI-41 LN/tài sản (OQ-24):** chỉ tính khi tòa có số dư nền (import UI-37 hoặc đầu tư ban đầu); luôn dùng LNR kinh doanh. Trước đó 17 tòa chỉ có thiết bị mua T8 ra tỷ lệ 67%–4.108%.
+- **G1 đầu tư ban đầu (O3 đã chốt):** khấu hao từ tháng mua 11/2025; vẫn chỉ ghi khấu hao web từ 2026-10; giá trị còn lại vào mẫu số UI-41.
+- **UI-35:** chi phí bảo dưỡng thang máy ghi bảo trì thang máy (giá vốn dòng 27), không vào sửa chữa dòng 41.
+- **UI-40:** phạm vi tòa loại trừ có tác dụng lên số gợi ý; 8 chỉ số phụ theo SRC-14 sheet 8/2025; bản web mặc định cách tính web; **cổ đông xem** (O1 đã chốt), không tạo/so sánh/xuất.
+- **Lệch nhỏ:** lịch góp bỏ mốc ngày cứng (`capitalInitial.coveredTo`); "Trả nhà – thanh lý toàn bộ" (OQ-11); kiểm kê loại bỏ → trạng thái `removed`.
+
 ## Context
 Phase 1 và Phase 2 đã xong (commit `fe94bc5`). Phase 3 theo đặc tả gồm:
 - 6 màn: UI-33, UI-34, UI-35, UI-36, UI-40, UI-41 (`docs_timonouse/TimoHouse_Dac_ta_man_hinh_web_va_luong_nghiep_vu_v1.md` §7.3, L813-827);
@@ -7,7 +36,7 @@ Phase 1 và Phase 2 đã xong (commit `fe94bc5`). Phase 3 theo đặc tả gồm
 - vai trò **Cổ đông** (chỉ xem);
 - sự kiện Zalo nhắc bảo dưỡng.
 
-Trong code chưa có màn nào của Phase 3. Nhiều chỗ đang khẳng định "chưa có Phase 3":
+Ghi nhận tại thời điểm lập kế hoạch (đã xử lý sau triển khai): chưa có màn Phase 3; các điểm khi đó gồm:
 - `core/milestone.js` DEFERRED;
 - `q-report-ops.js:196-197` (`status:'phase3'`);
 - `check-rbac.mjs:12-24,56,81-83`;
@@ -206,7 +235,7 @@ Trong code chưa có màn nào của Phase 3. Nhiều chỗ đang khẳng địn
   - **SRC-14:**
     - sheet 2026-03…2026-09 (dạng KD) + `Tháng 1.2026`, `Tháng 8 .` (dạng dòng tiền);
     - map dòng **theo nhãn**, không theo số dòng, vì vị trí dòng đổi giữa các sheet;
-    - hằng số gõ trong công thức (E3 `+30000000`, J4 T3) → dòng điều chỉnh;
+    - hằng số E3 `+30000000` → điều chỉnh doanh thu; thành phần J4 T3 → điều chỉnh đầu vào đã gồm trong giá trị ô, không cộng lần hai;
     - giữ từng phần của E4; `scopeNote` "Tính đến Gx";
     - `excelCheck` = các ô kết quả của sheet.
 - **`domain/capital.js`:**
@@ -341,7 +370,7 @@ Trong code chưa có màn nào của Phase 3. Nhiều chỗ đang khẳng địn
   - nhóm theo kỳ trả chủ nhà (link UI-05);
   - cột hạn; cổ đông **gồm CHUNG**; tỷ lệ; tiền kỳ; phải góp = tiền kỳ × tỷ lệ; đã góp; còn lại; chứng từ; trạng thái.
 - **Tab `chi-thuc`:**
-  - M của run UI-32 đã khóa (62.664.969, *sửa* 66,8tr); đã trả; ngày / phương thức / chứng từ; còn phải trả;
+  - M của run UI-32 web đã khóa (62.672.849; Excel 62.664.969,25; *sửa* 66,8tr); đã trả; ngày / phương thức / chứng từ; còn phải trả;
   - ghi chú "M không phải giao dịch chi".
 - **Tab `tai-san-coc`:** cọc chủ nhà "phải thu hồi khi kết thúc HĐ" + tài sản UI-34. Chỉ đọc, không vào doanh thu.
 - **Tab `dau-tu-ban-dau`:** bảng THU CHI G1 như Excel; bảng theo cổ đông; 8 khoản đầu tư ghi "trùng E39–E53 – tính 1 lần".
@@ -404,7 +433,7 @@ Trong code chưa có màn nào của Phase 3. Nhiều chỗ đang khẳng địn
 **NT-11** – khấu hao:
 - 566.080 cho T8;
 - tháng 63 = 283.040;
-- thanh lý S4 kỳ 10 = 1.355.200.
+- thanh lý S4 nguồn (nguyên giá 3.440.000) kỳ 10 = 3.329.920; ví dụ nguyên giá 1.400.000 thì 1.355.200.
 
 **NT-0…NT-6** giữ nguyên.
 

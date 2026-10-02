@@ -812,6 +812,8 @@ Thứ tự trên là **phụ thuộc thiết kế**, không tự xác nhận to�
 
 ### 7.3. Phase 3 — Kế hoạch, hiệu quả đầu tư và tài sản
 
+**Trạng thái 02/10/2026:** đã implement mockup 6 màn Phase 3, tab Tài sản UI-03, cổ đông chỉ xem và Zalo nhắc bảo dưỡng; minh chứng tại [UAT Phase 3](../docs/uat/Phase3_Kich_ban_kiem_thu.md). Các GĐ vẫn cần khách xác nhận.
+
 | Nhóm | Màn hình | Làm trong Phase 3 |
 |---|---|---|
 | Tài sản, bảo dưỡng | UI-34, UI-35, UI-36 | Danh mục tài sản/thiết bị theo tòa/phòng (nhận danh sách thiết bị đã import ở Phase 1), khấu hao từng tài sản và thanh lý (`OQ-11`); lịch bảo dưỡng và kết quả (F10); kiểm kê do admin + kế toán duyệt (CH-33); tab tài sản ở UI-03 |

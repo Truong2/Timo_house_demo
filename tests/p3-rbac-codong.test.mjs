@@ -28,10 +28,10 @@ test('P3-0 – cổ đông: đăng nhập ở mốc 3, phạm vi = tòa có tỷ
   assert.deepEqual(plain(TH.auth.roomScope()), {});
 });
 
-test('P3-0 – cổ đông chỉ xem: ⛔ khách thuê, tòa nhà, drill chứng từ, báo cáo vận hành, dự kiến LN; ⛔ thao tác ghi', () => {
+test('P3-0 – cổ đông chỉ xem (gồm dự kiến LN UI-40, GĐ-P3-01): ⛔ khách thuê, tòa nhà, drill chứng từ, báo cáo vận hành, tạo dự kiến; ⛔ thao tác ghi', () => {
   const TH = boot({ user: 'codong' }); const A = TH.auth;
-  ['dashboard.view', 'reports.view', 'shares.view', 'capital.view', 'efficiency.view'].forEach(p => assert.ok(A.can(p), p));
-  ['tenants.view', 'buildings.view', 'reports.drill', 'reports.ops', 'forecast.view', 'shares.manage', 'payments.view', 'hr.view', 'assets.view'].forEach(p => assert.ok(!A.can(p), p));
+  ['dashboard.view', 'reports.view', 'shares.view', 'capital.view', 'forecast.view', 'efficiency.view'].forEach(p => assert.ok(A.can(p), p));
+  ['tenants.view', 'buildings.view', 'reports.drill', 'reports.ops', 'forecast.manage', 'shares.manage', 'payments.view', 'hr.view', 'assets.view'].forEach(p => assert.ok(!A.can(p), p));
   const r = attempt(() => TH.actions.setShareRatios('b_G1', [], '2026-10-01', 'thử'));
   assert.ok(!r.ok);
 });

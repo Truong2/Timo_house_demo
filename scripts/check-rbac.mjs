@@ -58,10 +58,10 @@ expect(R.POLICY['debts.viewStatus'].includes('leader') && R.POLICY['debts.viewSt
 expect(JSON.stringify(R.POLICY['refunds.approve.admin']) === '["admin"]' && JSON.stringify(R.POLICY['refunds.approve.ketoan']) === '["ketoan"]', 'duyệt hoàn cọc phải tách admin / kế toán');
 /* 6. Vai trò cổ đông là Phase 3, chỉ xem (đặc tả dòng 69-71, CH-23); vai trò sale/kỹ thuật gắn mốc Phase 2 */
 expect(R.ROLES.codong && R.ROLES.codong.phase === '3' && R.ROLES.codong.scope === 'shareholder', 'vai trò cổ đông phải thuộc Phase 3, phạm vi theo tòa góp vốn');
-const CODONG = ['dashboard.view', 'reports.view', 'shares.view', 'capital.view', 'efficiency.view', 'documents.download'];
+const CODONG = ['dashboard.view', 'reports.view', 'shares.view', 'capital.view', 'forecast.view', 'efficiency.view', 'documents.download'];
 expect(JSON.stringify(R.perms.filter(p => R.can('codong', p)).sort()) === JSON.stringify([...CODONG].sort()), `cổ đông chỉ được quyền xem: ${R.perms.filter(p => R.can('codong', p)).join(',')}`);
 expect(JSON.stringify(R.POLICY['shares.view']) === '["admin","ketoan","codong"]', 'shares.view chỉ admin, kế toán, cổ đông');
-expect(!R.can('codong', 'forecast.view'), 'GĐ-P3 O1: cổ đông chưa xem UI-40 (số toàn hệ thống, không chia tòa)');
+expect(R.can('codong', 'forecast.view') && !R.can('codong', 'forecast.manage'), 'GĐ-P3-01 đã chốt: cổ đông xem UI-40 theo đặc tả (CH-23), không tạo phiên bản');
 /* 6d. Kiểm kê (CH-33): admin + kế toán duyệt kép, mỗi vai trò một quyền */
 expect(JSON.stringify(R.POLICY['inventory.approve.admin']) === '["admin"]' && JSON.stringify(R.POLICY['inventory.approve.ketoan']) === '["ketoan"]', 'duyệt kiểm kê phải tách admin / kế toán');
 expect(R.can('kythuat', 'maintenance.done') && !R.can('kythuat', 'maintenance.plan') && !R.can('kythuat', 'assets.value'), 'kỹ thuật: đánh dấu bảo dưỡng xong, không lập lịch, không thấy giá trị tài sản');
@@ -94,7 +94,9 @@ fs.readdirSync(pageDir).forEach(f => { fs.readFileSync(path.join(pageDir, f), 'u
 expect(scopedRoutes === 7, `kỳ vọng 7 route :id theo tòa, tìm thấy ${scopedRoutes}`);
 
 /* 12. Action Phase 3 chặn theo mốc ở mức action (needMs('3')) */
-['act-assets.js', 'act-maintenance.js', 'act-inventory.js', 'act-capital.js', 'act-forecast.js'].forEach(f => { const p = path.join(ROOT, 'mockup/js/services', f); if (fs.existsSync(p)) expect(fs.readFileSync(p, 'utf8').includes("_.needMs('3'"), `${f}: action Phase 3 phải chặn theo mốc (_.needMs('3'))`); });
+['act-assets.js', 'act-maintenance.js', 'act-inventory.js', 'act-capital.js', 'act-forecast.js'].forEach(f => { const p = path.join(ROOT, 'mockup/js/services', f); expect(fs.existsSync(p), `${f}: thiếu service Phase 3`); if (fs.existsSync(p)) expect(fs.readFileSync(p, 'utf8').includes("_.needMs('3'"), `${f}: action Phase 3 phải chặn theo mốc (_.needMs('3'))`); });
+const pageSources = fs.readdirSync(pageDir).map(f => fs.readFileSync(path.join(pageDir, f), 'utf8')).join('\n');
+ROUTES.filter(r => PHASE3_UI.includes(r.ui)).forEach(r => expect(pageSources.includes("TH.router.handle('" + r.path + "'"), `${r.ui}: route ${r.path} chưa có handler màn hình`));
 
 /* 11. Phân công theo phòng (UI-24): phạm vi phòng áp trong Q.scoped – người được giao phòng không thấy phòng khác cùng tòa; các danh sách theo phòng phải đi qua Q.scoped */
 const qSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/services/q.js'), 'utf8'), authSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/core/auth.js'), 'utf8');
