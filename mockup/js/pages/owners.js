@@ -60,6 +60,8 @@
       { name: 'amount', label: 'Số tiền chi', type: 'money', req: true, value: Math.max(0, o.amountDue - o.paid) },
       { name: 'date', label: 'Ngày chi', type: 'date', req: true, value: F.today() },
       { name: 'method', label: 'Phương thức', type: 'select', options: [['bank', 'Chuyển khoản'], ['cash', 'Tiền mặt']], value: 'bank' },
+      { name: 'reference', label: 'Mã giao dịch / số phiếu', req: true, placeholder: 'VD: UNC-202609-001' },
+      { name: 'evidence', label: 'Chứng từ / nguồn đối chiếu', req: true, placeholder: 'Tên file hoặc mã tài liệu', span: true },
       { type: 'html', span: true, html: U.note('info', '', 'Khoản chi được ghi một lần ở Chi phí (UI-15) loại "Tiền thuê nhà trả chủ". Báo cáo dùng tiền thuê 1 tháng theo HĐ, không cộng lặp.') }],
       submit: 'Ghi chi', onSubmit: (d) => { X.recordOwnerPayment(opId, d); U.toast('ok', 'Đã ghi chi tiền nhà'); } });
   };
@@ -108,6 +110,6 @@
       + '<div class="mt16">' + K.tableCard('t') + '</div>';
     K.bindFilters(root);
     U.table(root.querySelector('#t'), { rows, pageSize: 20, cols: TH.pages.ownerPayCols() });
-    U.bind(root, { 'op-pay': (el) => TH.pages.ownerPayDrawer(el.dataset.id), exp: () => K.csv('lich-tra-chu-nha.csv', ['Tòa', 'Kỳ từ', 'Số tháng', 'Hạn', 'Phải trả', 'Đã chi'], rows.map(o => [(Q.building(o.buildingId) || {}).code, o.from, o.months, o.dueDate, o.amountDue, o.paid])) });
+    U.bind(root, { 'op-pay': (el) => TH.pages.ownerPayDrawer(el.dataset.id), 'op-trace': (el) => TH.pages.ownerPayTrace(el.dataset.id), exp: () => K.csv('lich-tra-chu-nha.csv', ['Tòa', 'Kỳ từ', 'Số tháng', 'Hạn', 'Phải trả', 'Đã chi'], rows.map(o => [(Q.building(o.buildingId) || {}).code, o.from, o.months, o.dueDate, o.amountDue, o.paid])) });
   });
 })(window.TH);

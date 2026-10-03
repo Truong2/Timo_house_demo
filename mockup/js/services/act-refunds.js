@@ -15,6 +15,7 @@
     const dep = Math.max(0, X.depositBalance(stayId));
     const deductions = Cc.refund.defaultDeductions({ elPrev: fr.elPrev ?? lastRd.elCurr, elCurr: fr.elCurr ?? null, elUnit: (rate.items.electric || {}).unit || 4000,
       waPrev: fr.waPrev ?? lastRd.waCurr, waCurr: fr.waCurr ?? null, waUnit: (rate.items.water || {}).unit || 35000, depreciationPerRoom: Q.param('refundDepreciation') });
+    deductions.forEach(x => { x.note = x.note || (['electric','water'].includes(x.kind) ? 'Theo chỉ số bàn giao cuối kỳ' : 'Theo chính sách hoàn cọc hiệu lực'); x.enteredBy = _.who(); x.sourceRef = ['electric','water'].includes(x.kind) ? (lastRd.id || 'final-reading') : 'refund-policy'; });
     const code = S.nextCode('refunds', 'HC-' + F.today().slice(0, 7).replace('-', '') + '-');
     const endDay = s.endDate ? Number(s.endDate.slice(8, 10)) : 0;
     const extraDays = s.endDate && endDay < 25 && s.endDate.slice(0, 7) > (s.rentStart || '').slice(0, 7) ? endDay : 0;
@@ -34,7 +35,8 @@
     const r = S.get('refunds', id); inScope(r);
     if (['approved', 'paid'].includes(r.status)) throw new Error('Phiếu đã duyệt – không sửa được');
     if (d.deductExtra && !String(d.extraReason || '').trim()) throw new Error('Nhập lý do khi trừ tiền ngày ở thêm vào cọc');
-    const deductions = (d.deductions || r.deductions).map(x => Object.assign({}, x, { amount: Number(x.amount) || (Number(x.qty) || 0) * (Number(x.unit) || 0) }));
+    const deductions = (d.deductions || r.deductions).map(x => Object.assign({}, x, { amount: Number(x.amount) || (Number(x.qty) || 0) * (Number(x.unit) || 0), enteredBy: x.enteredBy || _.who(), sourceRef: x.sourceRef || 'manual-refund' }));
+    if (deductions.some(x => !String(x.note || '').trim())) throw new Error('Mỗi khoản khấu trừ phải có lý do');
     const all = d.deductExtra ? [...deductions, { kind: 'other', qty: 1, unit: r.extraRent, amount: r.extraRent, note: 'Tiền ngày ở thêm: ' + d.extraReason }] : deductions;
     const calc = Cc.refund.calc({ deposit: r.deposit, deductions: all });
     S.update('refunds', id, { deductions, deductExtra: !!d.deductExtra, extraReason: d.extraReason || null, bc: calc.bc, bd: calc.bd, status: 'calculated', approvals: [] });

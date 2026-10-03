@@ -57,9 +57,18 @@
         { key: 'dt', label: 'Ngày chi · chứng từ', render: c => (c.installments || []).map(i => { const e = S.get('expenses', i.expenseId); return F.date(i.date) + (e ? ' ' + U.link('#/expenses?period=' + e.period + '&q=' + encodeURIComponent(e.code), esc(e.code)) : ''); }).join('<br>') || '–' },
         { key: 'e', label: 'Điều kiện chi', render: c => el[c.dealId].ok ? U.chip('Đủ – kỳ ' + F.periodShort(F.period(el[c.dealId].date)), 'green') : `<span data-tip="${esc(el[c.dealId].missing.join(' · '))}">${U.chip('Chưa đủ', 'gray')}</span>` },
         { key: 'st', label: 'Trạng thái', render: c => U.chip(Q.CM_ST[c.status][0], Q.CM_ST[c.status][1], true) + (c.note ? `<div class="small muted">${esc(c.note)}</div>` : '') },
-        { key: 'actions', label: '', render: c => U.rowActions([['pending', 'approved'].includes(c.status) ? U.actBtn({ icon: 'check', label: 'Duyệt', act: 'ap', attrs: { 'data-id': c.id }, perm: 'commission.approve' }) : '',
+        { key: 'actions', label: '', render: c => U.rowActions([U.actBtn({ icon: 'history', label: 'Nguồn số', act: 'trace', attrs: { 'data-id': c.id } }), ['pending', 'approved'].includes(c.status) ? U.actBtn({ icon: 'check', label: 'Duyệt', act: 'ap', attrs: { 'data-id': c.id }, perm: 'commission.approve' }) : '',
           c.status === 'approved' ? U.actBtn({ icon: 'banknote', label: 'Chi', act: 'pay', attrs: { 'data-id': c.id }, perm: 'commission.pay', disabled: !el[c.dealId].ok }) : ''].filter(Boolean)) }] });
       U.bind(tb, {
+        trace: (b) => { const c = S.get('commissions', b.dataset.id), d = Q.deal(c.dealId) || {}, lead = S.get('leads', d.leadId), eligibility = el[c.dealId] || {};
+          U.drawer({ title: 'Nguồn hoa hồng – ' + esc(c.recipient.name), sub: esc(d.code || ''), wide: true, body: U.kv([
+            ['Khách xem', lead ? `${esc(lead.code || lead.name || '')} · ${esc(lead.source || 'không rõ nguồn')}` : 'Không có lead liên kết'],
+            ['Giao dịch', d.id ? U.link('#/sales/deals/' + d.id, esc(d.code)) + ` · ${F.date(d.closeDate)}` : '–'],
+            ['Nhân viên / tỷ lệ chia', `${esc(c.recipient.name)} · ${c.share > 1 ? 'chia ' + c.share + ' người' : 'một người'} · H ${pct(c.H)} (gợi ý ${pct(c.suggestedH)})`],
+            ['Căn cứ tỷ lệ', esc((c.reasons || []).join(' · ') || c.reason || 'Chính sách hiệu lực tại ngày chốt')],
+            ['Kỳ đủ điều kiện', eligibility.date ? `${F.date(eligibility.date)} · ${F.periodLabel(F.period(eligibility.date))}` : `Chưa đủ: ${esc((eligibility.missing || []).join(' · '))}`],
+            ['Từng lần chi', (c.installments || []).map(i => `${F.date(i.date)} · ${F.vnd(i.amount)} · kỳ ${F.periodShort(i.period || F.period(i.date))} · ${esc(i.by || '')}`).join('<br>') || 'Chưa chi']
+          ]) + U.note('warn', 'Công thức chuyển đổi', 'Tỷ lệ chốt/xem vẫn là chỉ số đề xuất cho đến khi OQ-06 được xác nhận; drawer này chỉ truy vết nguồn, không biến chỉ số đó thành KPI chính thức.') }); },
         ap: (b) => { const c = S.get('commissions', b.dataset.id); K.formDrawer({ title: 'Duyệt hoa hồng – ' + esc(c.recipient.name), modal: true,
           note: U.note('info', 'Gợi ý ' + pct(c.suggestedH), esc((c.reasons || []).join(' · ')) + `<br>F = ${F.vnd(c.F)} · I = F × H − khoản trừ`),
           fields: [{ name: 'H', label: 'Tỷ lệ H (%)', type: 'number', value: Math.round(c.H * 10000) / 100, req: true }, { name: 'deduction', label: 'Khoản trừ (hỗ trợ khách…)', type: 'money', value: c.deduction || '' }, { name: 'reason', label: 'Lý do (bắt buộc khi khác gợi ý / có khoản trừ)', span: true }],

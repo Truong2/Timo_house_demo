@@ -7,7 +7,7 @@ PASS  P0-3  Mọi hóa đơn: tổng in 13 dòng = tổng cần đóng; lệch E
 PASS  P0-4  Phòng có giá thuê/hóa đơn không bị xếp loại "đồng hồ chung"
       0 phòng xếp sai; HS cao nhất kỳ 9: T24 = 111.41105717321626; tòa có tiền thu nhưng J=0: không; mẫu số phân bổ kỳ 9 = 1428
 PASS  P0-5a  Báo cáo KD T8: ô KPI LNR = dòng cuối cầu nối
-      KPI LNR 779688893 · cầu nối 779688893
+      KPI LNR 685928969 · cầu nối 685928969
 PASS  P0-5b  Nghiệm thu Báo cáo tổng T8 tính trên số web, chênh Excel giải thích hết từng khoản
       TCP web 6024500037 − Excel 6013857267 = 10642770: Tòa có trong bảng lương và mẫu số 1.382 nhưng không có cột trong báo cáo Excel: G13, G12A, G14 10405700 | Lương quản lý: dòng lỗi nguồn bảng lương Excel S39, S28, S36 181553 | Phân bổ quỹ chung: 12 ô của sheet tòa Excel khác công thức chung (T5 sal_gm, T12 sal_lead, T32 office, S1 sal_gm, S1 marketing, S3 sal_head, S30 sal_source, S31 sal_repair, S32 sal_lead, S40 sal_acct, G1 sal_repair, G3 sal_repair) 55517 | Chênh lệch khác (chưa giải thích) 0 · còn dư -0.03 · Báo cáo tổng T8 trên số web: DT 7.036.256.236 và giá vốn khớp Excel; chênh chi phí giải thích hết, không còn khoản lạ → PASS
 PASS  P0-6a  Nhận cọc → "đang giữ"; đảo phiếu cọc → sổ cọc về 0

@@ -38,8 +38,8 @@
     _.guardEffective(d.from, 'phân công');
     const cur = S.where('assignments', a => a.buildingId === d.buildingId && a.responsibility === resp && (a.roomId || null) === roomId && (!a.to || a.to >= d.from));
     if (cur.some(a => a.from >= d.from)) throw new Error('Đã có phân công bắt đầu từ ' + F.date(cur.map(a => a.from).sort().pop()) + ' – không ghi đè kỳ trước');
-    cur.forEach(a => S.update('assignments', a.id, { to: D.addDays(d.from, -1), closedReason: d.reason }));
-    const a = S.add('assignments', { employeeId: d.employeeId, buildingId: d.buildingId, roomId, responsibility: resp, from: d.from, to: d.to || null, reason: d.reason, replacesId: cur[0] ? cur[0].id : null });
+    cur.forEach(a => S.update('assignments', a.id, { to: D.addDays(d.from, -1), closedReason: d.reason, changedBy: _.who(), changedAt: F.nowISO() }));
+    const a = S.add('assignments', { employeeId: d.employeeId, buildingId: d.buildingId, roomId, responsibility: resp, from: d.from, to: d.to || null, reason: d.reason, replacesId: cur[0] ? cur[0].id : null, changedBy: _.who(), changedAt: F.nowISO() });
     _.audit('assign', 'assignment', a.id, `Phân công ${emp.name} – ${TH.data.catalog.responsibilities[resp]} ${roomId ? 'phòng ' + Q.roomCode(roomId) : 'tòa ' + Q.building(d.buildingId).code} từ ${F.date(d.from)}`); _.done(); return a;
   };
   X.assignBuilding = X.assign;
@@ -52,7 +52,7 @@
     if (to < a.from) throw new Error('Ngày kết thúc phải từ ' + F.date(a.from));
     if (a.to && a.to <= to) throw new Error('Phân công đã kết thúc ' + F.date(a.to));
     _.guardEffective(to, 'bỏ phân công');
-    S.update('assignments', id, { to, closedReason: reason });
+    S.update('assignments', id, { to, closedReason: reason, changedBy: _.who(), changedAt: F.nowISO() });
     _.audit('assign', 'assignment', id, `Bỏ phân công ${(Q.emp(a.employeeId) || {}).name} ${a.roomId ? 'phòng ' + Q.roomCode(a.roomId) : 'tòa ' + (Q.building(a.buildingId) || {}).code} sau ${F.date(to)}: ${reason}`); _.done();
   };
   /* Đổi leader từ ngày X: đóng phiên cũ, mở phiên mới; chặn vòng lặp */

@@ -195,8 +195,9 @@
     if (amount > op.amountDue - (op.paid || 0) + 0.5) throw new Error('Số chi vượt số còn phải trả của kỳ (' + F.vnd(op.amountDue - (op.paid || 0)) + ')');
     if (!d.date) throw new Error('Nhập ngày chi');
     _.guardPeriod(F.period(d.date), 'ghi chi');
-    const exp = X.addExpense({ date: d.date, period: F.period(op.from), category: 'owner_rent', scope: 'building', buildingId: b.id, amount, vendor: (S.get('owners', oc.ownerId) || {}).name, method: d.method || 'bank', note: `Tiền nhà ${b.code} kỳ ${F.date(op.from)} (${op.months} tháng)`, source: 'ownerPayment', refId: op.id }, true);
-    S.update('ownerPayments', opId, { paid: (op.paid || 0) + amount, paidAt: d.date, expenseIds: [...(op.expenseIds || []), exp.id] });
+    const exp = X.addExpense({ date: d.date, period: F.period(op.from), category: 'owner_rent', scope: 'building', buildingId: b.id, amount, vendor: (S.get('owners', oc.ownerId) || {}).name, method: d.method || 'bank', note: `Tiền nhà ${b.code} kỳ ${F.date(op.from)} (${op.months} tháng)`, source: 'ownerPayment', refId: op.id, evidence: d.evidence || d.reference || null }, true);
+    const payment = { amount, date: d.date, method: d.method || 'bank', reference: String(d.reference || '').trim(), evidence: String(d.evidence || '').trim(), expenseId: exp.id, by: _.who(), at: F.nowISO() };
+    S.update('ownerPayments', opId, { paid: (op.paid || 0) + amount, paidAt: d.date, expenseIds: [...(op.expenseIds || []), exp.id], payments: [...(op.payments || []), payment] });
     _.audit('pay', 'ownerPayment', opId, `Ghi chi tiền nhà ${b.code}: ${F.vnd(amount)}`); _.done(); return exp;
   };
 })(window.TH);

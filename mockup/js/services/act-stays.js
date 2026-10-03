@@ -5,6 +5,18 @@
     const n = S.where('stays', s => s.code && s.code.startsWith(roomCode + 'A')).length;
     return roomCode + 'A' + String(n + 1).padStart(3, '0');
   };
+  const recordStayVersion = (stayId, kind, meta = {}) => {
+    const stay = Q.stay(stayId); if (!stay) return null;
+    const rate = Q.rateOf(stayId, meta.effectiveFrom || F.today());
+    const version = Math.max(0, ...S.where('stayVersions', v => v.stayId === stayId).map(v => Number(v.version) || 0)) + 1;
+    const rec = S.add('stayVersions', { stayId, version, effectiveFrom: meta.effectiveFrom || F.today(), kind,
+      terms: { roomId: stay.roomId, buildingId: stay.buildingId, customerId: stay.customerId, dealDate: stay.dealDate || null, moveInDate: stay.moveInDate, rentStart: stay.rentStart, svcStart: stay.svcStart, endDate: stay.endDate, status: stay.status, endType: stay.endType || null, depositAmount: stay.depositAmount, payMonths: stay.payMonths, people: stay.people, vehicles: stay.vehicles },
+      rates: rate ? { rent: rate.rent, items: JSON.parse(JSON.stringify(rate.items || {})), rateVersionId: rate.id } : { rent: stay.rent, items: {} },
+      sourceRef: meta.sourceRef || stay.source || 'web', documentIds: (meta.documentIds || []).slice(), reason: meta.reason || kind, createdBy: _.who(), createdAt: F.nowISO() });
+    _.audit('snapshot', 'stayVersion', rec.id, `${stay.code} · phiên HĐ v${version}: ${rec.reason}`, { sourceRef: rec.sourceRef });
+    return rec;
+  };
+  X.recordStayVersion = recordStayVersion;
 
   /* Tạo khách + lượt thuê; trạng thái 'pending' = đã cọc, chờ vào ở. Phase 2: deal chốt (UI-21) gọi lõi này với d.dealId –
      giao dịch giữ phòng nên lượt thuê chờ nhận chưa cần phiếu cọc (kế toán ghi cọc sau ở UI-13). */
@@ -40,6 +52,7 @@
       depositAmount: Number(d.deposit) || 0, depositStatus: 'none', rent: Number(d.rent), listPrice: room.listPrice, people: Number(d.people) || 1, vehicles: Number(d.vehicles) || 0, payMonths: Number(d.payMonths) || 1, source: d.dealId ? 'deal' : 'web', dealId: d.dealId || null });
     const items = d.items || (Q.rateOf((S.where('stays', s => s.buildingId === room.buildingId && s.id !== stay.id)[0] || {}).id) || {}).items || {};
     S.add('rateVersions', { stayId: stay.id, from: d.rentStart, to: null, rent: Number(d.rent), items: JSON.parse(JSON.stringify(items)), reason: 'Biểu phí khi tạo lượt thuê', source: 'web' });
+    recordStayVersion(stay.id, 'created', { effectiveFrom: d.rentStart, reason: 'Tạo hợp đồng/lượt thuê' });
     S.update('rooms', room.id, { status: stay.status === 'active' ? 'occupied' : (Q.currentStay(room.id) ? room.status : 'reserved') });
     // Import cọc đang giữ trước go-live → số dư đầu kỳ trong sổ cọc (không phải doanh thu kỳ này)
     if (Number(d.openingDeposit) > 0) { const opened=d.openingDepositDate||d.rentStart;S.add('depositLedger', { stayId: stay.id, buildingId: stay.buildingId, kind: 'opening', amount: Number(d.openingDeposit), date: opened, period: F.period(opened), note: 'Cọc đang giữ (import số dư)' }); X.syncDepositStatus(stay.id); }
@@ -60,6 +73,7 @@
     if (s.dealId && s.dealDate && d < s.dealDate) { const e = new Error('Ngày nhận phòng không trước ngày chốt ' + F.date(s.dealDate)); e.fields = { date: e.message }; throw e; }
     S.update('stays', id, { status: 'active', moveInDate: d });
     S.update('rooms', s.roomId, { status: 'occupied' });
+    recordStayVersion(id, 'activated', { effectiveFrom: d, reason: 'Khách nhận phòng' });
     const deal = s.dealId && S.get('deals', s.dealId);
     if (deal && deal.status === 'closed') S.update('deals', deal.id, { status: 'received', moveInDate: d, events: [...(deal.events || []), { type: 'receive', at: d, by: _.who(), note: 'Khách nhận phòng' }] });
     _.audit('activate', 'stay', id, 'Khách nhận phòng ' + s.code + (deal ? ' (giao dịch ' + deal.code + ')' : ''));
@@ -99,6 +113,7 @@
     if (d.endType === 'forfeit') patch.depositStatus = dep ? 'forfeited_revenue' : 'none';
     if (['breach', 'abscond'].includes(d.endType) && !dep) patch.depositStatus = 'none';
     S.update('stays', id, patch);
+    recordStayVersion(id, 'ended', { effectiveFrom: d.date, reason: 'Kết thúc: ' + cat.label, sourceRef: d.reason || 'web' });
     if (['breach', 'abscond'].includes(d.endType) && dep) S.add('depositLedger', { stayId: id, buildingId: s.buildingId, kind: 'keep_breach', amount: dep, date: d.date, period: F.period(d.date), note: 'Giữ cọc do ' + cat.label.toLowerCase() });
     if (d.endType === 'forfeit' && dep) S.add('depositLedger', { stayId: id, buildingId: s.buildingId, kind: 'forfeit_revenue', amount: dep, date: d.date, period: F.period(d.date), note: 'Cọc khách bỏ không ở → doanh thu' });
     // Phase 2: bỏ cọc ghi ở UI-07 hay UI-21 đều cập nhật giao dịch + tính lại hoa hồng (act-sales.js)
@@ -144,6 +159,8 @@
       endDate: d.endDate || s.endDate, rent: Number(d.rent) || to.price || s.rent, depositAmount: newDep, depositStatus: 'none', fromStayId: id, stopBillingDate: null, createdAt: F.nowISO(), source: 'web', depositPlan: d.depositPlan }));
     const oldRate = Q.rateOf(id);
     S.add('rateVersions', { stayId: ns.id, from: d.date, to: null, rent: ns.rent, items: JSON.parse(JSON.stringify((oldRate || {}).items || {})), reason: 'Chuyển phòng từ ' + Q.roomCode(s.roomId), source: 'web' });
+    recordStayVersion(id, 'transferred_out', { effectiveFrom: d.date, reason: 'Chuyển sang ' + to.code });
+    recordStayVersion(ns.id, 'transferred_in', { effectiveFrom: d.date, reason: 'Chuyển từ ' + Q.roomCode(s.roomId) });
     if (moved > 0) {
       S.add('depositLedger', { stayId: id, buildingId: s.buildingId, kind: 'transfer_out', amount: moved, date: d.date, period: F.period(d.date), note: 'Chuyển cọc sang ' + to.code });
       S.add('depositLedger', { stayId: ns.id, buildingId: to.buildingId, kind: 'transfer_in', amount: moved, date: d.date, period: F.period(d.date), note: 'Nhận cọc từ ' + Q.roomCode(s.roomId) });
@@ -162,6 +179,7 @@
     if (!d.endDate || d.endDate <= s.endDate) throw new Error('Ngày hết hạn mới phải sau ' + F.date(s.endDate));
     S.update('stays', id, { endDate: d.endDate, renewals: (s.renewals || 0) + 1 });
     if (Number(d.rent) && Number(d.rent) !== s.rent) X.addRateVersion(id, { from: d.from || TH.calc.dates.addDays(s.endDate, 1), rent: Number(d.rent), reason: 'Gia hạn HĐ' }, true);
+    recordStayVersion(id, 'renewed', { effectiveFrom: d.from || TH.calc.dates.addDays(s.endDate, 1), reason: 'Gia hạn đến ' + F.date(d.endDate) });
     _.audit('renew', 'stay', id, `Gia hạn ${s.code} đến ${F.date(d.endDate)}`); _.done();
   };
   /* Phiên biểu phí: chỉ áp dụng hóa đơn chưa phát hành; không chồng ngày */
@@ -178,6 +196,7 @@
     const items = JSON.parse(JSON.stringify(d.items || base.items || {}));
     const v = S.add('rateVersions', { stayId, from: d.from, to: null, rent: Number(d.rent) || base.rent, items, reason: d.reason, source: 'web' });
     if (Number(d.rent)) S.update('stays', stayId, { rent: Number(d.rent) });
+    recordStayVersion(stayId, 'rate_changed', { effectiveFrom: d.from, reason: d.reason, sourceRef: d.sourceRef || 'web' });
     if (!silent) { _.audit('create', 'rateVersion', v.id, `Phiên biểu phí mới từ ${F.date(d.from)}`); _.done(); }
     return { version: v, warnIssued: issued.map(i => i.period) };
   };
@@ -207,6 +226,7 @@
     S.where('ocrSessions', o => olds.has(o.fileId) && ['review','uploaded'].includes(o.status)).forEach(o => S.update('ocrSessions', o.id, { status: 'superseded', supersededAt: F.nowISO(), supersededBy: 'file' }));
     const signed = !reviewOnly && /\.(pdf|png|jpe?g)$/i.test(f.name) && (f.signed === true || (!reviewOnly && f.signed === undefined));
     const r = S.add('contractFiles', { stayId, name: f.name, size: f.size, blobId: f.blobId, hash: f.hash, source: f.source || 'upload', signed, signedAt: signed ? F.nowISO() : null, version: v, uploadedBy: _.who(), uploadedAt: F.nowISO(), ocr: 'uploaded' });
+    if (signed) recordStayVersion(stayId, 'signed', { effectiveFrom: r.signedAt.slice(0, 10), documentIds: [r.id], sourceRef: r.id, reason: 'Gắn hợp đồng đã ký ' + f.name });
     _.audit('upload', 'contractFile', r.id, 'Tải file HĐ ' + f.name); _.done(); return r;
   };
   X.registerContractFile = (stayId,f,reviewOnly=false) => S._batch ? registerContractFile(stayId,f,reviewOnly) : S.atomic(()=>registerContractFile(stayId,f,reviewOnly));
@@ -225,7 +245,7 @@
       patch[f] = v; applied.push(k);
       if (k === 'rentStart' && s.svcStart === s.rentStart) patch.svcStart = v;
     });
-    if (applied.length) { S.update('stays', stayId, patch); _.audit('update', 'stay', stayId, `Điều khoản HĐ ${s.code} theo ${reason}: ${applied.join(', ')}`); }
+    if (applied.length) { S.update('stays', stayId, patch); recordStayVersion(stayId, 'ocr_applied', { effectiveFrom: patch.rentStart || F.today(), reason, sourceRef: reason }); _.audit('update', 'stay', stayId, `Điều khoản HĐ ${s.code} theo ${reason}: ${applied.join(', ')}`); }
     return { applied, skipped };
   };
   X.updateCustomer = (id, patch) => { _.need('tenants.manage'); S.update('customers', id, patch); _.audit('update', 'customer', id, 'Sửa thông tin khách'); _.done(); };

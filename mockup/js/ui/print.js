@@ -25,7 +25,7 @@
   P.refundHtml = (r) => {
     const s = Q.stay(r.stayId); const c = Q.customer(s.customerId) || {};
     const rows = [{ label: 'Tiền phòng cọc', amount: r.deposit, sign: '' }, ...(r.extraRent && !r.deductExtra ? [{ label: `Tiền phòng ${r.extraDays} ngày ở thêm (không trừ vào cọc – thu ở hóa đơn cuối)`, amount: 0, note: F.vnd(r.extraRent) }] : []),
-      ...r.deductions.map(d => ({ label: TH.calc.refund.kindLabel(d.kind) + (d.note ? ' – ' + d.note : ''), curr: d.curr, prev: d.prev, qty: d.qty, unit: d.unit, amount: d.amount, sign: '−' }))];
+      ...r.deductions.map(d => ({ label: TH.calc.refund.kindLabel(d.kind) + (d.note ? ' – ' + d.note : ''), curr: d.curr, prev: d.prev, qty: d.qty, unit: d.unit, amount: d.amount, sign: '−', note: [d.enteredBy && 'Nhập: ' + d.enteredBy, d.sourceRef && 'Nguồn: ' + d.sourceRef].filter(Boolean).join(' · ') || 'Nguồn Excel' }))];
     return `<div class="inv-print">
       <div class="ip-tpl">HĐ (HOÀN CỌC) · ${esc(r.code)}</div><h2 class="ip-title">HÓA ĐƠN HOÀN CỌC</h2>
       <div class="ip-head"><span>Mã KH: <b>${esc(s.code)}</b></span><span>Phòng số: <b>${esc(Q.roomCode(s.roomId))}</b></span><span>Ngày chốt số liệu: <b>${F.date(r.handoverDate)}</b></span></div>

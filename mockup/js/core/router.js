@@ -1,6 +1,7 @@
 /* Hash router theo manifest core/routes.js. Handler đăng ký bằng TH.router.handle(path, fn); không có dòng manifest → lỗi. */
 (function (TH) {
   const R = { current: null, handlers: {}, compiled: [] };
+  const scrollPositions = new Map();
   TH.routes.ROUTES.forEach(meta => {
     const keys = [];
     const re = new RegExp('^' + meta.path.replace(/\/:(\w+)/g, (m, k) => { keys.push(k); return '/([^/]+)'; }) + '$');
@@ -24,7 +25,7 @@
     c.keys.forEach((k, i) => { params[k] = decodeURIComponent(m[i + 1]); });
     return { meta: c.meta, params };
   };
-  R.go = (hash) => { if (!hash.startsWith('#')) hash = '#' + hash; if (location.hash === hash) R.render(); else location.hash = hash; };
+  R.go = (hash) => { if (!hash.startsWith('#')) hash = '#' + hash; scrollPositions.set(location.hash || '#/dashboard', window.scrollY); if (location.hash === hash) R.render(); else location.hash = hash; };
   R.href = (path, q = {}) => '#' + path + R.qs(q);
   R.qs = (q) => { const s = Object.entries(q).filter(([k, v]) => v !== '' && v != null && v !== false).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(v)).join('&'); return s ? '?' + s : ''; };
   R.replaceQuery = (q) => { const { path } = R.parse(); history.replaceState(null, '', '#' + path + R.qs(q)); };
@@ -46,7 +47,7 @@
       const printMode = !!m.meta.print;
       document.body.classList.toggle('print-mode', printMode);
       let root;
-      if (printMode) { app.className = 'print-app'; app.innerHTML = '<div id="content" class="print-root"></div>'; root = app.firstElementChild; TH.layout.reset(); }
+      if (printMode) { app.className = 'print-app'; app.innerHTML = '<div id="content" class="print-root" tabindex="-1"></div>'; root = app.firstElementChild; TH.layout.reset(); }
       else {
         TH.layout.ensure(app);
         const prev = document.getElementById('content'); root = prev.cloneNode(false); prev.replaceWith(root);
@@ -70,7 +71,12 @@
       const root = document.getElementById('content');
       if (root) root.innerHTML = `<div class="card"><div class="card-b">${TH.ui.note('danger', 'Lỗi hiển thị trang', TH.esc(e.message))}</div></div>`;
     }
-    if (R._lastPath !== path) window.scrollTo(0, 0);
+    const pathChanged = R._lastPath !== path;
+    if (pathChanged) {
+      const saved = scrollPositions.get(location.hash);
+      window.scrollTo(0, saved == null ? 0 : saved);
+      if (!m?.meta?.print) setTimeout(() => { const main = document.getElementById('content'); if (main) main.focus({ preventScroll: true }); }, 0);
+    }
     R._lastPath = path;
     R._rendering = false;
     if (R._again) { R._again = false; R.render(); }

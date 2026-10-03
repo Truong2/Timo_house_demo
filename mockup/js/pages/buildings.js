@@ -168,7 +168,7 @@
       const ops = S.where('ownerPayments', o => o.buildingId === b.id).sort((a, c) => a.dueDate.localeCompare(c.dueDate));
       body.innerHTML = K.tableCard('ot', 'Lịch trả tiền nhà', `<a class="btn btn-ghost btn-sm" href="#/owner-payments?building=${b.id}">Mở lịch trả</a>`);
       U.table(body.querySelector('#ot'), { rows: ops, noPager: true, cols: ownerPayCols() });
-      U.bind(body, { 'op-pay': (el) => TH.pages.ownerPayDrawer(el.dataset.id) });
+      U.bind(body, { 'op-pay': (el) => TH.pages.ownerPayDrawer(el.dataset.id), 'op-trace': (el) => TH.pages.ownerPayTrace(el.dataset.id) });
     }
     if (tab === 'nhan-su') {
       const as = S.where('assignments', a => a.buildingId === b.id).sort((a, c) => String(c.from).localeCompare(String(a.from)));
@@ -179,16 +179,20 @@
         { key: 'sc', label: 'Phạm vi', render: a => a.roomId ? U.chip('Phòng ' + Q.roomCode(a.roomId), 'purple') : U.chip('Cả tòa', 'gray') }, { key: 'r', label: 'Trách nhiệm', render: a => esc(TH.data.catalog.responsibilities[a.responsibility] || a.responsibility) },
         { key: 'f', label: 'Từ', render: a => F.date(a.from) }, { key: 'to', label: 'Đến', render: a => a.to ? F.date(a.to) : U.chip('Hiệu lực', 'green') },
         { key: 'l', label: 'Leader', render: a => esc((Q.leaderOf(a.employeeId, a.to || F.today()) || {}).name || '–') },
+        { key: 'by', label: 'Người thay đổi', render: a => U.cell2(esc(a.changedBy || 'Dữ liệu lịch sử'), a.changedAt ? F.datetime(a.changedAt) : 'Không có thời điểm nguồn') },
       ] });
     }
     if (tab === 'dich-vu-dau-vao') {
       const v = b.vendor || {};
       const bills = (k) => Object.entries((v[k] || {}).bills || {}).sort().map(([m, a]) => `<div class="mini-row"><span>${F.periodShort(m)}</span><b class="grow tr">${F.vnd(a)}</b></div>`).join('') || '<span class="muted small">Chưa có hóa đơn</span>';
-      body.innerHTML = `<div class="grid grid-3">${[['electric', 'Điện', 'zap'], ['water', 'Nước', 'droplet'], ['internet', 'Mạng', 'wifi']].map(([k, l, ic]) => U.card({ title: l, icon: ic, sub: `Mã KH: ${esc((v[k] || {}).code || 'chưa có')} · Chủ HĐ: ${esc((v[k] || {}).holder || '–')}`, body: bills(k) })).join('')}</div>
+      const complianceDocs = Q.documentsScoped().filter(d => d.buildingId === b.id && ['pccc', 'red_book'].includes(d.type) && d.status === 'current');
+      const docsHtml = complianceDocs.length ? complianceDocs.map(d => `<div class="mini-row"><span>${U.chip(d.type === 'pccc' ? 'PCCC' : 'Sổ đỏ', d.type === 'pccc' ? 'amber' : 'purple')}</span><span class="grow">${esc(d.name)}</span><button class="btn btn-ghost btn-xs" type="button" data-act="docdl" data-id="${esc(d.id)}">Tải</button></div>`).join('') : '<span class="muted small">Chưa có tài liệu PCCC / sổ đỏ hiện hành.</span>';
+      body.innerHTML = `<div class="grid grid-3">${[['electric', 'Điện', 'zap'], ['water', 'Nước', 'droplet'], ['internet', 'Mạng', 'wifi']].map(([k, l, ic]) => U.card({ title: l, icon: ic, sub: `Mã HĐ/KH: ${esc((v[k] || {}).code || 'chưa có')} · Chủ HĐ: ${esc((v[k] || {}).holder || '–')} · Hiệu lực: ${F.date((v[k] || {}).effectiveFrom || b.operatedFrom)}`, body: bills(k) })).join('')}</div>
+        <div class="mt16">${U.card({ title: 'Hồ sơ pháp lý tòa', icon: 'folder', body: docsHtml })}</div>
         ${U.note('info', 'Nguồn', 'Mã khách hàng nhà cung cấp và số tiền hóa đơn 2026 từ file "Danh sách mã HĐ điện nước mạng" (mã đã che). Hóa đơn nhà cung cấp ghi vào Chi phí theo tòa ở mốc 1B.')}`
         + (TH.ms.on('2') ? '<div class="mt16">' + U.card({ title: 'Điện trả qua chủ nhà (UI-43)', icon: 'zap', actions: U.btn({ label: 'Khai báo', icon: 'pencil', size: 'btn-xs', act: 'viaowner', perm: 'expenses.manage' }),
           body: v.electricViaOwner ? U.kv([['Đơn giá trả chủ nhà', v.electricViaOwner.unitPrice ? F.vnd(v.electricViaOwner.unitPrice) + 'đ/kWh' : 'Chưa có – báo cáo âm dương gắn cờ'], ['Hiệu lực từ', F.date(v.electricViaOwner.from)], ['Ghi chú', esc(v.electricViaOwner.note || '–')]]) : '<p class="small muted">Trả trực tiếp nhà cung cấp</p>' }) + '</div>' : '');
-      U.bind(body, { viaowner: () => { const vo = v.electricViaOwner || {}; K.formDrawer({ title: 'Điện trả qua chủ nhà – tòa ' + esc(b.code), modal: true, note: U.note('info', '', 'Âm dương điện (web): chi = đơn giá × kWh trên hóa đơn đã phát hành. Để trống đơn giá thì chỉ gắn cờ "chưa có đơn giá".'),
+      U.bind(body, { docdl: (el) => TH.pages.docDownload(el.dataset.id), viaowner: () => { const vo = v.electricViaOwner || {}; K.formDrawer({ title: 'Điện trả qua chủ nhà – tòa ' + esc(b.code), modal: true, note: U.note('info', '', 'Âm dương điện (web): chi = đơn giá × kWh trên hóa đơn đã phát hành. Để trống đơn giá thì chỉ gắn cờ "chưa có đơn giá".'),
         fields: [{ name: 'on', label: 'Trả điện qua chủ nhà', type: 'check', checkLabel: 'Tòa trả tiền điện qua chủ nhà', value: !!v.electricViaOwner }, { name: 'unitPrice', label: 'Đơn giá (đ/kWh)', type: 'number', value: vo.unitPrice || '' }, { name: 'from', label: 'Hiệu lực từ', type: 'date', value: vo.from || F.today() }, { name: 'note', label: 'Căn cứ', span: true, value: vo.note || '' }],
         submit: 'Lưu', onSubmit: (x) => { X.setElectricViaOwner(b.id, x); U.toast('ok', 'Đã cập nhật'); } }); } });
     }
@@ -209,7 +213,15 @@
     { key: 'paid', label: 'Đã chi (gồm bù trừ)', num: true, render: o => F.vnd(o.paid) },
     { key: 'rem', label: 'Còn phải trả', num: true, render: o => F.vnd(Math.max(0, o.amountDue - o.paid)) },
     { key: 'st', label: 'Trạng thái', render: o => o.paid >= o.amountDue ? U.chip('Đã trả', 'green') : o.dueDate < F.today() ? U.chip('Quá hạn', 'red') : F.daysBetween(F.today(), o.dueDate) <= 7 ? U.chip('Đến hạn ≤ 7 ngày', 'amber') : U.chip('Chưa đến hạn', 'gray') },
+    { key: 'trace', label: 'Lần chi / audit', render: o => (o.payments || []).length || (o.offsets || []).length ? U.actBtn({ icon: 'history', label: 'Truy vết', act: 'op-trace', attrs: { 'data-id': o.id } }) : '–' },
     { key: 'a', label: '', render: o => o.paid < o.amountDue ? U.actBtn({ icon: 'banknote', label: 'Ghi chi', act: 'op-pay', attrs: { 'data-id': o.id }, perm: 'ownerPayments.record' }) : '' },
   ];
   TH.pages.ownerPayCols = ownerPayCols;
+  TH.pages.ownerPayTrace = (id) => {
+    const o = S.get('ownerPayments', id), audit = S.where('auditLog', a => a.entity === 'ownerPayment' && a.entityId === id).slice().reverse();
+    if (!o) return;
+    const pays = (o.payments || []).map(p => `<div class="mini-row"><span>${F.date(p.date)} · ${esc(p.method === 'cash' ? 'Tiền mặt' : 'Chuyển khoản')}</span><b>${F.vnd(p.amount)}</b><span class="grow small">${esc(p.reference || 'Không có mã giao dịch')} · ${esc(p.evidence || 'Chưa gắn chứng từ')} · ${esc(p.by || '–')}</span>${p.expenseId ? U.link('#/expenses?period=' + F.period(p.date) + '&q=' + encodeURIComponent((S.get('expenses', p.expenseId) || {}).code || ''), 'Mở chi phí') : ''}</div>`).join('');
+    const offsets = (o.offsets || []).map(x => `<div class="mini-row"><span>${F.date(x.date)} · Bù trừ</span><b>${F.vnd(x.amount)}</b><span class="grow small">${esc(x.reason || '–')} · ${esc(x.by || '–')}</span></div>`).join('');
+    U.drawer({ title: 'Truy vết lịch trả chủ nhà', sub: `${esc((Q.building(o.buildingId) || {}).code || '')} · kỳ từ ${F.date(o.from)}`, wide: true, body: U.card({ title: 'Lần chi và chứng từ', body: pays + offsets || U.empty({ title: 'Chưa phát sinh lần chi' }) }) + '<div class="mt16">' + U.card({ title: 'Audit', body: audit.length ? U.timeline(audit.map(a => ({ when: F.datetime(a.at), title: esc(a.action || 'Thay đổi'), sub: esc([a.by, a.note].filter(Boolean).join(' · ')) }))) : '<span class="muted small">Chưa có audit.</span>' }) + '</div>' });
+  };
 })(window.TH);

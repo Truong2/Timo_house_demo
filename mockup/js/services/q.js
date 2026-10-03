@@ -119,6 +119,39 @@
   };
   Q.stayLabel = (s) => { const c = Q.customer(s.customerId); return (c ? c.name : '') + ' · ' + s.code; };
   Q.endTypeLabel = (k) => ((TH.data.catalog.endTypes.find(x => x.key === k) || {}).label) || '';
+  Q.contractState = (stay, asOf) => {
+    if (!stay) return 'unknown';
+    const day = asOf || F.today(), refund = S.one('refunds', r => r.stayId === stay.id);
+    if (['breach', 'abscond'].includes(stay.endType)) return 'breach';
+    if (stay.status === 'ended') return refund && refund.status !== 'paid' ? 'pending_settlement' : 'ended';
+    if (!Q.signedContract || !Q.signedContract(stay.id)) return 'pending_signature';
+    const warn = Number(Q.param('expiryWarnDays', day)) || 30;
+    if (stay.status === 'active' && stay.endDate && stay.endDate >= day && stay.endDate <= F.addDays(day, warn)) return 'expiring';
+    return 'active';
+  };
+  Q.contractRows = (filters = {}) => {
+    const asOf = filters.asOf || F.today(), q = String(filters.q || '').trim().toLowerCase();
+    return Q.scoped(S.all('stays')).map(stay => {
+      const customer = Q.customer(stay.customerId) || {}, room = Q.room(stay.roomId) || {}, building = Q.building(stay.buildingId) || {}, manager = Q.managerOf(stay.buildingId, asOf);
+      return { id: stay.id, stay, customer, room, building, manager, state: Q.contractState(stay, asOf), signedFile: Q.signedContract ? Q.signedContract(stay.id) : null, versions: S.where('stayVersions', v => v.stayId === stay.id).length };
+    }).filter(x => (!filters.view || filters.view === 'all' || x.state === filters.view)
+      && (!q || [x.stay.code, x.customer.name, x.customer.phone, x.room.code].some(v => String(v || '').toLowerCase().includes(q)))
+      && (!filters.building || x.stay.buildingId === filters.building)
+      && (!filters.manager || (x.manager || {}).id === filters.manager)
+      && (!filters.from || x.stay.endDate >= filters.from)
+      && (!filters.to || x.stay.rentStart <= filters.to));
+  };
+  Q.contractTimeline = (stayId) => {
+    const versions = S.where('stayVersions', v => v.stayId === stayId).map(v => ({ at: v.createdAt || v.effectiveFrom, type: 'version', title: `Phiên hợp đồng v${v.version}`, detail: v.reason, ref: v.id }));
+    const docs = (Q.contractsOfStay ? Q.contractsOfStay(stayId) : []).map(d => ({ at: d.uploadedAt || d.createdAt, type: 'document', title: d.signed ? 'Hợp đồng đã ký' : 'Tài liệu hợp đồng', detail: d.name, ref: d.id }));
+    const audits = S.where('auditLog', a => (a.entity === 'stay' && a.entityId === stayId) || (a.entity === 'stayVersion' && versions.some(v => v.ref === a.entityId))).map(a => ({ at: a.at, type: 'audit', title: a.summary, detail: a.userName, ref: a.id }));
+    return [...versions, ...docs, ...audits].filter(x => x.at).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  };
+  Q.debtAging = (asOf, filters = {}) => {
+    const day = asOf || F.today();
+    return Q.scoped(S.all('invoices')).map(invoice => { const payment = Q.invState(invoice, day), stay = Q.stay(invoice.stayId); const ageDays = payment.debt.days || 0; const bucket = ageDays <= 0 ? 'not_due' : ageDays <= 30 ? '1-30' : ageDays <= 60 ? '31-60' : ageDays <= 90 ? '61-90' : ageDays <= 180 ? '91-180' : '181+'; return { invoice, payment, stay, ageDays, bucket, contractState: Q.contractState(stay, day) }; })
+      .filter(x => x.payment.remaining > 0 && (!filters.bucket || x.bucket === filters.bucket) && (!filters.building || x.invoice.buildingId === filters.building) && (!filters.contractState || x.contractState === filters.contractState));
+  };
 
   /* Phòng tính vào số phòng lương / HS / lấp đầy / mẫu số phân bổ: bỏ đồng hồ chung, phòng ngừng khai thác và – theo tham số OQ-14 – phòng không có giá thuê (chủ nhà ở) */
   Q.rentable = (r, date) => r.exploitation !== 'meter_common' && r.status !== 'inactive' && (r.price > 0 || !Q.param('noRentRoomsExcluded', date));

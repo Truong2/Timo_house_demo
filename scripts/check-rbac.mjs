@@ -34,14 +34,15 @@ const navItems = [...NAV.flatMap(n => n.items || [n]), ...FOOT];
 navItems.forEach(n => expect(!!routeOf(n.href), `sidebar "${n.label}" trỏ tới route không tồn tại (${n.href})`));
 const visibleNav = (role, ms) => navItems.filter(n => [n.href, ...(n.alts || [])].some(h => { const r = routeOf(h); return R.can(role, r.perm) && msOn(ms, r.ms); })).map(n => n.key);
 navItems.forEach(n => (n.alts || []).forEach(h => expect(!!routeOf(h), `sidebar "${n.label}" alt trỏ route không tồn tại (${h})`)));
-const P2FULL = ['dashboard', 'owners', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings'];
-const P3FULL = ['dashboard', 'owners', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings'];
+const CT = a => a.flatMap(k => k === 'tenants' ? [k, 'contracts'] : [k]);
+const P2FULL = CT(['dashboard', 'owners', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings']);
+const P3FULL = CT(['dashboard', 'owners', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'sales', 'leads', 'deals', 'commission', 'billing', 'expenses', 'refunds', 'shares', 'reports', 'hr', 'zalo', 'import', 'settings']);
 const expected = {
-  admin: { '1A': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'hr', 'zalo', 'import', 'settings'], '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL, '3': P3FULL },
-  ketoan: { '1B': ['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings'], '2': P2FULL, '3': P3FULL },
-  vanhanh: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'refunds'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'billing', 'refunds'], '3': ['dashboard', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'billing', 'refunds'] },
-  leader: { '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'documents', 'billing', 'hr'], '3': ['dashboard', 'buildings', 'tenants', 'assets', 'documents', 'billing', 'hr'] },
-  truongphong: { '1A': ['dashboard', 'buildings', 'tenants', 'billing', 'hr'], '1B': ['dashboard', 'buildings', 'tenants', 'billing', 'reports', 'hr'], '2': ['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo'], '3': ['dashboard', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo'] },
+  admin: { '1A': CT(['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'hr', 'zalo', 'import', 'settings']), '1B': CT(['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings']), '2': P2FULL, '3': P3FULL },
+  ketoan: { '1B': CT(['dashboard', 'owners', 'buildings', 'tenants', 'billing', 'expenses', 'refunds', 'reports', 'hr', 'zalo', 'import', 'settings']), '2': P2FULL, '3': P3FULL },
+  vanhanh: { '1A': CT(['dashboard', 'buildings', 'tenants', 'billing', 'refunds']), '1B': CT(['dashboard', 'buildings', 'tenants', 'billing', 'refunds']), '2': CT(['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'billing', 'refunds']), '3': CT(['dashboard', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'billing', 'refunds']) },
+  leader: { '1B': CT(['dashboard', 'buildings', 'tenants', 'billing', 'hr']), '2': CT(['dashboard', 'buildings', 'tenants', 'documents', 'billing', 'hr']), '3': CT(['dashboard', 'buildings', 'tenants', 'assets', 'documents', 'billing', 'hr']) },
+  truongphong: { '1A': CT(['dashboard', 'buildings', 'tenants', 'billing', 'hr']), '1B': CT(['dashboard', 'buildings', 'tenants', 'billing', 'reports', 'hr']), '2': CT(['dashboard', 'buildings', 'tenants', 'repairs', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo']), '3': CT(['dashboard', 'buildings', 'tenants', 'repairs', 'assets', 'documents', 'sales', 'leads', 'deals', 'billing', 'reports', 'hr', 'zalo']) },
   truongkd: { '2': ['dashboard', 'buildings', 'sales', 'leads', 'deals'] },
   sale: { '2': ['dashboard', 'buildings', 'sales', 'leads', 'deals'] },
   kythuat: { '2': ['dashboard', 'buildings', 'repairs'], '3': ['dashboard', 'buildings', 'repairs', 'assets'] },
@@ -102,7 +103,7 @@ ROUTES.filter(r => PHASE3_UI.includes(r.ui)).forEach(r => expect(pageSources.inc
 const qSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/services/q.js'), 'utf8'), authSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/core/auth.js'), 'utf8');
 expect(/Q\.scoped = [\s\S]{0,600}?roomScope\(/.test(qSrc), 'q.js: Q.scoped không áp phạm vi phòng (auth.roomScope)');
 expect(/A\.inScopeRoom = /.test(authSrc) && /A\.roomScope = /.test(authSrc), 'auth.js: thiếu roomScope / inScopeRoom');
-['billing-invoices.js', 'billing-debts.js', 'tenants.js', 'refunds.js', 'billing-receipts.js'].forEach(f => expect(fs.readFileSync(path.join(pageDir, f), 'utf8').includes('Q.scoped('), `${f}: danh sách theo phòng không dùng Q.scoped – phân công theo phòng bị lộ`));
+['billing-invoices.js', 'billing-debts.js', 'tenants.js', 'refunds.js', 'billing-receipts.js'].forEach(f => { const src = fs.readFileSync(path.join(pageDir, f), 'utf8'); expect(src.includes('Q.scoped(') || (f === 'billing-debts.js' && src.includes('Q.debtAging(')), `${f}: danh sách theo phòng không dùng selector đã áp phạm vi – phân công theo phòng bị lộ`); });
 
 if (errs.length) { console.error(`✗ RBAC: ${errs.length}/${checks} kiểm tra lỗi\n - ` + errs.join('\n - ')); process.exit(1); }
 console.log(`✓ RBAC: ${checks} kiểm tra đạt · ${ROUTES.length} route · ${PHASE1_UI.length} màn Phase 1 + ${PHASE2_UI.length} màn Phase 2 + ${PHASE3_UI.length} màn Phase 3 · ${Object.keys(R.ROLES).length} vai trò`);

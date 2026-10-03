@@ -53,15 +53,24 @@
         { name: 'src', label: 'Nguồn', options: [['manual', 'Nhập tay'], ['import', 'Import'], ['payroll', 'Bảng lương'], ['ownerPayment', 'Lịch trả chủ nhà'], ['bench', 'Excel T8 (song song)']] }], q)
       + '<div class="mt16">' + K.tableCard('t', rows.length + ' khoản chi') + '</div>';
     K.bindFilters(root, ['period']);
-    U.table(root.querySelector('#t'), { rows, pageSize: 25, cols: [
+    const traceExpense = (e) => {
+      const line = CAT().reportLines.find(l => l.code === e.reportLine) || {};
+      const sourceLink = e.source === 'ownerPayment' && e.refId ? U.link('#/owner-payments?building=' + (e.buildingId || ''), 'Mở lịch trả chủ nhà') : e.source === 'commission' && e.refId ? U.link('#/sales/commission?tab=hoa-hong', 'Mở hoa hồng') : e.source === 'payroll' ? U.link('#/hr/payroll?period=' + e.period, 'Mở bảng lương') : 'Nhập tay / import';
+      U.drawer({ title: 'Truy vết chi phí ' + esc(e.code), sub: F.date(e.date) + ' · ' + F.vndd(e.amount), wide: true, body: U.kv([
+        ['Taxonomy', esc(catLabel(e.category))], ['Dòng báo cáo nhận chi phí', `${esc(line.row || '–')} · ${esc(line.label || lineLabel(e.reportLine))}`],
+        ['Quy tắc phân bổ', e.scope === 'fund' ? `Quỹ ${esc(e.fundCode || '')} · phân bổ theo cấu hình kỳ` : `Ghi trực tiếp tòa ${esc((Q.building(e.buildingId) || {}).code || '')}${e.roomId ? ' · phòng ' + esc(Q.roomCode(e.roomId)) : ''}`],
+        ['Nguồn nghiệp vụ', sourceLink], ['Người ghi', esc(e.enteredBy || 'Import Excel')], ['Chứng từ / bằng chứng', esc(e.evidence || 'Chưa gắn file')]
+      ]) + U.note('info', 'Liên kết hai chiều', `${U.link('#/reports/buildings?period=' + e.period + (e.buildingId ? '&building=' + e.buildingId : '') + '&line=' + encodeURIComponent(e.reportLine || ''), 'Mở ô báo cáo liên quan')} · Khi mở drill-down báo cáo, chứng từ ${esc(e.code)} được liệt kê theo cùng dòng và kỳ.`) });
+    };
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, onRowOpen: traceExpense, cols: [
       { key: 'code', label: 'Mã chi phí', render: e => `<b>${esc(e.code)}</b>` }, { key: 'note', label: 'Nội dung', render: e => U.cell2(esc(e.note || catLabel(e.category)), esc(e.vendor || '')) },
       { key: 'cat', label: 'Loại', render: e => esc(catLabel(e.category)) }, { key: 'sc', label: 'Tòa / quỹ', render: e => e.scope === 'fund' ? U.chip((CAT().funds.find(f => f.code === e.fundCode) || {}).label || 'Quỹ chung', 'purple') : `<b>${esc((Q.building(e.buildingId) || {}).code || '')}</b>${e.roomId ? ' · ' + esc(Q.roomCode(e.roomId)) : ''}` },
       { key: 'line', label: 'Dòng báo cáo', render: e => `<span class="small">${esc(lineLabel(e.reportLine))}</span>` }, { key: 'd', label: 'Ngày chi', sortable: true, sortVal: e => e.date, render: e => F.date(e.date) },
       { key: 'p', label: 'Kỳ hưởng', render: e => F.periodShort(e.period) + (F.period(e.date) !== e.period ? ' ' + U.chip('khác tháng chi', 'amber') : '') },
       { key: 'a', label: 'Số tiền', num: true, sortable: true, sortVal: e => e.amount, render: e => F.vnd(e.amount) + (e.isEquipment ? `<br><small class="muted">KH ${e.depMonths ? e.depMonths + ' tháng' : F.pctv(e.depRate) + '/tháng'}</small>` : '') },
       { key: 's', label: 'Nguồn', render: e => U.chip({ manual: 'Nhập tay', import: 'Import', payroll: 'Bảng lương', ownerPayment: 'Tiền nhà', bench: 'Excel T8' }[e.source] || e.source, 'gray') },
-      { key: 'x', label: '', render: e => e.source !== 'payroll' ? U.actBtn({ icon: 'trash', label: 'Hủy khoản chi', act: 'void', attrs: { 'data-id': e.id }, perm: 'expenses.manage' }) : '' }] });
-    U.bind(root, { adj: () => TH.pages.adjustDrawer(period, { reportLine: 'other' }), add: form, void: (el) => K.formDrawer({ title: 'Hủy khoản chi', modal: true, size: 'sm', fields: [{ name: 'reason', label: 'Lý do', type: 'textarea', req: true, span: true }], submit: 'Hủy khoản', onSubmit: (d) => { X.voidExpense(el.dataset.id, d.reason); U.toast('ok', 'Đã hủy'); } }),
+      { key: 'x', label: '', render: e => U.rowActions([U.actBtn({ icon: 'history', label: 'Truy vết', act: 'trace', attrs: { 'data-id': e.id } }), e.source !== 'payroll' ? U.actBtn({ icon: 'trash', label: 'Hủy khoản chi', act: 'void', attrs: { 'data-id': e.id }, perm: 'expenses.manage' }) : ''].filter(Boolean)) }] });
+    U.bind(root, { adj: () => TH.pages.adjustDrawer(period, { reportLine: 'other' }), add: form, trace: (el) => traceExpense(S.get('expenses', el.dataset.id)), void: (el) => K.formDrawer({ title: 'Hủy khoản chi', modal: true, size: 'sm', fields: [{ name: 'reason', label: 'Lý do', type: 'textarea', req: true, span: true }], submit: 'Hủy khoản', onSubmit: (d) => { X.voidExpense(el.dataset.id, d.reason); U.toast('ok', 'Đã hủy'); } }),
       exp: () => K.csv('chi-phi-' + period + '.csv', ['Mã', 'Ngày chi', 'Kỳ hưởng', 'Loại', 'Tòa/quỹ', 'Dòng báo cáo', 'Số tiền', 'Nhà cung cấp', 'Nội dung'], rows.map(e => [e.code, e.date, e.period, catLabel(e.category), e.scope === 'fund' ? e.fundCode : (Q.building(e.buildingId) || {}).code, lineLabel(e.reportLine), e.amount, e.vendor, e.note])) });
     if (q.open === 'new') form();
   });

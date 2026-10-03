@@ -8,5 +8,6 @@ Thumbs.db
 tmp/
 docs/uat/**/_rendered/
 output/smoke/
+output/ui-audit/
 __pycache__/
 mockup/vendor/intake/

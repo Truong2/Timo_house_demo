@@ -143,7 +143,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 .status-tab .cnt{background:var(--gray-bg);color:var(--gray);border-radius:999px;padding:0 6px;font-size:11px;font-weight:600}
 .status-tab.on .cnt{background:var(--primary);color:#fff}
 /* Tabs */
-.tabs{display:flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none}
+.tabs{display:flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;max-width:100%;min-width:0;width:100%}
 .tabs button{padding:10px 14px;font-size:13.5px;font-weight:500;color:var(--muted);border:0;border-radius:7px;margin:0;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .tabs button.on{color:var(--primary);background:var(--primary-50);font-weight:600}
 .tabs button:hover:not(.on){color:var(--text-2);background:var(--gray-bg)}
@@ -507,6 +507,7 @@ td.c-P .att-btn{background:var(--green-bg);color:var(--green);border-color:trans
 
 /* ===== Layout màn danh sách: dải Thông tin liên quan thay cột phải ===== */
 .period-grid{align-items:start}.period-grid>div{min-width:0}
+.form-error-summary{margin:0 0 14px;padding:12px 14px;border:1px solid var(--red-500);border-radius:10px;background:var(--red-bg);color:var(--red-700,#991B1B)}.form-error-summary ul{margin:6px 0 0 18px}.form-error-summary a{color:inherit;text-decoration:underline}.tbl-sort{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;font:inherit;font-weight:inherit;text-align:inherit;color:inherit}.tbl-wrap:focus-visible{outline:3px solid rgba(37,99,235,.25);outline-offset:2px}.dropzone[role=button]:focus-visible{border-color:var(--primary)}
 @media (max-width:1180px){.period-grid{grid-template-columns:1fr}}
 
 /* ===== Workbook alignment v2.3 ===== */

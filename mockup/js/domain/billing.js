@@ -113,10 +113,10 @@
 
   /* 4 biến thể mẫu in: cùng bố cục, khác nguồn dữ liệu và tài khoản nhận (UI-12) */
   B.TEMPLATES = {
-    VP: { key: 'VP', name: 'HĐ (VP)', group: 'S' },
-    VP_HANG: { key: 'VP_HANG', name: 'HĐ (VP-HẰNG)', group: 'S' },
-    TECH: { key: 'TECH', name: 'HĐ (TECH)', group: 'T' },
-    G1_TECH: { key: 'G1_TECH', name: 'HĐ G1 (TECH)', group: 'G' },
+    VP: { key: 'VP', name: 'HĐ (VP)', group: 'S', version: 'VP-v4', accountTemplate: 'VP', transferPrefix: '' },
+    VP_HANG: { key: 'VP_HANG', name: 'HĐ (VP-HẰNG)', group: 'S', version: 'VP-HẰNG-v4', accountTemplate: 'VP_HANG', transferPrefix: '' },
+    TECH: { key: 'TECH', name: 'HĐ (TECH)', group: 'T', version: 'TECH-v4', accountTemplate: 'TECH', transferPrefix: '' },
+    G1_TECH: { key: 'G1_TECH', name: 'HĐ G1 (TECH)', group: 'G', version: 'G1-TECH-v4', accountTemplate: 'G1_TECH', transferPrefix: '' },
   };
   B.printModel = (inv, ctx) => {
     const p = inv.period, [y, m] = p.split('-');
@@ -128,9 +128,10 @@
     const dd = (iso) => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '';
     const fee = ctx.lateFee != null ? ctx.lateFee : 200000;
     const acc = ctx.account || {};
+    const tpl = B.TEMPLATES[ctx.template] || B.TEMPLATES.VP;
     return {
-      template: (B.TEMPLATES[ctx.template] || B.TEMPLATES.VP).name,
-      templateVersion: extended ? 'Mẫu mở rộng · 13 dòng' : 'Mẫu chuẩn · 12 dòng',
+      template: tpl.name,
+      templateVersion: `${tpl.version} · ${extended ? 'Mẫu mở rộng · 13 dòng' : 'Mẫu chuẩn · 12 dòng'}`,
       title: `HÓA ĐƠN THÁNG ${Number(m)}/${y}`,
       intro: `Xin thông báo để anh/chị biết tiền thuê phòng Tháng ${Number(m)} và tiền dịch vụ Tháng ${Number(m)} năm ${y} như sau:`,
       customerCode: ctx.customerCode, room: ctx.roomCode, cutoff: dd(inv.cutoff),
@@ -139,7 +140,8 @@
       noteJ7: `ĐỀ NGHỊ QUÝ KHÁCH HÀNG THANH TOÁN ĐÚNG HẠN NGÀY ${Number((inv.dueTo || '').slice(8, 10))}/${Number(pm)} VÀ GHI ĐÚNG NỘI DUNG CK. TRƯỜNG HỢP THANH TOÁN CHẬM PHÍ PHẠT ${Math.round(fee / 1000)}K/NGÀY.`,
       dueText: `Yêu cầu khách hàng thanh toán đầy đủ và đúng hạn từ ngày ${Number((inv.dueFrom || '').slice(8, 10))} đến ngày ${Number((inv.dueTo || '').slice(8, 10))} tháng ${Number(pm)} năm ${py}`,
       warnText: 'Quá thời hạn thanh toán trên, nếu khách hàng chưa thanh toán thì Ban Quản Lý Tòa Nhà sẽ cắt dịch vụ và trục xuất ra khỏi phòng',
-      transfer: ctx.customerCode,
+      transfer: tpl.transferPrefix + ctx.customerCode,
+      accountTemplate: tpl.accountTemplate,
       transferNote: 'LƯU Ý: QUÝ KHÁCH HÀNG CHUYỂN KHOẢN KHÔNG ĐÚNG NỘI DUNG KẾ TOÁN KHÔNG CHECK ĐƯỢC SẼ TÍNH LÀ CHƯA THANH TOÁN. TRÂN TRỌNG !',
       accountLine: acc.number ? `TK ${acc.number} - ${acc.bank} - ${acc.holder}` : '(chưa gán tài khoản nhận)',
       closing: 'TRÂN TRỌNG THÔNG BÁO',

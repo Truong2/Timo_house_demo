@@ -1,6 +1,6 @@
 {
   "label": "after",
-  "at": "2026-09-30T10:13:25.742Z",
+  "at": "2026-10-03T10:45:05.332Z",
   "results": [
     {
       "id": "P0-1",
@@ -30,7 +30,7 @@
       "id": "P0-5a",
       "name": "Báo cáo KD T8: ô KPI LNR = dòng cuối cầu nối",
       "ok": true,
-      "detail": "KPI LNR 779688893 · cầu nối 779688893"
+      "detail": "KPI LNR 685928969 · cầu nối 685928969"
     },
     {
       "id": "P0-5b",

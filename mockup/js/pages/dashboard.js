@@ -65,6 +65,9 @@
     const refunds = S.where('refunds', r => !['paid'].includes(r.status) && bset.has(r.buildingId));
     const cleaning = rooms.filter(r => r.status === 'vacant_cleaning');
     const pctNow = due ? paid / due : 0;
+    const keep = Object.fromEntries(['group','area','manager','leader','direct','resp'].filter(k => q[k]).map(k => [k, q[k]]));
+    const filterQs = new URLSearchParams(keep).toString(); const suffix = '&period=' + encodeURIComponent(period) + (filterQs ? '&' + filterQs : '');
+    const lines = i => TH.calc.billing.expand(i.lines); const rentRevenue = sum(main, i => lines(i)[0].amount); const depositRevenue = sum(main, i => lines(i)[1].amount); const breachRevenue = sum(br, i => i.totalDue);
     root.innerHTML = U.pageHead({ title: 'Tổng quan', sub: `${F.periodLabel(period)} · ${bs.length} tòa trong phạm vi · số liệu tính đến ${F.date(F.today())}` })
       + K.filters([
         { name: 'period', label: 'Kỳ', options: K.periodOpts(), value: S.meta.period, all: false },
@@ -75,9 +78,14 @@
         ...(TH.ms.on('2') && q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh (trực tiếp + gián tiếp)' }, { name: 'resp', label: 'Vai trò phụ trách', options: Q.RESP_FILTER.filter(x => x[0] !== 'operate'), all: 'Vận hành phòng' }] : []),
       ], q)
       + `<div class="grid grid-3 mt16">
-        ${U.kpi({ label: 'Trống ở luôn', value: vNow.length, cap: 'phòng sẵn sàng, chưa có khách cọc', icon: 'door', tone: 'blue' })}
-        ${U.kpi({ label: 'Trống cuối tháng', value: vEnd.length, cap: 'khách hết HĐ / báo trả trong tháng', icon: 'calendar-clock', tone: 'amber' })}
-        ${U.kpi({ label: 'Đang chờ (đã cọc)', value: vWait.length, cap: 'khách đã cọc, chưa vào ở', icon: 'user-check', tone: 'purple' })}
+        ${U.kpi({ label: 'Trống ở luôn', value: vNow.length, cap: `<a href="#/buildings?roomStatus=vacant_ready${suffix}">phòng sẵn sàng, chưa có khách cọc → xem chi tiết</a>`, icon: 'door', tone: 'blue' })}
+        ${U.kpi({ label: 'Trống cuối tháng', value: vEnd.length, cap: `<a href="#/contracts?view=expiring${suffix}">khách hết HĐ / báo trả trong tháng → xem HĐ</a>`, icon: 'calendar-clock', tone: 'amber' })}
+        ${U.kpi({ label: 'Đang chờ (đã cọc)', value: vWait.length, cap: `<a href="#/contracts?view=pending_signature${suffix}">khách đã cọc, chưa vào ở → xem HĐ</a>`, icon: 'user-check', tone: 'purple' })}
+      </div>`
+      + `<div class="grid grid-3 mt16">
+        ${U.kpi({ label: 'Doanh thu tiền phòng', value: money ? F.vnd(rentRevenue) : main.filter(i=>lines(i)[0].amount>0).length + ' HĐ', cap: `<a href="#/reports/total?${suffix.slice(1)}">drill-down báo cáo và giao dịch nguồn</a>`, icon:'home', tone:'blue' })}
+        ${U.kpi({ label: 'Cọc mới', value: money ? F.vnd(depositRevenue) : main.filter(i=>lines(i)[1].amount>0).length + ' HĐ', cap: `<a href="#/billing/invoices?${suffix.slice(1)}">hóa đơn có cọc mới</a>`, icon:'piggy', tone:'purple' })}
+        ${U.kpi({ label: 'Phá hợp đồng', value: money ? F.vnd(breachRevenue) : br.length + ' HĐ', cap: `<a href="#/billing/debts?group=broken${suffix}">giữ cọc, khoản còn thu tách riêng</a>`, icon:'file-x', tone:'red' })}
       </div>`
       + (!opsView ? '' : `<div class="grid grid-4 mt16">
         ${U.kpi({ label: 'Phải thu kỳ ' + F.periodShort(period), value: money ? F.vnd(due) : main.length + ' HĐ', cap: money ? main.length + ' hóa đơn (không gồm phá HĐ)' : 'hóa đơn đã phát hành', icon: 'receipt', tone: 'blue' })}

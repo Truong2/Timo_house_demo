@@ -26,9 +26,9 @@
 
   /* Bộ lọc đồng bộ query: defs [{name,label,type:'select'|'search'|'date',options,all}] */
   K.filters = (defs, q, extra = '') => U.filterbar(defs.map(d => {
-    if (d.type === 'search') return U.field({ label: d.label, input: U.input({ name: d.name, value: q[d.name] || '', placeholder: d.placeholder || 'Tìm…', attrs: { 'data-f': d.name }, icon: 'search' }) });
-    if (d.type === 'date') return U.field({ label: d.label, input: U.date({ name: d.name, value: q[d.name] || d.value || '', attrs: { 'data-f': d.name } }) });
-    return U.field({ label: d.label, input: U.select({ name: d.name, value: q[d.name] == null ? (d.value || '') : q[d.name], options: d.options, all: d.all === false ? '' : (d.all || 'Tất cả'), attrs: { 'data-f': d.name } }) });
+    if (d.type === 'search') return U.field({ name: d.name, label: d.label, input: U.input({ name: d.name, value: q[d.name] || '', placeholder: d.placeholder || 'Tìm…', attrs: { 'data-f': d.name }, icon: 'search' }) });
+    if (d.type === 'date') return U.field({ name: d.name, label: d.label, input: U.date({ name: d.name, value: q[d.name] || d.value || '', attrs: { 'data-f': d.name } }) });
+    return U.field({ name: d.name, label: d.label, input: U.select({ name: d.name, value: q[d.name] == null ? (d.value || '') : q[d.name], options: d.options, all: d.all === false ? '' : (d.all || 'Tất cả'), attrs: { 'data-f': d.name } }) });
   }), `<div class="field"><label>&nbsp;</label><button type="button" class="btn btn-ghost btn-sm" data-act="clear-f">Xóa bộ lọc</button></div>${extra}`);
   K.bindFilters = (root, keep = []) => {
     let t = null;
@@ -56,10 +56,10 @@
       'close-d': () => d.close(),
       'submit-d': async () => {
         const data = d.data();
-        const submitBtn=d.el.querySelector('[data-act=submit-d]');if(submitBtn.disabled)return;submitBtn.disabled=true;
+        const submitBtn=d.el.querySelector('[data-act=submit-d]');if(submitBtn.disabled)return;submitBtn.disabled=true;submitBtn.setAttribute('aria-busy','true');const oldHtml=submitBtn.innerHTML;submitBtn.innerHTML=`${I('refresh')}<span>Đang xử lý…</span>`;
         try { const r = await onSubmit(data, d); if (r !== false) d.close(); }
         catch (e) { if (e.fields) U.setErrors(d.el, e.fields); U.toast('err', e.fields ? 'Kiểm tra các trường bắt buộc' : 'Không thực hiện được', e.message); }
-        finally { if(submitBtn.isConnected)submitBtn.disabled=false; }
+        finally { if(submitBtn.isConnected){submitBtn.disabled=false;submitBtn.removeAttribute('aria-busy');submitBtn.innerHTML=oldHtml;} }
       },
     });
     return d;
@@ -87,6 +87,13 @@
       + '</Table></Worksheet></Workbook>';
   };
   K.xls = (name, sheet, meta, headers, rows) => { F.download(name, K.xlsXml(sheet, meta, headers, rows), 'application/vnd.ms-excel'); U.toast('ok', 'Đã xuất ' + name, rows.length + ' dòng'); };
+  K.xlsReport = (name, model) => {
+    const x = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const cell = (v, style) => `<Cell${style ? ` ss:StyleID="${style}"` : ''}><Data ss:Type="${typeof v === 'number' && isFinite(v) ? 'Number' : 'String'}">${x(v)}</Data></Cell>`;
+    const body = model.rows.map(r => `<Row ss:StyleID="${r.group ? 'group' : r.bold ? 'total' : 'normal'}">${cell(r.row,'integer')}${cell(r.label)}${r.values.map(v => cell(v == null ? '' : r.ratio ? Math.round(Number(v) * 1000000) / 1000000 : Math.round(Number(v)), r.ratio ? 'ratio' : 'money')).join('')}</Row>`).join('');
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel"><Styles><Style ss:ID="normal"><Alignment ss:Vertical="Center"/></Style><Style ss:ID="head"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1E3A8A" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/></Style><Style ss:ID="title"><Font ss:Bold="1" ss:Size="14"/></Style><Style ss:ID="meta"><Font ss:Color="#555555"/></Style><Style ss:ID="integer"><NumberFormat ss:Format="0"/></Style><Style ss:ID="money"><NumberFormat ss:Format="#,##0;[Red]-#,##0"/></Style><Style ss:ID="ratio"><NumberFormat ss:Format="0.00%"/></Style><Style ss:ID="group"><Font ss:Bold="1"/><Interior ss:Color="#E8EEF7" ss:Pattern="Solid"/></Style><Style ss:ID="total"><Font ss:Bold="1"/><Borders><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style></Styles><Worksheet ss:Name="${x((model.type === 'business' ? 'BÁO CÁO KINH DOANH' : 'BÁO CÁO TỔNG').slice(0,31))}"><Table><Column ss:Width="42"/><Column ss:Width="260"/><Column ss:Width="95" ss:Span="3"/>${model.metadata.map((m,i) => `<Row>${cell(m[0],i===0?'title':'meta')}${cell(m[1],'meta')}</Row>`).join('')}<Row></Row><Row ss:StyleID="head">${model.headers.map(h=>cell(h)).join('')}</Row>${body}</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>${model.metadata.length + 2}</SplitHorizontal><TopRowBottomPane>${model.metadata.length + 2}</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions></Worksheet></Workbook>`;
+    F.download(name, xml, 'application/vnd.ms-excel'); U.toast('ok', 'Đã xuất ' + name, model.rows.length + ' dòng');
+  };
   K.kpis = (items) => `<div class="kpi-row">${items.map(k => U.kpi(k)).join('')}</div>`;
   K.tableCard = (id, title = '', actions = '', sub = '') => U.card({ title, actions, sub, body: `<div id="${id}"></div>`, bodyCls: 'flush' });
   TH.kit = K;

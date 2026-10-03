@@ -19,6 +19,7 @@
     const ms = TH.ms.INFO[TH.ms.current()];
     app.className = 'shell';
     app.innerHTML = `
+      <a class="skip-link" href="#content">Bỏ qua điều hướng, tới nội dung chính</a>
       <aside class="sidebar" id="sidebar">
         <a class="brand" href="#/dashboard"><img src="assets/logo.svg" alt=""><div><b>TimoHouse</b><small>Quản lý nhà cho thuê</small></div></a>
         <nav class="nav">${navHtml}</nav>
@@ -35,7 +36,7 @@
             <button type="button" class="user-btn" data-act="user">${U.avatar(u.name || '?')}<div><b>${esc(u.name || '')}</b><small>${esc(TH.auth.roleLabel())}</small></div>${I('chevron-down')}</button>
           </div>
         </header>
-        <main id="content" class="content"></main>
+        <main id="content" class="content" tabindex="-1"></main>
       </div>`;
     U.bind(app.querySelector('.topbar'), {
       sb: () => document.body.classList.toggle('sb-open'),

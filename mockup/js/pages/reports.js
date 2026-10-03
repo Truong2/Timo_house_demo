@@ -33,7 +33,7 @@
     const t = TH.qr.get(period, 'total'), bz = TH.qr.get(period, 'business');
     root.innerHTML = TH.pages.reportTabs('hub') + U.pageHead({ title: 'Báo cáo', sub: 'Phase 1 gồm 2 báo cáo theo mẫu SRC-04 và báo cáo theo tòa; các báo cáo vận hành/kinh doanh khác ở Phase 2–3' })
       + filterBar(q)
-      + `<div class="grid grid-2 mt16">${[['total', 'Báo cáo tổng (LN dòng tiền)', 'Lợi nhuận kinh doanh thực thu – gồm cọc mới và mua sắm thiết bị (hạch toán một lần)', t.cols.TOTAL], ['business', 'Báo cáo kinh doanh', 'Không gồm cọc mới, hoàn cọc, mua sắm thiết bị; thiết bị theo khấu hao 1,6%/tháng (GĐ OQ-10/11)', bz.cols.TOTAL]].map(([k, title, sub, v]) => `
+      + `<div class="grid grid-2 mt16">${[['total', 'Báo cáo tổng (LN dòng tiền)', 'Lợi nhuận kinh doanh thực thu – gồm cọc mới và mua sắm thiết bị (hạch toán một lần)', t.cols.TOTAL], ['business', 'Báo cáo kinh doanh', 'Mặc định chính thức theo Excel; khấu hao chỉ lấy tài sản có chính sách đã xác nhận. OQ-10 là bản so sánh nội bộ.', bz.cols.TOTAL]].map(([k, title, sub, v]) => `
         <a class="card rep-card" href="#/reports/${k}?period=${period}"><div class="card-b"><h3>${esc(title)}</h3><p class="small muted mt4">${esc(sub)}</p>
         <div class="grid grid-3 mt12"><div><small class="muted">Doanh thu</small><b class="d-block">${F.vnd(v.rev_total)}</b></div><div><small class="muted">Tổng chi phí</small><b class="d-block">${F.vnd(v.tcp)}</b></div><div><small class="muted">LN ròng</small><b class="d-block ${v.lnr >= 0 ? 'green' : 'red'}">${F.vnd(v.lnr)}</b></div></div>
         <div class="mt12 small muted">Tỷ lệ LNR/DT ${F.pctv(v.r_lnr_dt)} · LNR/GV ${F.pctv(v.r_lnr_gv)}</div></div></a>`).join('')}</div>`
@@ -63,7 +63,7 @@
     const bids = Object.keys(sub).filter(b => onlyB ? b === onlyB : col === 'TOTAL' || (Q.building(b) || {}).group === col);
     const rows = bids.map(b => ({ b, v: (sub[b] || {})[code] || 0 })).filter(r => r.v).sort((a, c) => c.v - a.v);
     const src = TH.qr.sources(rep.period, code, bids);
-    const txt = { rev_total: 'Σ số đã thu phân bổ vào hóa đơn kỳ + phiếu nhận cọc giữ phòng − hoàn cọc chi trong kỳ + cọc bỏ nhận trước go-live', dep_new: 'Dòng 2 hóa đơn (cọc trên hóa đơn đầu) + phiếu nhận cọc giữ phòng theo ngày nhận', rev_rent: 'Dòng 1 hóa đơn (không gồm phá HĐ); phòng mới theo tháng lẻ', rev_el: 'Dòng 3 + điện chung (dòng 12) + tiền điện trừ vào cọc', rev_clean: 'Dòng 5 + 1/2 combo', rev_wash: 'Dòng 9 + 1/2 combo', cost_rent: 'Giá HĐ chủ nhà hiệu lực trong kỳ (thuê 1 tháng)', sal_mgr: 'Bảng lương – W của NV vận hành theo tòa', cost_equip: rep.type === 'business' ? 'Khấu hao kỳ 1,6%/tháng cộng dồn' : 'Nguyên giá thiết bị mua trong kỳ' }[code];
+    const txt = { rev_total: 'Σ số đã thu phân bổ vào hóa đơn kỳ + phiếu nhận cọc giữ phòng − hoàn cọc chi trong kỳ + cọc bỏ nhận trước go-live', dep_new: 'Dòng 2 hóa đơn (cọc trên hóa đơn đầu) + phiếu nhận cọc giữ phòng theo ngày nhận', rev_rent: 'Dòng 1 hóa đơn (không gồm phá HĐ); phòng mới theo tháng lẻ', rev_el: 'Dòng 3 + điện chung (dòng 12) + tiền điện trừ vào cọc', rev_clean: 'Dòng 5 + 1/2 combo', rev_wash: 'Dòng 9 + 1/2 combo', cost_rent: 'Giá HĐ chủ nhà hiệu lực trong kỳ (thuê 1 tháng)', sal_mgr: 'Bảng lương – W của NV vận hành theo tòa', cost_equip: rep.type === 'business' ? 'Khấu hao theo số tháng và trạng thái chính sách của từng tài sản; giả định legacy không vào số chính thức' : 'Nguyên giá thiết bị mua trong kỳ' }[code];
     const alloc = TH.data.allocRules.find(r => r.lineCode === code);
     const groups = F.by(src.items, x => x.type);
     const scopeLbl = onlyB ? 'Tòa ' + (Q.building(onlyB) || {}).code : col === 'TOTAL' ? 'Tổng' : 'Nhà ' + col;
@@ -92,8 +92,7 @@
       ['Phiên bản số liệu', rep.frozen ? rep.sources.frozen : rep.parallel ? 'Kỳ chạy song song Excel – số tạm tính' : 'Số web tạm tính (kỳ chưa khóa)'], ['Xuất lúc', F.datetime(F.nowISO()) + ' · ' + ((S.session || {}).name || '')]];
   };
   const num = (l, v) => v == null ? '' : l.ratio ? Math.round(Number(v) * 10000) / 10000 : Math.round(v);
-  const exportRep = (rep, cols, name, q) => K.xls(name, rep.type === 'business' ? 'BÁO CÁO KINH DOANH' : 'BÁO CÁO TỔNG', exportMeta(rep, q, rep.type === 'business' ? 'BÁO CÁO KINH DOANH' : 'BÁO CÁO TỔNG (LN DÒNG TIỀN)'),
-    ['Dòng', 'Chỉ tiêu', 'TỔNG', 'NHÀ T', 'NHÀ S', 'NHÀ G'], CAT().reportLines.map(l => [l.row, l.label, ...['TOTAL', 'T', 'S', 'G'].map(k => num(l, cols[k][l.code]))]));
+  const exportRep = (rep, cols, name, q) => { const model = TH.qr.exportModel(rep.period, rep.type, rep.bizMode, q); model.cols = cols; model.rows.forEach(r => { r.values = ['TOTAL','T','S','G'].map(k => (cols[k] || {})[r.code]); }); model.metadata.splice(2, 0, ['Bộ lọc', exportMeta(rep, q, '')[2][1]]); K.xlsReport(name, model); };
 
   const reportPage = (type) => (root, p, q) => {
     const period = q.period || '2026-08'; const canCompare = ['admin', 'ketoan'].includes(TH.auth.role());

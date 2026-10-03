@@ -12,6 +12,7 @@
     { path: '/owners/:id', ui: 'UI-04', title: 'Chủ nhà & hợp đồng đầu vào', menu: 'buildings', perm: 'owners.view', ms: '1A' },
     { path: '/owner-payments', ui: 'UI-05', title: 'Lịch trả chủ nhà', menu: 'expenses', perm: 'ownerPayments.view', ms: '1A' },
     { path: '/tenants', ui: 'UI-06', title: 'Khách thuê', menu: 'tenants', perm: 'tenants.view', ms: '1A' },
+    { path: '/contracts', ui: 'UI-48', title: 'Hợp đồng thuê', menu: 'contracts', perm: 'tenants.view', ms: '1A' },
     { path: '/tenants/new', ui: 'UI-07', title: 'Tạo khách & lượt thuê', menu: 'tenants', perm: 'tenants.manage', ms: '1A' },
     { path: '/stays/:id', ui: 'UI-07', title: 'Chi tiết lượt thuê', menu: 'tenants', perm: 'tenants.view', ms: '1A', also: ['UI-08', 'UI-09'] },
     { path: '/billing/readings', ui: 'UI-10', title: 'Chỉ số điện nước', menu: 'billing', perm: 'readings.view', ms: '1A' },
@@ -71,6 +72,7 @@
       { key: 'owners', label: 'Chủ nhà', href: '#/owners' },
       { key: 'buildings', label: 'Tòa nhà', href: '#/buildings' },
       { key: 'tenants', label: 'Khách hàng', href: '#/tenants' },
+      { key: 'contracts', label: 'Hợp đồng thuê', href: '#/contracts' },
       { key: 'repairs', label: 'Sổ sửa chữa', href: '#/repairs' },
       { key: 'assets', label: 'Tài sản & bảo trì', href: '#/assets', alts: ['#/assets/maintenance', '#/assets/inventory'] },
       { key: 'documents', label: 'Tài liệu', href: '#/documents' },
@@ -97,7 +99,7 @@
     { key: 'import', label: 'Import dữ liệu', icon: 'upload', href: '#/import' },
     { key: 'settings', label: 'Cài đặt', icon: 'settings', href: '#/settings' },
   ];
-  TH.routes = { ROUTES: R, NAV, FOOT, PHASE1_UI: ['UI-01', 'UI-02', 'UI-03', 'UI-04', 'UI-05', 'UI-06', 'UI-07', 'UI-08', 'UI-09', 'UI-10', 'UI-11', 'UI-12', 'UI-13', 'UI-14', 'UI-15', 'UI-16', 'UI-17', 'UI-18', 'UI-23', 'UI-24', 'UI-25', 'UI-27', 'UI-28', 'UI-29', 'UI-30', 'UI-37', 'UI-38', 'UI-39'],
+  TH.routes = { ROUTES: R, NAV, FOOT, PHASE1_UI: ['UI-01', 'UI-02', 'UI-03', 'UI-04', 'UI-05', 'UI-06', 'UI-07', 'UI-08', 'UI-09', 'UI-10', 'UI-11', 'UI-12', 'UI-13', 'UI-14', 'UI-15', 'UI-16', 'UI-17', 'UI-18', 'UI-23', 'UI-24', 'UI-25', 'UI-27', 'UI-28', 'UI-29', 'UI-30', 'UI-37', 'UI-38', 'UI-39', 'UI-48'],
     PHASE2_UI: ['UI-19', 'UI-20', 'UI-21', 'UI-22', 'UI-26', 'UI-31', 'UI-32', 'UI-42', 'UI-43', 'UI-44', 'UI-45', 'UI-46', 'UI-47'],
     PHASE3_UI: ['UI-33', 'UI-34', 'UI-35', 'UI-36', 'UI-40', 'UI-41'] };
 })(window.TH);

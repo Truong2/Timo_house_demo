@@ -35,7 +35,7 @@
   P.debtState = (inv, remaining, asOf, prm) => {
     if (remaining <= EPS) return { state: 'none', days: 0 };
     const w = C.dates.billingWindow(inv.period, prm, inv);
-    const days = Math.max(0, C.dates.diffDays(w.dueTo, asOf));
+    const days = asOf < w.debtFrom ? 0 : Math.max(1, C.dates.diffDays(w.debtFrom, asOf) + 1);
     if (asOf < w.debtFrom) return { state: asOf <= w.dueTo ? 'in_term' : 'overdue', days, debtFrom: w.debtFrom, debtBasis: w.debtBasis };
     return { state: 'debt', days, debtFrom: w.debtFrom, debtBasis: w.debtBasis };
   };

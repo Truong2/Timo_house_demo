@@ -40,7 +40,7 @@
       else if(V.money.has(key))control=V.moneyInput({name:key,value:v,attrs});
       else if(type==='date')control=U.date({name:key,value:v,attrs});
       else control=U.input({name:key,type,value:v,attrs:{...attrs,step:type==='number'?'any':undefined}});
-      return U.field({name:key,label,req:required||kind==='owner'&&key==='phone',input:control,cls:type==='textarea'||['bank','buildingAddress','partyAddress'].includes(key)?'span2':'',help:V.sourceButton(key,draft.sources[key])}).replace('<label>','<label for="'+id+'">');
+      return U.field({name:key,forId:id,label,req:required||kind==='owner'&&key==='phone',input:control,cls:type==='textarea'||['bank','buildingAddress','partyAddress'].includes(key)?'span2':'',help:V.sourceButton(key,draft.sources[key])});
     };
     const fieldGroup=key=>{
       if(['operatorName','operatorIdNo','operatorPhone'].includes(key))return 'Bên khai thác / cho thuê';

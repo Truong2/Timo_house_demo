@@ -62,7 +62,9 @@
         const from = '2026-' + String(m).padStart(2, '0') + '-01'; if (from < oc.startDate.slice(0, 8) + '01') continue;
         const due = TH.calc.dates.addDays(from, oc.payDay - 1);
         const amount = rv.monthlyRent * oc.payCycleMonths;
-        ownerPayments.push({ id: 'op_' + oc.id + '_' + m, contractId: oc.id, buildingId: oc.buildingId, from, months: oc.payCycleMonths, dueDate: due, amountDue: amount, paid: due <= '2026-09-10' ? amount : 0, paidAt: due <= '2026-09-10' ? due : null });
+        const wasPaid = due <= '2026-09-10';
+        ownerPayments.push({ id: 'op_' + oc.id + '_' + m, contractId: oc.id, buildingId: oc.buildingId, from, months: oc.payCycleMonths, dueDate: due, amountDue: amount, paid: wasPaid ? amount : 0, paidAt: wasPaid ? due : null,
+          payments: wasPaid ? [{ amount, date: due, method: 'bank', reference: 'Dữ liệu lịch sử', evidence: 'Nguồn Excel lịch trả chủ nhà', by: 'Import Excel', at: due + 'T09:00:00' }] : [] });
       }
     });
     col('ownerPayments', ownerPayments);
@@ -128,6 +130,12 @@
       rateVersions.push(rv);
     });
     col('invoices', invoices); col('rateVersions', rateVersions);
+    /* Phiên HĐ v1 idempotent cho dữ liệu cũ. Đây là snapshot điều khoản, không phải collection HĐ thứ hai. */
+    col('stayVersions', stays.map(s => { const rv = rateVersions.filter(v => v.stayId === s.id).sort((a, b) => String(a.from).localeCompare(String(b.from)))[0]; return {
+      id: 'sv_' + s.id + '_1', stayId: s.id, version: 1, effectiveFrom: s.rentStart, kind: 'legacy_migration',
+      terms: { roomId: s.roomId, buildingId: s.buildingId, customerId: s.customerId, dealDate: s.dealDate || null, moveInDate: s.moveInDate, rentStart: s.rentStart, svcStart: s.svcStart, endDate: s.endDate, depositAmount: s.depositAmount, payMonths: s.payMonths, people: s.people, vehicles: s.vehicles },
+      rates: rv ? { rent: rv.rent, items: JSON.parse(JSON.stringify(rv.items || {})), rateVersionId: rv.id } : { rent: s.rent, items: {} }, sourceRef: s.source || 'legacy', documentIds: [], reason: 'Khởi tạo phiên v1 từ dữ liệu nguồn', createdBy: 'Hệ thống', createdAt: '2026-09-01T00:00:00.000Z'
+    }; }));
     // Phòng "Khách của chủ nhà" (UI-03, §3.12e): theo ghi chú hóa đơn nguồn "kh chủ nhà / kh của chủ nhà" (tòa mới nhận G15, G17)
     invoices.filter(i => /kh (của )?chủ nhà/i.test(i.note || '')).forEach(i => { const r = rooms.find(x => x.id === i.roomId); if (r && r.price > 0) r.exploitation = 'owner_tenant'; });
 
@@ -202,7 +210,7 @@
     }));
 
     /* --- phân công, tổ chức (1B) --- */
-    col('assignments', M.assignments.map((a, i) => ({ id: 'as_' + i, employeeId: (empByKey[a.emp] || {}).id, buildingId: UB(a.b), responsibility: a.resp, from: a.start, to: a.end })).filter(a => a.employeeId));
+    col('assignments', M.assignments.map((a, i) => ({ id: 'as_' + i, employeeId: (empByKey[a.emp] || {}).id, buildingId: UB(a.b), responsibility: a.resp, from: a.start, to: a.end, changedBy: 'Import Excel', changedAt: a.start + 'T09:00:00' })).filter(a => a.employeeId));
     const orgLinks = [];
     const byTitle = (t) => emps.filter(e => e.title === t);
     const gm = byTitle('QL TỔNG')[0], head = byTitle('TPVH')[0], lead = byTitle('TNVH')[0], tnkd = byTitle('TNKD')[0];

@@ -23,16 +23,16 @@
   ],
   "realApply": {
     "stay": "st_302TH01A001",
-    "session": "ocr_w6239sdthn",
-    "rateVersion": "rat_6b6nxurwgm",
+    "session": "ocr_es4shhp7nw",
+    "rateVersion": "rat_s22ue9rakt",
     "zeroFee": true,
     "removedFee": true,
     "invoicesUnchanged": true,
     "ledgerUnchanged": true
   },
   "documents": {
-    "v1": "doc_odhhgp0zly",
-    "v2": "doc_0q6r4gdzwu",
+    "v1": "doc_nfogwyedn2",
+    "v2": "doc_vxwsciydzs",
     "byteExact": true,
     "reload": true,
     "scopedDownloads": [

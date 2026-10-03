@@ -216,5 +216,19 @@
   };
   QR.memo = {};
   QR.get = (period, type, bizMode) => { const k = [period, type, bizMode, S.version].join('|'); if (!QR.memo[k]) QR.memo = { [k]: QR.build(period, type, bizMode) }; return QR.memo[k]; };
+  /* Một model duy nhất cho preview/export/acceptance: dòng 3–61, TỔNG/T/S/G và metadata chính sách. */
+  QR.exportModel = (period, type = 'total', mode, filters = {}) => {
+    const rep = QR.get(period, type, mode);
+    const lines = TH.data.catalog.reportLines.filter(l => l.row >= 3 && l.row <= 61);
+    const selected = Object.keys(rep.byBuilding).filter(id => (!filters.building || id === filters.building) && (!filters.group || (Q.building(id) || {}).group === filters.group) && (!filters.area || (Q.building(id) || {}).areaId === filters.area) && (!filters.manager || (Q.managerOf(id, D.periodEnd(period)) || {}).id === filters.manager));
+    let cols = rep.cols;
+    if (filters.building || filters.group || filters.area || filters.manager) cols = R.aggregate(Object.fromEntries(selected.map(id => [id, rep.byBuilding[id]])), id => (Q.building(id) || {}).group || '');
+    const policy = rep.policySnapshot && rep.policySnapshot.businessReportMode;
+    const method = type === 'business' ? (rep.bizMode === 'excel' ? 'Excel chính thức – chỉ loại cọc mới' : 'Phương án đề xuất OQ-10') : 'Excel / dòng tiền';
+    return { exportSpecVersion: 'report-export-v4', templateVersion: 'SRC-04-v1.13', period, type, mode: rep.bizMode, report: rep, cols,
+      headers: ['Dòng', 'Chỉ tiêu', 'TỔNG', 'NHÀ T', 'NHÀ S', 'NHÀ G'],
+      metadata: [['Báo cáo', type === 'business' ? 'BÁO CÁO KINH DOANH' : 'BÁO CÁO TỔNG (LN DÒNG TIỀN)'], ['Kỳ', F.periodLabel(period)], ['Cách tính', method], ['Trạng thái nghiệp vụ', rep.policyStatus === 'confirmed' ? 'Đã xác nhận' : 'Chờ khách xác nhận'], ['Phiên bản quy tắc', String(rep.ruleVersion || '')], ['Nguồn quy tắc', (policy && policy.sourceRef) || (rep.bizMode === 'excel' ? 'SRC-04' : 'OQ-10')], ['Phiên bản export', 'report-export-v4'], ['Phiên bản mẫu', 'SRC-04-v1.13'], ['Xuất lúc', F.datetime(F.nowISO())]],
+      rows: lines.map(l => ({ row: l.row, code: l.code, label: l.label, ratio: !!l.ratio, bold: !!l.bold, group: !!l.group, values: ['TOTAL','T','S','G'].map(k => (cols[k] || {})[l.code]) })) };
+  };
   TH.qr = QR;
 })(window.TH);

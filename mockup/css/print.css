@@ -3,6 +3,7 @@
 .print-root{max-width:860px;margin:0 auto;padding:16px}
 .print-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
 .inv-print{background:#fff;color:#111;font-family:'Times New Roman',Times,serif;font-size:13.5px;line-height:1.45;padding:28px 32px}
+.inv-print{width:210mm;min-height:297mm;max-width:100%;margin:0 auto}
 .print-frame .inv-print{padding:6px}
 .ip-tpl{font-family:var(--font);font-size:11px;color:#6B7280;text-align:right}
 .ip-title{text-align:center;font-size:20px;margin:6px 0 8px;letter-spacing:.02em;color:#111}
@@ -10,6 +11,7 @@
 .ip-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
 table.ip-tbl{width:100%;border-collapse:collapse;margin:6px 0}
 .ip-tbl th,.ip-tbl td{border:1px solid #333;padding:4px 6px;vertical-align:top}
+.ip-tbl thead{display:table-header-group}.ip-tbl tr,.ip-head,.ip-sign{break-inside:avoid;page-break-inside:avoid}.ip-tbl td,.ip-tbl th{overflow-wrap:anywhere}
 .ip-tbl th{background:#F3F4F6;font-weight:700;text-align:center}
 .ip-tbl .tr{text-align:right}.ip-tbl .tc{text-align:center}
 .ip-tbl .ip-note{font-size:11px;max-width:210px;white-space:normal}
@@ -21,4 +23,5 @@ table.ip-tbl{width:100%;border-collapse:collapse;margin:6px 0}
   @page{size:A4 portrait;margin:10mm}
   body{background:#fff}.no-print,.toasts,#overlay-root{display:none!important}
   .print-app{background:#fff}.print-root{padding:0;max-width:none}.inv-print{padding:0}
+  .inv-print{width:auto;min-height:auto}.ip-sign{page-break-inside:avoid;margin-top:14mm}
 }

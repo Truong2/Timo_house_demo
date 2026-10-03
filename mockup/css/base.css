@@ -2,6 +2,9 @@
 html{font-size:14px;-webkit-text-size-adjust:100%}
 body{font-family:var(--font);background:var(--bg);color:var(--text-2);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
 a{color:var(--primary);text-decoration:none}a:hover{text-decoration:underline}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid rgba(37,99,235,.35);outline-offset:2px}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.skip-link{position:fixed;z-index:1000;left:12px;top:8px;padding:9px 13px;border-radius:8px;background:#fff;color:var(--primary);box-shadow:var(--shadow-lg);transform:translateY(-150%)}.skip-link:focus{transform:none}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 button:disabled{cursor:not-allowed;opacity:.55}
 input,select,textarea{font:inherit;color:var(--text-2)}
@@ -63,7 +66,7 @@ svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-l
 .section-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
 .section-h h2{font-size:17px;font-weight:700}.section-h .sub{color:var(--muted);font-size:13px;margin-top:2px}
 .two-col{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
-.side-stack{display:flex;flex-direction:column;gap:16px}
+.two-col>*{min-width:0}.side-stack{display:flex;flex-direction:column;gap:16px;min-width:0}.card,.card-h>div{min-width:0}.card-h h3,.card-h .sub{overflow-wrap:anywhere}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .login{min-height:100vh;display:grid;grid-template-columns:41% 1fr}
 .login-hero{position:relative;background:linear-gradient(160deg,rgba(15,42,95,.94),rgba(37,99,235,.86)),url('../assets/login-hero.svg') center/cover;color:#fff;padding:40px 44px;display:flex;flex-direction:column}
@@ -93,4 +96,5 @@ svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-l
   .content{padding:14px}.page-head{flex-direction:column}.page-head h1{font-size:21px}.page-head .acts{justify-content:flex-start}
   .grid-2,.grid-3,.grid-4,.grid-5,.grid-7{grid-template-columns:1fr}
   .login{grid-template-columns:1fr}.login-hero{display:none}.login-card{padding:24px 18px}
+  .btn,.btn-icon,input.inp,select.inp,.toggle{min-height:44px}.page-head .acts{width:100%}.page-head .acts .btn{flex:1;justify-content:center}.filterbar{align-items:stretch}.filterbar>*{min-width:100%!important}.card-b{padding:14px}.content{overflow-wrap:anywhere}
 }
