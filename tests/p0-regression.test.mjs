@@ -3,7 +3,7 @@
    được kiểm ở mức hàm tương đương: TH.calc.report.bridge, TH.kit.pickTab, TH.kit.maskCols, scope trong actions. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boot, attempt } from './_app.mjs';
+import { boot, attempt, completePayroll } from './_app.mjs';
 
 const IN = ['opening', 'receive', 'transfer_in'];
 const sum = (a, f = (x) => x) => a.reduce((t, x) => t + f(x), 0);
@@ -70,7 +70,7 @@ test('P0-4 phòng có giá/hóa đơn không bị xếp "đồng hồ chung"; HS
 });
 
 /* ---------- P0-5 Báo cáo tổng/KD T8 trên số web ---------- */
-test('P0-5 đối chiếu Báo cáo tổng T8 trên số web; cầu nối = LNR báo cáo KD', () => {
+test('P0-5 báo cáo KD chính thức T8 đúng Excel; OQ-10 chỉ là phương án đề xuất', () => {
   const TH = boot({ user: 'admin' });
   const rc = TH.qr.reconcile('2026-08');
   assert.ok(rc, 'có đối chiếu T8');
@@ -78,11 +78,17 @@ test('P0-5 đối chiếu Báo cáo tổng T8 trên số web; cầu nối = LNR 
   const other = rc.items.find(i => i.key === 'other');
   assert.ok(other && Math.abs(other.amount) < 1, 'khoản "khác" phải = 0, đang ' + (other && other.amount));
   assert.ok(Math.abs(sum(rc.items, i => i.amount) - (rc.web - rc.excel)) < 1, 'tổng các khoản = web − Excel');
-  const t = TH.qr.build('2026-08', 'total').cols.TOTAL;
   const bz = TH.qr.build('2026-08', 'business');
-  const br = TH.calc.report.bridge(t, bz.cols.TOTAL);
-  assert.ok(Math.abs(br[br.length - 1].value - bz.cols.TOTAL.lnr) < 1, `cầu nối ${br[br.length - 1].value} ≠ LNR KD ${bz.cols.TOTAL.lnr}`);
-  assert.ok(Math.abs(bz.cols.TOTAL.lnr - (bz.excelBiz.gd.lnr - rc.diff)) < 1, 'LNR KD web = LNR Excel theo GĐ − chênh chi phí');
+  assert.equal(Math.round(bz.cols.TOTAL.lnr), 685928969);
+  assert.equal(bz.bizMode, 'excel'); assert.equal(bz.official, true); assert.equal(bz.policyStatus, 'confirmed');
+  const proposed = TH.qr.build('2026-08', 'business', 'gd');
+  assert.notEqual(Math.round(proposed.cols.TOTAL.lnr), Math.round(bz.cols.TOTAL.lnr));
+  assert.equal(proposed.official, false); assert.equal(proposed.policyStatus, 'proposed');
+  assert.ok(Math.abs(sum(Object.values(bz.byBuilding), x => x.lnr) - bz.cols.TOTAL.lnr) < 1, 'số Excel từng tòa phải khớp cột tổng');
+  TH.auth.login('codong');
+  const protectedReport = TH.qr.build('2026-08', 'business', 'gd');
+  assert.equal(protectedReport.bizMode, 'excel', 'cổ đông không gọi trực tiếp được phương án OQ-10');
+  assert.equal(protectedReport.official, true);
 });
 
 /* ---------- P0-6 Sổ cọc ---------- */
@@ -144,17 +150,17 @@ test('P0-6 sổ cọc: nhận/đảo phiếu, không phân bổ vào hóa đơn,
 test('P0-7 khóa kỳ giữ cố định số liệu', async (t) => {
   const TH = boot({ user: 'admin' }); const S = TH.store, X = TH.actions;
   const lnr = () => Math.round(TH.qr.build('2026-09', 'total').cols.TOTAL.lnr);
-  let run, before;
+  let run, before, policyAtClose;
   await t.test('a) không khóa kỳ khi chưa chốt lương/phân bổ, kể cả truyền force', () => {
     assert.throws(() => X.closePeriod('2026-09', { force: true }), /bảng lương chưa chốt.*phân bổ chưa chốt/);
     assert.notEqual(S.get('periods', '2026-09').status, 'closed');
   });
   await t.test('b) sau khóa: chặn tính lại lương, duyệt cờ, tham số/phân công/giá chủ nhà hiệu lực trong kỳ', () => {
-    run = X.computePayroll('2026-09');
-    run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử')));
+    run = completePayroll(TH, '2026-09');
     X.closePayroll(run.id); const al = X.saveAllocation('2026-09'); X.closeAllocation(al.id);
     X.closePeriod('2026-09');
     assert.equal(S.get('periods', '2026-09').status, 'closed');
+    policyAtClose = JSON.stringify(S.get('reportSnapshots', 'rs_2026-09').policySnapshot);
     before = lnr();
     const e0 = S.all('assignments').find(a => !a.to && a.responsibility === 'operate');
     const oc = S.all('ownerContracts')[0];
@@ -168,9 +174,12 @@ test('P0-7 khóa kỳ giữ cố định số liệu', async (t) => {
     eq(Object.entries(res).filter(([, r]) => r.ok || !/đã khóa/.test(r.msg)).map(([k, r]) => k + ': ' + (r.ok ? 'cho phép' : r.msg)), [], 'thao tác phải bị chặn vì kỳ đã khóa');
   });
   await t.test('c) đổi dữ liệu nguồn không làm đổi LNR kỳ đã khóa', () => {
+    X.setParam('businessReportMode', 'proposed', '2026-10-01', 'Mở phương án so sánh cho kỳ sau', { status: 'proposed', sourceRef: 'OQ-10' });
     S.all('employees').forEach(e => S.update('employees', e.id, { hireDate: '2026-09-01' }));
     S.all('rooms').slice(0, 200).forEach(x => S.update('rooms', x.id, { price: 0 }));
     assert.equal(lnr(), before);
+    assert.equal(JSON.stringify(S.get('reportSnapshots', 'rs_2026-09').policySnapshot), policyAtClose, 'metadata quy tắc trong snapshot không bị viết lại');
+    assert.equal(JSON.stringify(TH.qr.build('2026-09', 'business').policySnapshot), policyAtClose, 'báo cáo kỳ khóa đọc đúng phiên quy tắc đã chụp');
   });
   await t.test('d) điều chỉnh sau khóa: bắt buộc lý do, số điều chỉnh vào báo cáo kỳ gốc', () => {
     assert.throws(() => X.addPeriodAdjustment({ period: '2026-09', buildingId: 'b_G1', reportLine: 'other', amount: 1000000, reason: '' }), /lý do/);
@@ -184,8 +193,7 @@ test('P0-8 kỳ live: tổng phân bổ = tổng chứng từ quỹ; kỳ 08 tá
   const TH = boot({ user: 'ketoan' }); const S = TH.store, X = TH.actions;
   const total = (al) => sum(al.lines, l => l.total);
   assert.equal(Math.round(total(X.previewAllocation('2026-09'))), 0, 'chưa có chứng từ quỹ → không phân bổ');
-  const run = X.computePayroll('2026-09');
-  run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử')));
+  const run = completePayroll(TH, '2026-09');
   X.closePayroll(run.id);
   const exp = sum(S.all('expenses').filter(e => e.period === '2026-09' && e.scope === 'fund' && e.status !== 'void'), e => e.amount);
   assert.ok(exp > 0, 'chốt lương sinh chứng từ quỹ');

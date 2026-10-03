@@ -22,13 +22,17 @@
   Q.depItems = (period) => { const pe = period ? DT.periodEnd(period) : F.today();
     return S.all('assets').filter(a => a.ownership === 'company' && a.cost > 0 && !['void', 'removed'].includes(a.status) && (!period || !a.openingPeriod || a.openingPeriod <= period)).map(a => Object.assign({}, a, { buildingId: Q.assetBuildingAt(a, pe) })); };
   Q.depOfPeriod = (period) => DP.forPeriod(Q.depItems(period), period, Q.param('depRate', DT.periodEnd(period)));
+  Q.depOfficialOfPeriod = (period) => DP.forPeriod(Q.depItems(period).filter(a => a.depreciationPolicyStatus === 'confirmed'), period, Q.param('depRate', DT.periodEnd(period)));
   /* Tài sản công ty có giá trị tại cuối kỳ (UI-41) – gồm số dư đầu kỳ chưa ghi khấu hao web (openingPeriod > kỳ): giá trị đã có thật, chỉ khấu hao mới bắt đầu ghi từ openingPeriod */
   Q.nbvItems = (period) => { const pe = DT.periodEnd(period);
     return S.all('assets').filter(a => a.ownership === 'company' && a.cost > 0 && !['void', 'removed'].includes(a.status) && (a.depStart || a.receivedDate || '') <= pe).map(a => Object.assign({}, a, { buildingId: Q.assetBuildingAt(a, pe) })); };
   /* Giá trị còn lại tài sản công ty của tòa cuối kỳ (UI-41 LN/tài sản, GĐ OQ-24) */
   Q.assetNbv = (bid, period) => Q.nbvItems(period).filter(a => a.buildingId === bid).reduce((t, a) => t + DP.nbv(a, period), 0);
   /* Tòa đã có số dư tài sản nền (import UI-37 hoặc đầu tư ban đầu UI-33) → mẫu số LN/tài sản đủ; chỉ có vài món mua lẻ thì "chờ dữ liệu" */
-  Q.assetBaseline = (bid, period) => Q.nbvItems(period).some(a => a.buildingId === bid && (a.source === 'opening' || a.source === 'initial'));
+  Q.assetBaseline = (bid, period) => {
+    const items = Q.nbvItems(period).filter(a => a.buildingId === bid);
+    return items.some(a => (a.source === 'opening' || a.source === 'initial')) && items.every(a => a.depreciationPolicyStatus === 'confirmed');
+  };
   Q.assetDepSchedule = (a, toPeriod) => DP.schedule(a, toPeriod || F.period(F.today()));
   /* Đã có khấu hao ghi vào kỳ đã khóa → không hủy / sửa giá trị, chỉ thanh lý */
   Q.assetBookedInClosed = (a) => S.all('periods').filter(p => p.status === 'closed').some(p => { const r = DP.ofItem(a, p.id); return r && r.amount > 0; });
@@ -38,11 +42,14 @@
   X.addAsset = (d, silent) => {
     _.need('assets.manage'); _.needMs('3', 'Tài sản & khấu hao (UI-34)');
     const rec = Object.assign({ qty: 1, condition: 'good', source: 'manual' }, d);
-    rec.qty = Number(rec.qty || 1); rec.cost = Number(rec.cost) || 0; rec.depMonths = rec.cost > 0 ? Number(rec.depMonths || Q.param('depMonthsDefault') || 63) : null;
+    rec.qty = Number(rec.qty || 1); rec.cost = Number(rec.cost) || 0; rec.depMonths = rec.cost > 0 ? Number(rec.depMonths) : null;
     const errs = AS.validate(rec, { hasEvidence: hasEvidence(rec) });
     if (rec.buildingId && !Q.building(rec.buildingId)) errs.buildingId = 'Tòa không tồn tại';
     if (rec.roomId) { const r = Q.room(rec.roomId); if (!r || r.buildingId !== rec.buildingId) errs.roomId = 'Phòng không thuộc tòa đã chọn'; }
     if (rec.cost > 0 && !rec.depStart && !rec.receivedDate) errs.depStart = 'Nhập ngày bắt đầu khấu hao';
+    if (rec.cost > 0 && !(rec.depMonths > 0)) errs.depMonths = 'Bắt buộc nhập số tháng khấu hao';
+    if (rec.cost > 0 && !String(rec.depreciationSource || '').trim()) errs.depreciationSource = 'Nhập nguồn / căn cứ chính sách khấu hao';
+    if (rec.cost > 0 && !['proposed', 'confirmed'].includes(rec.depreciationPolicyStatus)) errs.depreciationPolicyStatus = 'Chọn trạng thái chính sách';
     if (Object.keys(errs).length) fail(errs);
     if (rec.cost > 0 && rec.source !== 'opening' && rec.source !== 'initial') _.guardPeriod(F.period(rec.depStart || rec.receivedDate), 'ghi tài sản có khấu hao');
     const a = X._createAsset(rec);
@@ -53,11 +60,16 @@
   X._createAsset = (rec) => {
     rec = Object.assign({ qty: 1, condition: 'good', source: 'manual' }, rec);
     rec.cost = Number(rec.cost) || 0; rec.qty = Number(rec.qty || 1);
-    if (rec.cost > 0 && !rec.depMonths) rec.depMonths = Number(Q.param('depMonthsDefault') || 63);
+    // Chốt ở tầng ghi dữ liệu, không chỉ ở form: không caller nội bộ nào được
+    // âm thầm gán 63 tháng cho tài sản mới.
+    if (rec.cost > 0 && !(Number(rec.depMonths) > 0)) throw new Error('Tài sản có nguyên giá phải có số tháng khấu hao');
+    if (rec.cost > 0 && !String(rec.depreciationSource || '').trim()) throw new Error('Tài sản có nguyên giá phải có nguồn chính sách khấu hao');
+    if (rec.cost > 0 && !['proposed', 'confirmed', 'legacy_assumption'].includes(rec.depreciationPolicyStatus)) throw new Error('Tài sản có nguyên giá phải có trạng thái chính sách khấu hao');
     const depStart = rec.cost > 0 ? (rec.depStart || rec.receivedDate) : null;
     const code = rec.code || nextCode(rec.buildingId);
     return S.add('assets', { id: rec.id || 'as_' + code.replace(/[^A-Za-z0-9]/g, '_'), code, name: String(rec.name || 'Thiết bị').trim(), type: rec.type, ownership: rec.ownership, buildingId: rec.buildingId, roomId: rec.roomId || null,
       position: rec.position || '', qty: rec.qty, condition: rec.condition, receivedDate: rec.receivedDate || depStart || F.today(), cost: rec.cost, depStart, depMonths: rec.depMonths,
+      depreciationPolicyStatus: rec.cost > 0 ? rec.depreciationPolicyStatus : null, depreciationSource: rec.cost > 0 ? rec.depreciationSource || '' : '',
       openingPeriod: rec.openingPeriod || null, warrantyTo: rec.warrantyTo || null, source: rec.source, expenseId: rec.expenseId || null, ownerContractId: rec.ownerContractId || null, capitalRef: rec.capitalRef || null,
       docs: rec.docName ? [{ name: rec.docName, at: F.nowISO(), by: _.who() }] : [], note: rec.note || '', status: 'active', disposal: null,
       history: [{ at: F.nowISO(), date: rec.receivedDate || depStart || F.today(), by: _.who(), kind: 'create', after: { buildingId: rec.buildingId, roomId: rec.roomId || null, position: rec.position || '' }, reason: AS.SOURCES[rec.source] || '' }] });
@@ -109,7 +121,8 @@
   /* Ghi thanh lý một tài sản đã kiểm tra; trả giá trị còn lại ghi một lần */
   const disposeOne = (a, d, date) => {
     const period = F.period(date), remain = a.cost > 0 ? DP.nbv(a, DT.prevPeriod(period)) : 0;
-    const disposal = { date, period, reason: d.reason, proceeds: Number(d.proceeds) || 0, remaining: remain, by: _.who(), at: F.nowISO() };
+    const confirmed = a.depreciationPolicyStatus === 'confirmed';
+    const disposal = { date, period, reason: d.reason, proceeds: Number(d.proceeds) || 0, remaining: remain, accountingStatus: confirmed ? 'posted' : 'pending_policy', by: _.who(), at: F.nowISO() };
     S.update('assets', a.id, { status: 'disposed', disposal, history: [...(a.history || []), { at: F.nowISO(), date, by: _.who(), kind: 'dispose', before: { status: a.status }, after: { status: 'disposed' }, reason: d.reason }] });
     return disposal;
   };

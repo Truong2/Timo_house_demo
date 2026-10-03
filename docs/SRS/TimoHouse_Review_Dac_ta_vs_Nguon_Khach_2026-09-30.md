@@ -21,6 +21,22 @@
 
 Các tham chiếu `:số dòng` trong bảng R01–R09 trỏ đến bản đặc tả v1.11 đã đọc tại thời điểm review; có thể thay đổi khi đặc tả được chỉnh sửa.
 
+## Trạng thái xử lý đến 03/10/2026
+
+| Rủi ro | Trạng thái | Căn cứ triển khai / điều kiện đóng |
+|---|---|---|
+| R01 | **Đã đóng** | `debtBasis=issuedAt`, 5 ngày lịch từ ngày phát hành theo CH-14; có test cả `issuedAt`, `dueDate`, phát hành muộn và dữ liệu lịch sử thiếu ngày phát hành. |
+| R02 | **Đã đóng** | Vận hành/leader chỉ xem trạng thái; admin/kế toán mới xem số tiền; RBAC và kiểm thử hồi quy xuất dữ liệu đã có. |
+| R03 | **Đã kiểm soát, chưa đóng OQ-10** | Báo cáo chính thức dùng đúng Excel; phương án OQ-10 tách riêng, chỉ admin/kế toán xem. Chỉ đóng OQ sau khi có nguồn khách xác nhận. |
+| R04 | **Chưa đóng** | Tài sản legacy 63 tháng chỉ có lịch thử, không vào số chính thức; tài sản mới bắt buộc tháng KH và nguồn. Chờ chính sách khách xác nhận. |
+| R05 | **Chưa đóng** | Hệ thống ghi theo kỳ thực chi và chặn kỳ chi đã khóa; `eligibleAt` chỉ là chế độ đề xuất. Chờ xác nhận OQ-13. |
+| R06 | **Chưa đóng** | Đã bỏ 6.000/6.500đ tự động; bắt buộc nhập lương/phòng và lý do. Chờ xác nhận OQ-01. |
+| R07 | **Chưa đóng** | Mẫu 12 dòng dùng khi không có Thu khác; bản 13 dòng ghi “mẫu mở rộng”. Chờ khách duyệt hình thức mẫu mở rộng. |
+| R08 | **Chưa đóng** | Chỉ công bố số khách xem/chốt; tỷ lệ là đề xuất và không phải KPI chính thức. Chờ xác nhận OQ-06. |
+| R09 | **Đã đóng phần tài liệu** | README và tài liệu phân phase đã đồng bộ Draft v1.13 và Phase 3. |
+
+Ma trận ký duyệt chi tiết: `TimoHouse_Ma_tran_Quyet_dinh_Nghiep_vu.md`. Không thay đổi cột trả lời khách trong workbook nguồn.
+
 ## Các điểm đã đối chiếu và khớp nguồn
 
 | Nghiệp vụ | Bằng chứng nguồn | Đánh giá |

@@ -25,13 +25,50 @@ TH.data.catalog = {
     /* --- Phase 2 --- */
     { key: 'salesTarget', type: 'money', min: 0, max: 2000000000, label: 'Chỉ tiêu doanh số sale / tháng (Σ giá chốt)', value: 40000000, unit: 'đ', oq: 'OQ-25', group: 'Kinh doanh' },
     { key: 'repairCycleStartDay', type: 'int', min: 1, max: 28, label: 'Sổ sửa chữa: kỳ bắt đầu từ ngày (tháng trước) đến ngày trước đó tháng này', value: 26, unit: 'ngày', oq: 'OQ-23', group: 'Sửa chữa' },
-    { key: 'amduongVacantInIncome', type: 'bool', label: 'Âm dương: tính điện/nước phòng trống, không thu được vào tổng thu (như Excel)', value: true, unit: '', oq: 'OQ-20', group: 'Báo cáo' },
+    { key: 'amduongVacantInIncome', type: 'bool', label: 'Tương thích Excel lịch sử: cộng sản lượng phòng trống vào cột tổng mở rộng (không gọi là thực thu)', value: false, unit: '', oq: 'OQ-20', group: 'Báo cáo' },
     /* --- Phase 3 --- */
-    { key: 'depMonthsDefault', type: 'int', min: 1, max: 240, label: 'Số tháng khấu hao mặc định của tài sản công ty (63 ≈ 1,6%/tháng, tháng cuối 0,8%)', value: 63, unit: 'tháng', oq: 'OQ-11', group: 'Tài sản' },
     { key: 'maintRemindDays', type: 'int', min: 0, max: 60, label: 'Nhắc lịch bảo dưỡng trước hạn (người phụ trách, web + Zalo)', value: 7, unit: 'ngày', oq: 'CH-32', group: 'Tài sản' },
     { key: 'shareRemindDays', type: 'int', min: 0, max: 60, label: 'Nhắc cổ đông góp tiền nhà trước hạn trả chủ nhà', value: 7, unit: 'ngày', oq: 'CH-29', group: 'Tài sản' },
     { key: 'forecastDraftDay', type: 'int', min: 1, max: 28, label: 'Ngày lập bảng dự kiến lợi nhuận trong tháng (cùng ngày chốt số hóa đơn)', value: 22, unit: 'ngày', oq: 'OQ-19', group: 'Kế hoạch' },
-  ].map(p => Object.assign({ effectiveFrom: '2026-01-01', effectiveTo: null }, p)),
+  ].map(p => Object.assign({ effectiveFrom: '2026-01-01', effectiveTo: null, status: /^OQ-/.test(p.oq || '') ? 'proposed' : 'confirmed', sourceRef: p.oq || 'Danh mục hệ thống', approvedBy: null, approvedAt: null }, p)),
+
+  /* Các lựa chọn điều khiển cách tính chính thức. Tách khỏi params để thêm mới không làm đổi seed hash/local overlay cũ. */
+  policyParams: [
+    { key: 'debtBasis', type: 'enum', options: [['issuedAt', '5 ngày từ ngày phát hành hóa đơn'], ['dueDate', '5 ngày sau hạn thanh toán (tương thích cũ)']], label: 'Cơ sở bắt đầu đếm ngày chuyển công nợ', value: 'issuedAt', unit: '', oq: 'OQ-12', group: 'Hóa đơn', status: 'confirmed', sourceRef: 'CH-14 – sau 5 ngày kể từ khi có hóa đơn' },
+    { key: 'businessReportMode', type: 'enum', options: [['excel', 'Như sheet Excel KD (số chính thức)'], ['proposed', 'Phương án OQ-10 (cộng hoàn cọc, dùng khấu hao)']], label: 'Cách tính Báo cáo kinh doanh chính thức', value: 'excel', unit: '', oq: 'OQ-10', group: 'Báo cáo', status: 'confirmed', sourceRef: 'SRC-04 – BÁO CÁO KINH DOANH THÁNG 8' },
+    { key: 'commissionRecognitionMode', type: 'enum', options: [['paidAt', 'Kỳ thực chi từng đợt'], ['eligibleAt', 'Kỳ đủ điều kiện chi (đề xuất cũ)']], label: 'Kỳ ghi chi phí hoa hồng', value: 'paidAt', unit: '', oq: 'OQ-13', group: 'Kinh doanh', status: 'confirmed', sourceRef: 'SRC-09 – file hoa hồng chia theo tháng chi' },
+    { key: 'conversionFormula', type: 'enum', options: [['none', 'Chỉ công bố số xem và số chốt'], ['closedPerViewed', 'Chốt / xem (đề xuất)'], ['viewedPerClosed', 'Xem / chốt (nhãn Excel)']], label: 'Công thức tỷ lệ chuyển đổi', value: 'none', unit: '', oq: 'OQ-06', group: 'Kinh doanh', status: 'proposed', sourceRef: 'SRC-13 ghi “khách xem/khách chốt” – chưa xác nhận tử/mẫu' },
+    { key: 'shareRoundingMode', type: 'enum', options: [['explicitDelta', 'Hiện dòng chênh, không tự phân bổ'], ['commonFund', 'Dồn chênh vào quỹ CHUNG (đề xuất cũ)']], label: 'Xử lý chênh làm tròn bảng kê cổ đông', value: 'explicitDelta', unit: '', oq: 'OQ-08', group: 'Cổ đông', status: 'proposed', sourceRef: 'SRC-07 – chênh làm tròn chưa có trả lời khách' },
+  ].map(p => Object.assign({ effectiveFrom: '2026-01-01', effectiveTo: null, approvedBy: null, approvedAt: null }, p)),
+
+  /* Ma trận ký duyệt: không thay câu trả lời khách; chỉ công khai lựa chọn hệ thống đang dùng và phạm vi ảnh hưởng. */
+  businessDecisions: [
+    ['OQ-01', 'Bậc lương, HS ngoài biên và thâm niên', 'Lương HS<70 nhập tay; các phần còn lại theo SRC-03/05', 'UI-25'],
+    ['OQ-02', 'Mốc thu tính lương và đổi quản lý', 'Theo mốc SRC-05; chờ xác nhận ca biên', 'UI-24, UI-25'],
+    ['OQ-03', 'Khách phá hợp đồng', 'Giữ cọc, chỉ thu điện – đề xuất', 'UI-07, UI-18'],
+    ['OQ-04', 'Mẫu số phân bổ', 'Số lịch sử giữ Excel; kỳ web theo tổng phòng có giá', 'UI-16, UI-29'],
+    ['OQ-05', 'File liên kết nguồn', 'Dùng số cache Excel, chưa dựng giao dịch thiếu', 'UI-28, UI-29'],
+    ['OQ-06', 'Phòng trống, lấp đầy và chuyển đổi', 'Chỉ công bố số xem/chốt; tỷ lệ chờ xác nhận', 'UI-01, UI-45, UI-46'],
+    ['OQ-07', 'Dự kiến và hiệu quả đầu tư', 'Bản dự kiến là nháp, không phải số chuẩn', 'UI-40, UI-41'],
+    ['OQ-08', 'Làm tròn bảng kê cổ đông', 'Hiện chênh riêng, không tự dồn CHUNG', 'UI-32, UI-33'],
+    ['OQ-09', 'Quyền xem công nợ', 'Chỉ admin/kế toán xem số; vận hành xem trạng thái', 'UI-13, UI-14'],
+    ['OQ-10', 'Công thức Báo cáo kinh doanh', 'Mặc định như sheet Excel; phương án mới chỉ để so sánh', 'UI-30'],
+    ['OQ-11', 'Khấu hao và thanh lý tài sản', 'Bắt buộc chính sách từng tài sản; 63 tháng là giả định cũ', 'UI-15, UI-30, UI-34, UI-40'],
+    ['OQ-12', 'Mốc công nợ và phạt trễ', '5 ngày từ ngày phát hành; chế độ sau hạn để đối chiếu', 'UI-14, UI-45'],
+    ['OQ-13', 'Kỳ ghi hoa hồng', 'Mặc định kỳ thực chi từng đợt', 'UI-15, UI-22, UI-29'],
+    ['OQ-14', 'Phòng/khách của chủ nhà', 'Giữ cách xử lý hiện tại – chờ xác nhận', 'UI-03, UI-05, UI-25'],
+    ['OQ-15', 'Phí xe điện/gửi xe', 'Giữ hai danh mục, báo cáo theo nguồn Excel', 'UI-09, UI-12, UI-43'],
+    ['OQ-16', 'Tiền ngày ở thêm khi hoàn cọc', 'Mặc định không trừ', 'UI-18'],
+    ['OQ-17', 'Phân chia 3 phase', 'Theo §7 Draft v1.13 – chờ PM/khách duyệt', 'Toàn hệ thống'],
+    ['OQ-18', 'HS báo cáo', 'Theo công thức lương SRC-05', 'UI-01, UI-25, UI-45'],
+    ['OQ-19', 'Đầu vào dự kiến lợi nhuận', 'Phiên web là nháp; số Excel là benchmark', 'UI-40'],
+    ['OQ-20', 'Điện phòng trống trong âm dương', 'Tách sản lượng khỏi tiền thực thu', 'UI-10, UI-43'],
+    ['OQ-21', 'Chia combo/máy giặt', 'Theo chuỗi Excel – chờ xác nhận', 'UI-29, UI-43'],
+    ['OQ-22', 'Lương/chi phí sửa chữa', 'Số lịch sử Excel; kỳ web theo sổ đã xác nhận', 'UI-15, UI-25, UI-44, UI-47'],
+    ['OQ-23', 'Kỳ sổ sửa chữa', '26→25 là đề xuất; dòng ngoài kỳ hiện riêng', 'UI-44, UI-47'],
+    ['OQ-24', 'LN/vốn, LN/tài sản', 'LN/tài sản chờ khi chính sách tài sản chưa xác nhận', 'UI-41'],
+    ['OQ-25', 'Doanh số sale', 'Hiện số và công thức đề xuất; chưa coi là KPI chốt', 'UI-46'],
+  ].map(x => ({ id: x[0], title: x[1], current: x[2], screens: x[3], status: ['OQ-09', 'OQ-12'].includes(x[0]) ? 'confirmed' : 'proposed', owner: ['OQ-09', 'OQ-12'].includes(x[0]) ? 'Khách hàng' : 'PM/Khách hàng' })),
 
   /* Loại phí & ánh xạ dòng in */
   feeTypes: [

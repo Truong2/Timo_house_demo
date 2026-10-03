@@ -25,6 +25,8 @@
     if (!d.date) errs.date = 'Nhập ngày chi';
     if (!/^\d{4}-\d{2}$/.test(d.period || '')) errs.period = 'Nhập kỳ hưởng';
     if (!(Number(d.amount) > 0)) errs.amount = 'Nhập số tiền';
+    if (cat && cat.equipment && !(Number(d.depMonths) > 0)) errs.depMonths = 'Bắt buộc nhập số tháng khấu hao';
+    if (cat && cat.equipment && !String(d.depreciationSource || '').trim()) errs.depreciationSource = 'Nhập nguồn / căn cứ chính sách khấu hao';
     if (d.scope === 'building' && !d.buildingId) errs.buildingId = 'Chọn tòa';
     if (d.scope === 'fund' && !d.fundCode) errs.fundCode = 'Chọn quỹ chung';
     if (!['building', 'fund'].includes(d.scope)) errs.scope = 'Chọn tòa hoặc quỹ chung';
@@ -35,11 +37,11 @@
     const code = d.code || S.nextCode('expenses', 'CP-' + d.period.replace('-', '') + '-');
     const e = S.add('expenses', { id: 'exp_' + code, code, date: d.date, period: d.period, enteredAt: F.today(), category: d.category, reportLine: (d.source === 'payroll' && d.reportLine) || (fund ? fund.reportLine : cat.reportLine),
       scope: d.scope, buildingId: d.scope === 'building' ? d.buildingId : null, roomId: d.roomId || null, fundCode: fund ? fund.code : null, vendor: d.vendor || '', amount: Number(d.amount),
-      method: d.method || 'bank', note: d.note || '', source: d.source || 'manual', refId: d.refId || null, isEquipment: !!cat.equipment, depMonths: cat.equipment ? (Number(d.depMonths) || Number(Q.param('depMonthsDefault')) || 63) : null,
+      method: d.method || 'bank', note: d.note || '', source: d.source || 'manual', refId: d.refId || null, isEquipment: !!cat.equipment, depMonths: cat.equipment ? Number(d.depMonths) : null,
       enteredBy: _.who(), status: 'posted', evidence: d.evidence || null });
     // Phase 3: khoản mua sắm thiết bị tạo tài sản công ty ở UI-34 (nguồn khấu hao Báo cáo KD); Báo cáo tổng vẫn ghi nguyên giá theo chứng từ này
     if (cat.equipment && e.scope === 'building') X._createAsset({ name: d.note || 'Thiết bị', type: TH.calc.assets.classify(d.note), ownership: 'company', buildingId: e.buildingId, roomId: e.roomId, qty: Number(d.qty) || 1,
-      receivedDate: d.date, depStart: d.date, cost: e.amount, depMonths: e.depMonths, source: 'expense', expenseId: e.id });
+      receivedDate: d.date, depStart: d.date, cost: e.amount, depMonths: e.depMonths, depreciationPolicyStatus: d.depreciationPolicyStatus === 'confirmed' ? 'confirmed' : 'proposed', depreciationSource: d.depreciationSource, source: 'expense', expenseId: e.id });
     _.audit('create', 'expense', e.id, `Chi phí ${code}: ${F.vnd(e.amount)} – ${cat.label}`);
     if (!silent) _.done(); return e;
   };

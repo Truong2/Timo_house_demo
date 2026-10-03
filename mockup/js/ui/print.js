@@ -8,7 +8,7 @@
     const m = TH.calc.billing.printModel(inv, { template: inv.template, account: acc, customerCode: inv.customerCode, roomCode: Q.roomCode(inv.roomId), lateFee: Q.param('lateFeePerDay') });
     const factor = (r) => r.factor == null ? '' : Math.abs(r.factor - 1) < 1e-9 ? '1' : F.dec(r.factor, 4);
     return `<div class="inv-print">
-      <div class="ip-tpl">${esc(m.template)} · Tòa ${esc(b.code)}</div>
+      <div class="ip-tpl">${esc(m.template)} · ${esc(m.templateVersion)} · Tòa ${esc(b.code)}</div>
       <h2 class="ip-title">${esc(m.title)}</h2>
       <p class="ip-intro">${esc(m.intro)}</p>
       <div class="ip-head"><span>Mã KH: <b>${esc(m.customerCode)}</b></span><span>Phòng số: <b>${esc(m.room)}</b></span><span>Ngày chốt số liệu: <b>${esc(m.cutoff)}</b></span></div>

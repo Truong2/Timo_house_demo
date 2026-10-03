@@ -163,7 +163,7 @@ test('F23 – đổi phòng, hủy, bỏ cọc: sự kiện riêng, hoa hồng t
   });
 });
 
-test('F24 – duyệt và chi hoa hồng: lý do khi khác gợi ý, điều kiện chi, chi nhiều đợt, chứng từ dòng 40 kỳ đủ điều kiện', async (t) => {
+test('F24 – duyệt và chi hoa hồng: điều kiện chi, nhiều đợt ghi đúng từng kỳ thực chi', async (t) => {
   const TH = boot({ user: 'ketoan' }); const S = TH.store, X = TH.actions, Q = TH.q;
   const ok = S.all('commissions').find(c => c.status === 'approved' && Q.dealEligibility(Q.deal(c.dealId)).ok);
   const notOk = S.all('commissions').find(c => c.status === 'approved' && !Q.dealEligibility(Q.deal(c.dealId)).ok);
@@ -178,15 +178,16 @@ test('F24 – duyệt và chi hoa hồng: lý do khi khác gợi ý, điều ki�
     const r = attempt(() => X.payCommission(notOk.id, { amount: 1000, date: '2026-09-29' }));
     assert.ok(!r.ok && /Chưa đủ điều kiện/.test(r.msg));
   });
-  await t.test('chi 2 đợt: chứng từ "Hoa hồng" dòng 40, kỳ = tháng đủ điều kiện; ⛔ vượt số duyệt', () => {
-    const c = S.get('commissions', ok.id); const el = Q.dealEligibility(Q.deal(c.dealId));
+  await t.test('chi 2 đợt: chứng từ "Hoa hồng" dòng 40 theo tháng của từng ngày chi; ⛔ vượt số duyệt', () => {
+    const c = S.get('commissions', ok.id);
     const half = Math.round(c.approvedAmount / 2);
     const e1 = X.payCommission(c.id, { amount: half, date: '2026-09-29' });
-    assert.equal(e1.category, 'commission'); assert.equal(e1.reportLine, 'marketing'); assert.equal(e1.period, el.date.slice(0, 7)); assert.equal(e1.buildingId, c.buildingId);
+    assert.equal(e1.category, 'commission'); assert.equal(e1.reportLine, 'marketing'); assert.equal(e1.period, '2026-09'); assert.equal(e1.buildingId, c.buildingId);
     assert.ok(!attempt(() => X.payCommission(c.id, { amount: c.approvedAmount, date: '2026-09-29' })).ok, 'vượt số còn được chi');
-    X.payCommission(c.id, { amount: c.approvedAmount - half, date: '2026-09-30' });
+    const e2 = X.payCommission(c.id, { amount: c.approvedAmount - half, date: '2026-10-01' });
+    assert.equal(e2.period, '2026-10');
     assert.equal(S.get('commissions', c.id).status, 'paid');
-    assert.equal(S.where('expenses', e => e.refId === c.id).length, 2);
+    assert.deepEqual(plain(S.where('expenses', e => e.refId === c.id).map(e => e.period).sort()), ['2026-09', '2026-10']);
   });
 });
 

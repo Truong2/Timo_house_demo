@@ -5,9 +5,9 @@
     TH.auth.need('efficiency.view');
     if (!['business', 'total'].includes(basis) || !['web', 'excel'].includes(source)) throw new Error('Cơ sở báo cáo không hợp lệ');
     if (TH.auth.role() === 'codong') source = 'web';
-    const pe = TH.calc.dates.periodEnd(period), rep = TH.qr.get(period, basis, source === 'excel' ? 'excel' : 'gd'), mm = Q.managerMap(pe);
+    const pe = TH.calc.dates.periodEnd(period), rep = TH.qr.get(period, basis, 'excel'), mm = Q.managerMap(pe);
     // LN/tài sản luôn dùng LNR kinh doanh (GĐ OQ-24), kể cả khi báo cáo cơ sở là Báo cáo tổng
-    const biz = basis === 'business' ? rep : TH.qr.get(period, 'business', source === 'excel' ? 'excel' : 'gd');
+    const biz = basis === 'business' ? rep : TH.qr.get(period, 'business', 'excel');
     const headOf = id => { const seen = new Set(); let e = Q.emp(id); while (e && !seen.has(e.id)) { if (e.title === 'TPVH') return e; seen.add(e.id); e = Q.leaderOf(e.id, pe); } return null; };
     const bench = {};
     if (source === 'excel') { if (!(S.get('periods', period) || {}).source || !rep.parallel) throw new Error('Kỳ này chưa có số Excel đối chiếu'); S.all('benchLines').filter(l => l.period === period).forEach(l => { (bench[l.buildingId] = bench[l.buildingId] || {})[l.code] = l.value; }); }
@@ -26,7 +26,7 @@
     const totals = { TOTAL: aggregate(rows), ...Object.fromEntries(['T', 'S', 'G'].map(g => [g, aggregate(rows.filter(r => r.group === g))])) };
     // Unfiltered Excel totals come from the source total cells, which have documented per-building reconciliation differences.
     if (source === 'excel' && !TH.auth.buildingScope() && !group && !area && !manager && rep.excel) ['TOTAL', 'T', 'S', 'G'].forEach(g => { totals[g].profitOnCapital = rep.excel.r_lnr_gv[g]; totals[g].rentMargin = rep.excel.r_nha_thue[g]; });
-    return { period, basis, source, rows, totals };
+    return { period, basis, source, rows, totals, calculationMode: 'excel', policyStatus: 'proposed', policyRef: 'OQ-24' };
   };
   TH.qe = QE;
 })(window.TH);

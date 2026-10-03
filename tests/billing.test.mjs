@@ -72,15 +72,22 @@ test('trạng thái thu theo cột AY Excel (Chưa TT / Thiếu / Đủ / Thừa
   assert.equal(P.payStatus(0, 500000), 'DONG_COC');
 });
 
-test('công nợ từ ngày 6 tháng N; đúng hạn = đủ trước hết ngày 5', () => {
-  const w = D.billingWindow('2026-09', { cutoffDay: 22, dueFromDay: 25, debtAfterDueDays: 5 });
-  assert.deepEqual(plain(w), { cutoff: '2026-08-22', issueDate: '2026-08-22', dueFrom: '2026-08-25', dueTo: '2026-08-31', debtFrom: '2026-09-06' });
-  const inv = { period: '2026-09' };
-  assert.equal(P.debtState(inv, 100, '2026-08-30', {}).state, 'in_term');
-  assert.equal(P.debtState(inv, 100, '2026-09-05', {}).state, 'overdue');
-  assert.equal(P.debtState(inv, 100, '2026-09-06', {}).state, 'debt');
-  assert.equal(D.isOnTime('2026-09-05', '2026-09', {}), true);
-  assert.equal(D.isOnTime('2026-09-06', '2026-09', {}), false);
+test('công nợ mặc định sau 5 ngày lịch từ ngày phát hành; dueDate là chế độ tương thích', () => {
+  const inv = { period: '2026-09', issuedAt: '2026-08-26T09:00:00' };
+  const w = D.billingWindow('2026-09', { cutoffDay: 22, dueFromDay: 25, debtAfterDueDays: 5, debtBasis: 'issuedAt' }, inv);
+  assert.deepEqual(plain(w), { cutoff: '2026-08-22', issueDate: '2026-08-26', dueFrom: '2026-08-25', dueTo: '2026-08-31', debtFrom: '2026-08-31', debtBase: '2026-08-26', debtBasis: 'issuedAt' });
+  assert.equal(P.debtState(inv, 100, '2026-08-30', { debtBasis: 'issuedAt' }).state, 'in_term');
+  assert.equal(P.debtState(inv, 100, '2026-08-31', { debtBasis: 'issuedAt' }).state, 'debt');
+  assert.equal(D.isOnTime('2026-08-30', '2026-09', { debtBasis: 'issuedAt' }, inv), true);
+  assert.equal(D.isOnTime('2026-08-31', '2026-09', { debtBasis: 'issuedAt' }, inv), false);
+
+  const compat = D.billingWindow('2026-09', { cutoffDay: 22, dueFromDay: 25, debtAfterDueDays: 5, debtBasis: 'dueDate' }, inv);
+  assert.equal(compat.debtFrom, '2026-09-06');
+  assert.equal(P.debtState(inv, 100, '2026-09-05', { debtBasis: 'dueDate' }).state, 'overdue');
+  assert.equal(P.debtState(inv, 100, '2026-09-06', { debtBasis: 'dueDate' }).state, 'debt');
+
+  const historical = D.billingWindow('2026-09', { cutoffDay: 22, debtBasis: 'issuedAt' }, { period: '2026-09' });
+  assert.equal(historical.issueDate, '2026-08-22', 'thiếu issuedAt thì dùng ngày phát hành nguồn/cutoff');
 });
 
 test('phân bổ phiếu thu: không vượt số tiền phiếu, không vượt số còn phải thu', () => {

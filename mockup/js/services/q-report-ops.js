@@ -46,9 +46,9 @@
       const v = r.deductions.filter(d => d.kind === (kind === 'electric' ? 'electric' : 'water')).reduce((t, d) => t + (d.amount || 0), 0);
       if (v) { const x = row(r.buildingId); x.dep += v; x.H += v; x.I += v; }
     });
-    // phòng trống / phá HĐ không thu được (OQ-20): Excel cộng vào tổng thu – giữ như Excel theo tham số, hiện dòng riêng
-    const withVac = Q.param('amduongVacantInIncome', D.periodEnd(period)) !== false;
-    S.all('meterReadings').filter(r => r.vacant && r.period === period && r.buildingId).forEach(r => { const v = kind === 'electric' ? r.elAmount || 0 : r.waAmount || 0; if (!v) return; const x = row(r.buildingId); x.vac += v; if (withVac) { x.H += v; x.I += v; } });
+    // Kỳ web: phòng trống là sản lượng riêng, tuyệt đối không cộng vào H/K "thực thu". Chế độ Excel lịch sử giữ nguyên số nguồn.
+    const withVac = false;
+    S.all('meterReadings').filter(r => r.vacant && r.period === period && r.buildingId).forEach(r => { const v = kind === 'electric' ? r.elAmount || 0 : r.waAmount || 0; if (!v) return; row(r.buildingId).vac += v; });
     const prevP = D.prevPeriod(period);
     Object.values(m).forEach(x => {
       const b = Q.building(x.buildingId) || {};
@@ -61,6 +61,7 @@
       else { x.L = v && v.bills && v.bills[prevP] != null ? v.bills[prevP] : null; x.Lsrc = x.L != null ? 'Hóa đơn NCC tháng ' + F.periodShort(prevP) : null; }
       x.D = x.C - x.B; x.G = x.F - x.E; x.J = x.I - x.H;
       x.K = x.H + x.B / 2 + (kind === 'electric' ? x.E : 0);
+      x.excelLikeK = x.K + x.vac;
       x.M = x.L != null ? x.K - x.L : null;
       x.realM = x.M != null ? x.M - (withVac ? x.vac : 0) : null;
       x.flags = [vo ? (vo.unitPrice ? 'Trả điện qua chủ nhà' : 'Trả điện qua chủ nhà – chưa có đơn giá') : !v && 'Không có mã KH ' + (kind === 'electric' ? 'điện' : 'nước') + ' – có thể trả qua chủ nhà', x.L == null && !(vo && !vo.unitPrice) && 'Chờ hóa đơn chi'].filter(Boolean);
@@ -69,7 +70,7 @@
     const rows = Object.values(m).sort((a, c) => String(a.b).localeCompare(String(c.b), 'vi', { numeric: true }));
     const tot = {}; ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'dep', 'vac'].forEach(k => { tot[k] = r2(sum(rows, k)); });
     const withL = rows.filter(r => r.L != null); tot.L = r2(sum(withL, 'L')); tot.M = r2(sum(withL, 'M')); tot.realM = r2(sum(withL, 'realM'));
-    return { period, kind, mode, status: !invs.length ? 'no_data' : withL.length < rows.length ? 'no_cost' : 'ready', rows, total: tot, withVac, costCoverage: withL.length + '/' + rows.length };
+    return { period, kind, mode, status: !invs.length ? 'no_data' : withL.length < rows.length ? 'no_cost' : 'ready', rows, total: tot, withVac, vacantSeparated: true, costCoverage: withL.length + '/' + rows.length };
   };
   /* Sản lượng / biến động chi (tab 3 UI-43): chi điện/nước theo hóa đơn nhà cung cấp tháng m so với tháng m−1 */
   QO.costTrend = (kind = 'electric') => {
@@ -153,6 +154,8 @@
   /* ---------- UI-46: khách hàng, tỷ lệ chuyển đổi, doanh số sale ----------
      Chuyển đổi (OQ-06) = khách có deal chốt / khách có lượt xem, theo tháng của ngày xem; doanh số (OQ-25) = Σ giá chốt theo ngày chốt, chia đều khi nhiều sale, hủy/bỏ cọc cột riêng. */
   QO.sales = (period, by = 'sale', f = {}) => {
+    const conversionPolicy = Q.policy('conversionFormula', D.periodEnd(period));
+    const conversionFormula = conversionPolicy ? conversionPolicy.value : 'none';
     const teamOf = (id) => (Q.leaderOf(id) || { id: '–' }).id;
     const okSale = (ids) => (!f.sale || (ids || []).includes(f.sale)) && (!f.team || (ids || []).some(id => teamOf(id) === f.team));
     // E3: thêm lọc nhóm T/S/G, NV vận hành (quản lý tòa cuối kỳ), cổ đông (tòa cổ đông có tỷ lệ góp cuối kỳ – chỉ giới hạn tòa, không đổi định nghĩa doanh số; đặc tả dòng 410, 518)
@@ -167,14 +170,16 @@
     [...leadsViewed].forEach(id => { const l = Q.lead(id); if (!l || !TH.auth.inSales(l.saleIds)) return; const ks = keyFns[by](l); ks.forEach(k => { const x = g[k] = g[k] || { key: k, viewed: 0, closed: 0 }; x.viewed += 1 / ks.length; if (closedLead.has(l.id)) x.closed += 1 / ks.length; }); });
     // D5: lọc sale / team chỉ hiện dòng của người được lọc (người chia trùng ngoài bộ lọc không hiện)
     const keep = (id) => (!f.sale || id === f.sale) && (!f.team || teamOf(id) === f.team);
-    const conv = Object.values(g).filter(x => by === 'sale' ? keep(x.key) : by === 'team' && f.team ? x.key === f.team : true).map(x => Object.assign(x, { rate: x.viewed ? x.closed / x.viewed : null })).sort((a, b) => b.viewed - a.viewed);
+    const ratio = x => conversionFormula === 'viewedPerClosed' ? (x.closed ? x.viewed / x.closed : null) : (x.viewed ? x.closed / x.viewed : null);
+    const conv = Object.values(g).filter(x => by === 'sale' ? keep(x.key) : by === 'team' && f.team ? x.key === f.team : true).map(x => Object.assign(x, { rate: conversionFormula === 'none' ? null : ratio(x) })).sort((a, b) => b.viewed - a.viewed);
     const deals = Q.salesScoped(S.all('deals')).filter(d => F.period(d.closeDate) === period && okB2(d.buildingId) && okSale(d.saleIds));
     const vol = TH.calc.commission.salesVolume(deals);
     const target = Q.param('salesTarget', D.periodEnd(period));
     const volume = Object.entries(vol).filter(([id]) => keep(id)).map(([id, v]) => { const tg = Q.salesTarget ? Q.salesTarget(id, D.periodEnd(period)) : target; return Object.assign({ id, name: (Q.emp(id) || {}).name || '?', team: teamOf(id), target: tg, pct: tg ? v.volume / tg : null }, v); }).sort((a, b) => b.volume - a.volume);
     const tv = sum(Object.values(g), 'viewed'), tc = sum(Object.values(g), 'closed');
     const inScope = [...leadsViewed].filter(id => { const l = Q.lead(id); return l && TH.auth.inSales(l.saleIds); }); // D5: số tổng theo phạm vi như các dòng
-    return { period, by, conv, volume, totals: { viewed: inScope.length, closed: inScope.filter(id => closedLead.has(id)).length, rate: tv ? tc / tv : null, volume: sum(volume, 'volume'), cancelled: sum(volume, 'cancelledVolume') } };
+    const abs = { viewed: inScope.length, closed: inScope.filter(id => closedLead.has(id)).length };
+    return { period, by, conv, volume, conversionFormula, conversionPolicy, totals: { viewed: abs.viewed, closed: abs.closed, rate: conversionFormula === 'none' ? null : ratio(abs), volume: sum(volume, 'volume'), cancelled: sum(volume, 'cancelledVolume') } };
   };
 
   /* ---------- UI-27: danh mục trung tâm báo cáo (4 nhóm) – trạng thái sẵn sàng / chờ định nghĩa / chờ dữ liệu ---------- */

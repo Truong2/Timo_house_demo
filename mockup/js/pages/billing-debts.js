@@ -1,4 +1,4 @@
-/* UI-14 Công nợ & tiến độ thu: khoản còn nợ sau ngày 5 tháng N (GĐ OQ-12); nhóm phá HĐ riêng; leader/vận hành chỉ thấy trạng thái + số còn nợ. */
+/* UI-14 Công nợ & tiến độ thu: mặc định sau 5 ngày lịch từ ngày phát hành; chế độ dueDate giữ để đối chiếu. */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, esc = F.esc;
   TH.router.handle('/billing/debts', (root, p, q) => {
@@ -16,11 +16,13 @@
     if (q.leader) { const br = TH.auth.branchOf(q.leader, asOf); rows = rows.filter(x => br.has((mm[x.i.buildingId] || {}).id)); }
     const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
     const byState = (k) => withSt.filter(x => x.st.debt.state === k);
-    root.innerHTML = TH.pages.billingTabs('debts') + U.pageHead({ title: 'Công nợ & tiến độ thu', sub: `Tính đến ${F.date(asOf)} · khoản chưa đủ chuyển thành công nợ từ ngày ${Q.param('debtAfterDueDays') + 1} tháng N (hạn cuối tháng N−1 + ${Q.param('debtAfterDueDays')} ngày)`, acts: [
+    const issuedBasis = (Q.param('debtBasis', asOf) || 'issuedAt') === 'issuedAt';
+    const debtRule = issuedBasis ? `sau ${Q.param('debtAfterDueDays') || 5} ngày lịch từ ngày phát hành` : `sau hạn thanh toán ${Q.param('debtAfterDueDays') || 5} ngày (chế độ tương thích)`;
+    root.innerHTML = TH.pages.billingTabs('debts') + U.pageHead({ title: 'Công nợ & tiến độ thu', sub: `Tính đến ${F.date(asOf)} · khoản chưa đủ chuyển thành công nợ ${debtRule}`, acts: [
       U.btn({ label: 'Xuất danh sách nhắc nợ', icon: 'download', act: 'exp' }), U.btn({ label: 'Nhắc qua Zalo', icon: 'message', href: '#/zalo?tab=dot-gui&rule=zr_overdue', perm: 'zalo.send' })] })
       + U.statusTabs([{ key: 'main', label: 'Công nợ chính' }, { key: 'broken', label: 'Nhóm phá HĐ / bỏ trốn' }], group, 'grp')
       + `<div class="grid grid-4 mt16 mb16">${U.kpi({ label: 'Công nợ (quá mốc)', value: full ? F.vnd(sum(byState('debt'), x => x.st.remaining)) : byState('debt').length + ' HĐ', cap: byState('debt').length + ' hóa đơn', icon: 'alert-triangle', tone: 'red' })}
-        ${U.kpi({ label: 'Quá hạn chưa thành công nợ', value: full ? F.vnd(sum(byState('overdue'), x => x.st.remaining)) : byState('overdue').length + ' HĐ', cap: byState('overdue').length + ' hóa đơn (trong 5 ngày sau hạn)', icon: 'clock', tone: 'amber' })}
+        ${U.kpi({ label: 'Chưa thành công nợ', value: full ? F.vnd(sum(byState('overdue'), x => x.st.remaining)) : byState('overdue').length + ' HĐ', cap: byState('overdue').length + ' hóa đơn trước mốc công nợ', icon: 'clock', tone: 'amber' })}
         ${U.kpi({ label: 'Còn trong hạn', value: full ? F.vnd(sum(byState('in_term'), x => x.st.remaining)) : byState('in_term').length + ' HĐ', cap: byState('in_term').length + ' hóa đơn', icon: 'calendar', tone: 'blue' })}
         ${U.kpi({ label: 'Tổng còn phải thu', value: full ? F.vnd(sum(withSt, x => x.st.remaining)) : withSt.length + ' HĐ', icon: 'coins' })}</div>`
       + K.filters([{ name: 'asOf', type: 'date', label: 'Tính đến ngày', value: asOf }, { name: 'state', label: 'Trạng thái', options: [['debt', 'Công nợ'], ['overdue', 'Quá hạn < 5 ngày'], ['in_term', 'Trong hạn']] }, { name: 'period', label: 'Kỳ', options: K.periodOpts() },

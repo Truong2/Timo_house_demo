@@ -26,7 +26,7 @@
     if ((Cc.zalo.TASK_EVENTS || []).includes(rule.event)) return taskCandidates(rule, set);
     const last = {}; S.all('zaloMessages').forEach(m => { if (m.event === rule.event && m.sentAt && m.status !== 'skipped_paid' && (!last[m.invoiceId] || last[m.invoiceId] < m.sentAt)) last[m.invoiceId] = m.sentAt; });
     const items = S.all('invoices').filter(i => (!set || set.has(i.buildingId)) && (!period || i.period === period) && i.lifecycle !== 'draft' && !i.isBreach).map(inv => {
-      const st = Q.invState(inv); return { invoice: inv, remaining: st.remaining, dueTo: inv.dueTo, debtFrom: Cc.dates.billingWindow(inv.period, prm).debtFrom, lastSentAt: last[inv.id] || null, issued: true };
+      const st = Q.invState(inv); return { invoice: inv, remaining: st.remaining, dueTo: inv.dueTo, debtFrom: Cc.dates.billingWindow(inv.period, prm, inv).debtFrom, lastSentAt: last[inv.id] || null, issued: true };
     });
     return Cc.zalo.dueMessages(rule, items, t, prm);
   };

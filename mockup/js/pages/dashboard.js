@@ -82,7 +82,7 @@
       + (!opsView ? '' : `<div class="grid grid-4 mt16">
         ${U.kpi({ label: 'Phải thu kỳ ' + F.periodShort(period), value: money ? F.vnd(due) : main.length + ' HĐ', cap: money ? main.length + ' hóa đơn (không gồm phá HĐ)' : 'hóa đơn đã phát hành', icon: 'receipt', tone: 'blue' })}
         ${U.kpi({ label: 'Đã thu', value: money ? F.vnd(paid) : main.filter(i => Q.invState(i).remaining <= 0).length + ' HĐ', cap: F.pctv(pctNow) + ' số phải thu', icon: 'check-circle', tone: 'green', bar: Math.round(pctNow * 100) })}
-        ${U.kpi({ label: 'Còn nợ', value: money ? F.vnd(remain) : main.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', cap: debtors.length + ' hóa đơn đã thành công nợ (từ ngày 6)', icon: 'alert-triangle', tone: 'red' })}
+        ${U.kpi({ label: 'Còn nợ', value: money ? F.vnd(remain) : main.filter(i => Q.invState(i).remaining > 0).length + ' HĐ', cap: debtors.length + ' hóa đơn đã thành công nợ (mặc định 5 ngày từ phát hành)', icon: 'alert-triangle', tone: 'red' })}
         ${U.kpi({ label: 'Phá HĐ / bỏ trốn', value: br.length, cap: money ? 'còn thu ' + F.vnd(sum(br, i => Q.invState(i).remaining)) + ' (tiền điện)' : 'giữ cọc, chỉ thu tiền điện', icon: 'file-x', tone: 'orange' })}
       </div>`)
       + (TH.ms.on('2') ? p2Row(period, bset, q) : '')

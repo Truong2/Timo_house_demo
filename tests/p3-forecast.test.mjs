@@ -24,6 +24,10 @@ test('P3-5 forecasts are immutable versions; reasons, valid cost keys, adjustmen
   assert.ok(!attempt(() => x.createForecast({ period: auto.period, draftDate: auto.draftDate, lines: [{ key: 'unknown', value: 1 }] })).ok);
   const v2 = x.createForecast({ period: auto.period, draftDate: auto.draftDate, inputs: { J6: auto.inputs.J6 + 1 }, reason: 'Dự kiến thu thêm', adjustments: [{ amount: 100, reason: 'Bổ sung doanh thu' }] });
   assert.equal(v2.version, 2); v2.inputs.J4 = 999; assert.notEqual(q.forecast(v2.id).inputs.J4, 999); assert.equal(JSON.stringify(q.forecast('fc_2026-09_v1')), old);
+  t.auth.login('codong'); assert.equal(q.forecast(v2.id), null, 'cổ đông không xem bản web nháp');
+  t.auth.login('admin'); x.confirmForecast(v2.id, 'Biên bản xác nhận forecast UAT');
+  t.auth.login('codong'); assert.ok(q.forecast(v2.id), 'cổ đông xem được sau khi xác nhận');
+  t.auth.login('admin');
   assert.ok(q.forecastVsActual('fc_2026-08_v1').available); assert.equal(q.forecastVsActual(v2.id).available, false);
 });
 

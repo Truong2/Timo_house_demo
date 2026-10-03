@@ -121,13 +121,16 @@
   B.printModel = (inv, ctx) => {
     const p = inv.period, [y, m] = p.split('-');
     const prev = C.dates.prevPeriod(p), [py, pm] = prev.split('-');
-    const lines = B.expand(inv.lines);
+    const allLines = B.expand(inv.lines);
+    const extended = Number((allLines[12] || {}).amount) !== 0;
+    const lines = extended ? allLines : allLines.slice(0, 12);
     const pad = (n) => String(n).padStart(2, '0');
     const dd = (iso) => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '';
     const fee = ctx.lateFee != null ? ctx.lateFee : 200000;
     const acc = ctx.account || {};
     return {
       template: (B.TEMPLATES[ctx.template] || B.TEMPLATES.VP).name,
+      templateVersion: extended ? 'Mẫu mở rộng · 13 dòng' : 'Mẫu chuẩn · 12 dòng',
       title: `HÓA ĐƠN THÁNG ${Number(m)}/${y}`,
       intro: `Xin thông báo để anh/chị biết tiền thuê phòng Tháng ${Number(m)} và tiền dịch vụ Tháng ${Number(m)} năm ${y} như sau:`,
       customerCode: ctx.customerCode, room: ctx.roomCode, cutoff: dd(inv.cutoff),

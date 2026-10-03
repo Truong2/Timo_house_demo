@@ -15,7 +15,9 @@
       { name: 'roomId', label: 'Phòng (hoa hồng / sửa chữa theo phòng)', type: 'select', options: [] },
       { name: 'amount', label: 'Số tiền', type: 'money', req: true }, { name: 'date', label: 'Ngày chi', type: 'date', req: true, value: F.today() }, { name: 'period', label: 'Kỳ hưởng (YYYY-MM)', req: true, value: S.meta.period, help: 'Có thể khác tháng chi' },
       { name: 'vendor', label: 'Nhà cung cấp / người nhận' }, { name: 'method', label: 'Phương thức', type: 'select', options: [['bank', 'Chuyển khoản'], ['cash', 'Tiền mặt']], value: 'bank' },
-      ...(is1B ? [{ name: 'depMonths', label: 'Số tháng khấu hao (thiết bị)', type: 'number', value: Q.param('depMonthsDefault') || 63, help: '63 tháng ≈ 1,6%/tháng, tháng cuối 0,8% · Báo cáo tổng: nguyên giá một lần · Báo cáo KD: khấu hao (GĐ OQ-11)' }] : []),
+      ...(is1B ? [{ name: 'depMonths', label: 'Số tháng khấu hao (thiết bị)', type: 'number', help: 'Bắt buộc nhập; không tự gán 63 tháng' },
+        { name: 'depreciationSource', label: 'Nguồn chính sách khấu hao', help: 'Quyết định / hợp đồng / mã tài liệu' },
+        { name: 'depreciationPolicyStatus', label: 'Trạng thái chính sách', type: 'select', options: [['proposed', 'Chờ xác nhận'], ['confirmed', 'Đã xác nhận']], value: 'proposed' }] : []),
       { name: 'code', label: 'Mã chứng từ (để trống = tự sinh)' }, { name: 'note', label: 'Nội dung', type: 'textarea', span: true },
       { type: 'html', span: true, html: '<div id="line-hint" class="small muted"></div>' }],
       submit: 'Lưu chi phí', onSubmit: (x) => { X.addExpense(x); U.toast('ok', 'Đã lưu chi phí'); } });
@@ -28,7 +30,7 @@
       if (bid && rs.dataset.b !== bid) { rs.dataset.b = bid; rs.innerHTML = '<option value="">–</option>' + (Q.roomsByBuilding()[bid] || []).map(r => `<option value="${r.id}">${esc(r.code)}</option>`).join(''); }
       const fund = CAT().funds.find(f => f.code === el.querySelector('[name=fundCode]').value);
       el.querySelector('#line-hint').innerHTML = 'Dòng báo cáo: <b>' + esc(scope === 'fund' && fund ? lineLabel(fund.reportLine) : cat ? lineLabel(cat.reportLine) : '–') + '</b>' + (cat && cat.key === 'owner_deposit' ? ' (không vào lợi nhuận)' : '');
-      const dep = el.querySelector('[data-field=depMonths]'); if (dep) dep.hidden = !(cat && cat.equipment);
+      ['depMonths', 'depreciationSource', 'depreciationPolicyStatus'].forEach(k => { const f = el.querySelector(`[data-field=${k}]`); if (f) f.hidden = !(cat && cat.equipment); });
     };
     el.addEventListener('change', sync); sync();
   };

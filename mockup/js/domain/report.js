@@ -39,10 +39,10 @@
     return cols;
   };
   /* Báo cáo kinh doanh (GĐ OQ-10): DT = DT tổng − cọc mới (+ hoàn cọc nếu bật); thiết bị = khấu hao kỳ (nếu bật) thay nguyên giá.
-     mode 'excel' tái hiện sheet KD tháng 8: chỉ trừ cọc mới, thiết bị = 0. */
+     mode 'excel' dùng công thức doanh thu của sheet; depreciation truyền vào chỉ gồm chính sách đã xác nhận. */
   R.business = (base, { depreciation = 0, addBackRefund = true, useDepreciation = true, mode = 'gd' } = {}) => {
     const v = Object.assign({}, base);
-    if (mode === 'excel') { v.rev_total = (base.rev_total || 0) - (base.dep_new || 0); v.cost_equip = 0; }
+    if (mode === 'excel') { v.rev_total = (base.rev_total || 0) - (base.dep_new || 0); v.cost_equip = useDepreciation ? depreciation : 0; }
     else { v.rev_total = (base.rev_total || 0) - (base.dep_new || 0) + (addBackRefund ? (base.refund || 0) : 0); v.cost_equip = useDepreciation ? depreciation : 0; }
     return R.derive(v);
   };
@@ -52,7 +52,7 @@
     { label: '− Cọc phòng mới (không phải doanh thu kinh doanh)', value: -total.dep_new },
     { label: '+ Hoàn cọc cộng lại (GĐ OQ-10)', value: biz.rev_total - (total.rev_total - total.dep_new) },
     { label: '+ Mua sắm thiết bị (nguyên giá, bỏ khỏi chi phí KD)', value: total.cost_equip },
-    { label: '− Khấu hao + thanh lý thiết bị của kỳ (theo số tháng từng tài sản UI-34; mặc định 63 tháng ≈ 1,6%)', value: -biz.cost_equip },
+    { label: '− Khấu hao + thanh lý thiết bị của kỳ (chỉ chính sách đã xác nhận)', value: -biz.cost_equip },
     { label: '= LNR Báo cáo kinh doanh', value: biz.lnr },
   ];
   C.report = R;

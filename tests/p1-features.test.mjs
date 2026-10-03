@@ -2,7 +2,7 @@
    tháng lẻ gắn cờ, lượt thuê chờ nhận có cọc, điện chung dòng 12, HĐ chủ nhà & lịch trả, import hóa đơn nhà cung cấp, xuất Excel báo cáo. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boot, attempt } from './_app.mjs';
+import { boot, attempt, completePayroll } from './_app.mjs';
 
 const host = (x) => JSON.parse(JSON.stringify(x));
 const sum = (a, f = (x) => x) => a.reduce((t, x) => t + f(x), 0);
@@ -37,9 +37,9 @@ test('§2.3 mục 6 – dữ liệu nhập tay bảng lương: ngày công sale,
   await t.test('đổi nhập tay sau khi tính → chặn chốt; chốt ghi chi phí đúng dòng báo cáo, phần cố định thợ vào quỹ sửa chữa', () => {
     const run = X.computePayroll(P);
     X.addPayrollManual({ period: P, kind: 'manual_pay', employeeId: sale.id, amount: 100000, note: 'x' });
-    approveAll(X, run);
+    assert.match(attempt(() => approveAll(X, run)).msg || '', /nhập lương\/phòng|tính lại/i);
     assert.match(attempt(() => X.closePayroll(run.id)).msg || '', /Tính lại/);
-    const run2 = X.computePayroll(P); approveAll(X, run2); X.closePayroll(run2.id);
+    const run2 = completePayroll(TH, P); X.closePayroll(run2.id);
     const exp = S.all('expenses').filter(e => e.refId === run2.id && e.buildingId === 'b_G1').map(e => e.reportLine).sort();
     assert.deepEqual(host(exp), ['repair', 'sal_clean', 'sal_guard', 'sal_mgr']);
     // quỹ "Lương sửa chữa" = phần cố định của mọi thợ (không gồm tiền công đã ghi thẳng vào tòa – OQ-22)
@@ -74,7 +74,7 @@ test('UI-27/UI-28 – bấm số ra giao dịch gốc (TH.qr.sources)', () => {
 
 test('UI-38 – điều chỉnh sau khóa hiện trong giao dịch nguồn của ô', () => {
   const TH = boot({ user: 'admin' }); const X = TH.actions;
-  const run = X.computePayroll('2026-08'); approveAll(X, run); X.closePayroll(run.id);
+  const run = completePayroll(TH, '2026-08'); X.closePayroll(run.id);
   const al = X.saveAllocation('2026-08'); X.closeAllocation(al.id); X.closePeriod('2026-08');
   X.addPeriodAdjustment({ period: '2026-08', buildingId: 'b_G1', reportLine: 'cost_el', amount: 250000, reason: 'Hóa đơn điện T8 về muộn' });
   const src = TH.qr.sources('2026-08', 'cost_el', ['b_G1']);

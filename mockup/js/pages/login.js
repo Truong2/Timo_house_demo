@@ -8,7 +8,7 @@
         <h2>Vận hành cho thuê, thu tiền và chốt tháng trên một hệ thống</h2>
         <p>Phase 1: tòa – phòng – khách – hợp đồng – chỉ số – hóa đơn – thu tiền – công nợ – Zalo – hoàn cọc; chốt tháng lương, phân bổ chi phí, báo cáo theo tòa và báo cáo tổng/kinh doanh. Phase 2: kinh doanh & hoa hồng, sổ sửa chữa, báo cáo vận hành, chia cổ đông.</p>
         <div class="feat"><div class="ic">${I('receipt')}</div><div><b>Hóa đơn đúng mẫu Excel</b><span>13 dòng, 4 mẫu in, tháng lẻ, Thu khác</span></div></div>
-        <div class="feat"><div class="ic">${I('wallet')}</div><div><b>Thu tiền & công nợ</b><span>Chưa TT / Thiếu / Đủ / Thừa, công nợ từ ngày 6</span></div></div>
+        <div class="feat"><div class="ic">${I('wallet')}</div><div><b>Thu tiền & công nợ</b><span>Chưa TT / Thiếu / Đủ / Thừa, công nợ theo ngày phát hành</span></div></div>
         <div class="feat"><div class="ic">${I('bar-chart')}</div><div><b>Chốt tháng</b><span>Lương theo mốc 5/10/15, phân bổ, báo cáo theo tòa</span></div></div>
         <div class="foot">Dữ liệu demo sinh từ file Excel khách gửi (đã ẩn danh tên, SĐT, số tài khoản).</div></div>
       <div class="login-side"><div class="login-card">

@@ -157,7 +157,9 @@ await group('sale', `() => ({})`, async ({ go }) => { await go('#/dashboard', 'f
 await group('kythuat', `() => ({})`, async ({ go }) => { await go('#/dashboard', 'f30-dashboard-ky-thuat.png'); });
 await group('ketoan', `() => {
   const S = TH.store, X = TH.actions;
-  const run = X.computePayroll('2026-10'); run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'minh chứng')));
+  let run = X.computePayroll('2026-10');
+  run.lines.forEach(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).forEach(b => X.addPayrollManual({ period: '2026-10', kind: 'ops_below70', employeeId: l.employeeId, buildingId: b.buildingId, amount: 6000, note: 'Mức minh chứng có lý do' })));
+  run = X.computePayroll('2026-10'); run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'minh chứng')));
   X.closePayroll(run.id); const al = X.saveAllocation('2026-10'); X.closeAllocation(al.id); X.closePeriod('2026-10');
   X.requestReopen('2026-10', 'Nhập thiếu chi phí sửa chữa tòa T21'); X.approveReopen('2026-10');
   TH.auth.login('admin'); X.approveReopen('2026-10'); TH.auth.login('ketoan');

@@ -83,8 +83,12 @@
   TH.pages.reportCellDrawer = cellDrawer;
   /* Thông tin bắt buộc trên file xuất (UI-27): tên báo cáo, kỳ, bộ lọc, phiên bản dữ liệu / thời điểm chốt, người xuất */
   const exportMeta = (rep, q, title) => {
-    const f = [q.area && 'Khu vực ' + ((S.get('areas', q.area) || {}).name || q.area), q.manager && 'Quản lý ' + ((Q.emp(q.manager) || {}).name || q.manager), q.building && 'Tòa ' + ((Q.building(q.building) || {}).code || q.building), q.group && 'Nhà ' + q.group, TH.auth.buildingScope() && 'Phạm vi tài khoản ' + TH.auth.buildingScope().size + ' tòa', rep.type === 'business' && (rep.bizMode === 'excel' ? 'Cách tính: như sheet Excel KD' : 'Cách tính: giả định OQ-10')].filter(Boolean);
+    const f = [q.area && 'Khu vực ' + ((S.get('areas', q.area) || {}).name || q.area), q.manager && 'Quản lý ' + ((Q.emp(q.manager) || {}).name || q.manager), q.building && 'Tòa ' + ((Q.building(q.building) || {}).code || q.building), q.group && 'Nhà ' + q.group, TH.auth.buildingScope() && 'Phạm vi tài khoản ' + TH.auth.buildingScope().size + ' tòa'].filter(Boolean);
+    const method = rep.type === 'business' ? (rep.bizMode === 'excel' ? 'Excel: chỉ loại cọc mới' : 'Phương án đề xuất OQ-10') : 'Excel / dòng tiền';
+    const policy = rep.policySnapshot && rep.policySnapshot.businessReportMode;
     return [title + ' – ' + F.periodLabel(rep.period), ['Mẫu', 'SRC-04 dòng 3–61, cột TỔNG / NHÀ T / NHÀ S / NHÀ G'], ['Bộ lọc', f.join('; ') || 'Toàn hệ thống'],
+      ['Cách tính', method], ['Trạng thái nghiệp vụ', rep.policyStatus === 'confirmed' ? 'Đã xác nhận' : 'Chờ khách xác nhận – không phải báo cáo chính thức'],
+      ['Phiên bản quy tắc', String(rep.ruleVersion || '')], ['Nguồn quy tắc', (policy && policy.sourceRef) || (rep.bizMode === 'excel' ? 'SRC-04' : 'OQ-10')],
       ['Phiên bản số liệu', rep.frozen ? rep.sources.frozen : rep.parallel ? 'Kỳ chạy song song Excel – số tạm tính' : 'Số web tạm tính (kỳ chưa khóa)'], ['Xuất lúc', F.datetime(F.nowISO()) + ' · ' + ((S.session || {}).name || '')]];
   };
   const num = (l, v) => v == null ? '' : l.ratio ? Math.round(Number(v) * 10000) / 10000 : Math.round(v);
@@ -92,14 +96,16 @@
     ['Dòng', 'Chỉ tiêu', 'TỔNG', 'NHÀ T', 'NHÀ S', 'NHÀ G'], CAT().reportLines.map(l => [l.row, l.label, ...['TOTAL', 'T', 'S', 'G'].map(k => num(l, cols[k][l.code]))]));
 
   const reportPage = (type) => (root, p, q) => {
-    const period = q.period || '2026-08'; const mode = TH.auth.role() === 'codong' ? 'gd' : q.mode || 'gd';
+    const period = q.period || '2026-08'; const canCompare = ['admin', 'ketoan'].includes(TH.auth.role());
+    const mode = type === 'business' && canCompare && q.mode === 'gd' ? 'gd' : 'excel';
     const rep = TH.qr.get(period, type, mode); const { cols, sub, filtered } = filterRep(rep, q);
     const compare = rep.parallel && !filtered && !(type === 'business' && mode === 'gd');
     const v = cols.TOTAL;
     const title = type === 'total' ? 'Báo cáo tổng (LN dòng tiền)' : 'Báo cáo kinh doanh';
     root.innerHTML = TH.pages.reportTabs(type) + U.pageHead({ title, sub: `${F.periodLabel(period)} · mẫu SRC-04 dòng 3–61 · ${rep.parallel ? 'kỳ chạy song song Excel' : 'số web'}${filtered ? ' · đã lọc phạm vi' : ''}`, acts: [
       U.btn({ label: 'Báo cáo theo tòa', icon: 'columns', href: `#/reports/buildings?period=${period}&type=${type}` }), U.btn({ label: 'Xuất Excel theo mẫu', icon: 'download', act: 'exp', perm: 'reports.export' })] })
-      + filterBar(q, type === 'business' && TH.auth.role() !== 'codong' ? [{ name: 'mode', label: 'Cách tính', options: [['gd', 'Theo giả định OQ-10 (cộng lại hoàn cọc, có khấu hao)'], ['excel', 'Như sheet Excel KD (chỉ trừ cọc mới)']], value: 'gd', all: false }] : [])
+      + filterBar(q, type === 'business' && canCompare ? [{ name: 'mode', label: 'Cách tính', options: [['excel', 'Chính thức theo Excel (chỉ trừ cọc mới)'], ['gd', 'Đề xuất OQ-10 – chờ xác nhận']], value: 'excel', all: false }] : [])
+      + (type === 'business' && mode === 'gd' ? U.note('warn', 'Phương án đề xuất OQ-10', 'Chỉ admin/kế toán dùng để đối chiếu; không phải số chính thức, không hiển thị cho cổ đông.') : '')
       + `<div class="grid grid-4 mt16 mb16">${U.kpi({ label: 'Tổng doanh thu', value: F.vnd(v.rev_total), icon: 'trending-up', tone: 'blue' })}${U.kpi({ label: 'Tổng chi phí (TCP)', value: F.vnd(v.tcp), cap: 'Giá vốn ' + F.vnd(v.gv) + ' · CPBH ' + F.vnd(v.cpbh), icon: 'coins', tone: 'amber' })}
         ${U.kpi({ label: 'Lợi nhuận ròng (LNR)', value: F.vnd(v.lnr), cap: 'LNR/DT ' + F.pctv(v.r_lnr_dt), icon: 'bar-chart', tone: v.lnr >= 0 ? 'green' : 'red' })}${U.kpi({ label: 'LN gộp (LNG)', value: F.vnd(v.lng), cap: 'LNR/GV ' + F.pctv(v.r_lnr_gv), icon: 'pie-chart', tone: 'teal' })}</div>`
       + (rep.frozen ? U.note('info', 'Kỳ đã khóa', esc(rep.sources.frozen) + '. Thay đổi dữ liệu nguồn sau khóa không làm đổi số; sửa bằng "Điều chỉnh sau khóa" ở Cài đặt → Kỳ.') : '')
@@ -137,7 +143,8 @@
 
   TH.router.handle('/reports/buildings', (root, p, q) => {
     const period = q.period || '2026-08'; const type = q.type || 'total'; const group = q.group || 'G';
-    const rep = TH.qr.get(period, type, TH.auth.role() === 'codong' ? 'gd' : q.mode || 'gd');
+    const mode = type === 'business' && ['admin', 'ketoan'].includes(TH.auth.role()) && q.mode === 'gd' ? 'gd' : 'excel';
+    const rep = TH.qr.get(period, type, mode);
     const ok = scopeFilter(q);
     const code = (b) => (Q.building(b) || {}).code || b.slice(2);
     const bids = Object.keys(rep.byBuilding).filter(b => ((Q.building(b) || {}).group || TH.f.groupOf(b.slice(2))) === group && ok(b)).sort((a, b) => { const x = code(a), y = code(b); return x.length - y.length || x.localeCompare(y, 'vi', { numeric: true }); });
@@ -178,10 +185,10 @@
     const X = TH.data.bench202608.report.total; const eb = {}; TH.data.catalog.reportLines.forEach(l => { if (X[l.row]) eb[l.code] = X[l.row][0]; });
     const d = TH.calc.report.derive(eb);
     out.push({ ms: '1B', name: 'Công thức dòng 18–61 (chạy trên số Excel) tái hiện sheet: TCP 6.013.857.267, LNR 1.022.398.969', ok: Math.round(d.tcp) === 6013857267 && Math.round(d.lnr) === 1022398969 && Math.abs(d.r_dv_nhap - X[59][0]) < 1e-9, detail: `TCP ${F.vnd(d.tcp)} · LNR ${F.vnd(d.lnr)} · DT DV/giá nhập ${F.dec(d.r_dv_nhap, 4)} – kiểm công thức, không phải số web` });
-    const bz = TH.qr.build('2026-08', 'business'); const b = bz.excelBiz; const br = TH.calc.report.bridge(t, bz.cols.TOTAL);
-    const okB = Math.round(b.gd.lnr) === 790331663 && Math.round(b.sheet.lnr) === 685928969 && Math.abs(br[br.length - 1].value - bz.cols.TOTAL.lnr) < 1 && Math.abs(bz.cols.TOTAL.lnr - (b.gd.lnr - rc.diff)) < 1;
-    out.push({ ms: '1B', name: 'Báo cáo kinh doanh T8: cầu nối trên số web = ô LNR; OQ-10 trên số Excel 790.331.663; sheet Excel 685.928.969', ok: okB,
-      detail: `Web: LNR KD ${F.vnd(bz.cols.TOTAL.lnr)} (= 790.331.663 − chênh chi phí ${F.vnd(rc.diff)}) · Excel theo GĐ ${F.vnd(b.gd.lnr)} · sheet KD ${F.vnd(b.sheet.lnr)}` });
+    const bz = TH.qr.build('2026-08', 'business', 'excel'), proposed = TH.qr.build('2026-08', 'business', 'gd'); const b = bz.excelBiz;
+    const okB = Math.round(b.gd.lnr) === 790331663 && Math.round(b.sheet.lnr) === 685928969 && Math.abs(bz.cols.TOTAL.lnr - b.sheet.lnr) < 1 && Math.abs(proposed.cols.TOTAL.lnr - (b.gd.lnr - rc.diff)) < 1;
+    out.push({ ms: '1B', name: 'Báo cáo kinh doanh T8: mặc định đúng sheet Excel; OQ-10 vẫn có bản đề xuất tách biệt', ok: okB,
+      detail: `Chính thức Excel ${F.vnd(bz.cols.TOTAL.lnr)} · đề xuất OQ-10 trên số web ${F.vnd(proposed.cols.TOTAL.lnr)} · benchmark OQ-10 trên số Excel ${F.vnd(b.gd.lnr)}` });
     return out;
   };
 })(window.TH);

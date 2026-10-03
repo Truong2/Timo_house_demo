@@ -3,6 +3,6 @@
 (function (TH) {
   TH.calc.efficiency = {
     row: (v, nbv, { lnrBiz = v.lnr, baseline = true } = {}) => ({ profitOnCapital: v.r_lnr_gv, rentMargin: v.r_nha_thue, profitOnAssets: baseline && nbv > 0 ? lnrBiz / nbv : null,
-      assetsPending: !baseline ? 'Chờ số dư tài sản (UI-37 / đầu tư ban đầu UI-33)' : nbv > 0 ? null : 'Chưa có giá trị tài sản công ty', baseline, nbv, lnr: v.lnr, lnrBiz, gv: v.gv, rev_rent: v.rev_rent, cost_rent: v.cost_rent })
+      assetsPending: !baseline ? 'Chờ chính sách tài sản' : nbv > 0 ? null : 'Chưa có giá trị tài sản công ty', baseline, nbv, lnr: v.lnr, lnrBiz, gv: v.gv, rev_rent: v.rev_rent, cost_rent: v.cost_rent })
   };
 })(window.TH);

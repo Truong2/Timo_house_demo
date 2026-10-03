@@ -31,14 +31,13 @@
   };
   /* Tổng đã phân bổ vào hóa đơn (bỏ phiếu đã đảo) */
   P.paidOf = (invoiceId, payments) => payments.reduce((s, p) => p.status === 'reversed' ? s : s + (p.allocations || []).filter(a => a.invoiceId === invoiceId).reduce((t, a) => t + a.amount, 0), 0);
-  /* Công nợ: còn nợ sau ngày 5 tháng N (hạn cuối tháng N−1 + 5 ngày) → 'debt' */
+  /* Công nợ theo cơ sở cấu hình: ngày phát hành (mặc định CH-14) hoặc ngày hết hạn (tương thích cũ). */
   P.debtState = (inv, remaining, asOf, prm) => {
     if (remaining <= EPS) return { state: 'none', days: 0 };
-    const w = C.dates.billingWindow(inv.period, prm);
-    if (asOf <= w.dueTo) return { state: 'in_term', days: 0 };
-    const days = C.dates.diffDays(w.dueTo, asOf);
-    if (asOf < w.debtFrom) return { state: 'overdue', days };
-    return { state: 'debt', days };
+    const w = C.dates.billingWindow(inv.period, prm, inv);
+    const days = Math.max(0, C.dates.diffDays(w.dueTo, asOf));
+    if (asOf < w.debtFrom) return { state: asOf <= w.dueTo ? 'in_term' : 'overdue', days, debtFrom: w.debtFrom, debtBasis: w.debtBasis };
+    return { state: 'debt', days, debtFrom: w.debtFrom, debtBasis: w.debtBasis };
   };
   /* Phân bổ do kế toán chọn: không tự quyết định thứ tự bù nợ; tổng phân bổ không vượt số tiền phiếu */
   P.validateAllocation = (amount, plan) => {

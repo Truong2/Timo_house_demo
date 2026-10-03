@@ -1,7 +1,7 @@
 /* Hoa hồng Phase 2 (UI-22; đặc tả §3.5 dòng 301–313, SRC-09, CH-01/19/20, GĐ OQ-13). Chỉ admin / kế toán xem & thao tác (CH-01).
    Mỗi deal sinh dòng hoa hồng: qua đối tác → 1 dòng cho đối tác; không → chia cho các sale (trùng 2 người 25%, 3 người 16,67%).
    Tỷ lệ gợi ý theo chính sách có hiệu lực; duyệt khác gợi ý phải có lý do. Chi nhiều đợt, tổng không vượt số đã duyệt; mỗi đợt chi = chứng từ
-   chi phí "Hoa hồng" dòng 40 Phí marketing, kỳ = tháng đủ điều kiện chi (OQ-13). */
+   chi phí "Hoa hồng" dòng 40 Phí marketing, kỳ = tháng thực chi; ngày đủ điều kiện chỉ là điều kiện được phép chi. */
 (function (TH) {
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, Cc = TH.calc, CM = TH.calc.commission;
   const fail = (fields, msg = 'Dữ liệu chưa hợp lệ') => { const e = new Error(msg); e.fields = fields; throw e; };
@@ -52,7 +52,7 @@
     S.update('commissions', id, { H, deduction: ded, amount, approvedAmount: amount, status: paid + 0.5 >= amount ? 'paid' : 'approved', approvedBy: _.who(), approvedAt: F.nowISO(), reason: d.reason || null });
     _.audit('approve', 'commission', id, `Duyệt hoa hồng ${(Q.deal(c.dealId) || {}).code}: ${c.recipient.name} ${(H * 100).toFixed(2)}% = ${F.vnd(amount)}${d.reason ? ' – ' + d.reason : ''}`); _.done();
   };
-  /* Chi (từng đợt): đủ điều kiện CH-19; tổng ≤ số duyệt; chứng từ chi phí hoa hồng theo tòa – phòng, kỳ = tháng đủ điều kiện */
+  /* Chi (từng đợt): đủ điều kiện CH-19; tổng ≤ số duyệt; mỗi đợt ghi nhận đúng tháng thực chi. */
   X.payCommission = (id, d) => { _.needMs('2', 'Hoa hồng (UI-22)');
     _.need('commission.pay');
     const c = S.get('commissions', id); if (!c) throw new Error('Không tìm thấy dòng hoa hồng');
@@ -66,9 +66,10 @@
     if (!d.date) errs.date = 'Nhập ngày chi';
     else if (el.date && d.date < el.date) errs.date = 'Ngày chi trước ngày đủ điều kiện ' + F.date(el.date);
     if (Object.keys(errs).length) fail(errs);
-    // Kỳ ghi nhận = tháng đủ điều kiện (OQ-13); kỳ đó đã khóa → ghi vào kỳ của ngày chi (không chặn chi, không sửa số đã chốt)
-    let period = CM.recognitionPeriod(el.date); let lateNote = '';
-    if ((S.get('periods', period) || {}).status === 'closed') { lateNote = ` · đủ điều kiện kỳ ${F.periodShort(period)} đã khóa → ghi kỳ chi`; period = F.period(d.date); }
+    const recognition = Q.param('commissionRecognitionMode', d.date) || 'paidAt';
+    const period = recognition === 'eligibleAt' ? CM.recognitionPeriod(el.date) : F.period(d.date);
+    const lateNote = recognition === 'eligibleAt' ? ' · phương án OQ-13 theo kỳ đủ điều kiện' : ' · ghi nhận theo kỳ thực chi';
+    if ((S.get('periods', period) || {}).status === 'closed') throw new Error(`Kỳ ghi nhận ${F.periodShort(period)} đã khóa; chọn ngày chi thuộc kỳ mở, hệ thống không tự đẩy kỳ`);
     _.guardPeriod(period, 'ghi chi hoa hồng');
     const exp = X.addExpense({ category: 'commission', reportLine: 'marketing', scope: 'building', buildingId: c.buildingId, roomId: c.roomId, amount: amt, date: d.date, period, method: d.method || 'bank',
       vendor: c.recipient.name, note: `Hoa hồng ${deal.code} – ${c.recipient.name} (${(c.H * 100).toFixed(2)}% × ${F.vnd(c.F)})${lateNote}`, source: 'commission', refId: id }, true);

@@ -23,10 +23,10 @@
     const HS = K ? T / K * 100 : 0;
     return { B, T, HS };
   };
-  /* Quy tắc cận gần nhất (khớp 97/98 dòng SRC-03): HS < a+2,5 → mức thấp/a, còn lại mức cao/(a+5); HS>100 không chặn trần; HS<70 → 10% mức thấp nhất bậc 70–75 */
+  /* Quy tắc cận gần nhất. HS<70 không có mức tự động: kế toán phải nhập lương/phòng và lý do theo người × tòa × kỳ. */
   P.tierRate = (HS, over1y) => {
     const col = over1y ? 2 : 1;
-    if (HS < 70) return { rate: P.TIERS[0][col][0] * 0.1, bound: null, perRoom: P.TIERS[0][col][0] * 0.1, flag: 'HS<70', rule: '10% × mức thấp nhất bậc 70–75' };
+    if (HS < 70) return { rate: null, bound: null, perRoom: 0, flag: 'HS<70', rule: 'Chờ nhập tay lương/phòng và lý do' };
     if (HS >= 100) { const r = P.TIERS[5][col][1]; return { rate: r, bound: 100, perRoom: HS * r / 100, flag: HS > 100 ? 'HS>100' : null, rule: `HS × ${r}/100 (không chặn trần)` }; }
     const a = Math.floor(HS / 5) * 5; const t = P.TIERS.find(x => x[0] === a);
     const low = HS < a + 2.5;

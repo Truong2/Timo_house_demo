@@ -1,7 +1,7 @@
 /* Phase 2 – Đợt 5: mở rộng UI-01 (HS, leader), UI-38 quản lý kỳ nâng cao [GĐ K-7], UI-39 hộp thư phản hồi + sự kiện mới. Kịch bản F30. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { boot, attempt } from './_app.mjs';
+import { boot, attempt, completePayroll } from './_app.mjs';
 
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
@@ -25,7 +25,7 @@ test('F30.1 – Dashboard: HS thực tế / tạm tính theo phạm vi; lọc le
 test('F30.3 / F30.4 / F30.5 – mở lại kỳ đã khóa cần duyệt admin + kế toán; lịch sử; so sánh 2 phiên bản chốt', async (t) => {
   const TH = boot({ user: 'ketoan' }); const S = TH.store, X = TH.actions, Q = TH.q;
   // khóa kỳ 10 đúng điều kiện mốc 1B: chốt lương + chốt phân bổ trước
-  const run = X.computePayroll('2026-10'); run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử')));
+  const run = completePayroll(TH, '2026-10');
   X.closePayroll(run.id); const al = X.saveAllocation('2026-10'); X.closeAllocation(al.id);
   X.closePeriod('2026-10');
   assert.equal(Q.snapshotVersions('2026-10').length, 1);

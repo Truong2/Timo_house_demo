@@ -6,11 +6,13 @@ import { load, fixture } from './_load.mjs';
 
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
-test('F28 – domain chia: làm tròn từng dòng, chênh dồn CHUNG (OQ-08); Σ = số chia', () => {
+test('F28 – domain chia: mặc định hiển thị chênh riêng; chỉ dồn CHUNG khi chính sách được chọn', () => {
   const SH = load().calc.share;
   const r = SH.split([{ id: 'c', pct: 10, common: true }, { id: 'a', pct: 45 }, { id: 'b', pct: 45 }], { rent: 1000, lng: 101, lnr: 33.3 });
-  assert.equal(r.totals.H, 1000); assert.equal(r.totals.I, 101); assert.equal(r.totals.J, 33);
-  assert.equal(r.rows.find(x => x.id === 'c').I, 10 + r.rounding.I);
+  assert.equal(r.totals.H, 1000); assert.equal(r.totals.I, 100); assert.equal(r.totals.J, 33);
+  assert.equal(r.rounding.I, 1); assert.equal(r.rounding.to, null);
+  const confirmed = SH.split([{ id: 'c', pct: 10, common: true }, { id: 'a', pct: 45 }, { id: 'b', pct: 45 }], { rent: 1000, lng: 101, lnr: 33.3 }, { roundingMode: 'commonFund' });
+  assert.equal(confirmed.totals.I, 101); assert.equal(confirmed.rows.find(x => x.id === 'c').I, 11);
   assert.ok(!SH.valid([{ pct: 60 }, { pct: 39 }]).ok);
 });
 
@@ -29,12 +31,12 @@ test('F28.3 / NT-2 – bảng kê G1 T8 như Excel: Σ Vốn 48.000.000 · LNG 2
   assert.ok(Math.abs(run.K - fx.excel.C78 * 100) < 1e-6 && Math.abs(run.L - fx.excel.C80) < 1e-6, 'K = LNR/GV×100, L = CP/LNG');
 });
 
-test('F28.3 – bảng kê G1 T8 theo Báo cáo tổng web: vốn, LNG khớp; LNR lệch đúng bằng ô C43 Excel dùng mẫu số 1.343 (OQ-04 / K-9)', () => {
+test('F28.3 – bảng kê lịch sử G1 T8 luôn dùng đúng giá trị Excel', () => {
   const TH = boot({ user: 'ketoan' }); const Q = TH.q;
   const w = Q.shareRun('b_G1', '2026-08', 'web');
   assert.equal(w.totals.H, 48000000); assert.equal(w.totals.I, 22990932);
   const v = Q.shareVariance('b_G1', '2026-08');
-  assert.ok(Math.abs(v.lnr - v.oq04) < 1, 'chênh LNR ' + v.lnr + ' ≈ ' + v.oq04);
+  assert.equal(v.lnr, 0, 'không dùng công thức web để thay số lịch sử');
   assert.equal(w.totals.J, Math.round(w.base.lnr));
 });
 

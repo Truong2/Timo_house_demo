@@ -28,19 +28,19 @@ test('F26.2 / NT-4 – âm dương nước T6 "như Excel": 292.728.500 − 207.
   A.rows.filter(r => r.K != null && r.H != null).forEach(r => assert.ok(near(r.K, r.H + (r.B || 0) / 2, 1), r.b));
 });
 
-test('F26.3 – âm dương web kỳ 09: phải thu = dòng điện hóa đơn đã phát hành + trừ cọc + phòng trống (OQ-20 tách dòng); K = H + B/2 + E; thu − chi thực', () => {
+test('F26.3 – âm dương web kỳ 09: thực thu không gồm sản lượng phòng trống; phòng trống là dòng riêng', () => {
   const TH = boot({ user: 'ketoan' }); const Q = TH.q, B = TH.calc.billing;
   const A = TH.qo.amDuong('2026-09', 'electric', 'web');
   const invs = Q.invoicesOf('2026-09').filter(i => i.lifecycle !== 'draft');
   const lines = invs.reduce((t, i) => { const L = B.expand(i.lines); return t + L[2].amount + L[11].amount; }, 0);
-  assert.ok(near(A.total.I, lines + A.total.dep + A.total.vac, 1), 'I = dòng 3 + 12 + trừ cọc + phòng trống');
+  assert.ok(near(A.total.I, lines + A.total.dep, 1), 'I = dòng 3 + 12 + trừ cọc; phòng trống không phải thực thu');
   assert.ok(A.total.vac > 0 && A.total.dep > 0);
-  A.rows.forEach(r => { assert.ok(near(r.K, r.H + r.B / 2 + r.E, 0.02), r.b); if (r.M != null) assert.ok(near(r.realM, r.M - r.vac, 0.02)); });
+  A.rows.forEach(r => { assert.ok(near(r.K, r.H + r.B / 2 + r.E, 0.02), r.b); if (r.M != null) assert.ok(near(r.realM, r.M, 0.02)); assert.ok(near(r.excelLikeK, r.K + r.vac, 0.02)); });
   assert.ok(['ready', 'no_cost'].includes(A.status));
-  // tham số OQ-20 tắt → phòng trống không vào tổng thu
+  // OQ-20 chưa xác nhận: thay tham số cũ cũng không được nhập phòng trống vào thực thu
   const prm = TH.store.one('params', p => p.key === 'amduongVacantInIncome'); prm.value = false; TH.store.version++;
   const B2 = TH.qo.amDuong('2026-09', 'electric', 'web');
-  assert.ok(near(B2.total.I, A.total.I - A.total.vac, 1));
+  assert.ok(near(B2.total.I, A.total.I, 1));
   const W = TH.qo.amDuong('2026-09', 'water', 'web');
   const wl = invs.reduce((t, i) => t + B.expand(i.lines)[3].amount, 0);
   assert.ok(near(W.total.I, wl + W.total.dep, 1));

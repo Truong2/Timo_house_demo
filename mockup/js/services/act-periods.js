@@ -1,21 +1,26 @@
 /* Actions – tham số GĐ có hiệu lực, khóa/mở kỳ (UI-38), ngày hệ thống demo. */
 (function (TH) {
-  const S = TH.store, F = TH.f, X = TH.actions, _ = X._, D = TH.calc.dates;
+  const S = TH.store, F = TH.f, X = TH.actions, _ = X._, D = TH.calc.dates, Q = TH.q;
   /* Phiên tham số mới: đóng phiên cũ tại ngày trước hiệu lực */
-  X.setParam = (key, value, from, reason) => {
+  X.setParam = (key, value, from, reason, meta = {}) => {
     _.need('settings.manage');
     if (!from) throw new Error('Nhập ngày hiệu lực');
     if (!String(reason || '').trim()) throw new Error('Nhập lý do (vd: khách xác nhận OQ-xx)');
     const rows = S.where('params', p => p.key === key);
     const base = rows[0];
     if (!base) throw new Error('Tham số không tồn tại: ' + key);
-    const def = Object.assign({}, base, (TH.data.catalog.params || []).find(p => p.key === key) || {});
+    const def = Object.assign({}, base, [...(TH.data.catalog.params || []), ...(TH.data.catalog.policyParams || [])].find(p => p.key === key) || {});
     const v = TH.calc.params.validate(def, value); if (!v.ok) throw new Error(base.label + ': ' + v.err);
     value = v.value;
     _.guardEffective(from, 'tham số mới');
     if (rows.some(r => r.effectiveFrom >= from)) throw new Error('Đã có phiên hiệu lực từ ' + F.date(rows.map(r => r.effectiveFrom).sort().pop()));
     rows.filter(r => !r.effectiveTo).forEach(r => S.update('params', r.id, { effectiveTo: D.addDays(from, -1) }));
-    const p = S.add('params', Object.assign({}, base, { id: undefined, value, effectiveFrom: from, effectiveTo: null, reason, by: _.who() }));
+    const status = meta.status || base.status || 'proposed';
+    const sourceRef = String(meta.sourceRef || base.sourceRef || base.oq || '').trim();
+    if (!['proposed', 'confirmed'].includes(status)) throw new Error('Trạng thái quy tắc không hợp lệ');
+    if (status === 'confirmed' && !sourceRef) throw new Error('Quy tắc xác nhận phải có nguồn căn cứ');
+    const now = F.nowISO();
+    const p = S.add('params', Object.assign({}, base, { id: undefined, value, effectiveFrom: from, effectiveTo: null, reason, by: _.who(), status, sourceRef, approvedBy: status === 'confirmed' ? _.who() : null, approvedAt: status === 'confirmed' ? now : null }));
     _.audit('param', 'param', p.id, `Tham số ${base.label}: ${TH.calc.params.format(def, value, F)} từ ${F.date(from)} (${reason})`); _.done(); return p;
   };
   X.closePeriod = (period, checks) => {
@@ -29,12 +34,14 @@
     }
     if (pend.length) throw new Error('Chưa đủ điều kiện khóa kỳ: ' + pend.join(', '));
     // Chốt số báo cáo tại thời điểm khóa: báo cáo kỳ đã khóa đọc từ ảnh chụp này + dòng điều chỉnh sau khóa
-    const rep = TH.qr.build(period, 'total', 'gd', { noAdj: true }); // A5: không chụp dòng điều chỉnh (tránh cộng hai lần khi mở lại → khóa lại)
+    const rep = TH.qr.build(period, 'total', 'excel', { noAdj: true }); // số chính thức theo Excel; không chụp dòng điều chỉnh
+    const official = TH.qr.build(period, 'business', 'excel', { noAdj: true });
+    const policySnapshot = Q.policySnapshot(D.periodEnd(period));
     S.remove('reportSnapshots', 'rs_' + period);
-    S.add('reportSnapshots', { id: 'rs_' + period, period, base: JSON.parse(JSON.stringify(rep.base)), dep: JSON.parse(JSON.stringify(rep.dep)), sources: rep.sources, at: F.nowISO(), by: _.who() });
+    S.add('reportSnapshots', { id: 'rs_' + period, period, base: JSON.parse(JSON.stringify(rep.base)), business: JSON.parse(JSON.stringify(official.byBuilding)), businessCols: JSON.parse(JSON.stringify(official.cols)), dep: JSON.parse(JSON.stringify(rep.dep)), sources: rep.sources, policySnapshot, officialMode: 'excel', at: F.nowISO(), by: _.who() });
     // Phase 2 (UI-38 nâng cao): mỗi lần khóa lưu một phiên bản số chốt để so sánh giữa các lần khóa / mở lại
     const ver = S.where('reportSnapshotVersions', v => v.period === period).length + 1;
-    S.add('reportSnapshotVersions', { id: 'rsv_' + period + '_' + ver, period, version: ver, base: JSON.parse(JSON.stringify(rep.base)), at: F.nowISO(), by: _.who() });
+    S.add('reportSnapshotVersions', { id: 'rsv_' + period + '_' + ver, period, version: ver, base: JSON.parse(JSON.stringify(rep.base)), business: JSON.parse(JSON.stringify(official.byBuilding)), businessCols: JSON.parse(JSON.stringify(official.cols)), policySnapshot, officialMode: 'excel', at: F.nowISO(), by: _.who() });
     S.update('periods', period, { status: 'closed', closedAt: F.nowISO(), closedBy: _.who(), history: [...(p.history || []), { type: 'close', version: ver, at: F.nowISO(), by: _.who() }] });
     _.audit('close', 'period', period, 'Khóa kỳ ' + F.periodShort(period) + ' – chốt số báo cáo (phiên bản ' + ver + ')'); _.done();
   };

@@ -62,6 +62,13 @@
       if (!Q.emp(d.employeeId)) throw new Error('Chọn nhân viên');
       if (!amount) throw new Error('Nhập số tiền (âm để giảm)');
       if (!String(d.note || '').trim()) throw new Error('Nhập nội dung hỗ trợ / điều chỉnh');
+    } else if (d.kind === 'ops_below70') {
+      if (!Q.emp(d.employeeId)) throw new Error('Chọn nhân viên vận hành');
+      if (!Q.building(d.buildingId)) throw new Error('Chọn tòa');
+      if (!(amount > 0)) throw new Error('Nhập lương/phòng lớn hơn 0');
+      if (!String(d.note || '').trim()) throw new Error('Nhập lý do áp dụng mức lương/phòng');
+      const old = S.one('payrollManual', x => x.period === d.period && x.kind === 'ops_below70' && x.employeeId === d.employeeId && x.buildingId === d.buildingId);
+      if (old) S.remove('payrollManual', old.id);
     } else throw new Error('Loại dữ liệu nhập tay không hợp lệ');
     const r = S.add('payrollManual', { period: d.period, kind: d.kind, employeeId: d.employeeId || null, buildingId: d.buildingId || null, line: d.line || null, amount, note: d.note || '', by: _.who() });
     _.audit('manual', 'payroll', d.period, `Nhập tay lương ${F.periodShort(d.period)}: ${d.kind} ${F.vnd(amount)}`); _.done(); return r;
@@ -101,6 +108,11 @@
       if (OPS.includes(e.title)) {
         if (parallel && inputs.length) blds = inputs.filter(x => x.employeeId === e.id).map(x => {
           const r = P.buildingPay({ J: x.J, K: x.K, L: x.L, A: x.M + x.N + x.O, Q: x.Q, C: x.S, over1y, fixedPerRoom: x.fixedPerRoom });
+          if (r.HS < 70 && !x.fixedPerRoom) {
+            const man = M.find(z => z.kind === 'ops_below70' && z.employeeId === e.id && z.buildingId === x.buildingId);
+            const v = man ? man.amount : x.excel && Number(x.excel.V) > 0 ? Number(x.excel.V) : 0;
+            Object.assign(r, { V: v, W: v * x.J, rate: null, bound: null, manualApplied: !!man || !!(x.excel && Number(x.excel.V) > 0), manualReason: man ? man.note : 'Giữ đúng mức nhập từ SRC-03', rule: man ? 'Nhập tay: ' + man.note : 'Nhập từ SRC-03 (kỳ lịch sử)' });
+          }
           return Object.assign({ buildingId: x.buildingId, J: x.J, K: x.K, L: x.L, M1: x.M, M2: x.N, M3: x.O, Q: x.Q, C: x.S, source: 'SRC-03', excel: x.excel }, r);
         });
         else {
@@ -110,6 +122,11 @@
             const isNew = b.operatedFrom && D.diffDays(b.operatedFrom, pEnd) < 92;
             const ms = P.milestones({ R5: inp.R5, R10: inp.R10, R15: inp.R15, deduct: inp.deduct, w: msCfg.w });
             const r = P.buildingPay({ J: inp.J, K: inp.K, L: inp.L, A: ms.A, Q: inp.Q, C: inp.C, over1y, fixedPerRoom: isNew ? fixedPay : null });
+            if (r.HS < 70 && !isNew) {
+              const man = M.find(z => z.kind === 'ops_below70' && z.employeeId === e.id && z.buildingId === bid);
+              const v = man ? man.amount : 0;
+              Object.assign(r, { V: v, W: v * inp.J, rate: null, bound: null, manualApplied: !!man, manualReason: man ? man.note : '', rule: man ? 'Nhập tay: ' + man.note : 'Chờ nhập tay lương/phòng và lý do' });
+            }
             return Object.assign({ buildingId: bid, J: inp.J, K: inp.K, L: inp.L, M1: ms.M1, M2: ms.M2, M3: ms.M3, Q: inp.Q, C: inp.C, R5: inp.R5, R10: inp.R10, R15: inp.R15, msDays: msCfg.days, msW: msCfg.w, deduct: inp.deduct, source: 'web' }, r);
           });
         }
@@ -147,6 +164,8 @@
     const run = S.get('payrollRuns', runId);
     _.guardPeriod(run.period, 'duyệt cờ bảng lương');
     if (run.status === 'closed') throw new Error('Bảng lương đã chốt');
+    const [employeeId, buildingId] = key.split(':'); const line = run.lines.find(x => x.employeeId === employeeId); const building = line && line.buildings.find(x => x.buildingId === buildingId);
+    if (building && building.HS != null && building.HS < 70 && !building.manualApplied) throw new Error('HS < 70: phải nhập lương/phòng và lý do, sau đó tính lại trước khi duyệt');
     S.update('payrollRuns', runId, { approvals: Object.assign({}, run.approvals, { [key]: { by: _.who(), at: F.nowISO(), note } }) }); _.done();
   };
   X.closePayroll = (runId) => {
@@ -154,6 +173,8 @@
     const run = S.get('payrollRuns', runId);
     _.guardPeriod(run.period, 'chốt bảng lương');
     if ((run.manualSig || '') !== X.manualSig(run.period)) throw new Error('Dữ liệu nhập tay đã đổi sau lần tính – bấm "Tính lại" trước khi chốt');
+    const missingBelow70 = run.lines.flatMap(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).map(b => l.employeeId + ':' + b.buildingId));
+    if (missingBelow70.length) throw new Error(`Còn ${missingBelow70.length} ca HS < 70 chưa nhập lương/phòng và lý do`);
     const pending = run.lines.flatMap(l => l.flags.map(f => l.employeeId + ':' + f.buildingId)).filter(k => !run.approvals[k]);
     if (pending.length) throw new Error(`Còn ${pending.length} ca cần duyệt tay (HS>100 / HS<70 / không có phòng) trước khi chốt`);
     const byB = {};

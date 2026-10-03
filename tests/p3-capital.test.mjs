@@ -33,7 +33,7 @@ test('P3-4 payout requires locked M, rejects excess, records and voids independe
   const a = x.recordPayout({ shareRunId: run.id, shareholderId: row.shareholderId, amount: 1000000, date: '2026-09-29' });
   assert.equal(t.q.capitalPayouts().find(r => r.id === row.id).remaining, row.due - 1000000);
   x.voidShareTxn(a.id, 'Ghi sai'); assert.equal(t.q.capitalPayouts().find(r => r.id === row.id).remaining, row.due);
-  assert.equal(t.qr.get('2026-08', 'total').cols.TOTAL.lnr, before); assert.equal(s.get('shareRuns', run.id).totals.M, 62672849);
+  assert.equal(t.qr.get('2026-08', 'total').cols.TOTAL.lnr, before); assert.equal(s.get('shareRuns', run.id).totals.M, 62664969);
   assert.equal(t.q.shareBase('b_G1', '2026-08', 'excel').rent + Math.round(t.q.shareBase('b_G1', '2026-08', 'excel').lnr), 62664969);
 });
 

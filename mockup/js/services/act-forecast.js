@@ -27,7 +27,16 @@
     if (adjustments.some(a => !Number.isFinite(a.amount) || !a.reason)) errs.adjustmentReason = 'Điều chỉnh bắt buộc số tiền hợp lệ và lý do';
     if (Object.keys(errs).length) { const e = new Error('Kiểm tra lý do và đầu vào dự kiến'); e.fields = errs; throw e; }
     const version = Math.max(0, ...S.all('forecasts').filter(f => f.period === d.period).map(f => f.version)) + 1;
-    const rec = S.add('forecasts', { id: 'fc_' + d.period + '_v' + version, period: d.period, version, draftDate: d.draftDate, scopeNote: String(d.scopeNote || auto.scopeNote), excludedBuildings: auto.excludedBuildings, source: 'web', form: 'business', inputs, inputMeta, lines, adjustments, depWeb: auto.depWeb, depRate: Q.param('depRate', d.draftDate), excelCheck: null, by: _.who() });
+    const rec = S.add('forecasts', { id: 'fc_' + d.period + '_v' + version, period: d.period, version, draftDate: d.draftDate, scopeNote: String(d.scopeNote || auto.scopeNote), excludedBuildings: auto.excludedBuildings, source: 'web', form: 'business', status: 'draft', policyStatus: 'proposed', sourceRef: 'OQ-23', inputs, inputMeta, lines, adjustments, depWeb: auto.depWeb, depRate: Q.param('depRate', d.draftDate), excelCheck: null, by: _.who() });
     _.audit('create', 'forecast', rec.id, 'Dự kiến ' + d.period + ' v' + version + ' – phiên bản bất biến'); _.done(); return JSON.parse(JSON.stringify(rec));
+  };
+  X.confirmForecast = (id, sourceRef) => {
+    _.need('forecast.manage'); _.needMs('3', 'Dự kiến lợi nhuận');
+    const rec = S.get('forecasts', id); if (!rec) throw new Error('Không tìm thấy phiên bản dự kiến');
+    if (rec.status === 'confirmed') throw new Error('Phiên bản đã được xác nhận');
+    if (!String(sourceRef || '').trim()) { const e = new Error('Nhập nguồn / quyết định xác nhận'); e.fields = { sourceRef: 'Bắt buộc có nguồn căn cứ' }; throw e; }
+    S.update('forecasts', id, { status: 'confirmed', policyStatus: 'confirmed', sourceRef: String(sourceRef).trim(), approvedBy: _.who(), approvedAt: F.nowISO() });
+    _.audit('approve', 'forecast', id, `Xác nhận dự kiến ${rec.period} v${rec.version} – ${sourceRef}`); _.done();
+    return JSON.parse(JSON.stringify(S.get('forecasts', id)));
   };
 })(window.TH);

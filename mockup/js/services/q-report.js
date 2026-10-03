@@ -57,7 +57,12 @@
   };
   /* type: 'total' | 'business'; bizMode: 'gd' (giả định OQ-10) | 'excel' (tái hiện sheet KD) */
   /* opts.noAdj: bỏ dòng điều chỉnh sau khóa – dùng khi khóa kỳ chụp số (điều chỉnh luôn cộng thêm khi đọc, không nằm trong ảnh chụp) */
-  QR.build = (period, type = 'total', bizMode = 'gd', opts = {}) => {
+  QR.build = (period, type = 'total', bizMode, opts = {}) => {
+    const configured = Q.param('businessReportMode', D.periodEnd(period));
+    bizMode = bizMode || (configured === 'proposed' ? 'gd' : 'excel');
+    // Chế độ OQ-10 chỉ là phương án rà soát nội bộ. Chặn ngay tại service để
+    // không thể lách giới hạn của màn hình bằng cách gọi QR.build trực tiếp.
+    if (bizMode === 'gd' && !['admin', 'ketoan'].includes(TH.auth.role())) bizMode = 'excel';
     const per = S.get('periods', period) || {}; const parallel = per.source === 'excel_parallel';
     let m = {}; let src = {}; let dep;
     const snap = per.status === 'closed' ? S.get('reportSnapshots', 'rs_' + period) : null;
@@ -74,23 +79,56 @@
     let byB = m;
     if (type === 'business') {
       byB = {};
-      Object.entries(m).forEach(([b, v]) => { byB[b] = R.business(v, { depreciation: dep.byBuilding[b] || 0, addBackRefund: Q.param('bizAddBackRefund'), useDepreciation: Q.param('bizDepreciation'), mode: bizMode }); });
+      if (snap && bizMode === 'excel' && snap.business && !adjs.length) byB = JSON.parse(JSON.stringify(snap.business));
+      else if (parallel && bizMode === 'excel') {
+        // Kỳ lịch sử: số chính thức theo từng tòa cũng phải là số của sheet
+        // Excel, không chỉ ép đúng bốn cột tổng T/S/G/TOTAL ở phía dưới.
+        const benchBase = {};
+        S.all('benchLines').filter(x => x.period === period).forEach(x => add(benchBase, x.buildingId, x.code, x.value));
+        adjs.forEach(a => {
+          const v = benchBase[a.buildingId] = benchBase[a.buildingId] || {};
+          v[a.reportLine] = (v[a.reportLine] || 0) + a.delta;
+        });
+        const officialDep = Q.depOfficialOfPeriod(period);
+        Object.entries(benchBase).forEach(([b, v]) => { byB[b] = R.business(v, { depreciation: officialDep.byBuilding[b] || 0, addBackRefund: Q.param('bizAddBackRefund'), useDepreciation: Q.param('bizDepreciation'), mode: 'excel' }); });
+      }
+      else {
+        const officialDep = bizMode === 'excel' ? Q.depOfficialOfPeriod(period) : dep;
+        Object.entries(m).forEach(([b, v]) => { byB[b] = R.business(v, { depreciation: officialDep.byBuilding[b] || 0, addBackRefund: Q.param('bizAddBackRefund'), useDepreciation: Q.param('bizDepreciation'), mode: bizMode }); });
+      }
     }
-    const cols = R.aggregate(byB, groupOf);
+    let cols = R.aggregate(byB, groupOf);
     const derived = {}; Object.entries(byB).forEach(([b, v]) => { derived[b] = R.derive(v); });
     let excel = null;
     if (parallel && TH.data.bench202608 && period === '2026-08') {
       const X = TH.data.bench202608.report; const sheet = type === 'business' ? X.business : X.total; excel = {};
       TH.data.catalog.reportLines.forEach(l => { const r = sheet[l.row]; if (r) excel[l.code] = { TOTAL: r[0], T: r[1], S: r[2], G: r[3] }; });
     }
+    if (type === 'business' && bizMode === 'excel') {
+      if (snap && snap.businessCols) cols = JSON.parse(JSON.stringify(snap.businessCols));
+      else if (excel) {
+        cols = { TOTAL: {}, T: {}, S: {}, G: {} };
+        Object.entries(excel).forEach(([code, values]) => Object.keys(cols).forEach(k => { cols[k][code] = values[k]; }));
+      }
+      if ((snap && snap.businessCols) || excel) adjs.forEach(a => {
+        ['TOTAL', groupOf(a.buildingId)].forEach(k => {
+          const v = Object.assign({}, cols[k]);
+          if (a.reportLine === 'dep_new') { v.dep_new = (v.dep_new || 0) + a.delta; v.rev_total = (v.rev_total || 0) - a.delta; }
+          else if (a.reportLine !== 'cost_equip') v[a.reportLine] = (v[a.reportLine] || 0) + a.delta;
+          cols[k] = R.derive(v);
+        });
+      });
+    }
     /* Cầu nối kinh doanh tính trên số Excel của sheet tổng (tháng 8: 790.331.663 so với sheet KD 685.928.969) */
     let excelBiz = null;
     if (excel && type === 'business') {
       const X = TH.data.bench202608.report.total; const eb = {};
       TH.data.catalog.reportLines.forEach(l => { if (X[l.row]) eb[l.code] = X[l.row][0]; });
-      excelBiz = { gd: R.business(eb, { depreciation: dep.total, addBackRefund: Q.param('bizAddBackRefund'), useDepreciation: Q.param('bizDepreciation') }), sheet: R.business(eb, { mode: 'excel' }), total: R.derive(eb) };
+      excelBiz = { gd: R.business(eb, { depreciation: dep.total, addBackRefund: Q.param('bizAddBackRefund'), useDepreciation: Q.param('bizDepreciation') }), sheet: R.business(eb, { depreciation: Q.depOfficialOfPeriod(period).total, mode: 'excel' }), total: R.derive(eb) };
     }
-    return { period, type, bizMode, parallel, cols, byBuilding: derived, base: m, sources: src, excel, excelBiz, dep, frozen: !!snap, adjustments: adjs };
+    const policySnapshot = snap && snap.policySnapshot ? snap.policySnapshot : Q.policySnapshot(D.periodEnd(period));
+    return { period, type, bizMode, parallel, cols, byBuilding: derived, base: m, sources: src, excel, excelBiz, dep, frozen: !!snap, adjustments: adjs,
+      policySnapshot, ruleVersion: snap && snap.at ? snap.at : D.periodEnd(period), policyStatus: bizMode === 'excel' ? 'confirmed' : 'proposed', official: bizMode === 'excel' };
   };
   /* Đối chiếu tổng chi phí (TCP) kỳ song song: số web − số Excel tách thành từng nhóm nguyên nhân, đến từng ô tòa × dòng.
      Nhóm: (1) tòa có trong bảng lương/mẫu số nhưng không có cột trong báo cáo Excel; (2) lương quản lý – dòng lỗi nguồn bảng lương;

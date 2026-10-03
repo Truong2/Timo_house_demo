@@ -7,6 +7,8 @@
 
   Q.param = (key, date) => Cc.params.at(S.all('params'), key, date || F.today());
   Q.params = (date) => Cc.params.snapshot(S.all('params'), date || F.today());
+  Q.policy = (key, date) => Cc.params.recordAt(S.all('params'), key, date || F.today());
+  Q.policySnapshot = (date) => Cc.params.policySnapshot(S.all('params'), date || F.today());
   Q.building = (id) => S.get('buildings', id);
   Q.room = (id) => S.get('rooms', id);
   Q.stay = (id) => S.get('stays', id);

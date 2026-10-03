@@ -11,8 +11,10 @@
   Q.shareBase = (bid, period, source = 'web') => {
     if (!TH.auth.inScope(bid)) return null;
     if (TH.auth.role() === 'codong') source = 'web';
-    if (source === 'excel') {
-      const E = TH.data.p2 && TH.data.p2.shares; if (!E || 'b_' + E.building !== bid || E.period !== period) return null;
+    const E = TH.data.p2 && TH.data.p2.shares;
+    const historicalExcel = (S.get('periods', period) || {}).source === 'excel_parallel' && E && 'b_' + E.building === bid && E.period === period;
+    if (source === 'excel' || historicalExcel) {
+      if (!E || 'b_' + E.building !== bid || E.period !== period) return null;
       return { rent: E.excel.C22, lng: E.excel.C73, lnr: E.excel.C74, gv: E.excel.C34, tcp: E.excel.C72, rev: E.excel.C2, src: 'Excel SRC-07 ' + E.sheet + ' (C22, C73, C74)' };
     }
     const v = TH.qr.get(period, 'total').byBuilding[bid]; if (!v) return null;
@@ -25,8 +27,11 @@
   const computeRun = (bid, period, source) => {
     const base = Q.shareBase(bid, period, source); if (!base) return null;
     const ratios = Q.shareRatios(bid, D.periodEnd(period));
-    const sp = SH.split(ratios.map(r => ({ id: r.shareholderId, pct: r.pct, common: (Q.shareholder(r.shareholderId) || {}).common })), base);
-    return Object.assign({ locked: false, buildingId: bid, period, source, base, valid: SH.valid(ratios) }, sp);
+    const historical = (S.get('periods', period) || {}).source === 'excel_parallel';
+    const policy = historical ? { value: 'commonFund', status: 'confirmed', sourceRef: 'SRC-07', effectiveFrom: period + '-01' } : Q.policy('shareRoundingMode', D.periodEnd(period));
+    const roundingMode = source === 'excel' || historical ? 'commonFund' : (policy && policy.value) || 'explicitDelta';
+    const sp = SH.split(ratios.map(r => ({ id: r.shareholderId, pct: r.pct, common: (Q.shareholder(r.shareholderId) || {}).common })), base, { roundingMode });
+    return Object.assign({ locked: false, buildingId: bid, period, source, base, valid: SH.valid(ratios), roundingPolicy: policy }, sp);
   };
   Q.shareRun = (bid, period, source = 'web') => {
     if (!TH.auth.inScope(bid)) return null;
@@ -94,9 +99,11 @@
     const run = computeRun(bid, period, source); if (!run) throw new Error('Chưa có số báo cáo tòa của kỳ');
     if (!run.valid.ok) throw new Error(`Tổng tỷ lệ tòa ${(Q.building(bid) || {}).code} = ${String(run.valid.sum).replace('.', ',')}%, phải đủ 100% mới khóa bảng kê (E24)`);
     if (!Q.shareLockable(period)) throw new Error('Kỳ ' + F.periodShort(period) + ' chưa khóa số báo cáo – khóa kỳ ở UI-38 trước rồi mới khóa bảng kê (số chia lấy từ báo cáo đã chốt)');
+    const hasDelta = run.rounding && (run.rounding.H || run.rounding.I || run.rounding.J);
+    if (hasDelta && (!run.roundingPolicy || run.roundingPolicy.status !== 'confirmed')) throw new Error('Còn chênh làm tròn và OQ-08 chưa được xác nhận – không thể khóa bảng kê');
     if (prev) S.update('shareRuns', prev.id, { status: 'superseded', supersededAt: F.nowISO() });
     const version = prev ? (prev.version || 1) + 1 : 1;
-    const rec = S.add('shareRuns', { id: 'srun_' + bid + '_' + period + (version > 1 ? '_v' + version : ''), version, reopens, buildingId: bid, period, source, status: 'locked', base: run.base, rows: run.rows, totals: run.totals, rounding: run.rounding, K: run.K, L: run.L, lockedBy: _.who(), lockedAt: F.nowISO() });
+    const rec = S.add('shareRuns', { id: 'srun_' + bid + '_' + period + (version > 1 ? '_v' + version : ''), version, reopens, buildingId: bid, period, source, status: 'locked', base: run.base, rows: run.rows, totals: run.totals, rounding: run.rounding, roundingMode: run.roundingMode, roundingPolicy: run.roundingPolicy, K: run.K, L: run.L, lockedBy: _.who(), lockedAt: F.nowISO() });
     _.audit('lock', 'shareRun', rec.id, `Khóa bảng kê chia ${(Q.building(bid) || {}).code} kỳ ${F.periodShort(period)}: Σ tổng nhận ${F.vnd(run.totals.M)}`); _.done(); return rec;
   };
 })(window.TH);

@@ -46,8 +46,9 @@ test('quy tắc cận gần nhất + ca đặc biệt', () => {
   assert.equal(P.tierRate(94.27, true).rule, 'HS × 119000/95 (cận trên)');
   assert.equal(Math.round(P.tierRate(97.26276034401698, true).perRoom), 122858);
   assert.equal(P.tierRate(103.21, true).flag, 'HS>100');
-  assert.equal(P.tierRate(65, false).perRoom, 6000);
-  assert.equal(P.tierRate(65, true).perRoom, 6500);
+  assert.equal(P.tierRate(65, false).perRoom, 0);
+  assert.equal(P.tierRate(65, true).perRoom, 0);
+  assert.equal(P.tierRate(65, true).rule, 'Chờ nhập tay lương/phòng và lý do');
   assert.equal(P.over1y('2025-08-31', '2026-08-31'), true);
   assert.equal(P.over1y('2025-09-01', '2026-08-31'), false);
   assert.equal(P.leadPay(774), 7740000);

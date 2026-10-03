@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { boot } from './_app.mjs';
 
-test('NT-10 efficiency ratios; LN/tài sản only for buildings with an asset baseline (GĐ OQ-24)', () => {
+test('NT-10 efficiency ratios; LN/tài sản chờ khi chính sách khấu hao chưa xác nhận', () => {
   const t = boot(), kd = t.qe.build('2026-08', { basis: 'business', source: 'excel' }), total = t.qe.build('2026-08', { basis: 'total', source: 'excel' });
   assert.ok(Math.abs(kd.totals.TOTAL.profitOnCapital - 0.12987) < 0.00001); assert.ok(Math.abs(total.totals.TOTAL.profitOnCapital - 0.19229) < 0.00001); assert.ok(Math.abs(total.totals.TOTAL.rentMargin - 1.22881) < 0.00001);
   // G1: 8 khoản đầu tư ban đầu mua 11/2025 → T8 là tháng KH thứ 10, còn 84% nguyên giá 38.862.000 (dù chỉ ghi sổ web từ 10/2026)
-  const g1 = kd.rows.find(r => r.code === 'G1'); assert.ok(Math.abs(g1.nbv - 38862000 * 0.84) < 1); assert.ok(Math.abs(g1.profitOnAssets - g1.lnrBiz / g1.nbv) < 1e-12);
+  const g1 = kd.rows.find(r => r.code === 'G1'); assert.ok(Math.abs(g1.nbv - 38862000 * 0.84) < 1); assert.equal(g1.profitOnAssets, null); assert.match(g1.assetsPending, /chính sách tài sản/);
   // 17 tòa chỉ có thiết bị mua lẻ T8 (không có số dư nền) → chờ dữ liệu, không ra tỷ lệ hàng nghìn %
-  const partial = kd.rows.filter(r => r.code !== 'G1' && r.nbv > 0); assert.equal(partial.length, 17); assert.ok(partial.every(r => r.profitOnAssets == null && /số dư/.test(r.assetsPending)));
-  assert.equal(kd.totals.TOTAL.covered, 1);
+  const partial = kd.rows.filter(r => r.code !== 'G1' && r.nbv > 0); assert.equal(partial.length, 17); assert.ok(partial.every(r => r.profitOnAssets == null && /chính sách tài sản/.test(r.assetsPending)));
+  assert.equal(kd.totals.TOTAL.covered, 0);
   // Báo cáo cơ sở Tổng: LN/vốn đổi theo Báo cáo tổng, LN/tài sản vẫn dùng LNR kinh doanh
   const g1t = total.rows.find(r => r.code === 'G1'); assert.equal(g1t.lnrBiz, g1.lnrBiz); assert.equal(g1t.profitOnAssets, g1.profitOnAssets); assert.notEqual(g1t.lnr, g1t.lnrBiz);
   // Khấu hao ghi sổ không đổi: G1 chưa có khấu hao web trước 10/2026

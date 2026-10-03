@@ -1,8 +1,8 @@
 # TimoHouse — Phân chia 3 phase triển khai
 
-Ngày lập: 29/09/2026 · Trạng thái: **đề xuất, chờ PM/khách duyệt** · Nguồn: §7 của `TimoHouse_Dac_ta_man_hinh_web_va_luong_nghiep_vu_v1.md` (Draft v1.9).
+Ngày lập: 29/09/2026 · Cập nhật: 03/10/2026 · Trạng thái: **đã triển khai đủ 3 phase; các OQ giữ trạng thái riêng** · Nguồn điều khiển: `TimoHouse_Dac_ta_man_hinh_web_va_luong_nghiep_vu_v1.md` (Draft v1.13).
 
-Mã `UI-xx` là mã màn hình trong đặc tả; `OQ-xx` là câu hỏi mở ở §5 của đặc tả, mỗi câu có một giả định làm việc (GĐ) đang áp dụng. Tổng cộng 47 màn hình, mỗi màn thuộc đúng một phase; một số màn làm bản cơ bản trước và mở rộng ở phase sau.
+Mã `UI-xx` là mã màn hình trong đặc tả; `OQ-xx` là câu hỏi mở ở §5. Excel là chuẩn mặc định cho dữ liệu lịch sử. Giả định làm việc chưa được xác nhận được giữ để so sánh nhưng mang trạng thái `proposed`, không dùng cho báo cáo chính thức, cổ đông hoặc số khóa kỳ. Tổng cộng 47 màn hình; một số màn làm bản cơ bản trước và mở rộng ở phase sau.
 
 ## 1. Nguyên tắc chia
 
@@ -32,7 +32,7 @@ Mục tiêu: bỏ được file hóa đơn tháng.
 | Nhân sự tối thiểu | UI-23, UI-24 | Danh sách nhân viên; **phân công tòa/phòng có ngày hiệu lực từ ngày go-live** để phân quyền và làm lịch sử người phụ trách cho bảng lương | Hồ sơ lương, cơ cấu leader/team (1B) |
 | Chi phí cơ bản | UI-15 | Ghi chi tiền thuê trả chủ nhà, chi hoàn cọc, các khoản chi lẻ; mỗi khoản gắn tòa hoặc quỹ chung và dòng báo cáo ngay từ đầu | Import nhà cung cấp, hoa hồng, thiết bị, quỹ văn phòng (1B) |
 | Hóa đơn | UI-10, UI-11, UI-12 | Chỉ số điện nước (gồm điện chung, phòng trống), số người, số xe; tạo kỳ hàng loạt; tính tháng lẻ theo số ngày thực của tháng; dòng “Thu khác”; 4 mẫu in theo tòa và tài khoản nhận; nháp → phát hành → PDF | — |
-| Thu tiền, công nợ | UI-13, UI-14 | Phiếu thu thủ công (có loại cọc mới, thu một phần, trả trước nhiều tháng); lưu **ngày thu thực tế** và phân bổ theo từng dòng hóa đơn; trạng thái Chưa TT / Thiếu / Đủ / Thừa (phân bổ không vượt số còn phải thu, tiền dư là trả trước nên hóa đơn hiện Đủ; Thừa chỉ từ import hoặc kế toán xác nhận); phiếu cọc giữ phòng ghi sổ cọc, không phân bổ vào hóa đơn; công nợ tính từ ngày 6 | — |
+| Thu tiền, công nợ | UI-13, UI-14 | Phiếu thu thủ công; lưu **ngày thu thực tế** và phân bổ theo từng dòng hóa đơn; phiếu cọc giữ phòng ghi sổ cọc, không phân bổ vào hóa đơn. Mặc định chuyển công nợ sau 5 ngày lịch từ ngày phát hành (`issuedAt`); giữ chế độ `dueDate` để đối chiếu, dữ liệu lịch sử thiếu ngày phát hành dùng ngày nguồn/cutoff | — |
 | Hoàn cọc, phá HĐ | UI-17, UI-18 | Phiếu tính hoàn cọc (khấu hao mặc định 200.000đ/phòng, sửa chữa/vệ sinh thực tế), admin và kế toán duyệt, ghi chi hoàn; phá HĐ/bỏ trốn giữ cọc và thu tiền điện | — |
 | Zalo | UI-39 | Zalo ZNS gửi hóa đơn đã phát hành, nhắc trước hạn và quá hạn, kiểm tra lại số nợ trước khi gửi, log, gửi lại tin lỗi, dự phòng SMS/gọi | Đồng bộ hội thoại, sự kiện khác (Phase 2, 3) |
 | Dashboard | UI-01 | Phòng trống 3 loại (ở luôn, cuối tháng, đang chờ); phải thu, đã thu, còn nợ theo ngày; hợp đồng sắp hết hạn; tin Zalo lỗi; hoàn cọc đang xử lý | HS, lọc leader nâng cao (Phase 2) |
@@ -125,9 +125,9 @@ Ghi chú (sửa v1.9): con số 1.383 cũ là số dòng NHÀ T/S/G có mã phò
 
 | Nhóm | Màn hình | Chức năng |
 |---|---|---|
-| Tài sản, bảo dưỡng | UI-34, UI-35, UI-36 | Danh mục tài sản/thiết bị theo tòa, phòng (nhận danh sách đã import ở Phase 1); khấu hao từng tài sản, thanh lý; lịch bảo dưỡng và kết quả; kiểm kê do admin và kế toán duyệt |
-| Dự kiến lợi nhuận | UI-40 | Hai bản dự kiến: dòng tiền (có cọc mới, hoàn cọc, mua sắm thiết bị) và kinh doanh (không có các khoản đó, thiết bị khấu hao 1,6%/tháng); gợi ý số từ tháng trước; so sánh với thực tế khi chốt kỳ |
-| Hiệu quả | UI-41 | Lợi nhuận/vốn, lợi nhuận/tài sản, biên lợi nhuận tiền nhà |
+| Tài sản, bảo dưỡng | UI-34, UI-35, UI-36 | Danh mục tài sản/thiết bị theo tòa, phòng; tài sản mới bắt buộc số tháng khấu hao và nguồn chính sách. Tài sản cũ 63 tháng là `legacy_assumption`, chỉ có lịch thử; thanh lý chỉ hạch toán chính thức khi chính sách đã xác nhận. Lịch bảo dưỡng, kiểm kê giữ nguyên |
+| Dự kiến lợi nhuận | UI-40 | Phiên bản nháp đặt kết quả Excel nguồn và web đề xuất cạnh nhau; không tự chọn một kết quả làm chuẩn. Chỉ bản xác nhận có nguồn quyết định mới mở cho cổ đông |
+| Hiệu quả | UI-41 | Lợi nhuận/vốn, lợi nhuận/tài sản, biên tiền nhà; LN/tài sản hiển thị “Chờ chính sách tài sản” nếu mẫu số còn quy tắc khấu hao chưa xác nhận |
 | Cổ đông, đầu tư | UI-33 | Lịch góp vốn, tiền cọc chủ nhà, tài sản và chi thực cho cổ đông; tài khoản cổ đông chỉ xem báo cáo của các tòa mình góp vốn |
 
 **Nghiệm thu:** bảng dự kiến lợi nhuận tháng 9/2026 (tổng phòng mới 126.912.000, marketing = cọc mới / 2, khấu hao 1,6%).
@@ -143,7 +143,7 @@ UI-40 có thể kéo lên Phase 2 nếu khách cần sớm, vì dữ liệu đ�
 | Phase 2 | OQ-06, 08, 20, 21, 23, 25 | Định nghĩa phòng trống, lấp đầy; làm tròn chia cổ đông; âm dương điện nước; sổ vệ sinh; doanh số sale |
 | Phase 3 | OQ-07, 11 (thanh lý), 19, 24 | Dự kiến dòng tiền; LN/vốn, LN/tài sản |
 
-**OQ-10 cần chốt sớm nhất:** theo giả định, lợi nhuận ròng Báo cáo kinh doanh tháng 8 là 790 triệu trên số Excel (có cộng lại hoàn cọc và tính khấu hao), 780 triệu trên số web (779.688.893, sau chênh chi phí 10.642.770), trong khi file Excel ghi 686 triệu. Cùng lúc cần khách chốt 3 tòa G12A/G13/G14 có thuộc kỳ 8 không.
+**OQ-10 chưa được tự chốt:** số chính thức tháng 8 giữ đúng file Excel, LNR **685.928.969**. Kết quả 790.331.663 trên số Excel và 779.688.893 trên số web chỉ là phương án đề xuất để admin/kế toán so sánh; không công bố cho cổ đông và không ghi vào snapshot chính thức.
 
 ## 6. Khác với `00_SCOPE_3_PHASE.md` và phần ngoài phạm vi
 

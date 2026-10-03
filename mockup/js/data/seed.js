@@ -9,7 +9,7 @@
     const col = (name, arr) => { st[name] = arr; };
 
     /* --- danh mục --- */
-    col('params', CAT.params.map((p, i) => Object.assign({ id: 'prm_' + i }, p)));
+    col('params', [...CAT.params.map((p, i) => Object.assign({ id: 'prm_' + i }, p)), ...(CAT.policyParams || []).map((p, i) => Object.assign({ id: 'policy_' + i }, p))]);
     col('accounts', CAT.accounts.map(a => Object.assign({}, a)));
     col('areas', M.areas.map(a => Object.assign({}, a)));
     const accByTpl = {}; CAT.accounts.forEach(a => { accByTpl[a.template] = a.id; });

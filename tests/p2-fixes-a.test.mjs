@@ -2,7 +2,7 @@
    Kịch bản docs/uat/Phase2_Kich_ban_kiem_thu.md mục "Audit 30/09 – lỗi đã sửa". */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { boot, attempt } from './_app.mjs';
+import { boot, attempt, completePayroll } from './_app.mjs';
 
 const plain = (x) => JSON.parse(JSON.stringify(x));
 const worker = (TH, i = 0) => TH.store.all('employees').filter(e => e.title === 'KỸ THUẬT' && e.repairPay)[i];
@@ -40,7 +40,7 @@ test('A3 – ⛔ nhập / xác nhận tiền công sau khi bảng lương kỳ �
   const TH = boot({ user: 'ketoan' }); const X = TH.actions, S = TH.store;
   const w = worker(TH);
   const draft = X.addRepair({ workerId: w.id, date: '2026-09-12', buildingId: 'b_T21', desc: 'Sửa ổ cắm', jobType: 'electric', labor: 400000, material: 0 });
-  const run = X.computePayroll('2026-09'); approveAll(X, run); X.closePayroll(run.id);
+  const run = completePayroll(TH, '2026-09'); X.closePayroll(run.id);
   const c = attempt(() => X.confirmRepairs([draft.id]));
   assert.ok(!c.ok && /Bảng lương kỳ 09\/2026 đã chốt/.test(c.msg), c.msg);
   assert.equal(S.get('repairLogs', draft.id).status, 'draft');
@@ -137,7 +137,10 @@ test('A8 – chi hoa hồng khi kỳ đủ điều kiện đã khóa → ghi k�
   assert.ok(!before.ok && /trước ngày đủ điều kiện/.test((before.fields || {}).date || ''));
   lock(TH, el.date.slice(0, 7));
   const e = X.payCommission(c.id, { amount: 1000, date: '2026-10-05' });
-  assert.equal(e.period, '2026-10'); assert.match(e.note, /đã khóa/);
+  assert.equal(e.period, '2026-10'); assert.match(e.note, /kỳ thực chi/);
+  lock(TH, '2026-10');
+  const blocked = attempt(() => X.payCommission(c.id, { amount: 1000, date: '2026-10-06' }));
+  assert.ok(!blocked.ok && /đã khóa/.test(blocked.msg), 'không tự đẩy khoản chi của kỳ đã khóa');
 });
 
 test('A9 – chia trùng: 2 người 25%, 3 người 16,67%, ≥ 4 người chia đều; co giãn theo mức cơ bản; chốt deal nhiều sale', () => {

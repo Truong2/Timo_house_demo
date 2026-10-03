@@ -63,3 +63,17 @@ export function boot({ user = 'admin', kit = false, pages = false } = {}) {
 
 /* Chạy fn, trả 'ok' hoặc thông báo lỗi – tiện so với verify-p0 ("cho phép"/"chặn") */
 export const attempt = (fn) => { try { const value = fn(); return { ok: true, value }; } catch (e) { return { ok: false, msg: e.message, fields: e.fields }; } };
+
+/* Hoàn thiện một bảng lương trong các kịch bản cần khóa kỳ. Từ khi OQ về HS < 70
+   được đưa về trạng thái chờ xác nhận, test phải nhập một quyết định tường minh
+   thay vì dựa vào mức 6.000/6.500đ tự động trước đây. */
+export function completePayroll(TH, period, perRoom = 6000) {
+  const X = TH.actions;
+  let run = X.computePayroll(period);
+  run.lines.forEach(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).forEach(b => {
+    X.addPayrollManual({ period, kind: 'ops_below70', employeeId: l.employeeId, buildingId: b.buildingId, amount: perRoom, note: 'Mức kiểm thử đã nhập và có lý do' });
+  }));
+  run = X.computePayroll(period);
+  run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử')));
+  return run;
+}

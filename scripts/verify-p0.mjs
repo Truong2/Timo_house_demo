@@ -150,7 +150,9 @@ try {
     const S = TH.store, X = TH.actions, out = {};
     const lnr = () => Math.round(TH.qr.build('2026-09', 'total').cols.TOTAL.lnr);
     try { X.closePeriod('2026-09', { force: true }); out.force = 'khóa được khi chưa chốt lương/phân bổ'; X.unlockPeriod('2026-09', 'kiểm thử'); } catch (e) { out.force = 'chặn: ' + e.message; }
-    const run = X.computePayroll('2026-09');
+    let run = X.computePayroll('2026-09');
+    run.lines.forEach(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).forEach(b => X.addPayrollManual({ period: '2026-09', kind: 'ops_below70', employeeId: l.employeeId, buildingId: b.buildingId, amount: 6000, note: 'Mức kiểm thử có lý do' })));
+    run = X.computePayroll('2026-09');
     run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử')));
     X.closePayroll(run.id); const al = X.saveAllocation('2026-09'); X.closeAllocation(al.id);
     X.closePeriod('2026-09');
@@ -183,7 +185,9 @@ try {
     const S = TH.store, X = TH.actions;
     const al0 = X.previewAllocation('2026-09'); const alloc0 = Math.round(al0.lines.reduce((t, l) => t + l.total, 0));
     // chốt bảng lương kỳ 9 → sinh chứng từ quỹ lương chung, rồi phân bổ
-    const run = X.computePayroll('2026-09'); run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử'))); X.closePayroll(run.id);
+    let run = X.computePayroll('2026-09');
+    run.lines.forEach(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).forEach(b => X.addPayrollManual({ period: '2026-09', kind: 'ops_below70', employeeId: l.employeeId, buildingId: b.buildingId, amount: 6000, note: 'Mức kiểm thử có lý do' })));
+    run = X.computePayroll('2026-09'); run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử'))); X.closePayroll(run.id);
     const al = X.previewAllocation('2026-09');
     const exp = S.all('expenses').filter(e => e.period === '2026-09' && e.scope === 'fund' && e.status !== 'void').reduce((t, e) => t + e.amount, 0);
     const alloc = al.lines.reduce((t, l) => t + l.total, 0);

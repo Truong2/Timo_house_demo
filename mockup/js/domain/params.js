@@ -10,11 +10,24 @@
     hits.sort((a, b) => String(b.effectiveFrom || '').localeCompare(String(a.effectiveFrom || '')));
     return hits[0].value;
   };
+  P.recordAt = (rows, key, dateISO) => {
+    const d = dateISO || '9999-12-31';
+    const hits = rows.filter(r => r.key === key && (!r.effectiveFrom || r.effectiveFrom <= d) && (!r.effectiveTo || d <= r.effectiveTo));
+    return hits.sort((a, b) => String(b.effectiveFrom || '').localeCompare(String(a.effectiveFrom || '')))[0] || null;
+  };
   /* Bộ tham số của một ngày → object phẳng */
   P.snapshot = (rows, dateISO) => {
     const o = {};
     [...new Set(rows.map(r => r.key))].forEach(k => { o[k] = P.at(rows, k, dateISO); });
     return o;
+  };
+  P.policySnapshot = (rows, dateISO) => {
+    const out = {};
+    [...new Set(rows.map(r => r.key))].forEach(key => {
+      const r = P.recordAt(rows, key, dateISO); if (!r) return;
+      out[key] = { value: JSON.parse(JSON.stringify(r.value)), status: r.status || 'proposed', sourceRef: r.sourceRef || r.oq || '', effectiveFrom: r.effectiveFrom || null, approvedBy: r.approvedBy || null, approvedAt: r.approvedAt || null };
+    });
+    return out;
   };
   /* Kiểm tra chồng hiệu lực khi thêm phiên mới */
   P.overlaps = (rows, key, from, to) => rows.filter(r => r.key === key).some(r => (!to || !r.effectiveFrom || r.effectiveFrom <= to) && (!r.effectiveTo || !from || from <= r.effectiveTo));

@@ -2,9 +2,10 @@
 (function (TH) {
   const S = TH.store, Q = TH.q, F = TH.f, DT = TH.calc.dates, FC = TH.calc.forecast;
   const clone = x => JSON.parse(JSON.stringify(x));
-  Q.forecasts = period => { TH.auth.need('forecast.view'); return clone(S.all('forecasts').filter(f => !period || f.period === period).sort((a, b) => b.period.localeCompare(a.period) || b.version - a.version)); };
-  Q.forecast = id => { TH.auth.need('forecast.view'); const f = S.get('forecasts', id); return f ? clone(f) : null; };
-  Q.forecastLatestPeriod = () => S.all('forecasts').map(f => f.period).sort().pop() || null;
+  const visibleForecast = f => ['admin', 'ketoan'].includes(TH.auth.role()) || f.status === 'confirmed' || (String(f.source || '').startsWith('excel') && !f.status);
+  Q.forecasts = period => { TH.auth.need('forecast.view'); return clone(S.all('forecasts').filter(f => visibleForecast(f) && (!period || f.period === period)).sort((a, b) => b.period.localeCompare(a.period) || b.version - a.version)); };
+  Q.forecast = id => { TH.auth.need('forecast.view'); const f = S.get('forecasts', id); return f && visibleForecast(f) ? clone(f) : null; };
+  Q.forecastLatestPeriod = () => S.all('forecasts').filter(visibleForecast).map(f => f.period).sort().pop() || null;
   /* Tòa mới đưa vào vận hành trong kỳ – gợi ý loại trừ khi lập (Excel "Tính đến G15" = chưa gồm G16–G18) */
   Q.forecastNewBuildings = period => S.all('buildings').filter(b => b.operatedFrom > DT.periodEnd(DT.prevPeriod(period)) && b.operatedFrom <= DT.periodEnd(period));
   /* Phạm vi tòa của bản dự kiến: excluded = id tòa loại trừ; scopeNote sinh từ danh sách loại trừ */
