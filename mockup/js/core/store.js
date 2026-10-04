@@ -1,16 +1,17 @@
 /* Store: state gốc dựng từ seed mỗi lần mở app + overlay thao tác người dùng trong localStorage.
    Chỉ bản ghi đã thêm/sửa/xóa được lưu (không lưu toàn bộ ~1.500 hóa đơn) → không vượt quota. */
 (function (TH) {
-  const KEY = 'timohouse-p1-v1';
+  const ORIGINAL_KEY = 'timohouse-p1-v1', DATASET_KEY = 'timohouse-demo-dataset';
+  let KEY = ORIGINAL_KEY;
   const SCHEMA = 2; // 2: Phase 3 – equipment → assets
   const S = { state: null, meta: null, session: null, version: 0, listeners: [], _dirty: {}, _idx: {}, _t: null, KEY };
 
   const seedHash = () => {
     const D = TH.data || {};
     const sig = [D.master && D.master.stays.length, D.p202609 && D.p202609.invoices.length, D.p202609 && D.p202609.payments.length, D.bench202608 ? 1 : 0, (D.catalog.params || []).length, SCHEMA].join('|');
-    return TH.f.hash(sig);
+    return TH.f.hash(sig + (S.dataset && S.dataset !== 'classic' ? '|' + S.dataset : ''));
   };
-  const defaultMeta = () => ({ today: TH.f.DEMO_TODAY, period: '2026-09', milestone: '3', prefs: {}, seedHash: seedHash() });
+  const defaultMeta = () => ({ today: S.dataset === TH.data.septemberFlow?.id ? TH.data.septemberFlow.today : TH.f.DEMO_TODAY, period: '2026-09', dataset: S.dataset || 'classic', milestone: '3', prefs: {}, seedHash: seedHash() });
   /* Migration nhẹ, idempotent: chỉ chuyển các trường có cấu trúc của intake đã duyệt; không đọc/đoán từ ghi chú tự do. */
   const migrateWorkbookFields = () => {
     let changed = false;
@@ -37,8 +38,19 @@
   };
 
   S.load = () => {
+    const selected = localStorage.getItem(DATASET_KEY), scenario = TH.data.septemberFlow;
+    S.dataset = selected === 'classic' || !scenario ? 'classic' : scenario.id;
+    KEY = S.dataset === 'classic' ? ORIGINAL_KEY : ORIGINAL_KEY + ':' + S.dataset;
+    S.KEY = KEY;
     S._idx = {};
     S.state = TH.seed.build();
+    if (scenario && S.dataset === scenario.id) {
+      Object.entries(scenario.ops).forEach(([c, recs]) => {
+        const map = new Map((S.state[c] || []).map(x => [x.id, x]));
+        Object.entries(recs).forEach(([id, rec]) => rec === 0 ? map.delete(id) : map.set(id, JSON.parse(JSON.stringify(rec))));
+        S.state[c] = [...map.values()];
+      });
+    }
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }
     if (saved && saved.schema === SCHEMA && saved.meta && saved.meta.seedHash === seedHash()) {
@@ -58,12 +70,18 @@
       S.restored = !!saved.ops && Object.keys(saved.ops).length > 0;
     } else {
       if (saved && saved.meta && saved.meta.seedHash !== seedHash()) S.seedChanged = true;
-      S.meta = defaultMeta(); S.session = saved && saved.session || null; S._dirty = {};
+      S.meta = defaultMeta(); S.session = saved && saved.session || S.session || null; S._dirty = {};
     }
     const migrated = migrateWorkbookFields();
     S.applyCatalog();
     S.version++;
     if (migrated) S.saveNow();
+  };
+  S.selectDataset = dataset => {
+    TH.auth.need('settings.manage');
+    if (dataset !== 'classic' && dataset !== TH.data.septemberFlow?.id) throw new Error('Bộ dữ liệu không tồn tại');
+    const session = S.session;
+    S.saveNow(); localStorage.setItem(DATASET_KEY, dataset); S.load(); S.session = session; S.saveNow();
   };
   /* Danh mục mở rộng (UI-38): mục bổ sung / ngừng dùng lưu ở collection catalogItems, phủ lên TH.data.catalog để mọi nơi đọc catalog không phải sửa.
      Dòng báo cáo và 13 loại phí hóa đơn là cấu trúc mẫu – cố định. */
@@ -133,6 +151,6 @@
   S.reset = () => { const sess = S.session; S._dirty = {}; S.meta = defaultMeta(); S.session = sess; persist(); S.load(); };
   S.dirtyCount = () => Object.values(S._dirty).reduce((s, m) => s + Object.keys(m).length, 0);
   S.exportJSON = () => JSON.stringify({ schema: SCHEMA, meta: S.meta, ops: S._dirty }, null, 2);
-  S.importJSON = (txt) => { const o = JSON.parse(txt); if (o.schema !== SCHEMA) throw new Error('File không đúng phiên bản dữ liệu'); S._dirty = o.ops || {}; S.meta = Object.assign(defaultMeta(), o.meta || {}); persist(); S.load(); };
+  S.importJSON = (txt) => { const o = JSON.parse(txt); if (o.schema !== SCHEMA) throw new Error('File không đúng phiên bản dữ liệu'); const dataset=o.meta?.dataset||'classic'; if(dataset!==S.dataset)S.selectDataset(dataset); S._dirty = o.ops || {}; S.meta = Object.assign(defaultMeta(), o.meta || {}); persist(); S.load(); };
   TH.store = S;
 })(window.TH);

@@ -94,7 +94,7 @@
     { name:'reference',label:'Mã tham chiếu',placeholder:'UNC / mã giao dịch' }, { name:'evidence',label:'Chứng từ / nguồn',span:true,placeholder:'Tên file hoặc mã tài liệu; có thể tải file trong Kho tài liệu' }], submit:'Ghi chi', onSubmit:(x)=>{X.recordPayrollDisbursement(obligation.id,{amount:F.num(x.amount),date:x.date,method:x.method,accountId:x.accountId,reference:x.reference,evidence:x.evidence});U.toast('ok','Đã ghi chi lương','Không tạo thêm chi phí.');} });
   let lastExp = null;
   TH.router.handle('/hr/payroll', (root, p, q) => {
-    const period = q.period || '2026-08';
+    const period = q.period || F.defaultPeriod('2026-08');
     const run = Q.payrollRun(period), versions = Q.payrollVersions(period);
     const lines = run ? run.lines : X.previewPayroll(period).lines;
     const flat = lines.flatMap(l => l.buildings.map(b => ({ l, b })));

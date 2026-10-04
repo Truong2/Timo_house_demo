@@ -5,7 +5,7 @@
   const periods = () => S.all('periods').filter(p => p.id <= S.meta.period).map(p => [p.id, F.periodLabel(p.id) + (p.source === 'excel_parallel' ? ' (song song Excel)' : '')]);
   // Lọc quản lý theo người phụ trách tại cuối kỳ báo cáo (phân công có hiệu lực), không theo hôm nay
   const scopeFilter = (q) => {
-    const ids = Q.scopeBuildingIds(q, TH.calc.dates.periodEnd(q.period || '2026-08'));
+    const ids = Q.scopeBuildingIds(q, TH.calc.dates.periodEnd(q.period || F.defaultPeriod('2026-08')));
     return (bid) => ids.has(bid);
   };
   const filterRep = (rep, q) => {
@@ -13,7 +13,7 @@
     const filtered = !!(q.area || q.group || q.manager || q.leader || q.building || q.shareholder || TH.auth.buildingScope());
     return { cols: filtered ? TH.calc.report.aggregate(sub, b => (Q.building(b) || {}).group) : rep.cols, sub, filtered };
   };
-  const filterBar = (q, extra = []) => { const used = new Set(extra.map(x => x.name)); const common = [{ name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'group', label: 'Nhóm T/S/G', options: K.groupOpts() }, ...(TH.auth.role() === 'codong' ? [] : [{ name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'leader', label: 'Leader', options: Q.teamLeaders(TH.calc.dates.periodEnd(q.period || '2026-08')).map(e => [e.id, e.name]) }, ...(q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh' }] : [])]), ...(TH.auth.can('shares.view') ? [{ name: 'shareholder', label: 'Cổ đông', options: S.all('shareholders').filter(x => !x.common).map(x => [x.id, x.code + ' · ' + x.name]) }] : []), { name: 'building', label: 'Tòa', options: K.buildingOpts() }].filter(x => !used.has(x.name)); return K.filters([{ name: 'period', label: 'Kỳ', options: periods(), value: '2026-08', all: false }, ...extra, ...common], q); };
+  const filterBar = (q, extra = []) => { const used = new Set(extra.map(x => x.name)); const common = [{ name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'group', label: 'Nhóm T/S/G', options: K.groupOpts() }, ...(TH.auth.role() === 'codong' ? [] : [{ name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'leader', label: 'Leader', options: Q.teamLeaders(TH.calc.dates.periodEnd(q.period || F.defaultPeriod('2026-08'))).map(e => [e.id, e.name]) }, ...(q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh' }] : [])]), ...(TH.auth.can('shares.view') ? [{ name: 'shareholder', label: 'Cổ đông', options: S.all('shareholders').filter(x => !x.common).map(x => [x.id, x.code + ' · ' + x.name]) }] : []), { name: 'building', label: 'Tòa', options: K.buildingOpts() }].filter(x => !used.has(x.name)); return K.filters([{ name: 'period', label: 'Kỳ', options: periods(), value: F.defaultPeriod('2026-08'), all: false }, ...extra, ...common], q); };
   /* Phase 2 thêm các báo cáo vận hành / kinh doanh (UI-42 → UI-46) khi đã mở mốc 2 và có quyền reports.ops */
   const P2TABS = [['costs', 'Chi phí', '#/reports/costs'], ['amduong', 'Âm dương', '#/reports/amduong'], ['repairs', 'Sửa chữa', '#/reports/repairs'], ['rooms', 'Phòng vận hành', '#/reports/rooms'], ['sales', 'Khách & doanh số', '#/reports/sales']];
   TH.pages.reportTabs = (cur) => `<div class="subnav">${[['hub', 'Báo cáo', '#/reports'], ['total', 'Báo cáo tổng', '#/reports/total'], ['business', 'Báo cáo kinh doanh', '#/reports/business'], ['buildings', 'Báo cáo theo tòa', '#/reports/buildings'],
@@ -24,7 +24,7 @@
   const keepQ = (h) => { const qq = (TH.router.parse ? TH.router.parse().query : {}) || {}, used = new Set(String(h || '').split('?')[1]?.split('&').map(x => x.split('=')[0]).filter(Boolean) || []); const p = ['period', 'area', 'group', 'manager', 'leader', 'direct', 'shareholder', 'building'].filter(k => qq[k] && !used.has(k)).map(k => k + '=' + encodeURIComponent(qq[k])).join('&'); return p ? (h.includes('?') ? '&' : '?') + p : ''; };
 
   TH.router.handle('/reports', (root, p, q) => {
-    const period = q.period || '2026-08';
+    const period = q.period || F.defaultPeriod('2026-08');
     if (TH.auth.role() === 'codong') {
       const total = filterRep(TH.qr.get(period, 'total'), q).cols.TOTAL, biz = filterRep(TH.qr.get(period, 'business'), q).cols.TOTAL;
       root.innerHTML = TH.pages.reportTabs('hub') + U.pageHead({ title: 'Báo cáo tòa góp vốn của tôi', sub: 'Chỉ số trong phạm vi cổ phần hiệu lực' }) + filterBar(q)
@@ -95,7 +95,7 @@
   const exportRep = (rep, cols, name, q) => { const model = TH.qr.exportModel(rep.period, rep.type, rep.bizMode, q); model.cols = cols; model.rows.forEach(r => { r.values = ['TOTAL','T','S','G'].map(k => (cols[k] || {})[r.code]); }); model.metadata.splice(2, 0, ['Bộ lọc', exportMeta(rep, q, '')[2][1]]); K.xlsReport(name, model); };
 
   const reportPage = (type) => (root, p, q) => {
-    const period = q.period || '2026-08'; const canCompare = ['admin', 'ketoan'].includes(TH.auth.role());
+    const period = q.period || F.defaultPeriod('2026-08'); const canCompare = ['admin', 'ketoan'].includes(TH.auth.role());
     const mode = type === 'business' && canCompare && ['gd','excel'].includes(q.mode) ? q.mode : TH.qr.officialBusinessMode(period);
     const rep = TH.qr.get(period, type, mode); const { cols, sub, filtered } = filterRep(rep, q);
     const compare = rep.parallel && !filtered && !(type === 'business' && mode === 'gd');
@@ -141,7 +141,7 @@
   TH.router.handle('/reports/business', reportPage('business'));
 
   TH.router.handle('/reports/buildings', (root, p, q) => {
-    const period = q.period || '2026-08'; const type = q.type || 'total'; const group = q.group || 'G';
+    const period = q.period || F.defaultPeriod('2026-08'); const type = q.type || 'total'; const group = q.group || 'G';
     const mode = type === 'business' && ['admin', 'ketoan'].includes(TH.auth.role()) && ['gd','excel'].includes(q.mode) ? q.mode : TH.qr.officialBusinessMode(period);
     const rep = TH.qr.get(period, type, mode);
     const ok = scopeFilter(q);

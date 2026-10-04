@@ -2,7 +2,7 @@
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc;
   TH.router.handle('/expenses/allocation', (root, p, q) => {
-    const period = q.period || '2026-08';
+    const period = q.period || F.defaultPeriod('2026-08');
     const run = S.one('allocationRuns', r => r.period === period);
     const res = run || X.previewAllocation(period, q.den ? { denominator: q.den, reason: q.why } : null);
     const bids = Object.keys((res.lines[0] || { results: {} }).results).sort((a, b) => a.localeCompare(b, 'vi', { numeric: true }));

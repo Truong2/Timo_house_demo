@@ -51,7 +51,7 @@
   TH.router.handle('/settings', (root, p, q) => {
     const tab = q.tab || 'tai-khoan';
     const tabs = [{ key: 'tai-khoan', label: 'Tài khoản' }, { key: 'vai-tro', label: 'Vai trò & quyền' }, { key: 'danh-muc', label: 'Danh mục' }, { key: 'tk-nhan', label: 'TK nhận tiền & mẫu in' }, { key: 'tham-so', label: 'Tham số nghiệp vụ' }, { key: 'quyet-dinh', label: 'Quyết định nghiệp vụ' },
-      { key: 'ky', label: 'Kỳ & khóa kỳ' }, { key: 'nhat-ky', label: 'Nhật ký' }, { key: 'doi-chieu', label: 'Đối chiếu nghiệm thu' }, { key: 'he-thong', label: 'Hệ thống demo' }];
+      { key: 'ky', label: 'Kỳ & khóa kỳ' }, { key: 'nhat-ky', label: 'Nhật ký' }, { key: 'doi-chieu', label: 'Đối chiếu nghiệm thu' }, ...(TH.data.septemberFlow ? [{ key: 'du-lieu-thang-9', label: 'Dữ liệu mẫu tháng 9' }] : []), { key: 'he-thong', label: 'Hệ thống demo' }];
     root.innerHTML = U.pageHead({ title: 'Cài đặt', sub: 'Danh mục, quyền, tham số có ngày hiệu lực và kỳ dùng chung cho mọi màn' }) + U.tabs(tabs, tab) + '<div id="tb" class="mt16"></div>';
     const tb = root.querySelector('#tb');
     U.bind(root, { tab: (el) => TH.router.setQuery({ tab: el.dataset.key }) });
@@ -169,6 +169,15 @@
     if (tab === 'doi-chieu') {
       const rows = [...TH.pages.acceptance(), ...(TH.ms.on('3') && TH.pages.acceptance3 ? TH.pages.acceptance3() : [])];
       tb.innerHTML = U.card({ title: 'Đối chiếu nghiệm thu với số liệu Excel của khách', icon: 'clipboard-check', sub: `${rows.filter(r => r.ok).length}/${rows.length} tiêu chí đạt`, body: rows.map(r => `<div class="acc-row ${r.ok ? 'ok' : 'fail'}"><span class="acc-ms">${r.ms}</span><div class="grow"><b>${esc(r.name)}</b><div class="small muted">${esc(r.detail)}</div></div>${r.ok ? U.chip('PASS', 'green') : U.chip('FAIL', 'red')}</div>`).join('') });
+    }
+    if (tab === 'du-lieu-thang-9' && TH.data.septemberFlow) {
+      const d=TH.data.septemberFlow,j=d.summary.journey,active=S.dataset===d.id;
+      const links=[['Khách mới & hợp đồng',`#/stays/${j.stayId}?tab=hop-dong`],['Biểu phí',`#/stays/${j.stayId}?tab=dich-vu-gia`],['Hóa đơn đã thu đủ',`#/billing/invoices/${j.invoiceId}`],['Thu tiền','#/billing/receipts?period=2026-09'],['Chi phí','#/expenses?period=2026-09'],['Bảng lương đã chốt','#/hr/payroll?period=2026-09'],['Phân bổ quỹ','#/expenses/allocation?period=2026-09'],['Báo cáo tháng 9','#/reports/total?period=2026-09'],['Bảng kê G1','#/shares/b_G1?period=2026-09'],['Chi thực cổ đông','#/shares/capital?tab=chi-thuc']];
+      tb.innerHTML=U.card({title:d.label,sub:'Dữ liệu theo Excel, bổ sung ca mẫu có nguồn và giả định. Ngày xem 05/10/2026: tháng 9 đã khóa, lương và cổ đông đã chi đầu tháng sau.',actions:U.btn({label:active?'Đang dùng bộ tháng 9':'Mở bộ tháng 9',act:'dataset',attrs:{'data-dataset':d.id},disabled:active,perm:'settings.manage',cls:'btn-primary'}),body:`<p>Giữ 1.471 hóa đơn Excel và thêm một ca khách mới ở phòng <b>${esc(j.roomCode)}</b>: giá thuê ${F.vnd(j.rent)}đ/tháng, cọc ${F.vnd(j.deposit)}đ, hóa đơn đầu ${F.vnd(j.invoiceTotal)}đ đã thu đủ.</p><p class="small muted">Mỗi bộ dữ liệu giữ riêng thao tác đã lưu. Tài liệu người dùng đã tải lên vẫn được giữ trong trình duyệt.</p>${active?'<div class="row wrap mt12">'+links.map(([label,href])=>U.btn({label,href,size:'btn-sm'})).join('')+'</div>':''}`})
+        +U.card({title:'Nguồn và giả định mẫu',body:d.summary.assumptions.map(t=>'<p>'+esc(t)+'</p>').join('')+'<p>Hoa hồng chưa đủ điều kiện vẫn ở trạng thái chờ; không tự xác nhận hồ sơ còn thiếu.</p><a class="btn btn-ghost" href="demo/september/Bo_du_lieu_mau_2026-09.xlsx" download>Tải bộ dữ liệu Excel</a>'})
+        +U.card({title:'Các bước đã thực hiện',body:d.summary.steps.map(s=>'<div class="mini-row"><b>'+esc(s.name)+'</b></div>').join('')})
+        +U.card({title:'Bộ đối chiếu trước đây',body:'<p class="small">Mở lại bộ Excel lịch sử và các thao tác trước khi có bộ tháng 9 mới.</p>'+U.btn({label:'Mở bộ đối chiếu cũ',act:'dataset',attrs:{'data-dataset':'classic'},disabled:!active,perm:'settings.manage'})});
+      U.bind(tb,{dataset:el=>K.act(()=>{S.selectDataset(el.dataset.dataset);TH.layout.reset();TH.router.render();},'Đã chuyển bộ dữ liệu')});
     }
     if (tab === 'he-thong') {
       const ms = TH.ms.current();

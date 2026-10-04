@@ -4,6 +4,7 @@ window.TH = window.TH || {};
   const F = {};
   F.DEMO_TODAY = '2026-09-29';
   F.today = () => (TH.store && TH.store.meta && TH.store.meta.today) || F.DEMO_TODAY;
+  F.defaultPeriod = (historical = '2026-09') => TH.store?.dataset && TH.store.dataset !== 'classic' ? TH.store.meta.period : historical;
   F.pad = (n, l = 2) => String(n).padStart(l, '0');
   F.uid = (p = 'id') => p + '_' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3);
   F.esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

@@ -36,6 +36,7 @@
             <button type="button" class="user-btn" data-act="user">${U.avatar(u.name || '?')}<div><b>${esc(u.name || '')}</b><small>${esc(TH.auth.roleLabel())}</small></div>${I('chevron-down')}</button>
           </div>
         </header>
+        ${TH.store.dataset === TH.data.septemberFlow?.id ? `<div class="demo-dataset-banner">Dữ liệu mẫu tháng 9/2026 · Excel + ca mẫu liên thông${TH.auth.can('settings.manage') ? ' · <a href="#/settings?tab=du-lieu-thang-9">Xem luồng & nguồn dữ liệu</a>' : ''}</div>` : ''}
         <main id="content" class="content" tabindex="-1"></main>
       </div>`;
     U.bind(app.querySelector('.topbar'), {

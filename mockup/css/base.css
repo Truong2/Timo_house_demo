@@ -99,3 +99,7 @@ svg.i{width:1em;height:1em;stroke:currentColor;fill:none;stroke-width:2;stroke-l
   .login{grid-template-columns:1fr}.login-hero{display:none}.login-card{padding:24px 18px}
   .btn,.btn-icon,input.inp,select.inp,.toggle{min-height:44px}.page-head .acts{width:100%}.page-head .acts .btn{flex:1;justify-content:center}.filterbar{align-items:stretch}.filterbar>*{min-width:100%!important}.card-b{padding:14px}.content{overflow-wrap:anywhere}
 }
+
+.demo-dataset-banner{padding:8px 24px;background:var(--blue-50);color:var(--text-2);font-size:13px;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
+.demo-dataset-banner a{text-decoration:underline}
+@media(max-width:640px){.demo-dataset-banner{padding:8px 14px}}

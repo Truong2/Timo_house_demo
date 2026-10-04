@@ -17,11 +17,12 @@
   };
   const draftAccess = d => {
     need(d.kind);
+    if((d.datasetId||'classic')!==(TH.store.dataset||'classic'))throw new Error('Bản nháp thuộc bộ dữ liệu khác; chuyển lại bộ dữ liệu đó để tiếp tục');
     if(d.createdBy && d.createdBy !== TH.store.session?.userId) throw new Error('Bản nháp thuộc tài khoản khác');
     if(d.targetStayId && !TH.auth.inScope(TH.q.stay(d.targetStayId)?.buildingId)) throw new Error('Lượt thuê ngoài phạm vi');
   };
-  B.saveDraft = async draft => { draftAccess(draft); draft.id ||= TH.f.uid('intake'); draft.createdBy ||= TH.store.session?.userId; draft.updatedAt = TH.f.nowISO(); await op('drafts', 'readwrite', s => s.put(JSON.parse(JSON.stringify(draft)))); return draft; };
-  B.drafts = async kind => { need(kind); return (await op('drafts','readonly',s=>s.getAll())).filter(d=>d.kind===kind && (!d.createdBy || d.createdBy === TH.store.session?.userId)); };
+  B.saveDraft = async draft => { draft.datasetId ||= TH.store.dataset || 'classic'; draftAccess(draft); draft.id ||= TH.f.uid('intake'); draft.createdBy ||= TH.store.session?.userId; draft.updatedAt = TH.f.nowISO(); await op('drafts', 'readwrite', s => s.put(JSON.parse(JSON.stringify(draft)))); return draft; };
+  B.drafts = async kind => { need(kind); return (await op('drafts','readonly',s=>s.getAll())).filter(d=>d.kind===kind && (d.datasetId||'classic')===(TH.store.dataset||'classic') && (!d.createdBy || d.createdBy === TH.store.session?.userId)); };
   B.getDraft = async id => { const d=await op('drafts','readonly',s=>s.get(id)); if(d) draftAccess(d); return d; };
   const fileBinding = (kind, context = {}) => {
     if(context.stayId){ TH.actions._.needMs('2','OCR hợp đồng');TH.actions._.need('ocr.review'); const st=TH.q.stay(context.stayId);if(!st || !TH.auth.inScope(st.buildingId))throw new Error('Lượt thuê ngoài phạm vi');return {stayId:st.id,buildingId:st.buildingId}; }
@@ -42,7 +43,8 @@
     await op('files','readwrite',s=>s.put(rec));return {id:rec.id,name:rec.name,size:rec.size,hash:rec.hash};
   };
   B.file = async id => {
-    const actor=TH.store.session?.userId,f=await op('files','readonly',s=>s.get(id));
+    const builtin=TH.store.dataset===TH.data.septemberFlow?.id ? TH.data.septemberFlow.files?.[id] : null;
+    const actor=TH.store.session?.userId,f=builtin?{id,name:builtin.name,kind:'tenant',createdBy:'builtin'}:await op('files','readonly',s=>s.get(id));
     if(actor!==TH.store.session?.userId)throw new Error('Tài khoản đã thay đổi khi đọc file');
     // Resolve references after asynchronous storage access so revoked assignments take effect.
     const docs=TH.q.documentsAll?.().filter(d=>d.blobId===id)||[];
@@ -52,7 +54,9 @@
       if(!f){const drafts=await op('drafts','readonly',s=>s.getAll());const d=drafts.find(d=>d.createdBy===actor&&d.files?.some(x=>x.id===id));if(d){draftAccess(d);throw new Error('File gốc không còn trong trình duyệt này');}}
       if(!f || f.createdBy!==TH.store.session?.userId)throw new Error('File ngoài phạm vi được phép đọc');fileBinding(f.kind,f.binding||{});
     }
-    if(!f)throw new Error('File gốc không còn trong trình duyệt này');return f;
+    if(!f)throw new Error('File gốc không còn trong trình duyệt này');
+    if(builtin){const response=await fetch(builtin.url);if(!response.ok)throw new Error('Không tải được tài liệu mẫu');f.blob=await response.blob();f.size=f.blob.size;if(actor!==TH.store.session?.userId||!TH.q.documentsAll().some(d=>d.blobId===id&&TH.q.canDownloadDoc(d)))throw new Error('Quyền đọc tài liệu đã thay đổi');}
+    return f;
   };
   B.cleanupFile = async id => {
     const f=await op('files','readonly',s=>s.get(id));if(!f || f.createdBy!==TH.store.session?.userId)return;

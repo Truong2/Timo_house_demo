@@ -31,7 +31,7 @@
 
   /* ---------- UI-42 ---------- */
   TH.router.handle('/reports/costs', (root, p, q) => {
-    const period = q.period || '2026-08'; const tab = ['gv', 'fixed', 'var'].includes(q.tab) ? q.tab : 'gv';
+    const period = q.period || F.defaultPeriod('2026-08'); const tab = ['gv', 'fixed', 'var'].includes(q.tab) ? q.tab : 'gv';
     const ok = okB(q, period); const C = QO.costs(period, ok);
     const prevP = TH.calc.dates.prevPeriod(period); const hasPrev = !!S.get('periods', prevP); const Cp = hasPrev ? QO.costs(prevP, ok) : null;
     const g = C.groups.find(x => x.key === tab), gp = Cp && Cp.groups.find(x => x.key === tab);

@@ -1,7 +1,7 @@
 (function (TH) {
   const S = TH.store, Q = TH.q, F = TH.f, U = TH.ui, K = TH.kit, esc = F.esc;
   TH.router.handle('/reports/efficiency', (root, p, q) => {
-    const period = q.period || '2026-08', codong = TH.auth.role() === 'codong', hasExcel = (S.get('periods', period) || {}).source === 'excel_parallel', source = !codong && hasExcel && q.source === 'excel' ? 'excel' : 'web';
+    const period = q.period || F.defaultPeriod('2026-08'), codong = TH.auth.role() === 'codong', hasExcel = (S.get('periods', period) || {}).source === 'excel_parallel', source = !codong && hasExcel && q.source === 'excel' ? 'excel' : 'web';
     const report = TH.qe.build(period, { basis: q.basis || 'business', source, group: q.group, area: q.area, manager: codong ? null : q.manager }), totals = report.totals.TOTAL;
     const ratio = (v, why) => v == null ? `<span class="muted"${why ? ` title="${esc(why)}"` : ''}>${esc(why || 'Chờ dữ liệu')}</span>` : F.pctv(v, 2);
     root.innerHTML = U.pageHead({ title: 'Hiệu quả vốn, tài sản & tiền nhà', sub: 'LN/vốn = LNR/GV (dòng 51); biên tiền nhà = DT tiền phòng / tiền thuê (dòng 59). LN/tài sản = LNR kinh doanh / giá trị còn lại tài sản công ty – chỉ tòa đã có số dư tài sản nền (UI-37 / đầu tư ban đầu UI-33).', acts: [U.btn({ label: 'Xuất Excel', act: 'exp', icon: 'download' })] })
