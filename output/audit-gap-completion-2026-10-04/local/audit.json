@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-04T13:43:58.754Z",
+  "checkedAt": "2026-10-04T13:55:00.813Z",
   "baseURL": "http://localhost:9827",
-  "sourceSha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+  "sourceSha": "d196a72fad5d318b6afa399c06fd3a63eb487881",
   "build": {
-    "sha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+    "sha": "d196a72fad5d318b6afa399c06fd3a63eb487881",
     "target": "mockup source"
   },
   "scripts": [],

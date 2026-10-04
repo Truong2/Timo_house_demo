@@ -24,7 +24,7 @@
 
 ## Kiểm tra và bằng chứng
 
-- `npm.cmd run check`: kiểm tra cú pháp, RBAC và toàn bộ unit/integration tests, gồm `tests/audit-gap-completion.test.mjs`.
+- `npm.cmd run check`: 350/350 unit/integration tests, 534 kiểm tra RBAC và 112 file JS qua kiểm tra cú pháp, gồm `tests/audit-gap-completion.test.mjs`.
 - UI audit 225 checks; workbook 94 checks; field-level/source workbook 66 checks; verifier module và intake UI.
 - Đọc thật PDF chủ nhà/khách thuê, OCR ảnh và Excel nguồn bằng `node scripts/verify-intake.mjs` (tự mở server, đóng sau kiểm tra).
 - `npm.cmd run verify:audit-gaps`: 10 ca hành vi và audit browser local. Browser kiểm tra 54 màn/tab, 8 finding, lương nhập tay 0/8.000.000đ qua form, PDF phí xe, cùng responsive 375/768/1440px. Kiểm tra query bổ sung cho kế toán/cổ đông/vận hành; gallery UI vẫn dùng admin.
@@ -32,3 +32,11 @@
 - Evidence local ở `output/audit-gap-completion-2026-10-04/local/`; các log `output/audit-gap-*.log` ghi lần chạy cuối. Script trả lỗi nếu finding không PASS, có page error hoặc JS live không khớp source.
 
 Audit trước sửa giữ tại `docs/TimoHouse_UI_Mockup_PostFix_Audit_vs_Workbook_2026-10-04.md` và `output/audit-post-fix-2026-10-04/`, là bằng chứng của bản cũ.
+
+## Kết quả live và bản hoàn thiện hiển thị
+
+Netlify triển khai commit `d196a72` lúc `2026-10-04T13:47:27.972Z`. Audit live cùng commit xác nhận 112/112 file JS khớp source, 8/8 mục PASS, không có lỗi JavaScript hoặc request ghi dữ liệu lên server. JSON, ảnh và PDF được lưu trong thư mục live nêu trên.
+
+Sau lần này, bổ sung hiển thị số xe gửi/sạc theo phiên cuối kỳ ở bảng biểu phí và tổng quan lượt thuê. Audit local có thêm kiểm tra trực tiếp bảng biểu phí hiển thị 2 xe gửi / 1 xe sạc, trước khi đối chiếu hóa đơn 250.000đ. Bản bổ sung được audit live lại sau push; dùng `AUDIT_OUTPUT_DIR=tmp/audit-final-live` để không tạo vòng lặp commit bằng chứng rồi đổi SHA.
+
+Các hồ sơ lịch sử thiếu ngày nhận/chuyển/thanh lý, phiên hợp đồng hoặc chính sách khấu hao đã xác nhận vẫn cần bổ sung căn cứ. UI giữ trạng thái thiếu dữ liệu; kết quả 8/8 chỉ nghiệm thu 8 mục và các ca đã nêu, không xác nhận thay những hồ sơ đó.

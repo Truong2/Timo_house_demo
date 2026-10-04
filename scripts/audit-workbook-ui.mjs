@@ -143,6 +143,8 @@ try {
     await page.click('[data-act=newrate]');
     await page.fill('[name=from]','2026-11-01'); await page.fill('[name=u_ev]',''); await page.fill('[name=u_parking]','100000'); await page.fill('[name=u_charging]','50000'); await page.fill('[name=reason]','Tách gửi và sạc theo xác nhận');
     await page.click('[data-act=submit-d]'); await page.waitForSelector('#overlay-root [role=dialog]',{state:'hidden'});
+    const displayedCounts=await page.evaluate(()=>Object.fromEntries([...document.querySelectorAll('#tb table:first-of-type tbody tr')].filter(r=>['Gửi xe','Sạc xe điện'].includes(r.cells[0]?.textContent)).map(r=>[r.cells[0].textContent,r.cells[3].textContent])));
+    assert.equal(displayedCounts['Gửi xe'],'2'); assert.equal(displayedCounts['Sạc xe điện'],'1'); await shot('split-fee-preview');
     const split=await page.evaluate(stayId=>{
       const s=TH.q.stay(stayId), inv=TH.actions.createInvoiceDrafts('2026-11',[s.buildingId],{allowMissingReading:true}).created.find(i=>i.stayId===stayId),line=inv.lines[7];
       return {invoiceId:inv.id,amount:line.amount,components:line.components};
