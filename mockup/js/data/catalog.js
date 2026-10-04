@@ -35,7 +35,7 @@ TH.data.catalog = {
   /* Các lựa chọn điều khiển cách tính chính thức. Tách khỏi params để thêm mới không làm đổi seed hash/local overlay cũ. */
   policyParams: [
     { key: 'debtBasis', type: 'enum', options: [['issuedAt', '5 ngày từ ngày phát hành hóa đơn'], ['dueDate', '5 ngày sau hạn thanh toán (tương thích cũ)']], label: 'Cơ sở bắt đầu đếm ngày chuyển công nợ', value: 'issuedAt', unit: '', oq: 'OQ-12', group: 'Hóa đơn', status: 'confirmed', sourceRef: 'CH-14 – sau 5 ngày kể từ khi có hóa đơn' },
-    { key: 'businessReportMode', type: 'enum', options: [['excel', 'Như sheet Excel KD (số chính thức)'], ['proposed', 'Phương án OQ-10 (cộng hoàn cọc, dùng khấu hao)']], label: 'Cách tính Báo cáo kinh doanh chính thức', value: 'excel', unit: '', oq: 'OQ-10', group: 'Báo cáo', status: 'confirmed', sourceRef: 'SRC-04 – BÁO CÁO KINH DOANH THÁNG 8' },
+    { key: 'businessReportMode', type: 'enum', options: [['excel', 'Như sheet Excel KD (lịch sử)'], ['web', 'Theo mô tả web – loại cọc/hoàn cọc, dùng KH xác nhận'], ['proposed', 'Phương án OQ-10 (cộng hoàn cọc, dùng khấu hao)']], label: 'Cách tính Báo cáo kinh doanh chính thức', value: 'excel', unit: '', oq: 'OQ-10', group: 'Báo cáo', status: 'confirmed', sourceRef: 'SRC-04 – BÁO CÁO KINH DOANH THÁNG 8' },
     { key: 'commissionRecognitionMode', type: 'enum', options: [['paidAt', 'Kỳ thực chi từng đợt'], ['eligibleAt', 'Kỳ đủ điều kiện chi (đề xuất cũ)']], label: 'Kỳ ghi chi phí hoa hồng', value: 'paidAt', unit: '', oq: 'OQ-13', group: 'Kinh doanh', status: 'confirmed', sourceRef: 'SRC-09 – file hoa hồng chia theo tháng chi' },
     { key: 'conversionFormula', type: 'enum', options: [['none', 'Chỉ công bố số xem và số chốt'], ['closedPerViewed', 'Chốt / xem (đề xuất)'], ['viewedPerClosed', 'Xem / chốt (nhãn Excel)']], label: 'Công thức tỷ lệ chuyển đổi', value: 'none', unit: '', oq: 'OQ-06', group: 'Kinh doanh', status: 'proposed', sourceRef: 'SRC-13 ghi “khách xem/khách chốt” – chưa xác nhận tử/mẫu' },
     { key: 'shareRoundingMode', type: 'enum', options: [['explicitDelta', 'Hiện dòng chênh, không tự phân bổ'], ['commonFund', 'Dồn chênh vào quỹ CHUNG (đề xuất cũ)']], label: 'Xử lý chênh làm tròn bảng kê cổ đông', value: 'explicitDelta', unit: '', oq: 'OQ-08', group: 'Cổ đông', status: 'proposed', sourceRef: 'SRC-07 – chênh làm tròn chưa có trả lời khách' },
@@ -80,6 +80,8 @@ TH.data.catalog = {
     { key: 'internet', label: 'Internet', line: 6, unit: 'đ/phòng' },
     { key: 'elevator', label: 'Thang máy', line: 7, unit: 'đ/người' },
     { key: 'ev', label: 'Xe điện / gửi xe', line: 8, unit: 'đ/xe' },
+    { key: 'parking', label: 'Gửi xe', line: 8, unit: 'đ/xe' },
+    { key: 'charging', label: 'Sạc xe điện', line: 8, unit: 'đ/xe' },
     { key: 'washer', label: 'Máy giặt/sấy', line: 9, unit: 'đ/người' },
     { key: 'combo', label: 'Combo / DV chung', line: 10, unit: 'đ/người' },
     { key: 'common', label: 'Điện chung', line: 12, unit: 'đ/kWh' },

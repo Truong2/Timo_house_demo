@@ -1,0 +1,795 @@
+{
+  "checkedAt": "2026-10-04T10:57:24.693Z",
+  "baseURL": "https://timohousev2.netlify.app",
+  "sourceSha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+  "build": {
+    "version": "4.0.0",
+    "sha": "3d5b645",
+    "builtAt": "2026-10-04T10:11:13.665Z"
+  },
+  "scripts": [
+    {
+      "path": "/js/core/format.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/dates.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/params.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/rbac-policy.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/billing.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/payments.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/refund.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/zalo-rules.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/import-validate.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/depreciation.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/payroll.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/allocation.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/report.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/commission.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/repairs.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/share.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/assets.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/capital.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/forecast.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/efficiency.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/domain/intake.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/catalog.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-master.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-2026-09.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-2026-08-bench.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-1b.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-p2.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-phase2.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-phase3.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-p3.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/data/seed-phase3-rest.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/core/store.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/core/milestone.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/core/auth.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/core/routes.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/icons.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/components.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/table.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/chart.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/q.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-core.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-master.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-stays.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-billing.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-receipts.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-refunds.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-expenses.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-zalo.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-hr.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-import.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-periods.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-payroll.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-allocation.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/q-report.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-sales.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-commission.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-repairs.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/q-report-ops.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-shares.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-documents.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-assets.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-maintenance.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-inventory.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-capital.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/q-forecast.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-forecast.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/q-efficiency.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/intake-files.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/services/act-intake.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/core/router.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/layout.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/kit.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/intake-view.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/ui/print.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/login.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/dashboard.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/buildings.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/owners.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/tenants.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/contracts.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/stay.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/billing-readings.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/billing-invoices.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/billing-receipts.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/billing-debts.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/expenses.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/refunds.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/hr.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/zalo.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/import.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/settings.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/allocation.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/payroll.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/reports.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/reports-ops.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/sales.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/deals.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/commission.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/repairs.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/shares.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/contract-review.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/documents.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/assets.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/maintenance.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/inventory.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/capital.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/forecast.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/efficiency.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/acceptance3.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/pages/intake.js",
+      "status": 200,
+      "matchesSource": true
+    },
+    {
+      "path": "/js/app.js",
+      "status": 200,
+      "matchesSource": true
+    }
+  ],
+  "initialRouteCount": 54,
+  "visitedCount": 68,
+  "roles": [
+    "admin"
+  ],
+  "findings": [
+    {
+      "id": "EXP-FILTER",
+      "source": "Tài chính chung!I22",
+      "expected": "Danh sách chi phí lọc được khu vực, NV vận hành, trưởng khu vực",
+      "actual": {
+        "filters": [
+          "period",
+          "q",
+          "cat",
+          "scope",
+          "line",
+          "src",
+          ""
+        ],
+        "missing": [
+          "area",
+          "manager",
+          "leader"
+        ]
+      },
+      "status": "FAIL",
+      "evidence": "routes.json: #/expenses"
+    },
+    {
+      "id": "SALE-STT",
+      "source": "KINH DOANH!C37",
+      "expected": "Nhân sự sale có STT",
+      "actual": {
+        "headers": [
+          "Nhân viên",
+          "Chức danh",
+          "Trưởng nhóm",
+          "Thâm niên",
+          "Deal chốt",
+          "Doanh số⇅",
+          "Hủy / bỏ cọc",
+          "Chỉ tiêu",
+          "% chỉ tiêu"
+        ]
+      },
+      "status": "FAIL",
+      "evidence": "route-30.png"
+    },
+    {
+      "id": "SALE-REPORT-LEADER",
+      "source": "BÁO CÁO!E22",
+      "expected": "Báo cáo khách hàng/doanh số có lọc trưởng khu vực vận hành",
+      "actual": {
+        "fields": [
+          "period",
+          "area",
+          "group",
+          "building",
+          "manager",
+          "shareholder",
+          "sale",
+          "team",
+          "by",
+          ""
+        ]
+      },
+      "status": "FAIL",
+      "evidence": "routes.json: #/reports/sales"
+    },
+    {
+      "id": "FEE-SPLIT",
+      "source": "Thông tin khách hàng!G9",
+      "expected": "Hai đơn giá độc lập: phí sạc xe điện và phí gửi xe",
+      "actual": [
+        {
+          "key": "ev",
+          "label": "Xe điện / gửi xe",
+          "line": 8
+        }
+      ],
+      "status": "FAIL",
+      "evidence": "route-16.png; catalog feeTypes"
+    },
+    {
+      "id": "SHARE-ASOF",
+      "source": "TT CỔ ĐÔNG!E2:F2,C5",
+      "expected": "Bộ lọc thời gian áp vào thống kê tài sản/cọc, dùng thời điểm đang xem",
+      "actual": {
+        "periods": [
+          "2026-09",
+          "2026-10"
+        ],
+        "identicalContent": true,
+        "currentPeriod": "2026-09",
+        "sample": "Cọc chủ nhà – tài sản phải thu hồi\n48.000.000\n\nThu hồi khi kết thúc hợp đồng chủ nhà; không vào doanh thu.\n\nTài sản theo tòa\nMã / tên\tSở hữu\tSL\tCòn lại\nTS-G1-001 · Điều hòa, kèm điều khiển\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-002 · Thiết bị mạng, công tắc điện, ổ cắm…\tChủ nhà\t1\tChờ dữ liệu\nTS-G1-003 · Bình nóng lạnh\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-004 · Thiết bị vệ sinh (bồn cầu, vòi sen, vòi xịt, lavabo…)\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-005 · Cửa ra vào\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-006 · Cửa WC\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-007 · Cửa sổ các phòng\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-008 · Cửa ban công\tChủ nhà\t6\tChờ dữ liệu\nTS-G1-009 · Bóng điện (nhà xe, từng phòng, hành lang…)\tChủ nhà\t38\tChờ dữ liệu\nTS-G1-010 · Công tơ điện\tChủ nhà\t17\tChờ dữ liệu\nTS-G1-011 · Đồng hồ nước\tChủ nhà\t1\tChờ dữ liệu\nTS-G1-012 · Hệ thố"
+      },
+      "status": "FAIL",
+      "evidence": "share-assets-2026-09.png; share-assets-2026-10.png; pages/capital.js tai-san-coc uses S.meta.period"
+    },
+    {
+      "id": "VEHICLE-BILLING",
+      "source": "Thông tin khách hàng!G7:G9; yêu cầu liên kết hóa đơn CH-12",
+      "expected": "Xe điện vừa khai báo cập nhật lượng tính phí cho hóa đơn nháp mới",
+      "actual": {
+        "customerVehicles": 2,
+        "stayVehicles": 0,
+        "readingVehicles": null,
+        "invoiceId": "inv_INV-2026-10-101G990A001",
+        "actualQty": 0,
+        "actualAmount": 0,
+        "expectedQty": 2,
+        "unit": 100000,
+        "skipped": []
+      },
+      "status": "FAIL",
+      "evidence": "vehicle-list.png; vehicle-invoice.png"
+    },
+    {
+      "id": "SALARY-MODE",
+      "source": "NHÂN SỰ!A5:A9",
+      "expected": "Kiểm chứng mode nhập tay thực sự điều khiển tính lương; công thức 3 bộ phận còn cần xác nhận nghiệp vụ",
+      "actual": {
+        "employee": "emp_NV49413627",
+        "beforeMode": "fixed",
+        "afterMode": "manual",
+        "before": {
+          "base": 7000000,
+          "manualPay": 0,
+          "total": 7500000
+        },
+        "after": {
+          "base": 7000000,
+          "manualPay": 0,
+          "total": 7500000
+        }
+      },
+      "status": "PARTIAL",
+      "evidence": "salary policy + preview calculation"
+    },
+    {
+      "id": "BUSINESS-REFUND",
+      "source": "BÁO CÁO!D6",
+      "expected": "Báo cáo kinh doanh không gồm cọc mới, hoàn cọc, mua sắm thiết bị",
+      "actual": {
+        "mode": "excel",
+        "status": "confirmed",
+        "params": {
+          "addBackRefund": true,
+          "useDepreciation": true
+        },
+        "total": {
+          "revenue": 7721955897,
+          "newDeposit": 835200000,
+          "refund": 355311170,
+          "equipment": 0,
+          "profit": 3440720047.9977164
+        },
+        "business": {
+          "revenue": 6886755897,
+          "refund": 355311170,
+          "equipment": 0,
+          "profit": 2605520047.9977164
+        }
+      },
+      "status": "PARTIAL",
+      "evidence": "route-38.png; OQ-10 policy"
+    }
+  ],
+  "responsive": [
+    {
+      "width": 375,
+      "hash": "#/dashboard",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/expenses",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/sales/commission?tab=nhan-su",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/reports/sales",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/assets/inventory?type=decor",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/dashboard",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/expenses",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/sales/commission?tab=nhan-su",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/reports/sales",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/assets/inventory?type=decor",
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "mutatingRequests": []
+}

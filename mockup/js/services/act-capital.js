@@ -5,6 +5,20 @@
   const fail = fields => { const e = new Error('Giao dịch vốn chưa hợp lệ'); e.fields = fields; throw e; };
   /* Kỳ trả chủ nhà đã do vốn ban đầu chi trả (UI-33 Đầu tư ban đầu, coveredTo) → không sinh dòng phải góp; tòa không có vốn ban đầu thì lấy đủ */
   const fundedByInitial = p => { const ci = S.one('capitalInitial', c => c.buildingId === p.buildingId); return !!(ci && ci.coveredTo && p.from <= TH.calc.dates.periodEnd(ci.coveredTo)); };
+  Q.capitalAssetsAt = (bid, at = F.today()) => {
+    if (!TH.auth.inScope(bid)) throw new Error('Tòa ngoài phạm vi');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(at)) throw new Error('Ngày xem không hợp lệ');
+    const period = F.period(at), contracts = S.where('ownerContracts', c => c.buildingId === bid && c.startDate <= at).sort((a,b) => b.startDate.localeCompare(a.startDate));
+    const oc = contracts[0], version = oc && S.where('ownerContractVersions', v => v.contractId === oc.id && v.effectiveFrom <= at).sort((a,b) => b.effectiveFrom.localeCompare(a.effectiveFrom) || b.version - a.version)[0];
+    const deposit = version && version.snapshot.deposit != null ? Number(version.snapshot.deposit) : null;
+    const assets = S.all('assets').filter(a => !['void','removed'].includes(a.status) && Q.assetBuildingAt(a,at) === bid && (!a.receivedDate || a.receivedDate <= at) && (!a.disposal?.date || a.disposal.date > at)).map(a => {
+      const dated = {...a,buildingId:bid};
+      // An end-of-month depreciation rule must not treat a future disposal as already completed.
+      if (dated.disposal?.date > at) dated.disposal = null;
+      return {...dated, remaining: a.cost > 0 && a.depreciationPolicyStatus === 'confirmed' && (a.depStart || a.purchaseDate) ? TH.calc.depreciation.nbv(dated,period) : null};
+    });
+    return {buildingId:bid,at,period,deposit,depositVersionId:version?.id || null,assets};
+  };
   Q.capitalSchedule = (f = {}) => CAP.schedule(S.all('ownerPayments').filter(p => TH.auth.inScope(p.buildingId) && (!f.building || p.buildingId === f.building) && !fundedByInitial(p)), Q.shareRatios, S.all('shareholders')).filter(l => own(l.shareholderId) && (!f.sh || l.shareholderId === f.sh) && (!f.from || l.dueDate >= f.from) && (!f.to || l.dueDate <= f.to)).map(l => Object.assign({}, l, CAP.lineState(l, S.all('shareTxns'), F.today(), Q.param('shareRemindDays'))));
   Q.capitalPayouts = (f = {}) => S.all('shareRuns').filter(r => r.status === 'locked' && TH.auth.inScope(r.buildingId) && (!f.building || r.buildingId === f.building)).flatMap(r => r.rows.filter(h => own(h.id) && (!f.sh || h.id === f.sh)).map(h => {
     const versions = new Set(S.all('shareRuns').filter(v => v.buildingId === r.buildingId && v.period === r.period).map(v => v.id));

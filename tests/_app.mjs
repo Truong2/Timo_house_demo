@@ -69,6 +69,9 @@ export const attempt = (fn) => { try { const value = fn(); return { ok: true, va
    thay vì dựa vào mức 6.000/6.500đ tự động trước đây. */
 export function completePayroll(TH, period, perRoom = 6000) {
   const X = TH.actions;
+  if (TH.store.get('periods',period)?.source !== 'excel_parallel') TH.store.all('employees').filter(e=>e.status === 'active' && TH.q.salaryPolicyFor(e,TH.calc.dates.periodEnd(period))?.mode === 'workday').forEach(e=>{
+    if (!X.manualOf(period).some(m=>m.kind==='workdays' && m.employeeId===e.id)) X.setWorkdays(period,e.id,TH.q.param('saleDivisor',TH.calc.dates.periodEnd(period)) || 26);
+  });
   let run = X.computePayroll(period);
   run.lines.forEach(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).forEach(b => {
     X.addPayrollManual({ period, kind: 'ops_below70', employeeId: l.employeeId, buildingId: b.buildingId, amount: perRoom, note: 'Mức kiểm thử đã nhập và có lý do' });

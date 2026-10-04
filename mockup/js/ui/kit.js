@@ -21,6 +21,7 @@
   K.buildingOpts = (scoped = true) => (scoped ? Q.scopedBuildings() : S.all('buildings')).map(b => [b.id, b.code]);
   K.groupOpts = () => [['T', 'Nhà T'], ['S', 'Nhà S'], ['G', 'Nhà G']];
   K.areaOpts = () => S.all('areas').map(a => [a.id, a.name]);
+  K.leaderOpts = date => Q.teamLeaders(date || F.today()).filter(e => ['TPVH','TNVH','QL TỔNG'].includes(e.title)).map(e => [e.id,e.name]);
   K.managerOpts = (date) => { const ids = new Set(S.all('assignments').filter(a => date ? (!a.from || a.from <= date) && (!a.to || date <= a.to) : !a.to).map(a => a.employeeId)); return S.all('employees').filter(e => ids.has(e.id)).map(e => [e.id, e.name]); }; // E3: theo ngày khi xem kỳ cũ
   K.periodOpts = () => S.all('periods').map(p => [p.id, F.periodLabel(p.id)]);
 

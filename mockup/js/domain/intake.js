@@ -9,7 +9,7 @@
     if (!m) { const x = s.match(/^(\d{1,2})[/.](\d{1,2})[/.](\d{4})$/); if (x) m = [s, x[3], x[2].padStart(2, '0'), x[1].padStart(2, '0')]; }
     if (!m) return ''; const iso = `${m[1]}-${m[2]}-${m[3]}`; const d = new Date(iso + 'T00:00:00Z'); return !isNaN(d) && d.toISOString().slice(0, 10) === iso ? iso : '';
   };
-  I.fees = [['electric', 'Điện', 'meter'], ['water', 'Nước', 'person'], ['cleaning', 'Vệ sinh', 'room'], ['internet', 'Internet', 'room'], ['elevator', 'Thang máy', 'person'], ['ev', 'Xe điện / gửi xe', 'vehicle'], ['washer', 'Máy giặt', 'person'], ['combo', 'Dịch vụ chung', 'person']];
+  I.fees = [['electric', 'Điện', 'meter'], ['water', 'Nước', 'person'], ['cleaning', 'Vệ sinh', 'room'], ['internet', 'Internet', 'room'], ['elevator', 'Thang máy', 'person'], ['ev', 'Xe điện / gửi xe', 'vehicle'], ['parking', 'Gửi xe', 'vehicle'], ['charging', 'Sạc xe điện', 'vehicle'], ['washer', 'Máy giặt', 'person'], ['combo', 'Dịch vụ chung', 'person']];
   // [key, label, input type, required, section]
   const shared = [['buildingCode', 'Mã tòa', 'text', true, 2], ['buildingAddress', 'Địa chỉ tòa', 'text', true, 2], ['contractCode', 'Mã hợp đồng', 'text', true, 1], ['signDate', 'Ngày ký / chốt', 'date', true, 1], ['startDate', 'Ngày bắt đầu thuê / tính tiền phòng', 'date', true, 1], ['endDate', 'Ngày hết hạn', 'date', true, 1], ['deposit', 'Cọc theo hợp đồng', 'number', true, 1], ['payMonths', 'Kỳ thanh toán (tháng)', 'number', true, 1], ['dueFromDay', 'Từ ngày thanh toán', 'number', false, 1], ['dueDay', 'Đến ngày thanh toán', 'number', false, 1], ['dueMonthOffset', 'Tháng trả (-1: tháng trước; 0: đầu kỳ)', 'number', false, 1]];
   I.fields = {
@@ -81,7 +81,7 @@
       find('paidRent', new RegExp('và\\s*' + amount + '\\s*đồng tiền thuê phòng kỳ', 'i'), I.money);
       for (const [key,label,method] of I.fees) {
         const re = new RegExp(label + '\\s*' + amount + '\\s*(?:đồng|đ)\\s*/\\s*(kWh|số|m³|người|phòng|xe)(?:/tháng)?', 'i'); const m = t.match(re);
-        if (m) { out.items[key] = { unit: I.money(m[1]), method: /kWh|số|m³/i.test(m[2]) ? 'meter' : ({người:'person',phòng:'room',xe:'vehicle'}[m[2].toLowerCase()] || method) }; out.sources['fee:'+key] = { file:fileName, raw:m[0], page: pages.find(p => p.text.includes(m[0]))?.page || 1 }; }
+        if (m && !(key === 'parking' && /Xe điện\s*\/\s*$/i.test(t.slice(Math.max(0,m.index-25),m.index)))) { out.items[key] = { unit: I.money(m[1]), method: /kWh|số|m³/i.test(m[2]) ? 'meter' : ({người:'person',phòng:'room',xe:'vehicle'}[m[2].toLowerCase()] || method) }; out.sources['fee:'+key] = { file:fileName, raw:m[0], page: pages.find(p => p.text.includes(m[0]))?.page || 1 }; }
       }
       out.data.status = 'pending';
     }

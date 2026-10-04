@@ -36,21 +36,17 @@
   };
   TH.router.handle('/expenses', (root, p, q) => {
     const period = q.period || S.meta.period;
-    let rows = S.all('expenses').filter(e => e.status !== 'void' && e.period === period);
-    if (q.cat) rows = rows.filter(e => e.category === q.cat);
-    if (q.scope === 'fund') rows = rows.filter(e => e.scope === 'fund'); else if (q.scope) rows = rows.filter(e => e.buildingId === q.scope);
-    if (q.line) rows = rows.filter(e => e.reportLine === q.line);
-    if (q.src) rows = rows.filter(e => e.source === q.src);
-    if (q.q) rows = rows.filter(e => K.match(q.q, e.code, e.note, e.vendor));
-    rows.sort((a, b) => b.date.localeCompare(a.date));
+    const rows = Q.expensesFiltered({...q,period});
     const sum = (arr) => arr.reduce((s, e) => s + e.amount, 0);
     const byGroup = F.by(rows, e => (CAT().expenseCategories.find(c => c.key === e.category) || {}).group || 'Lương');
     root.innerHTML = TH.pages.expTabs('list') + U.pageHead({ title: 'Chi phí', sub: `Kỳ hưởng ${F.periodLabel(period)} · nhập một lần, báo cáo tham chiếu theo dòng`, acts: [(S.get('periods', period) || {}).status === 'closed' ? U.btn({ label: 'Điều chỉnh sau khóa', icon: 'pencil', act: 'adj', perm: 'expenses.manage' }) : '', 
       U.btn({ label: 'Xuất', icon: 'download', act: 'exp' }), U.btn({ label: 'Import chi phí', icon: 'upload', href: '#/import?type=expenses', perm: 'import.finance' }), TH.ms.on('1B') ? U.btn({ label: TH.ms.on('2') ? 'Import hoa hồng (lịch sử ≤ 08/2026)' : 'Import hoa hồng', icon: 'upload', href: '#/import?type=commissions', perm: 'import.finance' }) : '', U.btn({ label: 'Thêm chi phí', icon: 'plus', cls: 'btn-primary', act: 'add', perm: 'expenses.manage' })] })
       + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Tổng chi kỳ', value: F.vnd(sum(rows)), cap: rows.length + ' khoản', icon: 'coins' })}${Object.entries(byGroup).slice(0, 3).map(([g, arr]) => U.kpi({ label: g, value: F.vnd(sum(arr)), cap: arr.length + ' khoản', icon: 'tag', tone: 'teal' })).join('')}</div>`
       + K.filters([{ name: 'period', label: 'Kỳ hưởng', options: K.periodOpts(), value: period, all: false }, { name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã, nội dung, nhà cung cấp' }, { name: 'cat', label: 'Loại', options: CAT().expenseCategories.map(c => [c.key, c.label]) },
-        { name: 'scope', label: 'Tòa / quỹ', options: [['fund', 'Quỹ chung'], ...K.buildingOpts(false)] }, { name: 'line', label: 'Dòng báo cáo', options: CAT().reportLines.filter(l => !l.ratio && !l.count && !l.formula).map(l => [l.code, l.row + ' · ' + l.label]) },
+        { name: 'scope', label: 'Tòa / quỹ', options: [['fund', 'Quỹ chung'], ...K.buildingOpts()] }, { name: 'line', label: 'Dòng báo cáo', options: CAT().reportLines.filter(l => !l.ratio && !l.count && !l.formula).map(l => [l.code, l.row + ' · ' + l.label]) },
+        {name:'area',label:'Khu vực',options:K.areaOpts()}, {name:'manager',label:'NV vận hành',options:K.managerOpts(TH.calc.dates.periodEnd(period))}, {name:'leader',label:'Trưởng vùng vận hành',options:K.leaderOpts(TH.calc.dates.periodEnd(period))},
         { name: 'src', label: 'Nguồn', options: [['manual', 'Nhập tay'], ['import', 'Import'], ['payroll', 'Bảng lương'], ['ownerPayment', 'Lịch trả chủ nhà'], ['bench', 'Excel T8 (song song)']] }], q)
+      + (q.area || q.manager || q.leader || (q.scope && q.scope !== 'fund') ? U.note('info','Chi phí theo phạm vi tòa','Các khoản quỹ chung chưa phân bổ không thuộc riêng một khu vực/nhân viên. <a href="#/expenses/allocation?period='+period+'">Xem phân bổ chung</a>.') : '')
       + '<div class="mt16">' + K.tableCard('t', rows.length + ' khoản chi') + '</div>';
     K.bindFilters(root, ['period']);
     const traceExpense = (e) => {

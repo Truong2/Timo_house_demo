@@ -21,6 +21,9 @@
     const errs = {}, from = d.effectiveFrom || F.today(), title = d.title || null;
     if (!POLICY_DEPARTMENTS[d.department]) errs.department = 'Chọn phòng ban';
     if (!POLICY_MODES[d.mode]) errs.mode = 'Chọn cách tính';
+    if (d.mode === 'operations_hs' && d.department !== 'operations') errs.mode = 'HS chỉ áp dụng cho vận hành';
+    if (d.mode === 'repair' && d.department !== 'technical') errs.mode = 'Tiền công kỹ thuật chỉ áp dụng cho kỹ thuật';
+    if (title && policyDepartment(title) !== d.department) errs.title = 'Chức danh không thuộc phòng ban';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) errs.effectiveFrom = 'Nhập ngày hiệu lực';
     if (!/^[-A-Za-z0-9_.]+$/.test(String(d.formulaVersion || ''))) errs.formulaVersion = 'Nhập phiên bản công thức, không dùng khoảng trắng';
     if (!['proposed', 'confirmed'].includes(d.status)) errs.status = 'Chọn trạng thái nghiệp vụ';
@@ -72,9 +75,9 @@
   };
   X.setWorkdays = (period, employeeId, days) => {
     guardManual(period);
-    const e = Q.emp(employeeId); if (!e || !X.SALE_TITLES.includes(e.title)) throw new Error('Ngày công chỉ nhập cho nhân viên kinh doanh');
+    const e = Q.emp(employeeId); if (!e || (!X.SALE_TITLES.includes(e.title) && Q.salaryPolicyFor(e,D.periodEnd(period))?.mode !== 'workday')) throw new Error('Ngày công chỉ nhập cho nhân viên có chế độ theo ngày công');
     const n = Number(days); const max = TH.calc.dates.daysInMonth(period);
-    if (!(n >= 0 && n <= max)) throw new Error(`Ngày công từ 0 đến ${max}`);
+    if (days === '' || days == null || !(n >= 0 && n <= max)) throw new Error(`Ngày công từ 0 đến ${max}`);
     const ex = S.one('payrollManual', x => x.period === period && x.kind === 'workdays' && x.employeeId === employeeId);
     if (ex) S.update('payrollManual', ex.id, { days: n, by: _.who() }); else S.add('payrollManual', { period, kind: 'workdays', employeeId, days: n, by: _.who() });
     _.audit('manual', 'payroll', period, `Ngày công ${e.name} kỳ ${F.periodShort(period)}: ${n}`); _.done();
@@ -91,6 +94,13 @@
       const e = Q.emp(d.employeeId); if (!e || e.title !== 'KỸ THUẬT') throw new Error('Chọn thợ sửa chữa (chức danh Kỹ thuật)');
       if (!Q.building(d.buildingId)) throw new Error('Chọn tòa của việc sửa chữa');
       if (!(amount > 0)) throw new Error('Nhập tiền công');
+    } else if (d.kind === 'manual_total') {
+      if (!Q.emp(d.employeeId)) throw new Error('Chọn nhân viên');
+      if (Q.salaryPolicyFor(d.employeeId,D.periodEnd(d.period))?.mode !== 'manual') throw new Error('Nhân viên chưa dùng chế độ tổng lương nhập tay');
+      if (d.amount === '' || d.amount == null || !Number.isFinite(amount) || amount < 0) throw new Error('Nhập tổng lương không âm, có thể bằng 0');
+      if (!String(d.note || '').trim()) throw new Error('Nhập căn cứ tổng lương');
+      const old = S.one('payrollManual', x => x.period === d.period && x.kind === 'manual_total' && x.employeeId === d.employeeId);
+      if (old) S.remove('payrollManual',old.id);
     } else if (d.kind === 'manual_pay') {
       if (!Q.emp(d.employeeId)) throw new Error('Chọn nhân viên');
       if (!amount) throw new Error('Nhập số tiền (âm để giảm)');
@@ -192,6 +202,27 @@
       const flags = blds.filter(b => b.flag && b.flag !== 'Lương cố định').map(b => ({ buildingId: b.buildingId, flag: b.flag, HS: b.HS }));
       lines.push({ employeeId: e.id, title: e.title, department: Q.payrollDepartmentKey(e), salaryPolicy: salaryPolicy ? { id: salaryPolicy.id, department: salaryPolicy.department, title: salaryPolicy.title || null, mode: salaryPolicy.mode, formulaVersion: salaryPolicy.formulaVersion, status: salaryPolicy.status, sourceRef: salaryPolicy.sourceRef, effectiveFrom: salaryPolicy.effectiveFrom } : null,
         over1y, buildings: blds, W, base, workdays, lunch, fuel: al.fuel || 0, lead, leadNote, support: al.support || 0, labor, laborByB: laborRows.map(x => ({ buildingId: x.buildingId, amount: x.amount })), manualPay, divisor, X: Xn, flags, excelNet: e.excel ? e.excel.net : null });
+      if (!parallel && salaryPolicy) {
+        const line = lines[lines.length-1], mode = salaryPolicy.mode, missingInputs = [];
+        const wd = M.find(x => x.kind === 'workdays' && x.employeeId === e.id), total = M.find(x => x.kind === 'manual_total' && x.employeeId === e.id);
+        if (mode !== 'operations_hs') Object.assign(line,{buildings:[],W:0,lead:0,leadNote:'',flags:[]});
+        if (mode !== 'repair') Object.assign(line,{labor:0,laborByB:[]});
+        line.base = Number(e.baseSalary) || 0; line.lunch = al.lunch || 0; line.workdays = null;
+        if (mode === 'workday') {
+          if (!wd) missingInputs.push('Chưa xác nhận ngày công');
+          line.workdays = wd ? wd.days : null; line.base = wd ? P.salePay(e.baseSalary || 0,wd.days,divisor) : 0;
+        }
+        if (mode === 'repair' && rp) { line.base = (rp.base || 0) + (rp.seniority || 0); line.lunch = rp.lunch ?? line.lunch; }
+        if (mode === 'manual') {
+          if (!total) missingInputs.push('Chưa nhập tổng lương và căn cứ');
+          Object.assign(line,{base:0,lunch:0,fuel:0,support:0,manualTotal:total ? total.amount : null});
+          line.X = (total ? total.amount : 0) + manualPay;
+        } else line.X = line.W + line.base + line.lunch + line.fuel + line.lead + line.support + line.labor + manualPay;
+        line.laborCostOffset = ['repair','manual'].includes(mode) ? laborRows.reduce((n,r)=>n+r.amount,0) : 0;
+        if (mode === 'manual' && total && total.amount < line.laborCostOffset) missingInputs.push('Tổng lương thấp hơn tiền công đã ghi theo tòa');
+        line.missingInputs = missingInputs;
+        line.calculationInputs = { mode, baseSalary:e.baseSalary || 0, allowances:JSON.parse(JSON.stringify(al)), workdays:wd ? wd.days : null, divisor, repairPay:rp ? JSON.parse(JSON.stringify(rp)) : null, manualTotal:total ? {amount:total.amount,note:total.note,id:total.id} : null, adjustment:manualPay };
+      }
     });
     const salaryPolicySnapshot = [...new Map(lines.filter(l => l.salaryPolicy).map(l => [l.salaryPolicy.id, l.salaryPolicy])).values()].map(p => JSON.parse(JSON.stringify(p)));
     return { lines, parallel, salaryPolicySnapshot, buildingCosts: X.manualBuildingCosts(period).concat(ledger.filter(c => c.bearer !== 'owner')) };
@@ -221,6 +252,7 @@
     if (!String(note || '').trim()) throw new Error('Nhập căn cứ duyệt bảng lương');
     if (X.payrollStale(run)) throw new Error('Dữ liệu nguồn đã đổi – bấm "Tính lại" trước khi duyệt');
     if (!run.parallel && run.lines.some(l => l.department && (!l.salaryPolicy || l.salaryPolicy.status !== 'confirmed'))) throw new Error('Còn chính sách lương chưa xác nhận');
+    if (!run.parallel && run.lines.some(l => l.missingInputs?.length)) throw new Error('Thiếu đầu vào lương: ' + run.lines.filter(l=>l.missingInputs?.length).map(l=>(Q.emp(l.employeeId)?.name || l.employeeId)+': '+l.missingInputs.join(', ')).join('; '));
     if (run.lines.some(l => l.buildings.some(b => b.HS != null && b.HS < 70 && !b.manualApplied))) throw new Error('Còn ca HS < 70 chưa nhập mức và lý do');
     if (run.lines.some(l => l.flags.some(f => !run.approvals[l.employeeId + ':' + f.buildingId]))) throw new Error('Còn ca lương cần duyệt tay');
     const approval = { by: _.who(), at: F.nowISO(), note: String(note).trim(), inputSig: run.inputSig };
@@ -236,6 +268,7 @@
     if (!run.parallel) {
       const waiting = run.lines.filter(l => l.department && (!l.salaryPolicy || l.salaryPolicy.status !== 'confirmed'));
       if (waiting.length) throw new Error(`Còn ${waiting.length} nhân viên chưa có chính sách lương đã xác nhận`);
+      if (run.lines.some(l=>l.missingInputs?.length)) throw new Error('Thiếu đầu vào lương – bổ sung và tính lại trước khi chốt');
     }
     const missingBelow70 = run.lines.flatMap(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).map(b => l.employeeId + ':' + b.buildingId));
     if (missingBelow70.length) throw new Error(`Còn ${missingBelow70.length} ca HS < 70 chưa nhập lương/phòng và lý do`);
@@ -254,7 +287,7 @@
       const fund = {};
       // Lương ngoài phần theo tòa (W) và tiền công thợ vào quỹ chung, kể cả lương trưởng phòng/nhóm 10.000đ/phòng – là chứng từ cho phân bổ UI-16.
       // Thợ sửa chữa: chỉ phần cố định vào quỹ "Lương sửa chữa" (OQ-22), tiền công đã ghi thẳng vào tòa.
-      run.lines.forEach(l => { const f = FUND_OF[l.title]; if (!f) return; fund[f] = (fund[f] || 0) + l.X - l.W - (l.labor || 0); });
+      run.lines.forEach(l => { const f = FUND_OF[l.title]; if (!f) return; fund[f] = (fund[f] || 0) + l.X - l.W - (l.laborCostOffset ?? l.labor ?? 0); });
       Object.entries(fund).forEach(([f, amt]) => { if (amt > 0) X.addExpense({ date: pDate, period: run.period, category: 'salary', scope: 'fund', fundCode: f, amount: Math.round(amt), source: 'payroll', refId: run.id, note: 'Quỹ lương chung – ' + run.code }, true); });
     }
     const obligations = run.lines.filter(l => Math.round(l.X) > 0).map(l => ({ id: `${run.id}:employee:${l.employeeId}`, kind: 'employee', employeeId: l.employeeId, payee: (Q.emp(l.employeeId) || {}).name || l.employeeId, amount: Math.round(l.X), source: 'X', buildingId: null }))

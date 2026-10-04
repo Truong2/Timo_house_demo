@@ -83,7 +83,7 @@
 
   /* ---------- OCR (mô phỏng) ---------- */
   Q.OCR_GROUPS = [['party', 'Khách / liên hệ'], ['place', 'Tòa / phòng'], ['dates', 'Ngày ký, vào ở, tính tiền, hết hạn'], ['money', 'Giá, cọc, kỳ trả'], ['fees', 'Biểu phí dịch vụ'], ['meter', 'Chỉ số đầu, số người, số xe']];
-  const FEE = [['electric', 'Điện', 'đ/kWh', 'meter'], ['water', 'Nước', 'đ/người', 'person'], ['internet', 'Internet', 'đ/phòng', 'room'], ['elevator', 'Thang máy', 'đ/người', 'person'], ['cleaning', 'DV vệ sinh', 'đ/phòng', 'room'], ['washer', 'Máy giặt / máy sấy', 'đ/người', 'person'], ['combo', 'DV combo / dịch vụ chung', 'đ/người', 'person'], ['ev', 'Sạc / gửi xe điện', 'đ/xe', 'vehicle']];
+  const FEE = [['electric', 'Điện', 'đ/kWh', 'meter'], ['water', 'Nước', 'đ/người', 'person'], ['internet', 'Internet', 'đ/phòng', 'room'], ['elevator', 'Thang máy', 'đ/người', 'person'], ['cleaning', 'DV vệ sinh', 'đ/phòng', 'room'], ['washer', 'Máy giặt / máy sấy', 'đ/người', 'person'], ['combo', 'DV combo / dịch vụ chung', 'đ/người', 'person'], ['ev', 'Phí xe cũ (chưa tách)', 'đ/xe', 'vehicle'], ['parking', 'Gửi xe', 'đ/xe', 'vehicle'], ['charging', 'Sạc xe điện', 'đ/xe', 'vehicle']];
   // Trường bắt buộc trước khi áp dụng (E05, đặc tả §3.3): bên thuê, phòng, ngày ký / nhận / tính tiền / hết hạn, giá, cọc, kỳ và hạn thanh toán
   /* D8: điều khoản HĐ áp vào lượt thuê khi "Áp dụng" (cùng bảng so sánh E06) */
   Q.OCR_TERMS = [['endDate', 'Ngày hết hạn', 'endDate'], ['payMonths', 'Kỳ thanh toán (tháng)', 'payMonths'], ['dueDay', 'Hạn thanh toán (ngày)', 'dueDay'], ['deposit', 'Tiền cọc theo HĐ', 'depositAmount'],
@@ -216,7 +216,7 @@
     const cur = Q.rateOf(o.stayId) || { items: {} }; const items = JSON.parse(JSON.stringify(cur.items || {}));
     const rent = moneyOf(val('rent')); if (!(rent > 0)) fail({ from: 'Giá thuê trên bản OCR không hợp lệ – sửa trường "Giá thuê" trước khi áp dụng' });
     const bad = o.fields.filter(f => !(o.real&&f.group==='fees'&&f.feeAction!=='set') && Q.ocrValue(f.key, f.value) === null); if (bad.length) fail({ from: 'Trường không hợp lệ: ' + bad.map(f => f.label).join(', ') });
-    FEE.forEach(([k, , , method]) => {const f=o.fields.find(f=>f.key==='fee_'+k),v=moneyOf(val('fee_'+k));if(o.real){if(f.feeAction==='remove')delete items[k];else if(f.feeAction==='set')items[k]=Object.assign({},items[k]||{}, {unit:v,method:f.method||method});}else if(v!=null)items[k]=Object.assign({},items[k]||{method},{unit:v});});
+    FEE.forEach(([k, , , method]) => {const f=o.fields.find(f=>f.key==='fee_'+k),v=moneyOf(val('fee_'+k));if(o.real){if(!f)return;if(f.feeAction==='remove')delete items[k];else if(f.feeAction==='set')items[k]=Object.assign({},items[k]||{}, {unit:v,method:f.method||method});}else if(v!=null)items[k]=Object.assign({},items[k]||{method},{unit:v});});
     const res = X.addRateVersion(o.stayId, { from: d.from, rent, items, source: 'contract', sourceRef: o.fileId, contractFileId: o.fileId, ocrSessionId: sid, reason: 'Áp dụng từ OCR hợp đồng (phiên ' + o.run + ') – ' + (d.reason || 'đã rà soát') }, true);
     // D8: điều khoản HĐ (hết hạn, kỳ / hạn trả, cọc theo HĐ, người / xe, ngày) vào lượt thuê
     const terms = {}; Q.OCR_TERMS.forEach(([k]) => { const v = Q.ocrValue(k, val(k)); if (v !== '' && v != null) terms[k] = v; });

@@ -13,7 +13,10 @@
     const ex = S.one('meterReadings', r => r.roomId === d.roomId && r.period === d.period && !r.vacant && (!d.stayId || !r.stayId || r.stayId === d.stayId));
     if (ex && ex.locked) throw new Error('Chỉ số đã đưa vào hóa đơn phát hành – tạo điều chỉnh trên hóa đơn');
     const rec = { period: d.period, roomId: d.roomId, stayId: d.stayId, buildingId: d.buildingId, elPrev, elCurr, waPrev: d.waPrev === '' || d.waPrev == null ? null : Number(d.waPrev), waCurr: d.waCurr === '' || d.waCurr == null ? null : Number(d.waCurr),
-      people: Number(d.people) || 1, vehicles: Number(d.vehicles) || 0, readAt: d.readAt || F.today(), enteredBy: _.who(), anomaly: anomaly === 'decrease' && d.reason ? 'decrease_ok' : anomaly, reason: d.reason || null, source: 'web', locked: false };
+      people: Number(d.people) || 1, vehicles: d.vehicles === '' || d.vehicles == null ? null : Number(d.vehicles),
+      parkingVehicles: d.parkingVehicles === '' || d.parkingVehicles == null ? null : Number(d.parkingVehicles), chargingVehicles: d.chargingVehicles === '' || d.chargingVehicles == null ? null : Number(d.chargingVehicles),
+      readAt: d.readAt || F.today(), enteredBy: _.who(), anomaly: anomaly === 'decrease' && d.reason ? 'decrease_ok' : anomaly, reason: d.reason || null, source: 'web', locked: false };
+    ['vehicles','parkingVehicles','chargingVehicles'].forEach(k => { if (rec[k] != null && (!Number.isInteger(rec[k]) || rec[k] < 0)) throw new Error('Số xe phải là số nguyên không âm'); });
     const r = ex ? S.update('meterReadings', ex.id, rec) : S.add('meterReadings', rec);
     _.audit('save', 'reading', r.id, `Chỉ số ${Q.roomCode(d.roomId)} kỳ ${F.periodShort(d.period)}: ${elPrev} → ${elCurr}`);
     _.done(); return r;
@@ -70,6 +73,31 @@
   X.readingFor = (s, period) => S.one('meterReadings', r => r.period === period && !r.vacant && r.roomId === s.roomId
     && (r.stayId ? r.stayId === s.id : (s.svcStart || s.rentStart) <= (r.readAt || Cc.dates.periodStart(period))));
   X.meterNotStarted = (s, period, w) => (s.svcStart || s.rentStart) > w.cutoff;
+  X.invoiceInputSig = (s, period, rd) => {
+    const rate = Q.rateOf(s.id,Cc.dates.periodStart(period));
+    return F.hash(JSON.stringify({ rate: rate ? {id:rate.id,rent:rate.rent,items:rate.items} : null, counts: Q.vehicleCounts(s.id, period, rd), reading: rd }));
+  };
+  X.invoiceDraftStale = inv => {
+    if (!inv || inv.lifecycle !== 'draft' || !inv.billingInputSig) return false;
+    const s = Q.stay(inv.stayId), w = Cc.dates.billingWindow(inv.period, Q.params());
+    const rd = X.meterNotStarted(s, inv.period, w) ? {} : X.readingFor(s, inv.period) || {};
+    return inv.billingInputSig !== X.invoiceInputSig(s, inv.period, rd);
+  };
+  X.recomputeInvoiceDraft = id => S.atomic(() => {
+    _.need('invoices.prepare'); const inv = Q.invoice(id);
+    if (!inv || inv.lifecycle !== 'draft') throw new Error('Chỉ tính lại hóa đơn nháp');
+    if (!TH.auth.inScope(inv.buildingId)) throw new Error('Hóa đơn ngoài phạm vi');
+    _.guardPeriod(inv.period, 'tính lại nháp');
+    const original = JSON.parse(JSON.stringify(inv));
+    S.remove('invoices', id);
+    const result = X.createInvoiceDrafts(inv.period, [inv.buildingId], { allowMissingReading: true });
+    const fresh = result.created.find(i => i.stayId === inv.stayId);
+    if (!fresh) throw new Error('Không thể tính lại nháp: ' + result.skipped.find(r => r.stay.id === inv.stayId)?.issues.join('; '));
+    // Rebuilding one invoice must not leave drafts for other stays behind.
+    result.created.filter(i => i.id !== fresh.id).forEach(i => S.remove('invoices', i.id));
+    S.update('invoices', fresh.id, { template: original.template, accountId: original.accountId, edits: [...(original.edits || []), { no: 8, field: 'recomputed', from: original.totalDue, to: fresh.totalDue, reason: 'Tính lại từ xe, biểu phí và chỉ số hiện hành', by: _.who(), at: F.nowISO() }] });
+    _.audit('recompute','invoice', id, 'Tính lại hóa đơn nháp từ nguồn hiện hành'); _.done(); return fresh;
+  });
   X.previewPeriod = (period, buildingIds) => {
     const prm = Q.params(); const w = Cc.dates.billingWindow(period, prm);
     return X.billableStays(period, buildingIds).map(s => {
@@ -105,12 +133,13 @@
       const prevPeriod = Cc.dates.prevPeriod(period);
       const hadPrev = S.one('invoices', i => i.stayId === s.id && i.period === prevPeriod);
       const other = !hadPrev && s.rentStart && s.rentStart.slice(0, 7) === prevPeriod ? Cc.billing.carryOther({ monthly: rate.rent, startISO: s.rentStart, period }) : null;
-      const lines = Cc.billing.buildLines({ stay: s, rate, period, reading: { elPrev: rd.elPrev, elCurr: rd.elCurr, waPrev: rd.waPrev, waCurr: rd.waCurr }, people: rd.people || s.people, vehicles: rd.vehicles != null ? rd.vehicles : s.vehicles,
+      const vehicleCounts = Q.vehicleCounts(s.id, period, rd);
+      const lines = Cc.billing.buildLines({ stay: s, rate, period, reading: { elPrev: rd.elPrev, elCurr: rd.elCurr, waPrev: rd.waPrev, waCurr: rd.waCurr }, people: rd.people || s.people, vehicles: vehicleCounts.legacy, vehicleCounts,
         depositDue, oldDebt: Math.max(0, Math.round(oldDebt)), other, common: r.common, roundLines: prm.roundLines !== false });
       const b = Q.building(s.buildingId);
       const inv = S.add('invoices', { id: 'inv_INV-' + period + '-' + s.code, code: 'INV-' + period + '-' + s.code, period, stayId: s.id, roomId: s.roomId, buildingId: s.buildingId, customerCode: s.code,
         template: b.template, accountId: b.accountId, issueDate: w.issueDate, cutoff: w.cutoff, dueFrom: w.dueFrom, dueTo: w.dueTo, lifecycle: 'draft', isNewStay: r.firstInvoice, isBreach: false,
-        lines, totalDue: Cc.billing.total(lines), rateVersionId: rate.id, readingId: rd.id || null, commonReadingId: r.common ? r.common.reading.id : null, oldDebtFrom: prev.filter(i => Q.invState(i).remaining > 0).map(i => i.id), createdBy: _.who() });
+        lines, totalDue: Cc.billing.total(lines), vehicleCounts, billingInputSig: X.invoiceInputSig(s, period, rd), rateVersionId: rate.id, readingId: rd.id || null, commonReadingId: r.common ? r.common.reading.id : null, oldDebtFrom: prev.filter(i => Q.invState(i).remaining > 0).map(i => i.id), createdBy: _.who() });
       created.push(inv);
     });
     _.audit('create', 'invoicePeriod', period, `Tạo ${created.length} hóa đơn nháp kỳ ${F.periodShort(period)} (${buildingIds.length} tòa), bỏ qua ${skipped.length}`);
@@ -140,6 +169,10 @@
       const manual = num(p.amount) != null && Math.abs(num(p.amount) - calc) > 0.5 && Math.abs(num(p.amount) - l.amount) > 0.5;
       o.amount = manual ? num(p.amount) : calc;
       if (p.note != null) o.note = String(p.note);
+      if (o.components && ['qty','factor','unit','amount'].some(k=>o[k] !== l[k])) {
+        o.sourceComponents = JSON.parse(JSON.stringify(o.components)); delete o.components;
+        o.note = p.note || 'Phí xe điều chỉnh: '+(reason || ''); needReason = true;
+      }
       ['prev', 'curr', 'qty', 'factor', 'unit', 'amount', 'note'].forEach(k => { if (String(o[k] ?? '') !== String(l[k] ?? '')) edits.push({ no: l.no, field: k, from: l[k], to: o[k], reason: reason || '', by, at }); });
       if (o.factor !== l.factor || o.unit !== l.unit || manual) needReason = true;
       return o;
@@ -179,13 +212,14 @@
     ids.forEach(id => {
       const inv = Q.invoice(id); if (!inv || inv.lifecycle !== 'draft') return;
       _.guardPeriod(inv.period, 'phát hành');
+      if (X.invoiceDraftStale(inv)) { errs.push(inv.code + ': Xe, biểu phí hoặc chỉ số đã đổi – tính lại nháp trước khi phát hành'); return; }
       const effectiveAccount = Q.accountForTemplate(inv.template, inv.issueDate || F.today());
       if (!effectiveAccount) { errs.push(inv.code + ': Chưa có tài khoản nhận tiền hiệu lực cho mẫu in'); return; }
       const chk = Cc.billing.checkBeforeIssue(inv, { duplicate: S.where('invoices', i => i.stayId === inv.stayId && i.period === inv.period).length > 1 });
       if (!chk.ok) { errs.push(inv.code + ': ' + chk.errs.join('; ')); return; }
       const rate = inv.rateVersionId ? S.get('rateVersions', inv.rateVersionId) : null;
       S.update('invoices', id, { lifecycle: 'issued', issuedAt: F.nowISO(), issuedBy: _.who(), accountId: effectiveAccount.id, snapshot: { lines: JSON.parse(JSON.stringify(inv.lines)), total: inv.totalDue,
-        rateVersionId: inv.rateVersionId || null, rate: rate ? JSON.parse(JSON.stringify(rate)) : null, capturedAt: F.nowISO() }, printSnapshot: printSnapshot(inv, effectiveAccount) });
+        rateVersionId: inv.rateVersionId || null, rate: rate ? JSON.parse(JSON.stringify(rate)) : null, vehicleCounts: inv.vehicleCounts ? JSON.parse(JSON.stringify(inv.vehicleCounts)) : null, capturedAt: F.nowISO() }, printSnapshot: printSnapshot(inv, effectiveAccount) });
       // Nợ cũ đã chuyển sang dòng 11 → khóa phần còn nợ của hóa đơn cũ để không đếm hai lần
       (inv.oldDebtFrom || []).forEach(pid => { const p = Q.invoice(pid); const st = Q.invState(p); if (st.remaining > 0) S.update('invoices', pid, { carriedOut: (p.carriedOut || 0) + st.remaining, carriedTo: id }); });
       if (inv.readingId) S.update('meterReadings', inv.readingId, { locked: true });

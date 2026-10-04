@@ -55,6 +55,7 @@ try {
   await page.evaluate(() => {
     let run = TH.q.payrollRun('2026-09');
     run.lines.forEach(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).forEach(b => TH.actions.addPayrollManual({ period: '2026-09', kind: 'ops_below70', employeeId: l.employeeId, buildingId: b.buildingId, amount: 6000, note: 'Mức đã rà trong kịch bản nghiệm thu' })));
+    TH.store.all('employees').filter(e=>e.status==='active' && TH.q.salaryPolicyFor(e,'2026-09-30')?.mode==='workday').forEach(e=>TH.actions.setWorkdays('2026-09',e.id,26));
     run = TH.actions.computePayroll('2026-09'); run.lines.forEach(l => l.flags.forEach(f => TH.actions.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'Ca đã đối chiếu')));
   });
   await go('#/hr/payroll?period=2026-09&tab=phien'); assert.ok(await page.locator('[data-act=close]').isDisabled());

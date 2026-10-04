@@ -1,0 +1,52 @@
+{
+  "sourceWorkbook": "nội dung làm web Timehouse 31.8.2026(2).xlsx",
+  "sourceSha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+  "liveBuild": {
+    "version": "4.0.0",
+    "sha": "3d5b645",
+    "builtAt": "2026-10-04T10:11:13.665Z"
+  },
+  "checkedAt": "2026-10-04T10:57:24.693Z",
+  "sourceMatches": 112,
+  "screens": 54,
+  "findings": {
+    "FAIL": 6,
+    "PARTIAL": 2,
+    "UNVERIFIED": 0
+  },
+  "flows": {
+    "live-workbook": {
+      "passed": true,
+      "summary": [
+        "✓ Workbook content: 94 checks · evidence output\\audit-post-fix-2026-10-04\\live\\workbook-content"
+      ]
+    },
+    "live-source": {
+      "passed": true,
+      "summary": [
+        "PASS: Source Workbook vs Live · 66 checks · evidence output\\audit-post-fix-2026-10-04\\live\\source-workbook-live"
+      ]
+    },
+    "live-ui": {
+      "passed": true,
+      "summary": [
+        "✓ UI audit v5: 225 checks · 2 XLS + 8 invoice PDF + refund PDF · evidence output\\audit-post-fix-2026-10-04\\live\\ui-audit"
+      ]
+    },
+    "live-modules": {
+      "passed": true,
+      "summary": [
+        "PASS: two vehicles, residency, browser reload persistence and removal; editable owner profile, PCCC, hold-price date and immutable contract snapshot UI; cleaning assignment from building detail UI; payroll versions, prior snapshot, approval gate and closing UI; ownership version displayed with source; sales ordinal column and CSV; responsive 375/768/1440 across six module screens"
+      ]
+    },
+    "live-intake": {
+      "passed": true,
+      "summary": [
+        "PASS: existing stay real PDF OCR, six-group review, changed price 5100000 -> 4500000, confirm, effective date, file/session/contract snapshot",
+        "PASS: real PDFs, image OCR, original XLSX, owner/building/30 rooms, pending stay, proposal, reload originals"
+      ]
+    }
+  },
+  "applicationSourceChanged": false,
+  "report": "docs/TimoHouse_UI_Mockup_PostFix_Audit_vs_Workbook_2026-10-04.md"
+}

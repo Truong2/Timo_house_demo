@@ -23,10 +23,21 @@
       if (!Object.keys(patch).length) return;
       Object.assign(b, patch); (S._dirty.buildings = S._dirty.buildings || {})[b.id] = b; changed = true;
     });
+    // Keep schema/hash unchanged so a deployment retains browser edits and file references.
+    const policies = S.state.params || [], key = 'businessReportMode', from = '2026-10-01';
+    if (!policies.some(p => p.key === key && p.effectiveFrom >= from)) {
+      const base = policies.filter(p => p.key === key).sort((a,b)=>b.effectiveFrom.localeCompare(a.effectiveFrom))[0];
+      if (base) {
+        S.update('params',base.id,{effectiveTo:'2026-09-30'});
+        S.add('params',{...base,id:'param_business_web_v1',value:'web',effectiveFrom:from,effectiveTo:null,status:'confirmed',sourceRef:'BÁO CÁO!D6 · quyết định người dùng 04/10/2026',approvedBy:'Người dùng xác nhận kế hoạch',approvedAt:'2026-10-04',reason:'Áp mô tả web cho kỳ từ 10/2026; giữ lịch sử',formulaVersion:'BUSINESS-WEB-v1'});
+        changed = true;
+      }
+    }
     return changed;
   };
 
   S.load = () => {
+    S._idx = {};
     S.state = TH.seed.build();
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }

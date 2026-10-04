@@ -1,0 +1,1163 @@
+{
+  "file": "nội dung làm web Timehouse 31.8.2026(2).xlsx",
+  "sheets": [
+    {
+      "sheet": "menu chính",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "Menu chính"
+        },
+        {
+          "cell": "A2",
+          "value": "1"
+        },
+        {
+          "cell": "B2",
+          "value": "Tổng quan"
+        },
+        {
+          "cell": "A3",
+          "value": "2"
+        },
+        {
+          "cell": "B3",
+          "value": "Thông tin tòa nhà"
+        },
+        {
+          "cell": "A4",
+          "value": "3"
+        },
+        {
+          "cell": "B4",
+          "value": "Thông tin KH"
+        },
+        {
+          "cell": "A5",
+          "value": "4"
+        },
+        {
+          "cell": "B5",
+          "value": "Tài chính chung"
+        },
+        {
+          "cell": "A6",
+          "value": "5"
+        },
+        {
+          "cell": "B6",
+          "value": "Kinh doanh"
+        },
+        {
+          "cell": "A7",
+          "value": "6"
+        },
+        {
+          "cell": "B7",
+          "value": "Nhân sự"
+        },
+        {
+          "cell": "A8",
+          "value": "7"
+        },
+        {
+          "cell": "B8",
+          "value": "Tài liệu"
+        },
+        {
+          "cell": "A9",
+          "value": "8"
+        },
+        {
+          "cell": "B9",
+          "value": "Báo cáo"
+        },
+        {
+          "cell": "A10",
+          "value": "9"
+        },
+        {
+          "cell": "B10",
+          "value": "Cổ đông"
+        },
+        {
+          "cell": "A11",
+          "value": "10"
+        },
+        {
+          "cell": "B11",
+          "value": "Bảo trì , Bảo dưỡng"
+        }
+      ]
+    },
+    {
+      "sheet": "Tổng quan",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "Tổng số phòng trống tách ra 3 loại : số phòng trống ở luôn trong tháng, số phòng trống hết tháng, số phòng đang chờ"
+        },
+        {
+          "cell": "A2",
+          "value": "Tổng DT thêm mục nhỏ là doanh thu tiền nhà, doanh thu cọc mới, doanh thu phá hợp đồng"
+        },
+        {
+          "cell": "A3",
+          "value": "Thay phần biểu đồ doanh thu công nợ bằng cập nhật tiến độ thu tiền"
+        },
+        {
+          "cell": "A4",
+          "value": "Tất cả đều lọc được theo khu vực, tên quản lý, tên trưởng nhóm."
+        }
+      ]
+    },
+    {
+      "sheet": "Khu nhà và toàn nhà",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "Khu nhà và tòa nhà gộp thành 1 mục lớn là Tòa nhà"
+        },
+        {
+          "cell": "A2",
+          "value": "Tromg mục tòa nhà gồm: Thông tin chủ nhà và thông tin tòa nhà"
+        },
+        {
+          "cell": "A3",
+          "value": "Thông tin chủ nhà  gồm: "
+        },
+        {
+          "cell": "C3",
+          "value": "1"
+        },
+        {
+          "cell": "D3",
+          "value": "thông tin cá nhận full thông tin trên hđ thuê nhà"
+        },
+        {
+          "cell": "C4",
+          "value": "2"
+        },
+        {
+          "cell": "D4",
+          "value": "thông tin hợp đồng gồm: giá thuế,số tiền cọc, thời gian giữ giá, thời gian kết thúc hợp đồng, PCCC ( Có hay không) Người nhập nguồn, ghi chú"
+        },
+        {
+          "cell": "C5",
+          "value": "3"
+        },
+        {
+          "cell": "D5",
+          "value": "hình ảnh sổ đỏ."
+        },
+        {
+          "cell": "A7",
+          "value": "Thông tin tòa nhà"
+        },
+        {
+          "cell": "C7",
+          "value": "1"
+        },
+        {
+          "cell": "D7",
+          "value": "Địa chỉ"
+        },
+        {
+          "cell": "C8",
+          "value": "2"
+        },
+        {
+          "cell": "D8",
+          "value": "đặc điểm tòa nhà ( diện tích, số tầng số phòng,  Tình trang tòa nha ( cũ ,mới trung ,bình))"
+        },
+        {
+          "cell": "C9",
+          "value": "3"
+        },
+        {
+          "cell": "C10",
+          "value": "4"
+        },
+        {
+          "cell": "C11",
+          "value": "5"
+        },
+        {
+          "cell": "D11",
+          "value": "tên trưởng nhóm, tên nv vận hành, tên nv vệ sinh, tên nv kỹ thuật"
+        },
+        {
+          "cell": "C12",
+          "value": "6"
+        },
+        {
+          "cell": "D12",
+          "value": "đã đk kinh doanh hay chưa"
+        },
+        {
+          "cell": "C13",
+          "value": "7"
+        },
+        {
+          "cell": "D13",
+          "value": "Danh sách tài sản gồm danh sách chủ nhà và danh sách đầu tư"
+        },
+        {
+          "cell": "C14",
+          "value": "9"
+        },
+        {
+          "cell": "D14",
+          "value": "Hiệu suất"
+        },
+        {
+          "cell": "C15",
+          "value": "10"
+        },
+        {
+          "cell": "D15",
+          "value": "Lợi nhuận"
+        },
+        {
+          "cell": "C16",
+          "value": "11"
+        },
+        {
+          "cell": "D16",
+          "value": "Thời gian vận hành"
+        },
+        {
+          "cell": "A17",
+          "value": "Theo dõi lịch đóng tiền "
+        }
+      ]
+    },
+    {
+      "sheet": "Thông tin khách hàng",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "Thông tin khách hàng  sẽ gồm các thông tin"
+        },
+        {
+          "cell": "E1",
+          "value": "MỤC TỔNG QUAN"
+        },
+        {
+          "cell": "F1",
+          "value": "1"
+        },
+        {
+          "cell": "G1",
+          "value": "mã phòng mã tòa"
+        },
+        {
+          "cell": "F2",
+          "value": "2"
+        },
+        {
+          "cell": "G2",
+          "value": "tên trưởng khu vực"
+        },
+        {
+          "cell": "F3",
+          "value": "3"
+        },
+        {
+          "cell": "G3",
+          "value": "tên nv vận hành"
+        },
+        {
+          "cell": "F4",
+          "value": "4"
+        },
+        {
+          "cell": "G4",
+          "value": "công nợ"
+        },
+        {
+          "cell": "F5",
+          "value": "5"
+        },
+        {
+          "cell": "G5",
+          "value": "đã liên kết zalo"
+        },
+        {
+          "cell": "F6",
+          "value": "6"
+        },
+        {
+          "cell": "G6",
+          "value": "Trạng thái ( đang thuê, phá hđ, chuẩn bị hết hđ( trước hạn hết hđ 35 ngày), hoàn cọc)"
+        },
+        {
+          "cell": "E7",
+          "value": "CHI TIẾT TỪNG KHÁCH HÀNG"
+        },
+        {
+          "cell": "F7",
+          "value": "tiêu đề là mã phòng mã tòa"
+        },
+        {
+          "cell": "G7",
+          "value": "mục thông tin lưu trú thêm ngày bắt đầu và kết thúc hợp đồng, thời hạn hợp đồng, trạng thái ( hợp đồng lần đầu, gia hạn lần thứ…), nghề nghiệp, số lượng xe kèm biển số xe"
+        },
+        {
+          "cell": "E8",
+          "value": "MỤC HỢP ĐỒNG"
+        },
+        {
+          "cell": "G8",
+          "value": "mục này sẽ tải hợp đồng lên và tự cập nhật bảng giá dv theo hđ vì mỗi hđ 1 loại giá dịch vụ."
+        },
+        {
+          "cell": "G9",
+          "value": "danh sách phí dịch vụ gồm: điện, nước, mạng,thang máy, dịch vụ chung, phí sạc xe điện, phí gửi xe."
+        },
+        {
+          "cell": "G10",
+          "value": "Ghi chú: nhập tay"
+        },
+        {
+          "cell": "E11",
+          "value": "MỤC TÀI CHÍNH"
+        },
+        {
+          "cell": "G11",
+          "value": "thêm danh sách khách hoà  gồm: mã phòng mã tòa, "
+        }
+      ]
+    },
+    {
+      "sheet": "Tài chính chung",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "1"
+        },
+        {
+          "cell": "B1",
+          "value": "HÓA ĐƠN"
+        },
+        {
+          "cell": "D1",
+          "value": "1"
+        },
+        {
+          "cell": "E1",
+          "value": "Giao diện hóa đơn lấy mẫu của Timehouse"
+        },
+        {
+          "cell": "D2",
+          "value": "2"
+        },
+        {
+          "cell": "E2",
+          "value": "giao diện: mã phòng mã tòa, tên quản lý, cọc, giá niêm yết,giá cho thuê, số tháng tt, tổng phải thu, tổng đã thu, công nợ, ngày thu, hạn, trạng thái"
+        },
+        {
+          "cell": "D3",
+          "value": "3"
+        },
+        {
+          "cell": "E3",
+          "value": "lọc theo quản lý , trưởng khu vực, tòa nhà, theo loại nhà(T,S,G), theo trang thái, theo hạn,"
+        },
+        {
+          "cell": "A4",
+          "value": "2"
+        },
+        {
+          "cell": "B4",
+          "value": "CÔNG NỢ"
+        },
+        {
+          "cell": "E4",
+          "value": "Bỏ tên khách dùng mã phòng mã tòa"
+        },
+        {
+          "cell": "E5",
+          "value": "còn lại giữ nguyên"
+        },
+        {
+          "cell": "A6",
+          "value": "3"
+        },
+        {
+          "cell": "B6",
+          "value": "CÁC LOẠI CHI PHÍ"
+        },
+        {
+          "cell": "C6",
+          "value": "1"
+        },
+        {
+          "cell": "D6",
+          "value": "giá vốn"
+        },
+        {
+          "cell": "E6",
+          "value": "tiền thuê nhà"
+        },
+        {
+          "cell": "E7",
+          "value": "mua sắm thiết bị"
+        },
+        {
+          "cell": "D8",
+          "value": "giá gốc dv"
+        },
+        {
+          "cell": "E8",
+          "value": "điện"
+        },
+        {
+          "cell": "E9",
+          "value": "nước"
+        },
+        {
+          "cell": "E10",
+          "value": "mạng"
+        },
+        {
+          "cell": "E11",
+          "value": "phí thu rác"
+        },
+        {
+          "cell": "E12",
+          "value": "phí môi trường"
+        },
+        {
+          "cell": "E13",
+          "value": "phí bảo trì thang máy"
+        },
+        {
+          "cell": "D14",
+          "value": "chi phí vận hành"
+        },
+        {
+          "cell": "E14",
+          "value": "Lương quản lý"
+        },
+        {
+          "cell": "E15",
+          "value": "Lương quản lý tổng"
+        },
+        {
+          "cell": "E16",
+          "value": "Lương trưởng phòng vh"
+        },
+        {
+          "cell": "E17",
+          "value": "Lương phó phòng vh"
+        },
+        {
+          "cell": "E18",
+          "value": "Lương nhân viên nguồn"
+        },
+        {
+          "cell": "E19",
+          "value": "Lương NVKD"
+        },
+        {
+          "cell": "E20",
+          "value": "Lương vệ sinh"
+        },
+        {
+          "cell": "E21",
+          "value": "Lương kế toán"
+        },
+        {
+          "cell": "E22",
+          "value": "Lương sửa chữa"
+        },
+        {
+          "cell": "I22",
+          "value": "lọc theo thời gian,tòa, khu vực, nv vận hành, trưởng khu vực"
+        },
+        {
+          "cell": "E23",
+          "value": "Lương bảo vệ"
+        },
+        {
+          "cell": "E24",
+          "value": "Thuê và dv vp"
+        },
+        {
+          "cell": "D25",
+          "value": "Chi phí bán hàng phát sinh"
+        },
+        {
+          "cell": "E25",
+          "value": "Phí marketting"
+        },
+        {
+          "cell": "E26",
+          "value": "Sửa chữa, thay thế, bảo trì"
+        },
+        {
+          "cell": "E27",
+          "value": "Chi phí khác"
+        },
+        {
+          "cell": "D28",
+          "value": "Báo cáo kinh doanh của nhà"
+        },
+        {
+          "cell": "E28",
+          "value": "hỏi ngọc"
+        },
+        {
+          "cell": "C29",
+          "value": "1"
+        },
+        {
+          "cell": "D29",
+          "value": "Tổng quan hệ thống"
+        },
+        {
+          "cell": "E29",
+          "value": "Tổng thu- chi điện nước dịch vụ cả HT( 3 hạng mục )"
+        },
+        {
+          "cell": "C30",
+          "value": "2"
+        },
+        {
+          "cell": "D30",
+          "value": "Danh sách từng nhà"
+        },
+        {
+          "cell": "C31",
+          "value": "3"
+        },
+        {
+          "cell": "D31",
+          "value": "Chi tiết từng hạng mục của từng nhà"
+        },
+        {
+          "cell": "C32",
+          "value": "4"
+        },
+        {
+          "cell": "D32",
+          "value": "Thu- chi: tổng , tòa"
+        },
+        {
+          "cell": "B33",
+          "value": "4 dánh sách hoàn cọc"
+        },
+        {
+          "cell": "D33",
+          "value": "mã phòng tòa"
+        },
+        {
+          "cell": "D34",
+          "value": "số tiền hoàn cọc"
+        },
+        {
+          "cell": "D35",
+          "value": "tiền cọc"
+        },
+        {
+          "cell": "D36",
+          "value": "chi phí khấu hao"
+        },
+        {
+          "cell": "D37",
+          "value": "chi phí sửa chữa"
+        },
+        {
+          "cell": "D38",
+          "value": "chi phí vệ sinh"
+        },
+        {
+          "cell": "D39",
+          "value": "chi phí khác"
+        },
+        {
+          "cell": "D40",
+          "value": "lọc theo thời gian,tòa, khu vực, nv vận hành, trưởng khu vực"
+        }
+      ]
+    },
+    {
+      "sheet": "KINH DOANH",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "1. TỔNG QUAN HÀNG HÓA ( lọc theo khu vực, trưởng nhóm kinh doanh, nv kinh doanh"
+        },
+        {
+          "cell": "B1",
+          "value": "Lấy phần tổng quan hàng hóa ban đầu"
+        },
+        {
+          "cell": "B2",
+          "value": "Số phòng đã chốt , số phòng đã nhận "
+        },
+        {
+          "cell": "B3",
+          "value": "Số phòng phát sinh( hoàn cọc và phát hd)"
+        },
+        {
+          "cell": "A4",
+          "value": "2. DOANH SỐ"
+        },
+        {
+          "cell": "B4",
+          "value": "GIAO DIỆN hiển thị "
+        },
+        {
+          "cell": "B5",
+          "value": "1"
+        },
+        {
+          "cell": "C5",
+          "value": "stt"
+        },
+        {
+          "cell": "B6",
+          "value": "2"
+        },
+        {
+          "cell": "C6",
+          "value": "ngày phát sinh giao dịch"
+        },
+        {
+          "cell": "B7",
+          "value": "3"
+        },
+        {
+          "cell": "C7",
+          "value": "mã  phòng + tòa"
+        },
+        {
+          "cell": "B8",
+          "value": "4"
+        },
+        {
+          "cell": "C8",
+          "value": "quản lý"
+        },
+        {
+          "cell": "B9",
+          "value": "5"
+        },
+        {
+          "cell": "C9",
+          "value": "sdt"
+        },
+        {
+          "cell": "B10",
+          "value": "6"
+        },
+        {
+          "cell": "C10",
+          "value": "số tiền đặt cọc"
+        },
+        {
+          "cell": "B11",
+          "value": "7"
+        },
+        {
+          "cell": "C11",
+          "value": "giá chốt"
+        },
+        {
+          "cell": "B12",
+          "value": "8"
+        },
+        {
+          "cell": "C12",
+          "value": "ngày tính tiền"
+        },
+        {
+          "cell": "B13",
+          "value": "9"
+        },
+        {
+          "cell": "C13",
+          "value": "thời hạn hd"
+        },
+        {
+          "cell": "B14",
+          "value": "10"
+        },
+        {
+          "cell": "C14",
+          "value": "Công cụ phát sinh khách"
+        },
+        {
+          "cell": "B15",
+          "value": "11"
+        },
+        {
+          "cell": "C15",
+          "value": "tình trạng  thu tiền ( đã đủ, thiếu)"
+        },
+        {
+          "cell": "B16",
+          "value": "12"
+        },
+        {
+          "cell": "C16",
+          "value": "tên sale"
+        },
+        {
+          "cell": "B17",
+          "value": "13"
+        },
+        {
+          "cell": "C17",
+          "value": "hoa hồng"
+        },
+        {
+          "cell": "B18",
+          "value": "14"
+        },
+        {
+          "cell": "C18",
+          "value": "tình trạng phòng chốt ( ở luôn , cuối tháng , đang chờ)"
+        },
+        {
+          "cell": "B19",
+          "value": "15"
+        },
+        {
+          "cell": "C19",
+          "value": "Ghi chú"
+        },
+        {
+          "cell": "A20",
+          "value": "3. Thống kê khách hàng"
+        },
+        {
+          "cell": "B20",
+          "value": "1"
+        },
+        {
+          "cell": "C20",
+          "value": "STT"
+        },
+        {
+          "cell": "B21",
+          "value": "2"
+        },
+        {
+          "cell": "C21",
+          "value": "Tên sale"
+        },
+        {
+          "cell": "B22",
+          "value": "3"
+        },
+        {
+          "cell": "C22",
+          "value": "mã tòa + phòng"
+        },
+        {
+          "cell": "B23",
+          "value": "4"
+        },
+        {
+          "cell": "C23",
+          "value": "nguồn khách  (sale nội bộ, đối tác)"
+        },
+        {
+          "cell": "B24",
+          "value": "5"
+        },
+        {
+          "cell": "C24",
+          "value": "tình trạng ( đã xem, chốt)"
+        },
+        {
+          "cell": "B25",
+          "value": "6"
+        },
+        {
+          "cell": "C25",
+          "value": "khu vực"
+        },
+        {
+          "cell": "B26",
+          "value": "7"
+        },
+        {
+          "cell": "C26",
+          "value": "sdt"
+        },
+        {
+          "cell": "B27",
+          "value": "8"
+        },
+        {
+          "cell": "C27",
+          "value": "ngày bắn khách"
+        },
+        {
+          "cell": "A28",
+          "value": "4. Hoa hồng"
+        },
+        {
+          "cell": "B28",
+          "value": "1"
+        },
+        {
+          "cell": "C28",
+          "value": "STT"
+        },
+        {
+          "cell": "B29",
+          "value": "2"
+        },
+        {
+          "cell": "C29",
+          "value": "mã phòng + tòa"
+        },
+        {
+          "cell": "B30",
+          "value": "3"
+        },
+        {
+          "cell": "C30",
+          "value": "giá chốt"
+        },
+        {
+          "cell": "B31",
+          "value": "4"
+        },
+        {
+          "cell": "C31",
+          "value": "thời hạn hd"
+        },
+        {
+          "cell": "B32",
+          "value": "5"
+        },
+        {
+          "cell": "C32",
+          "value": "mức hh"
+        },
+        {
+          "cell": "B33",
+          "value": "6"
+        },
+        {
+          "cell": "C33",
+          "value": "thành tiền"
+        },
+        {
+          "cell": "B34",
+          "value": "7"
+        },
+        {
+          "cell": "C34",
+          "value": "tổng nhận"
+        },
+        {
+          "cell": "B35",
+          "value": "8"
+        },
+        {
+          "cell": "C35",
+          "value": "team sale"
+        },
+        {
+          "cell": "B36",
+          "value": "9"
+        },
+        {
+          "cell": "C36",
+          "value": "tình trạng ( đã tt, chưa tt)"
+        },
+        {
+          "cell": "A37",
+          "value": "5. Danh sách nhân sự"
+        },
+        {
+          "cell": "B37",
+          "value": "1"
+        },
+        {
+          "cell": "C37",
+          "value": "stt"
+        },
+        {
+          "cell": "B38",
+          "value": "2"
+        },
+        {
+          "cell": "C38",
+          "value": "tên nhân viên"
+        },
+        {
+          "cell": "B39",
+          "value": "3"
+        },
+        {
+          "cell": "C39",
+          "value": "chúc vụ"
+        },
+        {
+          "cell": "B40",
+          "value": "4"
+        },
+        {
+          "cell": "C40",
+          "value": "thâm niên"
+        },
+        {
+          "cell": "B41",
+          "value": "5"
+        },
+        {
+          "cell": "C41",
+          "value": "doanh số cuta từng bạn ( lọc theo thời gian)"
+        }
+      ]
+    },
+    {
+      "sheet": "BÁO CÁO",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "các mục chính"
+        },
+        {
+          "cell": "B1",
+          "value": "Báo cáo kết quả kinh doanh kinh doanh"
+        },
+        {
+          "cell": "C1",
+          "value": "báo cáo hiệu suất"
+        },
+        {
+          "cell": "D1",
+          "value": "HS THỰC TẾ"
+        },
+        {
+          "cell": "D2",
+          "value": "HS TẠM TÍNH"
+        },
+        {
+          "cell": "C3",
+          "value": "Báo cáo doanh thu tổng"
+        },
+        {
+          "cell": "C4",
+          "value": "Báo cáo lợi nhuận dòng tiền"
+        },
+        {
+          "cell": "D4",
+          "value": "báo cáo lợi nhuận kinh doanh thực thu( gồm cọc mới và mua sắm tb)"
+        },
+        {
+          "cell": "E4",
+          "value": "lọc theo thời gian,tòa, khu vực, nv vận hành, trưởng khu vực, loai nhà T S G, cổ đông"
+        },
+        {
+          "cell": "C6",
+          "value": "Báo cáo kinh doanh "
+        },
+        {
+          "cell": "D6",
+          "value": "k gồm cọc mới ,hoàn cọc, mua sắm tb"
+        },
+        {
+          "cell": "C7",
+          "value": "Bảng dự kiến lợi nhuận dòng tiền"
+        },
+        {
+          "cell": "D7",
+          "value": "hỏi ngọc"
+        },
+        {
+          "cell": "C8",
+          "value": "Bảng dự kiến lợi nhuận kd"
+        },
+        {
+          "cell": "C9",
+          "value": "Báo cáo lợi nhuận /vốn"
+        },
+        {
+          "cell": "C10",
+          "value": "Báo cáo lợi nhuận /tài sản"
+        },
+        {
+          "cell": "C11",
+          "value": "biên lợi nhuận tiền nhà( tiền nhà thu/chi)"
+        },
+        {
+          "cell": "C12",
+          "value": "báo cáo chi phí giá vốn"
+        },
+        {
+          "cell": "C13",
+          "value": "báo cáo chi phí cố định( chi tiết từng loại chi phí)"
+        },
+        {
+          "cell": "C14",
+          "value": "báo cáo chi phí phát sinh( chi tiết từng loại chi phí)"
+        },
+        {
+          "cell": "B15",
+          "value": "Báo cáo Phòng vận hành"
+        },
+        {
+          "cell": "C15",
+          "value": "báo cáo tỷ lệ lấp đầy, và thời gian trống"
+        },
+        {
+          "cell": "C16",
+          "value": "báo cáo âm dương điện nước"
+        },
+        {
+          "cell": "C17",
+          "value": "báo cáo chi phí sửa chữa, vệ sinh"
+        },
+        {
+          "cell": "C18",
+          "value": "báo cáo phân khúc khách hàng( sinh viên, người đi làm)"
+        },
+        {
+          "cell": "C19",
+          "value": "báo tỷ lệ khách đóng tiền đúng hạn và quá hạn"
+        },
+        {
+          "cell": "B22",
+          "value": " báo cáo phòng Kinh doanh"
+        },
+        {
+          "cell": "C22",
+          "value": "Báo cáo khách hàng"
+        },
+        {
+          "cell": "D22",
+          "value": "tỷ lệ chuyển đổi ( khách xem/khách chốt)"
+        },
+        {
+          "cell": "E22",
+          "value": "lọc theo thời gian,tòa, khu vực, nv vận hành, ttên sale, team sale, loai nhà T S G, cổ đông"
+        },
+        {
+          "cell": "C23",
+          "value": "báo cáo doanh số"
+        }
+      ]
+    },
+    {
+      "sheet": "NHÂN SỰ",
+      "cells": [
+        {
+          "cell": "B1",
+          "value": "tổng quan thì làm như phần tt khách hàng"
+        },
+        {
+          "cell": "A2",
+          "value": "I: chi tiết thông tin"
+        },
+        {
+          "cell": "B2",
+          "value": "nội dung cần có: thông tin cá nhân, phòng ban, chức vụ, thâm niên, Tình trạng"
+        },
+        {
+          "cell": "B3",
+          "value": "ví dụ phòng vận hành"
+        },
+        {
+          "cell": "C3",
+          "value": "thêm số lượng nhà và phòng đang quản lý"
+        },
+        {
+          "cell": "A4",
+          "value": "II: tính lương"
+        },
+        {
+          "cell": "A5",
+          "value": "PHÒNG KINH DOANH"
+        },
+        {
+          "cell": "A6",
+          "value": "PHÒNG VẬN HÀNH"
+        },
+        {
+          "cell": "A7",
+          "value": "PHÒNG KĨ THUẬT"
+        },
+        {
+          "cell": "A8",
+          "value": "PHÒNG THỊ TRƯỜNG"
+        },
+        {
+          "cell": "A9",
+          "value": "PHÒNG TC-KT"
+        }
+      ]
+    },
+    {
+      "sheet": "TT CỔ ĐÔNG",
+      "cells": [
+        {
+          "cell": "A2",
+          "value": "Danh sách cổ đông"
+        },
+        {
+          "cell": "B2",
+          "value": "tỷ lệ vào cổ phần các nhà"
+        },
+        {
+          "cell": "C2",
+          "value": "bảng kê chia cổ phần các nhà( các thông tin như trên bảng ngọc đang làm)"
+        },
+        {
+          "cell": "D2",
+          "value": "lịch đóng tiền từng người"
+        },
+        {
+          "cell": "E2",
+          "value": "thống kê tài sản"
+        },
+        {
+          "cell": "F2",
+          "value": "thống kê tiền cọc"
+        },
+        {
+          "cell": "C5",
+          "value": "tất cả lọc được theo nhà và thời gian"
+        }
+      ]
+    },
+    {
+      "sheet": "BẢO TRÌ BẢO DƯỠNG",
+      "cells": [
+        {
+          "cell": "A1",
+          "value": "lịch bảo dưỡng thang máy"
+        },
+        {
+          "cell": "A2",
+          "value": "lịch bảo dưỡng máy bơm"
+        },
+        {
+          "cell": "A3",
+          "value": "lịch bảo dưỡng máy, vệ sinh giặt"
+        },
+        {
+          "cell": "A4",
+          "value": "lịch bảo dưỡng máy lọc nước"
+        },
+        {
+          "cell": "A5",
+          "value": "Kiểm kê tài sản"
+        },
+        {
+          "cell": "B5",
+          "value": "đồ décor"
+        }
+      ]
+    }
+  ]
+}

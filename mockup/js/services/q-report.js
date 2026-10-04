@@ -57,12 +57,19 @@
   };
   /* type: 'total' | 'business'; bizMode: 'gd' (giả định OQ-10) | 'excel' (tái hiện sheet KD) */
   /* opts.noAdj: bỏ dòng điều chỉnh sau khóa – dùng khi khóa kỳ chụp số (điều chỉnh luôn cộng thêm khi đọc, không nằm trong ảnh chụp) */
+  QR.officialBusinessMode = period => {
+    const per = S.get('periods',period), snapshot = per?.status === 'closed' ? S.get('reportSnapshots','rs_'+period) : null;
+    if (snapshot) return snapshot.officialMode || 'excel';
+    const policy = Q.policy('businessReportMode',D.periodEnd(period));
+    return period >= '2026-10' && policy?.value === 'web' && policy.status === 'confirmed' ? 'web' : 'excel';
+  };
   QR.build = (period, type = 'total', bizMode, opts = {}) => {
-    const configured = Q.param('businessReportMode', D.periodEnd(period));
-    bizMode = bizMode || (configured === 'proposed' ? 'gd' : 'excel');
+    const officialMode = QR.officialBusinessMode(period);
+    bizMode = bizMode || officialMode;
+    if (bizMode === 'web' && officialMode !== 'web') bizMode = officialMode;
     // Chế độ OQ-10 chỉ là phương án rà soát nội bộ. Chặn ngay tại service để
     // không thể lách giới hạn của màn hình bằng cách gọi QR.build trực tiếp.
-    if (bizMode === 'gd' && !['admin', 'ketoan'].includes(TH.auth.role())) bizMode = 'excel';
+    if (!['admin', 'ketoan'].includes(TH.auth.role())) bizMode = officialMode;
     const per = S.get('periods', period) || {}; const parallel = per.source === 'excel_parallel';
     let m = {}; let src = {}; let dep;
     const snap = per.status === 'closed' ? S.get('reportSnapshots', 'rs_' + period) : null;
@@ -79,7 +86,7 @@
     let byB = m;
     if (type === 'business') {
       byB = {};
-      if (snap && bizMode === 'excel' && snap.business && !adjs.length) byB = JSON.parse(JSON.stringify(snap.business));
+      if (snap && bizMode === (snap.officialMode || 'excel') && snap.business && !adjs.length) byB = JSON.parse(JSON.stringify(snap.business));
       else if (parallel && bizMode === 'excel') {
         // Kỳ lịch sử: số chính thức theo từng tòa cũng phải là số của sheet
         // Excel, không chỉ ép đúng bốn cột tổng T/S/G/TOTAL ở phía dưới.
@@ -93,7 +100,7 @@
         Object.entries(benchBase).forEach(([b, v]) => { byB[b] = R.business(v, { depreciation: officialDep.byBuilding[b] || 0, addBackRefund: Q.param('bizAddBackRefund'), useDepreciation: Q.param('bizDepreciation'), mode: 'excel' }); });
       }
       else {
-        const officialDep = bizMode === 'excel' ? Q.depOfficialOfPeriod(period) : dep;
+        const officialDep = bizMode !== 'gd' ? (snap ? snap.officialDep || dep : Q.depOfficialOfPeriod(period)) : dep;
         Object.entries(m).forEach(([b, v]) => { byB[b] = R.business(v, { depreciation: officialDep.byBuilding[b] || 0, addBackRefund: Q.param('bizAddBackRefund'), useDepreciation: Q.param('bizDepreciation'), mode: bizMode }); });
       }
     }
@@ -104,13 +111,13 @@
       const X = TH.data.bench202608.report; const sheet = type === 'business' ? X.business : X.total; excel = {};
       TH.data.catalog.reportLines.forEach(l => { const r = sheet[l.row]; if (r) excel[l.code] = { TOTAL: r[0], T: r[1], S: r[2], G: r[3] }; });
     }
-    if (type === 'business' && bizMode === 'excel') {
-      if (snap && snap.businessCols) cols = JSON.parse(JSON.stringify(snap.businessCols));
+    if (type === 'business' && (bizMode === 'excel' || (snap && bizMode === (snap.officialMode || 'excel') && !adjs.length))) {
+      if (snap && bizMode === (snap.officialMode || 'excel') && snap.businessCols) cols = JSON.parse(JSON.stringify(snap.businessCols));
       else if (excel) {
         cols = { TOTAL: {}, T: {}, S: {}, G: {} };
         Object.entries(excel).forEach(([code, values]) => Object.keys(cols).forEach(k => { cols[k][code] = values[k]; }));
       }
-      if ((snap && snap.businessCols) || excel) adjs.forEach(a => {
+      if ((snap && bizMode === (snap.officialMode || 'excel') && snap.businessCols) || excel) adjs.forEach(a => {
         ['TOTAL', groupOf(a.buildingId)].forEach(k => {
           const v = Object.assign({}, cols[k]);
           if (a.reportLine === 'dep_new') { v.dep_new = (v.dep_new || 0) + a.delta; v.rev_total = (v.rev_total || 0) - a.delta; }
@@ -128,7 +135,7 @@
     }
     const policySnapshot = snap && snap.policySnapshot ? snap.policySnapshot : Q.policySnapshot(D.periodEnd(period));
     return { period, type, bizMode, parallel, cols, byBuilding: derived, base: m, sources: src, excel, excelBiz, dep, frozen: !!snap, adjustments: adjs,
-      policySnapshot, ruleVersion: snap && snap.at ? snap.at : D.periodEnd(period), policyStatus: bizMode === 'excel' ? 'confirmed' : 'proposed', official: bizMode === 'excel' };
+      policySnapshot, ruleVersion: snap && snap.at ? snap.at : (Q.policy('businessReportMode',D.periodEnd(period))?.formulaVersion || D.periodEnd(period)), policyStatus: bizMode !== 'gd' ? 'confirmed' : 'proposed', official: bizMode === officialMode };
   };
   /* Đối chiếu tổng chi phí (TCP) kỳ song song: số web − số Excel tách thành từng nhóm nguyên nhân, đến từng ô tòa × dòng.
      Nhóm: (1) tòa có trong bảng lương/mẫu số nhưng không có cột trong báo cáo Excel; (2) lương quản lý – dòng lỗi nguồn bảng lương;
@@ -220,11 +227,12 @@
   QR.exportModel = (period, type = 'total', mode, filters = {}) => {
     const rep = QR.get(period, type, mode);
     const lines = TH.data.catalog.reportLines.filter(l => l.row >= 3 && l.row <= 61);
-    const selected = Object.keys(rep.byBuilding).filter(id => (!filters.building || id === filters.building) && (!filters.group || (Q.building(id) || {}).group === filters.group) && (!filters.area || (Q.building(id) || {}).areaId === filters.area) && (!filters.manager || (Q.managerOf(id, D.periodEnd(period)) || {}).id === filters.manager));
+    const scope = Q.scopeBuildingIds(filters,D.periodEnd(period));
+    const selected = Object.keys(rep.byBuilding).filter(id=>scope.has(id));
     let cols = rep.cols;
-    if (filters.building || filters.group || filters.area || filters.manager) cols = R.aggregate(Object.fromEntries(selected.map(id => [id, rep.byBuilding[id]])), id => (Q.building(id) || {}).group || '');
+    if (filters.building || filters.group || filters.area || filters.manager || filters.leader || filters.shareholder) cols = R.aggregate(Object.fromEntries(selected.map(id => [id, rep.byBuilding[id]])), id => (Q.building(id) || {}).group || '');
     const policy = rep.policySnapshot && rep.policySnapshot.businessReportMode;
-    const method = type === 'business' ? (rep.bizMode === 'excel' ? 'Excel chính thức – chỉ loại cọc mới' : 'Phương án đề xuất OQ-10') : 'Excel / dòng tiền';
+    const method = type === 'business' ? (rep.bizMode === 'web' ? 'Theo mô tả web – loại cọc mới/hoàn cọc, dùng KH xác nhận' : rep.bizMode === 'excel' ? 'Excel chính thức – chỉ loại cọc mới' : 'Phương án đề xuất OQ-10') : 'Excel / dòng tiền';
     return { exportSpecVersion: 'report-export-v4', templateVersion: 'SRC-04-v1.13', period, type, mode: rep.bizMode, report: rep, cols,
       headers: ['Dòng', 'Chỉ tiêu', 'TỔNG', 'NHÀ T', 'NHÀ S', 'NHÀ G'],
       metadata: [['Báo cáo', type === 'business' ? 'BÁO CÁO KINH DOANH' : 'BÁO CÁO TỔNG (LN DÒNG TIỀN)'], ['Kỳ', F.periodLabel(period)], ['Cách tính', method], ['Trạng thái nghiệp vụ', rep.policyStatus === 'confirmed' ? 'Đã xác nhận' : 'Chờ khách xác nhận'], ['Phiên bản quy tắc', String(rep.ruleVersion || '')], ['Nguồn quy tắc', (policy && policy.sourceRef) || (rep.bizMode === 'excel' ? 'SRC-04' : 'OQ-10')], ['Phiên bản export', 'report-export-v4'], ['Phiên bản mẫu', 'SRC-04-v1.13'], ['Xuất lúc', F.datetime(F.nowISO())]],

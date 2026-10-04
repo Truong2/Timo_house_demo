@@ -81,3 +81,5 @@ scripts/            serve, build, check-rbac, smoke, seed/extract_seed.py
 ```
 
 App cũ (phân phase theo `00_SCOPE_3_PHASE.md`) được giữ ở git tag `legacy/mockup-v3`.
+
+Kiểm tra 8 gap audit ngày 04/10/2026: `npm run verify:audit-gaps` cho source/local; `npm run audit:live` cho Netlify. Quy tắc đã chốt và bằng chứng tại [Audit Gap Completion](docs/uat/Audit_Gap_Completion_2026-10-04.md).

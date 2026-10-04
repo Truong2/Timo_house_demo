@@ -8,7 +8,8 @@
     K.formDrawer({ title: 'Chỉ số ' + row.room.code + ' – kỳ ' + F.periodShort(period), sub: row.stay ? 'Khách ' + (Q.customer(row.stay.customerId) || {}).name : 'Phòng không có khách', modal: true, fields: [
       { name: 'elPrev', label: 'Điện – chỉ số cũ', type: 'number', value: r.elPrev ?? row.prev.elCurr ?? row.stay?.openingReadings?.electric ?? '', req: true }, { name: 'elCurr', label: 'Điện – chỉ số mới', type: 'number', value: r.elCurr ?? '', req: true },
       { name: 'waPrev', label: 'Nước – chỉ số cũ (nếu tính theo m³)', type: 'number', value: r.waPrev ?? row.prev.waCurr ?? row.stay?.openingReadings?.water ?? '' }, { name: 'waCurr', label: 'Nước – chỉ số mới', type: 'number', value: r.waCurr ?? '' },
-      { name: 'people', label: 'Số người', type: 'number', value: r.people ?? (row.stay || {}).people ?? 1 }, { name: 'vehicles', label: 'Số xe (điện / gửi xe)', type: 'number', value: r.vehicles ?? (row.stay || {}).vehicles ?? 0 }, { name: 'readAt', label: 'Ngày ghi', type: 'date', value: r.readAt || F.today() },
+      { name: 'people', label: 'Số người', type: 'number', value: r.people ?? (row.stay || {}).people ?? 1 }, { name: 'vehicles', label: 'Số xe phí cũ (ghi đè kỳ)', type: 'number', value: r.vehicles ?? '', help:'Để trống: lấy danh sách cuối kỳ; nhập 0: không tính xe kỳ này.' },
+      { name:'parkingVehicles',label:'Xe gửi (ghi đè kỳ)',type:'number',value:r.parkingVehicles ?? '',help:'Để trống: lấy danh sách xe có hiệu lực.' }, { name:'chargingVehicles',label:'Xe sạc (ghi đè kỳ)',type:'number',value:r.chargingVehicles ?? '' }, { name: 'readAt', label: 'Ngày ghi', type: 'date', value: r.readAt || F.today() },
       { name: 'reason', label: 'Lý do (bắt buộc nếu chỉ số giảm)', type: 'textarea', span: true, value: r.reason || '' }],
       onSubmit: (d) => { X.saveReading(Object.assign(d, { roomId: row.room.id, stayId: row.stay && row.stay.id, buildingId: row.room.buildingId, period })); U.toast('ok', 'Đã lưu chỉ số'); } });
   };

@@ -1,0 +1,329 @@
+{
+  "checkedAt": "2026-10-04T13:43:58.754Z",
+  "baseURL": "http://localhost:9827",
+  "sourceSha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+  "build": {
+    "sha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+    "target": "mockup source"
+  },
+  "scripts": [],
+  "initialRouteCount": 54,
+  "visitedCount": 84,
+  "roles": [
+    "admin"
+  ],
+  "roleServiceChecks": [
+    {
+      "role": "ketoan",
+      "mode": "web",
+      "expensesInScope": true
+    },
+    {
+      "role": "codong",
+      "mode": "web",
+      "expensesInScope": true
+    },
+    {
+      "role": "vanhanh",
+      "mode": "web",
+      "expensesInScope": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "EXP-FILTER",
+      "source": "Tài chính chung!I22",
+      "expected": "Danh sách chi phí lọc được khu vực, NV vận hành, trưởng khu vực",
+      "actual": {
+        "filters": [
+          "period",
+          "q",
+          "cat",
+          "scope",
+          "line",
+          "area",
+          "manager",
+          "leader",
+          "src",
+          ""
+        ],
+        "missing": []
+      },
+      "status": "PASS",
+      "evidence": "routes.json: #/expenses"
+    },
+    {
+      "id": "SALE-STT",
+      "source": "KINH DOANH!C37",
+      "expected": "Nhân sự sale có STT",
+      "actual": {
+        "headers": [
+          "STT",
+          "Nhân viên",
+          "Chức danh",
+          "Trưởng nhóm",
+          "Thâm niên",
+          "Deal chốt",
+          "Doanh số⇅",
+          "Hủy / bỏ cọc",
+          "Chỉ tiêu",
+          "% chỉ tiêu"
+        ]
+      },
+      "status": "PASS",
+      "evidence": "route-30.png"
+    },
+    {
+      "id": "SALE-REPORT-LEADER",
+      "source": "BÁO CÁO!E22",
+      "expected": "Báo cáo khách hàng/doanh số có lọc trưởng khu vực vận hành",
+      "actual": {
+        "fields": [
+          "period",
+          "area",
+          "group",
+          "building",
+          "manager",
+          "leader",
+          "shareholder",
+          "sale",
+          "team",
+          "by",
+          ""
+        ]
+      },
+      "status": "PASS",
+      "evidence": "routes.json: #/reports/sales"
+    },
+    {
+      "id": "SHARE-ASOF",
+      "source": "TT CỔ ĐÔNG!E2:F2,C5",
+      "expected": "Cọc lịch sử và tài sản tháng 10 thay đổi theo ngày xem",
+      "actual": {
+        "beforeDeposit": 96000000,
+        "sepDeposit": 96000000,
+        "octDeposit": 97000000,
+        "sepHasAsset": false,
+        "octRemaining": 1095652.1739130435,
+        "expectedRemaining": 1095652.1739130435
+      },
+      "status": "PASS",
+      "evidence": "share-assets-2026-09-30.png; share-assets-2026-10-31.png"
+    },
+    {
+      "id": "VEHICLE-BILLING",
+      "source": "Thông tin khách hàng!G7:G9; yêu cầu liên kết hóa đơn CH-12",
+      "expected": "Xe điện vừa khai báo cập nhật lượng tính phí cho hóa đơn nháp mới",
+      "actual": {
+        "customerVehicles": 2,
+        "stayVehicles": 0,
+        "readingVehicles": null,
+        "invoiceId": "inv_INV-2026-10-101G990A001",
+        "actualQty": 2,
+        "actualAmount": 200000,
+        "expectedQty": 2,
+        "unit": 100000,
+        "skipped": []
+      },
+      "status": "PASS",
+      "evidence": "vehicle-list.png; vehicle-invoice.png"
+    },
+    {
+      "id": "FEE-SPLIT",
+      "source": "Thông tin khách hàng!G9",
+      "expected": "Hai xe gửi 200.000đ + một xe sạc 50.000đ = 250.000đ",
+      "actual": {
+        "invoiceId": "inv_INV-2026-11-101G990A001",
+        "amount": 250000,
+        "components": [
+          {
+            "key": "parking",
+            "label": "Gửi xe",
+            "qty": 2,
+            "unit": 100000,
+            "factor": 1,
+            "amount": 200000
+          },
+          {
+            "key": "charging",
+            "label": "Sạc xe điện",
+            "qty": 1,
+            "unit": 50000,
+            "factor": 1,
+            "amount": 50000
+          }
+        ]
+      },
+      "status": "PASS",
+      "evidence": "split-vehicle-invoice.png"
+    },
+    {
+      "id": "SALARY-MODE",
+      "source": "NHÂN SỰ!A5:A9",
+      "expected": "Kiểm chứng mode nhập tay thực sự điều khiển tính lương; công thức 3 bộ phận còn cần xác nhận nghiệp vụ",
+      "actual": {
+        "employee": "emp_NV49413627",
+        "beforeMode": "fixed",
+        "afterMode": "manual",
+        "before": {
+          "base": 7000000,
+          "total": 7500000
+        },
+        "after": {
+          "base": 0,
+          "total": 0,
+          "missing": [
+            "Chưa nhập tổng lương và căn cứ"
+          ]
+        },
+        "zero": {
+          "total": 0,
+          "missing": []
+        },
+        "final": {
+          "total": 8000000,
+          "lunch": 0
+        }
+      },
+      "status": "PASS",
+      "evidence": "salary-mode.png; salary policy + preview calculation"
+    },
+    {
+      "id": "BUSINESS-REFUND",
+      "source": "BÁO CÁO!D6",
+      "expected": "Báo cáo kinh doanh không gồm cọc mới, hoàn cọc, mua sắm thiết bị",
+      "actual": {
+        "mode": "web",
+        "status": "confirmed",
+        "params": {
+          "addBackRefund": true,
+          "useDepreciation": true
+        },
+        "total": {
+          "revenue": -50000,
+          "newDeposit": 0,
+          "refund": 50000,
+          "equipment": 0,
+          "profit": -4131233333.33
+        },
+        "business": {
+          "revenue": 0,
+          "refund": 0,
+          "equipment": 104347.82608695651,
+          "profit": -4131287681.156087
+        }
+      },
+      "status": "PASS",
+      "evidence": "business-policy.png"
+    }
+  ],
+  "responsive": [
+    {
+      "width": 375,
+      "hash": "#/dashboard",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/expenses",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/sales/commission?tab=nhan-su",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/reports/sales",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/assets/inventory?type=decor",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/reports/business?period=2026-10",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/dashboard",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/expenses",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/sales/commission?tab=nhan-su",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/reports/sales",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/assets/inventory?type=decor",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/reports/business?period=2026-10",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/dashboard",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/expenses",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/sales/commission?tab=nhan-su",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/reports/sales",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/assets/inventory?type=decor",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/reports/business?period=2026-10",
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "mutatingRequests": []
+}

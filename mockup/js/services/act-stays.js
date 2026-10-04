@@ -51,6 +51,7 @@
       dealDate, moveInDate: d.moveInDate || d.rentStart, rentStart: d.rentStart, svcStart: d.svcStart || d.rentStart, endDate: d.endDate,
       depositAmount: Number(d.deposit) || 0, depositStatus: 'none', rent: Number(d.rent), listPrice: room.listPrice, people: Number(d.people) || 1, vehicles: Number(d.vehicles) || 0, payMonths: Number(d.payMonths) || 1, source: d.dealId ? 'deal' : 'web', dealId: d.dealId || null });
     const items = d.items || (Q.rateOf((S.where('stays', s => s.buildingId === room.buildingId && s.id !== stay.id)[0] || {}).id) || {}).items || {};
+    X.validateVehicleFees(items);
     S.add('rateVersions', { stayId: stay.id, from: d.rentStart, to: null, rent: Number(d.rent), items: JSON.parse(JSON.stringify(items)), reason: 'Biểu phí khi tạo lượt thuê', source: 'web' });
     recordStayVersion(stay.id, 'created', { effectiveFrom: d.rentStart, reason: 'Tạo hợp đồng/lượt thuê' });
     S.update('rooms', room.id, { status: stay.status === 'active' ? 'occupied' : (Q.currentStay(room.id) ? room.status : 'reserved') });
@@ -62,7 +63,7 @@
     _.audit('create', 'stay', stay.id, `Tạo lượt thuê ${code} (${stay.status === 'active' ? 'đang ở' : 'chờ nhận'})${d.dealId ? ' từ giao dịch chốt' : ''}`);
     _.done(); return stay;
   };
-  X.createStay = (d) => { _.need('tenants.manage'); return createStayCore(d); };
+  X.createStay = (d) => { _.need('tenants.manage'); return S._batch ? createStayCore(d) : S.atomic(()=>createStayCore(d)); };
   _.createStay = createStayCore;
   /* Khách chờ nhận vào ở */
   /* Phase 2: lượt thuê sinh từ giao dịch chốt → nhận phòng ở đâu (UI-07 hay UI-21) deal cũng thành "đã nhận" (không lệch trạng thái) */
@@ -183,6 +184,42 @@
     _.audit('renew', 'stay', id, `Gia hạn ${s.code} đến ${F.date(d.endDate)}`); _.done();
   };
   /* Phiên biểu phí: chỉ áp dụng hóa đơn chưa phát hành; không chồng ngày */
+  Q.vehicleVersionAt = (stayId, date) => S.where('stayVehicleVersions', v => v.stayId === stayId && v.effectiveFrom <= date).sort((a,b) => b.effectiveFrom.localeCompare(a.effectiveFrom) || b.version - a.version)[0] || null;
+  Q.vehicleCounts = (stayId, period, reading = {}) => {
+    const stay = Q.stay(stayId) || {}, version = Q.vehicleVersionAt(stayId, TH.calc.dates.periodEnd(period));
+    const rows = version ? version.vehicles : null;
+    const counts = { parking: rows ? rows.filter(v => v.parking).length : Number(stay.vehicles) || 0,
+      charging: rows ? rows.filter(v => v.charging).length : Number(stay.vehicles) || 0,
+      legacy: rows ? rows.filter(v => v.parking || v.charging).length : Number(stay.vehicles) || 0, versionId: version ? version.id : null };
+    // Legacy readings are explicit counts. New forms leave blank for the effective vehicle list.
+    if (reading.vehicles != null && reading.vehicles !== '' && !(version && reading.source === 'demo')) counts.legacy = Number(reading.vehicles);
+    ['parking','charging'].forEach(k => { if (reading[k + 'Vehicles'] != null && reading[k + 'Vehicles'] !== '') counts[k] = Number(reading[k + 'Vehicles']); });
+    return counts;
+  };
+  X.saveStayVehicles = (stayId, d) => S.atomic(() => {
+    _.need('tenants.manage');
+    const stay = Q.stay(stayId); if (!stay || !TH.auth.inScope(stay.buildingId)) throw new Error('Lượt thuê ngoài phạm vi được giao');
+    const from = d.effectiveFrom || F.today();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) throw new Error('Nhập ngày hiệu lực');
+    _.guardEffective(from, 'danh sách xe');
+    if (from < stay.moveInDate) throw new Error('Ngày hiệu lực trước ngày nhận phòng');
+    const old = S.where('stayVehicleVersions', v => v.stayId === stayId);
+    if (old.some(v => v.effectiveFrom > from)) throw new Error('Ngày hiệu lực phải từ phiên xe mới nhất');
+    if (!Array.isArray(d.vehicles)) throw new Error('Danh sách xe không hợp lệ');
+    const vehicles = d.vehicles.map(v => ({ plate: String(v.plate || '').trim().toUpperCase(), type: String(v.type || '').trim(), note: String(v.note || '').trim(), parking: v.parking === true, charging: v.charging === true }));
+    const plates = vehicles.map(v => v.plate.replace(/[\s.-]/g,''));
+    if (vehicles.some(v => !v.plate || !v.type)) throw new Error('Mỗi xe cần biển số và loại xe');
+    if (new Set(plates).size !== plates.length) throw new Error('Biển số xe bị trùng');
+    const rec = S.add('stayVehicleVersions', { stayId, version: old.length + 1, effectiveFrom: from, vehicles, createdAt: F.nowISO(), createdBy: _.who() });
+    // Keep the customer profile readable; billing always selects this stay's effective version.
+    S.update('customers', stay.customerId, { vehicles: JSON.parse(JSON.stringify(vehicles)) });
+    _.audit('version', 'stayVehicles', rec.id, 'Danh sách xe ' + stay.code + ' từ ' + F.date(from), { after: rec }); _.done(); return rec;
+  });
+  const validateVehicleFees = items => {
+    if (Number(items.ev?.unit) > 0 && (Number(items.parking?.unit) > 0 || Number(items.charging?.unit) > 0)) throw new Error('Không tính đồng thời phí xe cũ và phí gửi xe/sạc riêng; bỏ phí cũ trong phiên mới');
+    Object.values(items).forEach(it => { if (!Number.isFinite(Number(it.unit)) || Number(it.unit) < 0) throw new Error('Đơn giá phí không hợp lệ'); });
+  };
+  X.validateVehicleFees = validateVehicleFees;
   X.addRateVersion = (stayId, d, silent) => {
     _.need('rates.manage');
     const stay = Q.stay(stayId); if (!stay || !TH.auth.inScope(stay.buildingId)) throw new Error('Lượt thuê không tồn tại hoặc ngoài phạm vi');
@@ -194,6 +231,7 @@
     if (cur.some(v => v.from >= d.from)) throw new Error('Chồng ngày hiệu lực với phiên từ ' + F.date(cur[0].from));
     const issued = S.where('invoices', i => i.stayId === stayId && i.lifecycle !== 'draft' && i.period >= F.period(d.from));
     const base = cur[0] || { items: {}, rent: 0 };
+    validateVehicleFees(d.items || base.items || {});
     cur.filter(v => !v.to).forEach(v => S.update('rateVersions', v.id, { to: TH.calc.dates.addDays(d.from, -1) }));
     const items = JSON.parse(JSON.stringify(d.items || base.items || {}));
     const v = S.add('rateVersions', { stayId, from: d.from, to: null, rent: Number(d.rent) || base.rent, items, reason: d.reason, source: d.source || 'web', sourceRef: d.sourceRef || d.reason, contractFileId: d.contractFileId || null, ocrSessionId: d.ocrSessionId || null, createdBy: _.who(), createdAt: F.nowISO() });

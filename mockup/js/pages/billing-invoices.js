@@ -119,10 +119,11 @@
     root.innerHTML = U.pageHead({ title: 'Hóa đơn ' + esc(inv.customerCode) + ' ' + K.lifeChip(inv.lifecycle) + ' ' + (inv.lifecycle !== 'draft' ? K.payChip(st.status) : ''), back: '#/billing/invoices?period=' + inv.period,
       sub: `${F.periodLabel(inv.period)} · Phòng ${esc(Q.roomCode(inv.roomId))} · <a href="#/stays/${s.id}">${esc(Q.stayLabel(s))}</a>`, acts: [
         U.btn({ label: 'Xem / in', icon: 'printer', href: '#/print/invoice/' + inv.id }),
-        inv.lifecycle === 'draft' ? U.btn({ label: 'Xóa nháp', icon: 'trash', act: 'del', perm: 'invoices.prepare' }) + U.btn({ label: 'Đổi mẫu in', icon: 'file-text', act: 'template', perm: 'invoices.prepare' }) + U.btn({ label: 'Sửa dòng', icon: 'pencil', act: 'edit', perm: 'invoices.prepare' }) : U.btn({ label: 'Điều chỉnh', icon: 'pencil', act: 'adjust', perm: 'invoices.adjust' }),
+        inv.lifecycle === 'draft' ? U.btn({ label: 'Xóa nháp', icon: 'trash', act: 'del', perm: 'invoices.prepare' }) + U.btn({ label: 'Đổi mẫu in', icon: 'file-text', act: 'template', perm: 'invoices.prepare' }) + U.btn({ label: 'Sửa dòng', icon: 'pencil', act: 'edit', perm: 'invoices.prepare' }) + U.btn({label:'Tính lại nháp',icon:'refresh',act:'recompute',perm:'invoices.prepare'}) : U.btn({ label: 'Điều chỉnh', icon: 'pencil', act: 'adjust', perm: 'invoices.adjust' }),
         inv.lifecycle !== 'draft' && X.isOwnerTenantInv(inv) && st.remaining > 0 ? U.btn({ label: 'Chủ nhà đã thu', icon: 'key', act: 'owner', perm: 'ownerPayments.record' }) : '',
         inv.ownerSettled > 0 ? U.btn({ label: 'Hủy bù trừ chủ nhà', icon: 'undo', act: 'unowner', perm: 'ownerPayments.record' }) : '',
         inv.lifecycle === 'draft' ? U.btn({ label: 'Phát hành', icon: 'send', cls: 'btn-primary', act: 'issue', perm: 'invoices.issue' }) : (st.remaining > 0 ? U.btn({ label: 'Ghi nhận thu', icon: 'banknote', cls: 'btn-primary', href: `#/billing/receipts/new?stay=${s.id}&invoice=${inv.id}`, perm: 'payments.record' }) : '')] })
+      + (X.invoiceDraftStale(inv) ? U.note('warn','Nháp cần tính lại','Xe, biểu phí hoặc chỉ số đã đổi. Tính lại nháp trước khi phát hành; các sửa dòng trước đó sẽ được lưu trong lịch sử.') : '')
       + `<div class="two-col wide"><div class="side-stack">
         ${U.card({ title: 'Xem trước bản in', icon: 'file-text', sub: lines[12] && lines[12].amount ? 'Mẫu mở rộng 13 dòng – có “Thu khác”' : 'Mẫu chuẩn 12 dòng – không có “Thu khác”', body: `<div class="print-frame" role="region" aria-label="Xem trước bản in hóa đơn" tabindex="0">${TH.print.invoiceHtml(inv)}</div>` })}
         ${inv.kind === 'deposit_excess' ? U.note('info', 'Hóa đơn thu phần khấu trừ vượt cọc', `Lập tự động khi chi phiếu hoàn <a href="#/refunds/${inv.refundId}">${esc((S.get('refunds', inv.refundId) || {}).code || '')}</a>: khấu trừ lớn hơn cọc, số chi 0, phần vượt thu như hóa đơn thường (UI-18 E18).`) : ''}
@@ -142,6 +143,7 @@
       </div></div>`;
     U.bind(root, {
       edit: () => editDraft(inv),
+      recompute: () => { K.act(() => X.recomputeInvoiceDraft(inv.id), 'Đã tính lại nháp'); },
       template: () => K.formDrawer({ title: 'Đổi mẫu in hóa đơn nháp', sub: 'Hệ thống tự chọn tài khoản đang hiệu lực của mẫu. Khi phát hành, cấu hình này được đóng băng.', modal: true, size: 'sm', fields: [
         { name: 'template', label: 'Mẫu in', type: 'select', req: true, value: inv.template, options: Object.values(B.TEMPLATES).map(t => [t.key, t.name]) }], submit: 'Áp dụng', onSubmit: (d) => { X.setInvoiceTemplate(inv.id, d.template); U.toast('ok', 'Đã đổi mẫu in'); } }),
       owner: () => K.formDrawer({ title: 'Chủ nhà đã thu – ' + inv.code, sub: 'Bù trừ vào tiền trả chủ nhà (UI-05, OQ-14)', modal: true, fields: [

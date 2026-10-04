@@ -14,7 +14,7 @@ table.ip-tbl{width:100%;border-collapse:collapse;margin:6px 0}
 .ip-tbl th,.ip-tbl td{border:1px solid #333;padding:4px 6px;vertical-align:top}
 .ip-tbl thead{display:table-header-group}.ip-tbl tr,.ip-head,.ip-sign{break-inside:avoid;page-break-inside:avoid}.ip-tbl td,.ip-tbl th{overflow-wrap:anywhere}
 .ip-tbl th{background:#F3F4F6;font-weight:700;text-align:center}
-.ip-tbl .tr{text-align:right}.ip-tbl .tc{text-align:center}
+.ip-tbl .tr{text-align:right;white-space:nowrap;overflow-wrap:normal}.ip-tbl .tc{text-align:center}
 .ip-tbl .ip-note{font-size:11px;max-width:210px;white-space:normal}
 .ip-tbl tr.ip-new td{background:#FFFBEB}
 .ip-tbl tr.ip-total td{font-weight:700;background:#F9FAFB}

@@ -31,8 +31,11 @@
       body.insertAdjacentHTML('beforeend', U.card({ title: 'Giao dịch chi thực', body: txns.filter(t => t.kind === 'payout' && t.status !== 'void').map(t => `<div class="mini-row"><b>${F.date(t.date)}</b><span>${esc(t.method === 'bank' ? 'Chuyển khoản' : 'Tiền mặt')} · ${t.docId ? esc((S.get('documents', t.docId) || {}).name || t.docId) : 'Chưa gắn chứng từ'}</span><b>${F.vnd(t.amount)}</b></div>`).join('') || 'Chưa chi thực' }));
     }
     if (tab === 'tai-san-coc') {
-      const oc = S.one('ownerContracts', o => o.buildingId === bid), assets = Q.assets({ building: bid });
-      body.innerHTML = U.card({ title: 'Cọc chủ nhà – tài sản phải thu hồi', body: `<b>${F.vnd(oc ? oc.deposit : 0)}</b><p class="small muted">Thu hồi khi kết thúc hợp đồng chủ nhà; không vào doanh thu.</p>` }) + '<div class="mt16">' + U.card({ title: 'Tài sản theo tòa', body: `<table class="tbl compact"><thead><tr><th>Mã / tên</th><th>Sở hữu</th><th>SL</th><th class="num">Còn lại</th></tr></thead><tbody>${assets.map(a => `<tr><td>${esc(a.code + ' · ' + a.name)}</td><td>${esc(TH.calc.assets.ownLabel(a.ownership))}</td><td>${a.qty}</td><td class="num">${a.openingPeriod && a.openingPeriod > S.meta.period ? 'Chờ ghi nhận ' + esc(a.openingPeriod) : a.cost > 0 ? F.vnd(TH.calc.depreciation.nbv(a, S.meta.period)) : 'Chờ dữ liệu'}</td></tr>`).join('')}</tbody></table>` }) + '</div>';
+      if (q.from && q.to && q.from > q.to) { body.innerHTML = U.note('warn','Khoảng ngày không hợp lệ','Từ ngày phải trước hoặc bằng Đến ngày'); return; }
+      const stats = Q.capitalAssetsAt(bid,q.to || F.today());
+      body.innerHTML = U.note('info','Số dư tại '+F.date(stats.at),'Tài sản/cọc lấy tại Đến ngày; giá trị còn lại theo kỳ khấu hao '+F.periodLabel(stats.period)+'. Từ ngày dùng cho các tab giao dịch, không trừ số dư đầu kỳ.')
+        + U.card({ title:'Cọc chủ nhà – tài sản phải thu hồi',body:'<b>'+(stats.deposit == null ? 'Chưa đủ dữ liệu lịch sử' : F.vnd(stats.deposit))+'</b><p class="small muted">Thu hồi khi kết thúc hợp đồng; không vào doanh thu.</p>' })
+        + '<div class="mt16">'+U.card({title:'Tài sản theo tòa',body:'<table class="tbl compact"><thead><tr><th>Mã / tên</th><th>Sở hữu</th><th>SL</th><th class="num">Còn lại</th></tr></thead><tbody>'+stats.assets.map(a=>'<tr><td>'+esc(a.code+' · '+a.name)+'</td><td>'+esc(TH.calc.assets.ownLabel(a.ownership))+'</td><td>'+a.qty+'</td><td class="num">'+(a.remaining == null ? 'Chưa đủ dữ liệu / chính sách KH' : F.vnd(a.remaining))+'</td></tr>').join('')+'</tbody></table>'})+'</div>';
     }
     if (tab === 'dau-tu-ban-dau') {
       if (!initial) body.innerHTML = U.empty({ title: 'Chưa có dữ liệu đầu tư ban đầu tòa này' });

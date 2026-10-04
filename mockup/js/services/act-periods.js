@@ -35,13 +35,13 @@
     if (pend.length) throw new Error('Chưa đủ điều kiện khóa kỳ: ' + pend.join(', '));
     // Chốt số báo cáo tại thời điểm khóa: báo cáo kỳ đã khóa đọc từ ảnh chụp này + dòng điều chỉnh sau khóa
     const rep = TH.qr.build(period, 'total', 'excel', { noAdj: true }); // số chính thức theo Excel; không chụp dòng điều chỉnh
-    const official = TH.qr.build(period, 'business', 'excel', { noAdj: true });
+    const official = TH.qr.build(period, 'business', undefined, { noAdj: true });
     const policySnapshot = Q.policySnapshot(D.periodEnd(period));
     S.remove('reportSnapshots', 'rs_' + period);
-    S.add('reportSnapshots', { id: 'rs_' + period, period, base: JSON.parse(JSON.stringify(rep.base)), business: JSON.parse(JSON.stringify(official.byBuilding)), businessCols: JSON.parse(JSON.stringify(official.cols)), dep: JSON.parse(JSON.stringify(rep.dep)), sources: rep.sources, policySnapshot, officialMode: 'excel', at: F.nowISO(), by: _.who() });
+    S.add('reportSnapshots', { id: 'rs_' + period, period, base: JSON.parse(JSON.stringify(rep.base)), business: JSON.parse(JSON.stringify(official.byBuilding)), businessCols: JSON.parse(JSON.stringify(official.cols)), dep: JSON.parse(JSON.stringify(rep.dep)), officialDep:JSON.parse(JSON.stringify(Q.depOfficialOfPeriod(period))), sources: rep.sources, policySnapshot, officialMode: official.bizMode, at: F.nowISO(), by: _.who() });
     // Phase 2 (UI-38 nâng cao): mỗi lần khóa lưu một phiên bản số chốt để so sánh giữa các lần khóa / mở lại
     const ver = S.where('reportSnapshotVersions', v => v.period === period).length + 1;
-    S.add('reportSnapshotVersions', { id: 'rsv_' + period + '_' + ver, period, version: ver, base: JSON.parse(JSON.stringify(rep.base)), business: JSON.parse(JSON.stringify(official.byBuilding)), businessCols: JSON.parse(JSON.stringify(official.cols)), policySnapshot, officialMode: 'excel', at: F.nowISO(), by: _.who() });
+    S.add('reportSnapshotVersions', { id: 'rsv_' + period + '_' + ver, period, version: ver, base: JSON.parse(JSON.stringify(rep.base)), business: JSON.parse(JSON.stringify(official.byBuilding)), businessCols: JSON.parse(JSON.stringify(official.cols)), policySnapshot, officialMode: official.bizMode, at: F.nowISO(), by: _.who() });
     S.update('periods', period, { status: 'closed', closedAt: F.nowISO(), closedBy: _.who(), history: [...(p.history || []), { type: 'close', version: ver, at: F.nowISO(), by: _.who() }] });
     _.audit('close', 'period', period, 'Khóa kỳ ' + F.periodShort(period) + ' – chốt số báo cáo (phiên bản ' + ver + ')'); _.done();
   };

@@ -1,6 +1,15 @@
 /* Actions – chi phí gốc (UI-15): mỗi khoản gắn tòa hoặc quỹ chung + dòng báo cáo SRC-04; thiết bị có khấu hao. */
 (function (TH) {
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q;
+  Q.expensesFiltered = (f = {}) => {
+    const period = f.period || S.meta.period, scope = Q.scopeBuildingIds({ ...f, building: f.scope && f.scope !== 'fund' ? f.scope : f.building }, TH.calc.dates.periodEnd(period));
+    const buildingFilter = !!(f.area || f.manager || f.leader || f.building || (f.scope && f.scope !== 'fund'));
+    return S.all('expenses').filter(e => e.status !== 'void' && e.period === period
+      && (e.scope === 'fund' ? !buildingFilter && TH.auth.can('allocation.view') : scope.has(e.buildingId))
+      && (!f.scope || (f.scope === 'fund' ? e.scope === 'fund' : e.buildingId === f.scope))
+      && (!f.cat || e.category === f.cat) && (!f.line || e.reportLine === f.line) && (!f.src || e.source === f.src)
+      && (!f.q || [e.code,e.note,e.vendor].some(v => String(v || '').toLowerCase().includes(String(f.q).toLowerCase())))).sort((a,b) => b.date.localeCompare(a.date));
+  };
   /* E3 [GĐ-E5]: tòa trả điện qua chủ nhà (UI-03 → UI-43): đơn giá trả chủ nhà theo kWh; để trống đơn giá = chỉ gắn cờ; bỏ chọn = trả trực tiếp nhà cung cấp */
   X.setElectricViaOwner = (bid, d) => {
     _.needMs('2', 'Âm dương điện nước (UI-43)'); _.need('expenses.manage');

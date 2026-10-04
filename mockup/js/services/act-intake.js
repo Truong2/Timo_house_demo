@@ -93,6 +93,7 @@
         if(active&&(v.status==='active'||v.startDate<=(active.plannedLeaveDate||active.endDate)))add(['roomCode','startDate'],'Thời gian chồng lượt thuê '+active.code);
       }
       for(const [key,f] of Object.entries(d.items)){if(!I.fees.some(x=>x[0]===key)||!['meter','person','room','vehicle','fixed'].includes(f.method)||!(Number(f.unit)>=0))add('fee:'+key,'Biểu phí không hợp lệ: '+key);}
+      if(Number(d.items.ev?.unit)>0 && (Number(d.items.parking?.unit)>0 || Number(d.items.charging?.unit)>0))add('fee:ev','Bỏ phí xe cũ khi dùng phí gửi/sạc riêng');
       if(!Object.keys(d.items).length)warnings.push('Chưa có phí dịch vụ. Xác nhận thực tế không thu dịch vụ hoặc bổ sung trước khi nhập.');
       if(v.declaredPaid>0)warnings.push('Đã nộp '+F.vnd(v.declaredPaid)+': chỉ đề xuất thu, chưa tăng tiền thực thu.');
       if(v.openingDeposit>0)warnings.push('Cọc cũ '+F.vnd(v.openingDeposit)+': số dư đầu kỳ, không phiếu thu mới.');

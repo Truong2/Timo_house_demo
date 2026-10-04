@@ -1,0 +1,233 @@
+{
+  "checkedAt": "2026-10-04T10:57:17.297Z",
+  "baseURL": "http://localhost:9900",
+  "sourceSha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+  "build": {
+    "sha": "3d5b645d5fa67317a21ff48a628b214b89ea4b99",
+    "target": "mockup source"
+  },
+  "scripts": [],
+  "initialRouteCount": 54,
+  "visitedCount": 68,
+  "roles": [
+    "admin"
+  ],
+  "findings": [
+    {
+      "id": "EXP-FILTER",
+      "source": "Tài chính chung!I22",
+      "expected": "Danh sách chi phí lọc được khu vực, NV vận hành, trưởng khu vực",
+      "actual": {
+        "filters": [
+          "period",
+          "q",
+          "cat",
+          "scope",
+          "line",
+          "src",
+          ""
+        ],
+        "missing": [
+          "area",
+          "manager",
+          "leader"
+        ]
+      },
+      "status": "FAIL",
+      "evidence": "routes.json: #/expenses"
+    },
+    {
+      "id": "SALE-STT",
+      "source": "KINH DOANH!C37",
+      "expected": "Nhân sự sale có STT",
+      "actual": {
+        "headers": [
+          "Nhân viên",
+          "Chức danh",
+          "Trưởng nhóm",
+          "Thâm niên",
+          "Deal chốt",
+          "Doanh số⇅",
+          "Hủy / bỏ cọc",
+          "Chỉ tiêu",
+          "% chỉ tiêu"
+        ]
+      },
+      "status": "FAIL",
+      "evidence": "route-30.png"
+    },
+    {
+      "id": "SALE-REPORT-LEADER",
+      "source": "BÁO CÁO!E22",
+      "expected": "Báo cáo khách hàng/doanh số có lọc trưởng khu vực vận hành",
+      "actual": {
+        "fields": [
+          "period",
+          "area",
+          "group",
+          "building",
+          "manager",
+          "shareholder",
+          "sale",
+          "team",
+          "by",
+          ""
+        ]
+      },
+      "status": "FAIL",
+      "evidence": "routes.json: #/reports/sales"
+    },
+    {
+      "id": "FEE-SPLIT",
+      "source": "Thông tin khách hàng!G9",
+      "expected": "Hai đơn giá độc lập: phí sạc xe điện và phí gửi xe",
+      "actual": [
+        {
+          "key": "ev",
+          "label": "Xe điện / gửi xe",
+          "line": 8
+        }
+      ],
+      "status": "FAIL",
+      "evidence": "route-16.png; catalog feeTypes"
+    },
+    {
+      "id": "SHARE-ASOF",
+      "source": "TT CỔ ĐÔNG!E2:F2,C5",
+      "expected": "Bộ lọc thời gian áp vào thống kê tài sản/cọc, dùng thời điểm đang xem",
+      "actual": {
+        "periods": [
+          "2026-09",
+          "2026-10"
+        ],
+        "identicalContent": true,
+        "currentPeriod": "2026-09",
+        "sample": "Cọc chủ nhà – tài sản phải thu hồi\n48.000.000\n\nThu hồi khi kết thúc hợp đồng chủ nhà; không vào doanh thu.\n\nTài sản theo tòa\nMã / tên\tSở hữu\tSL\tCòn lại\nTS-G1-001 · Điều hòa, kèm điều khiển\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-002 · Thiết bị mạng, công tắc điện, ổ cắm…\tChủ nhà\t1\tChờ dữ liệu\nTS-G1-003 · Bình nóng lạnh\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-004 · Thiết bị vệ sinh (bồn cầu, vòi sen, vòi xịt, lavabo…)\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-005 · Cửa ra vào\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-006 · Cửa WC\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-007 · Cửa sổ các phòng\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-008 · Cửa ban công\tChủ nhà\t6\tChờ dữ liệu\nTS-G1-009 · Bóng điện (nhà xe, từng phòng, hành lang…)\tChủ nhà\t38\tChờ dữ liệu\nTS-G1-010 · Công tơ điện\tChủ nhà\t17\tChờ dữ liệu\nTS-G1-011 · Đồng hồ nước\tChủ nhà\t1\tChờ dữ liệu\nTS-G1-012 · Hệ thố"
+      },
+      "status": "FAIL",
+      "evidence": "share-assets-2026-09.png; share-assets-2026-10.png; pages/capital.js tai-san-coc uses S.meta.period"
+    },
+    {
+      "id": "VEHICLE-BILLING",
+      "source": "Thông tin khách hàng!G7:G9; yêu cầu liên kết hóa đơn CH-12",
+      "expected": "Xe điện vừa khai báo cập nhật lượng tính phí cho hóa đơn nháp mới",
+      "actual": {
+        "customerVehicles": 2,
+        "stayVehicles": 0,
+        "readingVehicles": null,
+        "invoiceId": "inv_INV-2026-10-101G990A001",
+        "actualQty": 0,
+        "actualAmount": 0,
+        "expectedQty": 2,
+        "unit": 100000,
+        "skipped": []
+      },
+      "status": "FAIL",
+      "evidence": "vehicle-list.png; vehicle-invoice.png"
+    },
+    {
+      "id": "SALARY-MODE",
+      "source": "NHÂN SỰ!A5:A9",
+      "expected": "Kiểm chứng mode nhập tay thực sự điều khiển tính lương; công thức 3 bộ phận còn cần xác nhận nghiệp vụ",
+      "actual": {
+        "employee": "emp_NV49413627",
+        "beforeMode": "fixed",
+        "afterMode": "manual",
+        "before": {
+          "base": 7000000,
+          "manualPay": 0,
+          "total": 7500000
+        },
+        "after": {
+          "base": 7000000,
+          "manualPay": 0,
+          "total": 7500000
+        }
+      },
+      "status": "PARTIAL",
+      "evidence": "salary policy + preview calculation"
+    },
+    {
+      "id": "BUSINESS-REFUND",
+      "source": "BÁO CÁO!D6",
+      "expected": "Báo cáo kinh doanh không gồm cọc mới, hoàn cọc, mua sắm thiết bị",
+      "actual": {
+        "mode": "excel",
+        "status": "confirmed",
+        "params": {
+          "addBackRefund": true,
+          "useDepreciation": true
+        },
+        "total": {
+          "revenue": 7721955897,
+          "newDeposit": 835200000,
+          "refund": 355311170,
+          "equipment": 0,
+          "profit": 3440720047.9977164
+        },
+        "business": {
+          "revenue": 6886755897,
+          "refund": 355311170,
+          "equipment": 0,
+          "profit": 2605520047.9977164
+        }
+      },
+      "status": "PARTIAL",
+      "evidence": "route-38.png; OQ-10 policy"
+    }
+  ],
+  "responsive": [
+    {
+      "width": 375,
+      "hash": "#/dashboard",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/expenses",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/sales/commission?tab=nhan-su",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/reports/sales",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/assets/inventory?type=decor",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/dashboard",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/expenses",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/sales/commission?tab=nhan-su",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/reports/sales",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/assets/inventory?type=decor",
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "mutatingRequests": []
+}

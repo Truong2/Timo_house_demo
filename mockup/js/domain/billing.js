@@ -32,12 +32,13 @@
   /* Dựng dòng cho kỳ mới từ biểu phí + chỉ số (UI-11). Chỉ chia ngày một lần:
      tiền phòng theo ngày tính tiền phòng, DV cố định theo ngày bắt đầu DV; cọc, nợ cũ, điện/nước theo chỉ số không chia ngày. */
   B.buildLines = (o) => {
-    const { stay, rate, period, reading = {}, people = 1, vehicles = 0, depositDue = 0, oldDebt = 0, common = null, other = null, roundLines = true } = o;
+    const { stay, rate, period, reading = {}, people = 1, vehicles = 0, vehicleCounts = {}, depositDue = 0, oldDebt = 0, common = null, other = null, roundLines = true } = o;
     const Dt = C.dates;
     const rent = Dt.proRata(rate.rent || 0, stay.rentStart, period, stay.stopBillingDate);
     const svc = Dt.proRataDays(stay.svcStart || stay.rentStart, period, stay.stopBillingDate);
     const svcF = svc.days / svc.denom;
     const it = rate.items || {};
+    if (Number(it.ev?.unit) > 0 && (Number(it.parking?.unit) > 0 || Number(it.charging?.unit) > 0)) throw new Error('Phí xe cũ và phí xe riêng bị tính trùng');
     const L = [];
     L.push({ no: 1, qty: stay.payMonths || 1, factor: rent.factor, unit: rate.rent || 0, amount: round((rate.rent || 0) * rent.factor * (stay.payMonths || 1), roundLines), days: rent.days, denom: rent.denom });
     L.push({ no: 2, qty: depositDue ? 1 : 0, factor: 1, unit: depositDue, amount: depositDue });
@@ -53,6 +54,14 @@
       L.push({ no: 4, qty: q, factor: svcF, unit: wa.unit || 0, amount: round(q * (wa.unit || 0) * svcF, roundLines) });
     }
     [['cleaning', 5], ['internet', 6], ['elevator', 7], ['ev', 8], ['washer', 9], ['combo', 10]].forEach(([k, no]) => {
+      if (k === 'ev' && (it.parking || it.charging)) {
+        const components = [['parking','Gửi xe'],['charging','Sạc xe điện']].map(([key,label]) => {
+          const fee = it[key] || {}, qty = !fee.unit ? 0 : fee.method === 'vehicle' ? (vehicleCounts[key] ?? 0) : (fee.qty ?? 1);
+          return { key, label, qty, unit: fee.unit || 0, factor: svcF, amount: round(qty * (fee.unit || 0) * svcF, roundLines) };
+        });
+        L.push({ no, qty: 1, factor: 1, unit: components.reduce((s,c) => s + c.amount,0), amount: components.reduce((s,c) => s + c.amount,0), components,
+          note: components.filter(c => c.unit).map(c => `${c.label}: ${c.qty} × ${c.unit} × ${c.factor.toFixed(4)} = ${c.amount}đ`).join('; ') }); return;
+      }
       const x = it[k] || {};
       const q = !x.unit ? 0 : x.method === 'person' ? people : x.method === 'vehicle' ? vehicles : (x.qty || 1);
       L.push({ no, qty: q, factor: svcF, unit: x.unit || 0, amount: round(q * (x.unit || 0) * svcF, roundLines) });

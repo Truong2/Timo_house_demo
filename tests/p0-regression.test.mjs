@@ -174,7 +174,7 @@ test('P0-7 khóa kỳ giữ cố định số liệu', async (t) => {
     eq(Object.entries(res).filter(([, r]) => r.ok || !/đã khóa/.test(r.msg)).map(([k, r]) => k + ': ' + (r.ok ? 'cho phép' : r.msg)), [], 'thao tác phải bị chặn vì kỳ đã khóa');
   });
   await t.test('c) đổi dữ liệu nguồn không làm đổi LNR kỳ đã khóa', () => {
-    X.setParam('businessReportMode', 'proposed', '2026-10-01', 'Mở phương án so sánh cho kỳ sau', { status: 'proposed', sourceRef: 'OQ-10' });
+    X.setParam('businessReportMode', 'proposed', '2026-11-01', 'Mở phương án so sánh cho kỳ sau policy web 10/2026', { status: 'proposed', sourceRef: 'OQ-10' });
     S.all('employees').forEach(e => S.update('employees', e.id, { hireDate: '2026-09-01' }));
     S.all('rooms').slice(0, 200).forEach(x => S.update('rooms', x.id, { price: 0 }));
     assert.equal(lnr(), before);

@@ -2,11 +2,14 @@ import {chromium} from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+const port=8765+Math.floor(Math.random()*100),baseURL=process.env.INTAKE_BASE_URL || `http://localhost:${port}`;
+const server=process.env.INTAKE_BASE_URL ? null : spawn(process.execPath,['scripts/serve.mjs'],{env:{...process.env,PORT:String(port)},stdio:'ignore'});
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();
 const errors=[];page.on('pageerror',e=>errors.push(e.message));
 try{
- await page.goto('http://localhost:8765');
+ for(let n=0;n<25;n++){try{await page.goto(baseURL);break;}catch(e){if(n===24)throw e;await new Promise(r=>setTimeout(r,150));}}
  await page.evaluate(()=>{TH.auth.login('admin');TH.go('#/owners/new');});
  await page.waitForSelector('#intake-file',{state:'attached'});
  await page.locator('#intake-file').setInputFiles(path.resolve('docs/contracts_demo/Hop_dong_chu_nha_TH01_demo_dong_bo.pdf'));
@@ -55,4 +58,4 @@ try{
  const source=await page.evaluate(async()=>{const ds=await TH.intakeFiles.drafts('tenant');const d=ds.find(d=>d.data.roomCode==='302G1'&&d.sources.rent?.sheet==='NHÀ G');return{price:d.data.rent,list:d.data.listPrice,mgmt:d.data.mgmtPrice,oldDeposit:d.data.openingDeposit,source:d.sources.rent.cell};});
  assert.deepEqual(source,{price:3800000,list:4000000,mgmt:3800000,oldDeposit:3800000,source:'I11'});
  assert.deepEqual(errors,[]);console.log('PASS: real PDFs, image OCR, original XLSX, owner/building/30 rooms, pending stay, proposal, reload originals');
-}catch(e){console.error('PAGE:',await page.locator('#content').innerText());await page.screenshot({path:'tmp/intake-failure.png',fullPage:true});throw e;}finally{await browser.close();}
+}catch(e){console.error('PAGE:',await page.locator('#content').innerText());await page.screenshot({path:'tmp/intake-failure.png',fullPage:true});throw e;}finally{await browser.close();server?.kill();}

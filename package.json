@@ -38,7 +38,9 @@
     "verify:workbook-content": "node --test tests/workbook-content.test.mjs && node scripts/verify-workbook-content.mjs",
     "verify:v5-gaps": "node --test tests/v5-gaps.test.mjs && npm run verify:ui-audit",
     "verify:source-workbook-live": "node --test tests/source-workbook-live.test.mjs && node scripts/verify-source-workbook-live.mjs",
-    "verify:module-completion": "node --test tests/module-completion.test.mjs && node scripts/verify-module-completion.mjs"
+    "verify:module-completion": "node --test tests/module-completion.test.mjs && node scripts/verify-module-completion.mjs",
+    "verify:audit-gaps": "node --test tests/audit-gap-completion.test.mjs && node scripts/audit-workbook-ui.mjs --local",
+    "audit:live": "node scripts/audit-workbook-ui.mjs"
   },
   "devDependencies": {
     "axe-core": "^4.10.3",

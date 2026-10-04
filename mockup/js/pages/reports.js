@@ -33,7 +33,7 @@
     const t = TH.qr.get(period, 'total'), bz = TH.qr.get(period, 'business');
     root.innerHTML = TH.pages.reportTabs('hub') + U.pageHead({ title: 'Báo cáo', sub: 'Phase 1 gồm 2 báo cáo theo mẫu SRC-04 và báo cáo theo tòa; các báo cáo vận hành/kinh doanh khác ở Phase 2–3' })
       + filterBar(q)
-      + `<div class="grid grid-2 mt16">${[['total', 'Báo cáo tổng (LN dòng tiền)', 'Lợi nhuận kinh doanh thực thu – gồm cọc mới và mua sắm thiết bị (hạch toán một lần)', t.cols.TOTAL], ['business', 'Báo cáo kinh doanh', 'Mặc định chính thức theo Excel; khấu hao chỉ lấy tài sản có chính sách đã xác nhận. OQ-10 là bản so sánh nội bộ.', bz.cols.TOTAL]].map(([k, title, sub, v]) => `
+      + `<div class="grid grid-2 mt16">${[['total', 'Báo cáo tổng (LN dòng tiền)', 'Lợi nhuận kinh doanh thực thu – gồm cọc mới và mua sắm thiết bị (hạch toán một lần)', t.cols.TOTAL], ['business', 'Báo cáo kinh doanh', 'Theo policy có hiệu lực: lịch sử giữ Excel, từ 10/2026 theo mô tả web. Khấu hao chỉ lấy chính sách đã xác nhận.', bz.cols.TOTAL]].map(([k, title, sub, v]) => `
         <a class="card rep-card" href="#/reports/${k}?period=${period}"><div class="card-b"><h3>${esc(title)}</h3><p class="small muted mt4">${esc(sub)}</p>
         <div class="grid grid-3 mt12"><div><small class="muted">Doanh thu</small><b class="d-block">${F.vnd(v.rev_total)}</b></div><div><small class="muted">Tổng chi phí</small><b class="d-block">${F.vnd(v.tcp)}</b></div><div><small class="muted">LN ròng</small><b class="d-block ${v.lnr >= 0 ? 'green' : 'red'}">${F.vnd(v.lnr)}</b></div></div>
         <div class="mt12 small muted">Tỷ lệ LNR/DT ${F.pctv(v.r_lnr_dt)} · LNR/GV ${F.pctv(v.r_lnr_gv)}</div></div></a>`).join('')}</div>`
@@ -71,7 +71,7 @@
     const d = U.drawer({ title: `${l.row}. ${l.label}`, sub: `${rep.type === 'business' ? 'Báo cáo kinh doanh' : 'Báo cáo tổng'} · ${F.periodLabel(rep.period)} · ${scopeLbl}`, wide: true, body: `
       ${txt ? U.note('info', 'Cách tính', esc(txt)) : alloc ? U.note('info', 'Phân bổ', 'Quỹ chung / mẫu số × số phòng tòa · ' + esc(alloc.g1)) : ''}
       ${src.note ? U.note('warn', '', esc(src.note)) : ''}
-      ${rep.type === 'business' && ['rev_total', 'cost_equip'].includes(code) ? U.note('info', 'Báo cáo kinh doanh', code === 'rev_total' ? 'Doanh thu KD = doanh thu dòng tiền − cọc mới + hoàn cọc (GĐ OQ-10); giao dịch bên dưới là của Báo cáo tổng.' : 'Khấu hao + thanh lý kỳ theo danh sách tài sản công ty UI-34 (số tháng từng tài sản); giao dịch bên dưới là nguyên giá mua.' + (TH.ms.on('3') ? ' <a href="#/assets?ownership=company">Mở UI-34</a>' : '')) : ''}
+      ${rep.type === 'business' && ['rev_total', 'cost_equip'].includes(code) ? U.note('info', 'Báo cáo kinh doanh', code === 'rev_total' ? (rep.bizMode === 'excel' ? 'Excel lịch sử: doanh thu dòng tiền − cọc mới.' : 'Doanh thu KD = doanh thu dòng tiền − cọc mới + hoàn cọc đã trừ trong dòng tiền.') + ' Giao dịch bên dưới là nguồn của Báo cáo tổng.' : 'Khấu hao + thanh lý kỳ theo danh sách tài sản công ty UI-34 (số tháng từng tài sản); giao dịch bên dưới là nguyên giá mua.' + (TH.ms.on('3') ? ' <a href="#/assets?ownership=company">Mở UI-34</a>' : '')) : ''}
       ${src.parts ? `<h4 class="mt12 mb8">Dòng thành phần</h4>${src.parts.map(k => { const pl = CAT().reportLines.find(x => x.code === k); const v = bids.reduce((s, b) => s + ((sub[b] || {})[k] || 0), 0); return pl && v ? `<a class="mini-row" href="javascript:void 0" data-part="${k}"><span>${pl.row}. ${esc(pl.label)}</span><span class="grow"></span><b>${fmt(pl, v)}</b></a>` : ''; }).join('')}` : ''}
       ${!onlyB ? `<h4 class="mt12 mb8">Theo tòa (${rows.length})</h4>${rows.slice(0, 60).map(r => `<a class="mini-row" href="javascript:void 0" data-b="${r.b}"><b>${esc((Q.building(r.b) || {}).code)}</b><span class="grow"></span><span>${fmt(l, r.v)}</span></a>`).join('') || '<span class="muted small">Không có giá trị</span>'}` : ''}
       ${Object.entries(groups).map(([t, arr]) => `<h4 class="mt16 mb8">${esc(t)} (${arr.length})</h4>${arr.slice(0, 40).map(x => `<a class="mini-row" href="${x.href || 'javascript:void 0'}"><span class="code">${esc(x.label)}</span><span class="grow truncate small muted">${esc(x.sub || '')}</span><b>${x.type === 'Lượt thuê' || x.type === 'Phòng trống' ? '' : F.vnd(x.amount)}</b></a>`).join('')}${arr.length > 40 ? `<p class="small muted">… và ${arr.length - 40} dòng khác</p>` : ''}`).join('')}
@@ -84,7 +84,7 @@
   /* Thông tin bắt buộc trên file xuất (UI-27): tên báo cáo, kỳ, bộ lọc, phiên bản dữ liệu / thời điểm chốt, người xuất */
   const exportMeta = (rep, q, title) => {
     const f = [q.area && 'Khu vực ' + ((S.get('areas', q.area) || {}).name || q.area), q.group && 'Nhà ' + q.group, q.manager && 'Quản lý ' + ((Q.emp(q.manager) || {}).name || q.manager), q.leader && 'Leader ' + ((Q.emp(q.leader) || {}).name || q.leader) + (q.direct === '1' ? ' (team trực tiếp)' : ' (cả nhánh)'), q.shareholder && 'Cổ đông ' + ((S.get('shareholders', q.shareholder) || {}).code || q.shareholder), q.building && 'Tòa ' + ((Q.building(q.building) || {}).code || q.building), TH.auth.buildingScope() && 'Phạm vi tài khoản ' + TH.auth.buildingScope().size + ' tòa'].filter(Boolean);
-    const method = rep.type === 'business' ? (rep.bizMode === 'excel' ? 'Excel: chỉ loại cọc mới' : 'Phương án đề xuất OQ-10') : 'Excel / dòng tiền';
+    const method = rep.type === 'business' ? (rep.bizMode === 'web' ? 'Theo mô tả web – loại cọc mới/hoàn cọc, dùng KH xác nhận' : rep.bizMode === 'excel' ? 'Excel: chỉ loại cọc mới' : 'Phương án đề xuất OQ-10') : 'Excel / dòng tiền';
     const policy = rep.policySnapshot && rep.policySnapshot.businessReportMode;
     return [title + ' – ' + F.periodLabel(rep.period), ['Mẫu', 'SRC-04 dòng 3–61, cột TỔNG / NHÀ T / NHÀ S / NHÀ G'], ['Bộ lọc', f.join('; ') || 'Toàn hệ thống'],
       ['Cách tính', method], ['Trạng thái nghiệp vụ', rep.policyStatus === 'confirmed' ? 'Đã xác nhận' : 'Chờ khách xác nhận – không phải báo cáo chính thức'],
@@ -96,14 +96,14 @@
 
   const reportPage = (type) => (root, p, q) => {
     const period = q.period || '2026-08'; const canCompare = ['admin', 'ketoan'].includes(TH.auth.role());
-    const mode = type === 'business' && canCompare && q.mode === 'gd' ? 'gd' : 'excel';
+    const mode = type === 'business' && canCompare && ['gd','excel'].includes(q.mode) ? q.mode : TH.qr.officialBusinessMode(period);
     const rep = TH.qr.get(period, type, mode); const { cols, sub, filtered } = filterRep(rep, q);
     const compare = rep.parallel && !filtered && !(type === 'business' && mode === 'gd');
     const v = cols.TOTAL;
     const title = type === 'total' ? 'Báo cáo tổng (LN dòng tiền)' : 'Báo cáo kinh doanh';
     root.innerHTML = TH.pages.reportTabs(type) + U.pageHead({ title, sub: `${F.periodLabel(period)} · mẫu SRC-04 dòng 3–61 · ${rep.parallel ? 'kỳ chạy song song Excel' : 'số web'}${filtered ? ' · đã lọc phạm vi' : ''}`, acts: [
       U.btn({ label: 'Báo cáo theo tòa', icon: 'columns', href: `#/reports/buildings?period=${period}&type=${type}` + keepQ(`#/reports/buildings?period=${period}&type=${type}`) }), U.btn({ label: 'Xuất Excel theo mẫu', icon: 'download', act: 'exp', perm: 'reports.export' })] })
-      + filterBar(q, type === 'business' && canCompare ? [{ name: 'mode', label: 'Cách tính', options: [['excel', 'Chính thức theo Excel (chỉ trừ cọc mới)'], ['gd', 'Đề xuất OQ-10 – chờ xác nhận']], value: 'excel', all: false }] : [])
+      + filterBar(q, type === 'business' && canCompare ? [{ name: 'mode', label: 'Cách tính', options: [...(TH.qr.officialBusinessMode(period) === 'web' ? [['web','Chính thức theo mô tả web']] : []), ['excel', 'Theo Excel (lịch sử/đối chiếu)'], ['gd', 'Đề xuất OQ-10 – chờ xác nhận']], value: TH.qr.officialBusinessMode(period), all: false }] : [])
       + (type === 'business' && mode === 'gd' ? U.note('warn', 'Phương án đề xuất OQ-10', 'Chỉ admin/kế toán dùng để đối chiếu; không phải số chính thức, không hiển thị cho cổ đông.') : '')
       + `<div class="grid grid-4 mt16 mb16">${U.kpi({ label: 'Tổng doanh thu', value: F.vnd(v.rev_total), icon: 'trending-up', tone: 'blue' })}${U.kpi({ label: 'Tổng chi phí (TCP)', value: F.vnd(v.tcp), cap: 'Giá vốn ' + F.vnd(v.gv) + ' · CPBH ' + F.vnd(v.cpbh), icon: 'coins', tone: 'amber' })}
         ${U.kpi({ label: 'Lợi nhuận ròng (LNR)', value: F.vnd(v.lnr), cap: 'LNR/DT ' + F.pctv(v.r_lnr_dt), icon: 'bar-chart', tone: v.lnr >= 0 ? 'green' : 'red' })}${U.kpi({ label: 'LN gộp (LNG)', value: F.vnd(v.lng), cap: 'LNR/GV ' + F.pctv(v.r_lnr_gv), icon: 'pie-chart', tone: 'teal' })}</div>`
@@ -121,7 +121,7 @@
     const tcols = filterRep(TH.qr.get(rep.period, 'total'), q).cols;
     const rows = TH.calc.report.bridge(tcols.TOTAL, cols.TOTAL);
     const eb = !TH.auth.buildingScope() && rep.excelBiz; const rc = eb && TH.qr.reconcile(rep.period);
-    return U.card({ title: 'Cầu nối Báo cáo tổng → Báo cáo kinh doanh (số web)', icon: 'split', sub: 'GĐ OQ-10: cộng lại hoàn cọc, thiết bị theo khấu hao – sheet KD của Excel chỉ trừ cọc mới', body: `<table class="tbl compact bridge"><tbody>
+    return U.card({ title: 'Cầu nối Báo cáo tổng → Báo cáo kinh doanh (số web)', icon: 'split', sub: rep.bizMode === 'web' ? 'Theo mô tả web: loại cọc mới, hoàn cọc và mua thiết bị; tính khấu hao đã xác nhận' : 'Excel lịch sử chỉ trừ cọc mới; OQ-10 là phương án đối chiếu', body: `<table class="tbl compact bridge"><tbody>
       ${rows.map((r, i) => `<tr class="${i === 0 || i === rows.length - 1 ? 'b' : ''}"><td>${esc(r.label)}</td><td class="num"><b>${F.vnd(r.value)}</b></td></tr>`).join('')}
       ${eb ? `<tr class="grp"><td colspan="2">Tham chiếu số Excel tháng 8</td></tr>
       <tr><td class="muted">Sheet "BÁO CÁO KINH DOANH THÁNG 8" (Excel, chỉ trừ cọc mới): LNR</td><td class="num muted">${F.vnd(eb.sheet.lnr)}</td></tr>
@@ -142,7 +142,7 @@
 
   TH.router.handle('/reports/buildings', (root, p, q) => {
     const period = q.period || '2026-08'; const type = q.type || 'total'; const group = q.group || 'G';
-    const mode = type === 'business' && ['admin', 'ketoan'].includes(TH.auth.role()) && q.mode === 'gd' ? 'gd' : 'excel';
+    const mode = type === 'business' && ['admin', 'ketoan'].includes(TH.auth.role()) && ['gd','excel'].includes(q.mode) ? q.mode : TH.qr.officialBusinessMode(period);
     const rep = TH.qr.get(period, type, mode);
     const ok = scopeFilter(q);
     const code = (b) => (Q.building(b) || {}).code || b.slice(2);

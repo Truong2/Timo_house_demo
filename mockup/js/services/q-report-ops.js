@@ -171,8 +171,8 @@
     const teamOf = (id) => (Q.leaderOf(id) || { id: '–' }).id;
     const okSale = (ids) => (!f.sale || (ids || []).includes(f.sale)) && (!f.team || (ids || []).some(id => teamOf(id) === f.team));
     // E3: thêm lọc nhóm T/S/G, NV vận hành (quản lý tòa cuối kỳ), cổ đông (tòa cổ đông có tỷ lệ góp cuối kỳ – chỉ giới hạn tòa, không đổi định nghĩa doanh số; đặc tả dòng 410, 518)
-    const pe = D.periodEnd(period); const mm = f.manager ? Q.managerMap(pe) : null; const shB = f.shareholder && Q.shareRatios ? (bid) => Q.shareRatios(bid, pe).some(r => r.shareholderId === f.shareholder) : null;
-    const okB2 = (bid) => { const b = Q.building(bid) || {}; return (!f.building || bid === f.building) && (!f.area || b.areaId === f.area) && (!f.group || b.group === f.group) && (!mm || (mm[bid] || {}).id === f.manager) && (!shB || shB(bid)); };
+    const pe = D.periodEnd(period), scope = Q.scopeBuildingIds(f, pe);
+    const okB2 = bid => scope.has(bid);
     const views = S.all('viewings').filter(v => F.period(v.date) === period && okB2(v.buildingId) && okSale((Q.lead(v.leadId) || {}).saleIds));
     const leadsViewed = new Set(views.map(v => v.leadId));
     const closedLead = new Set(S.all('deals').filter(d => !['cancelled'].includes(d.status)).map(d => d.leadId));
