@@ -109,6 +109,25 @@
     if (resp === 'sale') return new Set(S.all('deals').filter(d => F.period(d.closeDate) === p && (d.saleIds || []).some(id => team.has(id))).map(d => d.buildingId));
     return new Set(S.all('assignments').filter(a => a.responsibility === resp && eff(a, date) && team.has(a.employeeId)).map(a => a.buildingId));
   };
+  /* Phạm vi lọc dùng chung cho list/report/export. Mọi tiêu chí đều được giao với phạm vi RBAC hiện hành. */
+  Q.scopeBuildingIds = (filters = {}, at) => {
+    const day = at || filters.at || F.today(), mm = Q.managerMap(day);
+    const leader = filters.leader ? Q.leaderBuildings(filters.leader, day, { direct: filters.direct === true || filters.direct === '1' }) : null;
+    return new Set(Q.scopedBuildings().filter(b => {
+      if (filters.area && b.areaId !== filters.area) return false;
+      if (filters.group && b.group !== filters.group) return false;
+      if (filters.building && b.id !== filters.building) return false;
+      if (filters.manager && (mm[b.id] || {}).id !== filters.manager) return false;
+      if (leader && !leader.has(b.id)) return false;
+      if (filters.shareholder && (!Q.shareRatios || !Q.shareRatios(b.id, day).some(r => r.shareholderId === filters.shareholder))) return false;
+      return true;
+    }).map(b => b.id));
+  };
+  Q.departmentOf = (employeeId, at) => {
+    const day = at || F.today();
+    const link = S.where('orgLinks', l => l.employeeId === employeeId && eff(l, day)).sort((a, b) => String(b.from || '').localeCompare(String(a.from || '')))[0];
+    return link && link.unit || 'Chưa phân phòng ban';
+  };
 
   /* ---- lượt thuê ---- */
   Q.currentStay = (roomId) => { const arr = Q.staysByRoom()[roomId] || []; return arr.find(s => s.status === 'active') || null; };
@@ -157,6 +176,33 @@
     const day = asOf || F.today();
     return Q.scoped(S.all('invoices')).map(invoice => { const payment = Q.invState(invoice, day), stay = Q.stay(invoice.stayId); const ageDays = payment.debt.days || 0; const bucket = ageDays <= 0 ? 'not_due' : ageDays <= 30 ? '1-30' : ageDays <= 60 ? '31-60' : ageDays <= 90 ? '61-90' : ageDays <= 180 ? '91-180' : '181+'; return { invoice, payment, stay, ageDays, bucket, contractState: Q.contractState(stay, day) }; })
       .filter(x => x.payment.remaining > 0 && (!filters.bucket || x.bucket === filters.bucket) && (!filters.building || x.invoice.buildingId === filters.building) && (!filters.contractState || x.contractState === filters.contractState));
+  };
+  Q.invoiceRows = (filters = {}) => {
+    const day = filters.asOf || F.today(), scope = Q.scopeBuildingIds(filters, day), q = String(filters.q || '').trim().toLowerCase();
+    const src = filters.period ? Q.invoicesOf(filters.period) : S.all('invoices');
+    return Q.scoped(src).filter(i => scope.has(i.buildingId)).map(invoice => {
+      const stay = Q.stay(invoice.stayId) || {}, room = Q.room(invoice.roomId) || {}, building = Q.building(invoice.buildingId) || {};
+      const manager = Q.managerOf(invoice.buildingId, day), leader = manager ? Q.leaderOf(manager.id, day) : null, payment = Q.invState(invoice, day);
+      const dueDate = invoice.dueTo || invoice.dueFrom || invoice.issueDate || invoice.issuedAt || '';
+      const dueStatus = invoice.lifecycle === 'draft' ? 'draft' : payment.remaining <= 0 ? 'paid' : dueDate && dueDate < day ? 'overdue' : dueDate && dueDate <= F.addDays(day, 7) ? 'due' : 'not_due';
+      return { invoice, stay, room, building, buildingId: invoice.buildingId, roomId: invoice.roomId, manager, leader, payment, dueDate, dueStatus };
+    }).filter(x => (!filters.life || x.invoice.lifecycle === filters.life)
+      && (!filters.pay || x.payment.status === filters.pay)
+      && (!filters.kind || filters.kind === 'new' && x.invoice.isNewStay || filters.kind === 'breach' && x.invoice.isBreach)
+      && (!filters.dueStatus || x.dueStatus === filters.dueStatus)
+      && (!filters.dueFrom || x.dueDate >= filters.dueFrom)
+      && (!filters.dueTo || x.dueDate <= filters.dueTo)
+      && (!q || [x.invoice.code, x.invoice.customerCode, x.room.code, x.building.code, (Q.customer(x.stay.customerId) || {}).name].some(v => String(v || '').toLowerCase().includes(q))));
+  };
+  Q.refundRows = (filters = {}) => {
+    const day = filters.asOf || F.today(), scope = Q.scopeBuildingIds(filters, day), q = String(filters.q || '').trim().toLowerCase(), dateBasis = filters.dateBasis === 'paidAt' ? 'paidAt' : 'handoverDate';
+    return Q.scoped(S.all('refunds')).filter(r => scope.has(r.buildingId)).map(refund => {
+      const stay = Q.stay(refund.stayId) || {}, room = Q.room(refund.roomId) || {}, building = Q.building(refund.buildingId) || {};
+      const manager = Q.managerOf(refund.buildingId, refund[dateBasis] || day), leader = manager ? Q.leaderOf(manager.id, refund[dateBasis] || day) : null;
+      return { refund, stay, room, building, buildingId: refund.buildingId, roomId: refund.roomId, manager, leader, date: refund[dateBasis] || '' };
+    }).filter(x => (filters.status === 'open' ? x.refund.status !== 'paid' : !filters.status || x.refund.status === filters.status)
+      && (!filters.from || x.date >= filters.from) && (!filters.to || x.date <= filters.to)
+      && (!q || [x.refund.code, x.room.code, x.stay.code, (Q.customer(x.stay.customerId) || {}).name].some(v => String(v || '').toLowerCase().includes(q))));
   };
 
   /* Phòng tính vào số phòng lương / HS / lấp đầy / mẫu số phân bổ: bỏ đồng hồ chung, phòng ngừng khai thác và – theo tham số OQ-14 – phòng không có giá thuê (chủ nhà ở) */

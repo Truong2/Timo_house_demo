@@ -4,27 +4,25 @@
   const ST = { draft: ['Chờ tính', 'gray'], calculated: ['Chờ duyệt', 'amber'], approved: ['Đã duyệt – chờ chi', 'blue'], paid: ['Đã hoàn', 'green'] };
   const chip = (r) => U.chip(ST[r.status][0], ST[r.status][1], true) + (r.bd < 0 ? ' ' + U.chip('Vượt cọc', 'red') : '');
   TH.router.handle('/refunds', (root, p, q) => {
-    let rows = Q.scoped(S.all('refunds'));
+    const detailed = Q.scoped(Q.refundRows(q)), rows = detailed.map(x => x.refund), detailOf = Object.fromEntries(detailed.map(x => [x.refund.id, x]));
     const counts = {}; Object.keys(ST).forEach(k => { counts[k] = rows.filter(r => r.status === k).length; });
-    if (q.status === 'open') rows = rows.filter(r => r.status !== 'paid'); else if (q.status) rows = rows.filter(r => r.status === q.status);
-    if (q.building) rows = rows.filter(r => r.buildingId === q.building);
-    if (q.q) rows = rows.filter(r => K.match(q.q, r.code, Q.roomCode(r.roomId), (Q.stay(r.stayId) || {}).code));
-    const pendingEnd = Q.scoped(S.all('stays')).filter(s => s.status === 'ended' && s.endType === 'expired' && s.depositStatus === 'refund_pending' && !S.one('refunds', r => r.stayId === s.id));
+    const scope = Q.scopeBuildingIds(q), pendingEnd = Q.scoped(S.all('stays')).filter(s => scope.has(s.buildingId) && s.status === 'ended' && s.endType === 'expired' && s.depositStatus === 'refund_pending' && !S.one('refunds', r => r.stayId === s.id));
     root.innerHTML = U.pageHead({ title: 'Hoàn cọc', sub: 'Chỉ khách hết hạn HĐ được hoàn; phá HĐ / bỏ trốn / bỏ cọc không lập phiếu', acts: [U.btn({ label: 'Xuất', icon: 'download', act: 'exp' })] })
       + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Chờ tính / chờ duyệt', value: counts.draft + counts.calculated, icon: 'clock', tone: 'amber' })}${U.kpi({ label: 'Đã duyệt – chờ chi', value: counts.approved, icon: 'check-circle', tone: 'blue' })}
-        ${U.kpi({ label: 'Đã hoàn', value: counts.paid, cap: F.vnd(S.all('refunds').filter(r => r.status === 'paid').reduce((s, r) => s + (r.paidAmount || 0), 0)), icon: 'hand-coins', tone: 'green' })}${U.kpi({ label: 'Vượt cọc', value: rows.filter(r => r.bd < 0).length, cap: 'phần vượt → công nợ riêng', icon: 'alert-triangle', tone: 'red' })}</div>`
+        ${U.kpi({ label: 'Đã hoàn', value: counts.paid, cap: F.vnd(rows.filter(r => r.status === 'paid').reduce((s, r) => s + (r.paidAmount || 0), 0)), icon: 'hand-coins', tone: 'green' })}${U.kpi({ label: 'Vượt cọc', value: rows.filter(r => r.bd < 0).length, cap: 'phần vượt → công nợ riêng', icon: 'alert-triangle', tone: 'red' })}</div>`
       + (pendingEnd.length ? U.note('warn', `${pendingEnd.length} lượt thuê hết hạn chưa có phiếu hoàn`, pendingEnd.slice(0, 8).map(s => `<a href="#/stays/${s.id}">${esc(s.code)}</a>`).join(', ')) : '')
-      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã phiếu, phòng, mã KH' }, { name: 'status', label: 'Trạng thái', options: [['open', 'Chưa hoàn'], ...Object.entries(ST).map(([k, v]) => [k, v[0]])] }, { name: 'building', label: 'Tòa', options: K.buildingOpts() }], q)
+      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã phiếu, phòng, mã KH' }, { name: 'status', label: 'Trạng thái', options: [['open', 'Chưa hoàn'], ...Object.entries(ST).map(([k, v]) => [k, v[0]])] }, { name: 'dateBasis', label: 'Ngày lọc', options: [['handoverDate', 'Ngày bàn giao'], ['paidAt', 'Ngày chi hoàn']], value: 'handoverDate', all: false }, { name: 'from', type: 'date', label: 'Từ ngày' }, { name: 'to', type: 'date', label: 'Đến ngày' }, { name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'building', label: 'Tòa', options: K.buildingOpts() }, { name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'leader', label: 'Leader', options: Q.teamLeaders().map(e => [e.id, e.name]) }, ...(q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh' }] : [])], q)
       + '<div class="mt16">' + K.tableCard('t', rows.length + ' phiếu') + '</div>';
     K.bindFilters(root);
     U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: r => '#/refunds/' + r.id, cols: [
       { key: 'code', label: 'Mã phiếu', render: r => `<b>${esc(r.code)}</b>` }, { key: 'room', label: 'Phòng', render: r => `<span class="code">${esc(Q.roomCode(r.roomId))}</span>` },
       { key: 'kh', label: 'Lượt thuê', render: r => { const s = Q.stay(r.stayId); return U.cell2(esc(s.code), esc((Q.customer(s.customerId) || {}).name || '')); } },
+      { key: 'mgr', label: 'Quản lý / leader', render: r => { const x = detailOf[r.id]; return U.cell2(esc((x.manager || {}).name || 'Chưa phân công'), esc((x.leader || {}).name || 'Chưa có leader')); } },
       { key: 'h', label: 'Bàn giao', render: r => F.date(r.handoverDate) }, { key: 'i', label: 'Cọc (I)', num: true, render: r => F.vnd(r.deposit) }, { key: 'bc', label: 'Khấu trừ (BC)', num: true, render: r => F.vnd(r.bc) },
       { key: 'bd', label: 'Số tính hoàn (BD)', num: true, sortable: true, sortVal: r => r.bd, render: r => `<b class="${r.bd < 0 ? 'red' : ''}">${F.vnd(r.bd)}</b>` }, { key: 'paid', label: 'Thực chi', num: true, render: r => r.paidAmount != null ? F.vnd(r.paidAmount) : '–' },
       { key: 'ap', label: 'Duyệt', render: r => ['admin', 'ketoan'].map(x => (r.approvals || []).some(a => a.role === x) ? U.chip(x === 'admin' ? 'Admin ✓' : 'Kế toán ✓', 'green') : U.chip(x === 'admin' ? 'Admin' : 'Kế toán', 'gray')).join(' ') },
       { key: 'st', label: 'Trạng thái', render: chip }] });
-    U.bind(root, { exp: () => K.csv('hoan-coc.csv', ['Mã', 'Phòng', 'Mã KH', 'Cọc', 'BC', 'BD', 'Thực chi', 'Trạng thái'], rows.map(r => [r.code, Q.roomCode(r.roomId), Q.stay(r.stayId).code, r.deposit, r.bc, r.bd, r.paidAmount || '', ST[r.status][0]])) });
+    U.bind(root, { exp: () => K.csv('hoan-coc.csv', ['Mã', 'Phòng', 'Mã KH', 'Tòa', 'Khu vực', 'Quản lý', 'Leader', q.dateBasis === 'paidAt' ? 'Ngày chi hoàn' : 'Ngày bàn giao', 'Cọc', 'BC', 'BD', 'Thực chi', 'Trạng thái'], rows.map(r => { const x = detailOf[r.id]; return [r.code, x.room.code, x.stay.code, x.building.code, (S.get('areas', x.building.areaId) || {}).name || '', (x.manager || {}).name || '', (x.leader || {}).name || '', x.date, r.deposit, r.bc, r.bd, r.paidAmount || '', ST[r.status][0]]; }), ['Cọc', 'BC', 'BD', 'Thực chi']) });
   });
 
   TH.router.handle('/refunds/:id', (root, p) => {

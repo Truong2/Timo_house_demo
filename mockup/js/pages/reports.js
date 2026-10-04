@@ -5,15 +5,15 @@
   const periods = () => S.all('periods').filter(p => p.id <= S.meta.period).map(p => [p.id, F.periodLabel(p.id) + (p.source === 'excel_parallel' ? ' (song song Excel)' : '')]);
   // Lọc quản lý theo người phụ trách tại cuối kỳ báo cáo (phân công có hiệu lực), không theo hôm nay
   const scopeFilter = (q) => {
-    const mm = Q.managerMap(TH.calc.dates.periodEnd(q.period || '2026-08'));
-    return (bid) => { const b = Q.building(bid); if (!b) return !q.area && !q.manager && !q.building && !TH.auth.buildingScope(); if (!TH.auth.inScope(bid)) return false; if (q.area && b.areaId !== q.area) return false; if (q.manager && (mm[bid] || {}).id !== q.manager) return false; if (q.building && bid !== q.building) return false; return true; };
+    const ids = Q.scopeBuildingIds(q, TH.calc.dates.periodEnd(q.period || '2026-08'));
+    return (bid) => ids.has(bid);
   };
   const filterRep = (rep, q) => {
     const ok = scopeFilter(q); const sub = {}; Object.entries(rep.byBuilding).forEach(([b, v]) => { if (ok(b)) sub[b] = v; });
-    const filtered = !!(q.area || q.manager || q.building || TH.auth.buildingScope());
+    const filtered = !!(q.area || q.group || q.manager || q.leader || q.building || q.shareholder || TH.auth.buildingScope());
     return { cols: filtered ? TH.calc.report.aggregate(sub, b => (Q.building(b) || {}).group) : rep.cols, sub, filtered };
   };
-  const filterBar = (q, extra = []) => K.filters([{ name: 'period', label: 'Kỳ', options: periods(), value: '2026-08', all: false }, ...extra, { name: 'area', label: 'Khu vực', options: K.areaOpts() }, ...(TH.auth.role() === 'codong' ? [] : [{ name: 'manager', label: 'Quản lý', options: K.managerOpts() }]), { name: 'building', label: 'Tòa', options: K.buildingOpts() }], q);
+  const filterBar = (q, extra = []) => { const used = new Set(extra.map(x => x.name)); const common = [{ name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'group', label: 'Nhóm T/S/G', options: K.groupOpts() }, ...(TH.auth.role() === 'codong' ? [] : [{ name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'leader', label: 'Leader', options: Q.teamLeaders(TH.calc.dates.periodEnd(q.period || '2026-08')).map(e => [e.id, e.name]) }, ...(q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh' }] : [])]), ...(TH.auth.can('shares.view') ? [{ name: 'shareholder', label: 'Cổ đông', options: S.all('shareholders').filter(x => !x.common).map(x => [x.id, x.code + ' · ' + x.name]) }] : []), { name: 'building', label: 'Tòa', options: K.buildingOpts() }].filter(x => !used.has(x.name)); return K.filters([{ name: 'period', label: 'Kỳ', options: periods(), value: '2026-08', all: false }, ...extra, ...common], q); };
   /* Phase 2 thêm các báo cáo vận hành / kinh doanh (UI-42 → UI-46) khi đã mở mốc 2 và có quyền reports.ops */
   const P2TABS = [['costs', 'Chi phí', '#/reports/costs'], ['amduong', 'Âm dương', '#/reports/amduong'], ['repairs', 'Sửa chữa', '#/reports/repairs'], ['rooms', 'Phòng vận hành', '#/reports/rooms'], ['sales', 'Khách & doanh số', '#/reports/sales']];
   TH.pages.reportTabs = (cur) => `<div class="subnav">${[['hub', 'Báo cáo', '#/reports'], ['total', 'Báo cáo tổng', '#/reports/total'], ['business', 'Báo cáo kinh doanh', '#/reports/business'], ['buildings', 'Báo cáo theo tòa', '#/reports/buildings'],
@@ -21,7 +21,7 @@
     ...(TH.ms.on('3') && TH.auth.can('forecast.view') ? [['forecast', 'Dự kiến LN', '#/reports/forecast']] : []),
     ...(TH.ms.on('3') && TH.auth.can('efficiency.view') ? [['efficiency', 'Hiệu quả vốn', '#/reports/efficiency']] : [])].map(([k, l, h]) => `<a class="${k === cur ? 'on' : ''}" href="${h}${keepQ(h)}">${l}</a>`).join('')}</div>`;
   /* Giữ bộ lọc chung (kỳ, khu vực, nhóm, quản lý, tòa) khi chuyển giữa các báo cáo (đặc tả UI-27) */
-  const keepQ = (h) => { const qq = (TH.router.parse ? TH.router.parse().query : {}) || {}; const p = ['period', 'area', 'group', 'manager', 'building'].filter(k => qq[k]).map(k => k + '=' + encodeURIComponent(qq[k])).join('&'); return p ? (h.includes('?') ? '&' : '?') + p : ''; };
+  const keepQ = (h) => { const qq = (TH.router.parse ? TH.router.parse().query : {}) || {}, used = new Set(String(h || '').split('?')[1]?.split('&').map(x => x.split('=')[0]).filter(Boolean) || []); const p = ['period', 'area', 'group', 'manager', 'leader', 'direct', 'shareholder', 'building'].filter(k => qq[k] && !used.has(k)).map(k => k + '=' + encodeURIComponent(qq[k])).join('&'); return p ? (h.includes('?') ? '&' : '?') + p : ''; };
 
   TH.router.handle('/reports', (root, p, q) => {
     const period = q.period || '2026-08';
@@ -83,7 +83,7 @@
   TH.pages.reportCellDrawer = cellDrawer;
   /* Thông tin bắt buộc trên file xuất (UI-27): tên báo cáo, kỳ, bộ lọc, phiên bản dữ liệu / thời điểm chốt, người xuất */
   const exportMeta = (rep, q, title) => {
-    const f = [q.area && 'Khu vực ' + ((S.get('areas', q.area) || {}).name || q.area), q.manager && 'Quản lý ' + ((Q.emp(q.manager) || {}).name || q.manager), q.building && 'Tòa ' + ((Q.building(q.building) || {}).code || q.building), q.group && 'Nhà ' + q.group, TH.auth.buildingScope() && 'Phạm vi tài khoản ' + TH.auth.buildingScope().size + ' tòa'].filter(Boolean);
+    const f = [q.area && 'Khu vực ' + ((S.get('areas', q.area) || {}).name || q.area), q.group && 'Nhà ' + q.group, q.manager && 'Quản lý ' + ((Q.emp(q.manager) || {}).name || q.manager), q.leader && 'Leader ' + ((Q.emp(q.leader) || {}).name || q.leader) + (q.direct === '1' ? ' (team trực tiếp)' : ' (cả nhánh)'), q.shareholder && 'Cổ đông ' + ((S.get('shareholders', q.shareholder) || {}).code || q.shareholder), q.building && 'Tòa ' + ((Q.building(q.building) || {}).code || q.building), TH.auth.buildingScope() && 'Phạm vi tài khoản ' + TH.auth.buildingScope().size + ' tòa'].filter(Boolean);
     const method = rep.type === 'business' ? (rep.bizMode === 'excel' ? 'Excel: chỉ loại cọc mới' : 'Phương án đề xuất OQ-10') : 'Excel / dòng tiền';
     const policy = rep.policySnapshot && rep.policySnapshot.businessReportMode;
     return [title + ' – ' + F.periodLabel(rep.period), ['Mẫu', 'SRC-04 dòng 3–61, cột TỔNG / NHÀ T / NHÀ S / NHÀ G'], ['Bộ lọc', f.join('; ') || 'Toàn hệ thống'],
@@ -102,7 +102,7 @@
     const v = cols.TOTAL;
     const title = type === 'total' ? 'Báo cáo tổng (LN dòng tiền)' : 'Báo cáo kinh doanh';
     root.innerHTML = TH.pages.reportTabs(type) + U.pageHead({ title, sub: `${F.periodLabel(period)} · mẫu SRC-04 dòng 3–61 · ${rep.parallel ? 'kỳ chạy song song Excel' : 'số web'}${filtered ? ' · đã lọc phạm vi' : ''}`, acts: [
-      U.btn({ label: 'Báo cáo theo tòa', icon: 'columns', href: `#/reports/buildings?period=${period}&type=${type}` }), U.btn({ label: 'Xuất Excel theo mẫu', icon: 'download', act: 'exp', perm: 'reports.export' })] })
+      U.btn({ label: 'Báo cáo theo tòa', icon: 'columns', href: `#/reports/buildings?period=${period}&type=${type}` + keepQ(`#/reports/buildings?period=${period}&type=${type}`) }), U.btn({ label: 'Xuất Excel theo mẫu', icon: 'download', act: 'exp', perm: 'reports.export' })] })
       + filterBar(q, type === 'business' && canCompare ? [{ name: 'mode', label: 'Cách tính', options: [['excel', 'Chính thức theo Excel (chỉ trừ cọc mới)'], ['gd', 'Đề xuất OQ-10 – chờ xác nhận']], value: 'excel', all: false }] : [])
       + (type === 'business' && mode === 'gd' ? U.note('warn', 'Phương án đề xuất OQ-10', 'Chỉ admin/kế toán dùng để đối chiếu; không phải số chính thức, không hiển thị cho cổ đông.') : '')
       + `<div class="grid grid-4 mt16 mb16">${U.kpi({ label: 'Tổng doanh thu', value: F.vnd(v.rev_total), icon: 'trending-up', tone: 'blue' })}${U.kpi({ label: 'Tổng chi phí (TCP)', value: F.vnd(v.tcp), cap: 'Giá vốn ' + F.vnd(v.gv) + ' · CPBH ' + F.vnd(v.cpbh), icon: 'coins', tone: 'amber' })}

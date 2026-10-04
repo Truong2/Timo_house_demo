@@ -27,7 +27,7 @@
     M.buildings.forEach(b => { const code = String(b.code).trim().toUpperCase(); const grp = 'TSG'.includes(code[0]) ? code[0] : b.group; const cur = bmap[code];
       bmap[code] = cur ? Object.assign({}, b, cur, { code, group: grp, ownerRent: cur.ownerRent || b.ownerRent, vendor: cur.vendor || b.vendor, level: cur.level || b.level, managerKey: cur.managerKey || b.managerKey }) : Object.assign({}, b, { code, group: grp }); });
     const UB = (c) => 'b_' + String(c).trim().toUpperCase();
-    const buildings = Object.values(bmap).map(b => ({ id: 'b_' + b.code, code: b.code, group: b.group, areaId: b.areaId, level: b.level, address: b.address, status: 'active',
+    const buildings = Object.values(bmap).map(b => ({ id: 'b_' + b.code, code: b.code, group: b.group, areaId: b.areaId, level: b.level, address: b.address, status: 'active', floorAreaM2: b.floorAreaM2 || null, businessRegistration: b.businessRegistration || '', features: b.features || '',
       template: b.template, accountId: accByTpl[b.template], ownerRent: b.ownerRent || 0, managerKey: b.managerKey,
       operatedFrom: '2024-' + String(1 + hash('op' + b.code) % 12).padStart(2, '0') + '-01', floors: 3 + hash('fl' + b.code) % 5, vendor: b.vendor || null }));
     const bByCode = {}; buildings.forEach(b => { bByCode[b.code] = b; });
@@ -51,7 +51,7 @@
       const demoRent = b.code === 'G17' && !b.ownerRent;
       const rent = b.ownerRent || (demoRent ? 40000000 : 0);
       const cycle = demoRent ? 1 : [1, 3, 3, 6][hash('cy' + b.code) % 4];
-      ownerContracts.push({ id: 'oc_' + b.code, code: 'HĐCN-' + b.code, buildingId: b.id, ownerId: oid, signDate: start, startDate: start, endDate: String(Number(start.slice(0, 4)) + 5) + start.slice(4), deposit: Math.round(rent * 2), payCycleMonths: cycle, payDay: 5, status: 'active' });
+      ownerContracts.push({ id: 'oc_' + b.code, code: 'HĐCN-' + b.code, buildingId: b.id, ownerId: oid, signDate: start, startDate: start, endDate: String(Number(start.slice(0, 4)) + 5) + start.slice(4), deposit: Math.round(rent * 2), payCycleMonths: cycle, payDay: 5, status: 'active', holdPriceTo: null, terms: '', operator: null, buildingFeatures: '', businessRegistration: '', sourceRef: 'Dữ liệu nguồn Excel', note: '' });
       if (rent) ownerRateVersions.push({ id: 'orv_' + b.code + '_1', contractId: 'oc_' + b.code, from: start, to: null, monthlyRent: rent, reason: demoRent ? 'Giá HĐ demo (tòa mới nhận, chưa có trong báo cáo T8)' : 'Giá theo HĐ (tiền thuê 1 tháng – báo cáo T8/2026)' });
     });
     col('owners', owners); col('ownerContracts', ownerContracts); col('ownerRateVersions', ownerRateVersions);

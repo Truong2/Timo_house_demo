@@ -72,21 +72,22 @@
 
   TH.router.handle('/hr', (root, p, q) => {
     const tab = q.tab === 'co-cau' && TH.ms.on('1B') ? 'co-cau' : 'nhan-vien';
-    const t = F.today();
+    const t = F.today(); let exportedStaff = [];
     if (tab === 'nhan-vien') {
       let rows = S.all('employees');
       if (!TH.calc.rbac.ROLES[TH.auth.role()] || TH.calc.rbac.ROLES[TH.auth.role()].scope === 'branch') { const br = TH.auth.branchOf(S.session.employeeId, t); rows = rows.filter(e => br.has(e.id)); }
       if (q.title) rows = rows.filter(e => e.title === q.title);
       if (q.status) rows = rows.filter(e => e.status === q.status);
       if (q.q) rows = rows.filter(e => K.match(q.q, e.name, e.code));
-      root.innerHTML = TH.pages.hrTabs('staff') + U.pageHead({ title: 'Nhân sự', sub: 'Phân công tòa có ngày hiệu lực là nguồn cho phân quyền, bộ lọc quản lý và bảng lương', acts: [U.btn({ label: 'Import nhân viên', icon: 'upload', href: '#/import?type=staff', perm: 'import.master' }), U.btn({ label: 'Thêm nhân sự', icon: 'user-plus', cls: 'btn-primary', act: 'add', perm: 'hr.manage' })] })
+      exportedStaff = rows;
+      root.innerHTML = TH.pages.hrTabs('staff') + U.pageHead({ title: 'Nhân sự', sub: 'Phân công tòa có ngày hiệu lực là nguồn cho phân quyền, bộ lọc quản lý và bảng lương', acts: [U.btn({ label: 'Xuất', icon: 'download', act: 'exp' }), U.btn({ label: 'Import nhân viên', icon: 'upload', href: '#/import?type=staff', perm: 'import.master' }), U.btn({ label: 'Thêm nhân sự', icon: 'user-plus', cls: 'btn-primary', act: 'add', perm: 'hr.manage' })] })
         + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Đang làm việc', value: rows.filter(e => e.status === 'active').length, icon: 'users' })}${U.kpi({ label: 'Vận hành (NVVH/TNVH/TPVH)', value: rows.filter(e => ['NVVH', 'TNVH', 'TPVH'].includes(e.title)).length, icon: 'building', tone: 'teal' })}
           ${U.kpi({ label: 'Kinh doanh', value: rows.filter(e => ['SALE', 'NVKD', 'TNKD'].includes(e.title)).length, icon: 'trending-up', tone: 'purple' })}${U.kpi({ label: 'Tòa chưa phân công', value: S.all('buildings').filter(b => !Q.managerOf(b.id)).length, icon: 'alert-triangle', tone: 'amber' })}</div>`
         + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Tên, mã NV' }, { name: 'title', label: 'Chức danh', options: Object.entries(CAT().titles) }, { name: 'status', label: 'Trạng thái', options: [['active', 'Đang làm'], ['left', 'Đã nghỉ']] }], q)
         + '<div class="mt16">' + K.tableCard('t', rows.length + ' nhân sự') + '</div>';
       K.bindFilters(root);
       U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: e => '#/hr/staff/' + e.id, cols: [
-        { key: 'code', label: 'Mã NV', render: e => esc(e.code) }, { key: 'name', label: 'Họ tên', render: e => `<b>${esc(e.name)}</b>` }, { key: 't', label: 'Chức danh', render: e => esc(titleLabel(e.title)) },
+        { key: 'code', label: 'Mã NV', render: e => esc(e.code) }, { key: 'name', label: 'Họ tên', render: e => `<b>${esc(e.name)}</b>` }, { key: 'dept', label: 'Phòng ban', render: e => esc(Q.departmentOf(e.id, t)) }, { key: 't', label: 'Chức danh', render: e => esc(titleLabel(e.title)) },
         { key: 'l', label: 'Leader', render: e => esc((Q.leaderOf(e.id, t) || {}).name || '–') }, { key: 'h', label: 'Ngày vào', render: e => F.date(e.hireDate) }, { key: 's', label: 'Thâm niên', render: e => seniority(e.hireDate) },
         { key: 'b', label: 'Tòa phụ trách', render: e => { const bs = S.all('assignments').filter(a => a.employeeId === e.id && (!a.to || a.to >= t) && a.from <= t).map(a => (Q.building(a.buildingId) || {}).code); return bs.length ? `<span class="small">${esc(bs.slice(0, 6).join(', '))}${bs.length > 6 ? ' +' + (bs.length - 6) : ''}</span>` : '–'; } },
         { key: 'r', label: 'Số phòng', num: true, render: e => roomsOf(e.id, t) || '–' },
@@ -99,6 +100,7 @@
         + (peopleView ? orgPeople(t) : orgBlueprint(t));
     }
     U.bind(root, {
+      exp: () => K.csv('nhan-su.csv', ['Mã NV', 'Họ tên', 'Phòng ban', 'Chức danh', 'Leader', 'Ngày vào', 'Thâm niên', 'Trạng thái', 'Tòa/phòng phụ trách'], exportedStaff.map(e => { const as = S.where('assignments', a => a.employeeId === e.id && a.from <= t && (!a.to || t <= a.to)); return [e.code, e.name, Q.departmentOf(e.id, t), titleLabel(e.title), (Q.leaderOf(e.id, t) || {}).name || '', e.hireDate, seniority(e.hireDate), e.status, as.map(a => (Q.building(a.buildingId) || {}).code + (a.roomId ? '/' + Q.roomCode(a.roomId) : '')).join(', ')]; })),
       add: () => K.formDrawer({ title: 'Thêm nhân sự', fields: [{ name: 'name', label: 'Họ tên', req: true }, { name: 'title', label: 'Chức danh', type: 'select', req: true, options: Object.entries(CAT().titles) }, { name: 'hireDate', label: 'Ngày vào làm', type: 'date', req: true, value: F.today() },
         { name: 'leaderId', label: 'Leader trực tiếp', type: 'select', options: S.all('employees').map(e => [e.id, e.name + ' – ' + titleLabel(e.title)]) }, { name: 'phone', label: 'SĐT' },
         ...(salaryOn() ? [{ name: 'baseSalary', label: 'Lương cứng', type: 'money' }, { name: 'lunch', label: 'Phụ cấp ăn trưa', type: 'money' }, { name: 'fuel', label: 'Phụ cấp xăng xe', type: 'money' }] : [])], onSubmit: (d) => { X.addEmployee(d); U.toast('ok', 'Đã thêm nhân sự'); } }),

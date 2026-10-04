@@ -111,7 +111,7 @@
     return S.atomic(()=>{
       const v=d.data,L=check.links;let owner=L.party,building=L.building,contract=L.contract,stay=L.stay;
       if(d.kind==='owner'){
-        if(!building)building=X.addBuilding({code:I.code(v.buildingCode),address:v.buildingAddress,areaId:v.areaId,managerId:v.managerId,floors:v.floors,operatedFrom:v.startDate,rooms:0,note:[v.buildingFeatures,v.businessRegistration].filter(Boolean).join(' · ')});
+        if(!building)building=X.addBuilding({code:I.code(v.buildingCode),address:v.buildingAddress,areaId:v.areaId,managerId:v.managerId,floors:v.floors,floorAreaM2:v.area,operatedFrom:v.startDate,rooms:0,features:v.buildingFeatures,businessRegistration:v.businessRegistration});
         else if(d.existingChoices?.buildingAddress==='source'&&!same(building.address,v.buildingAddress))X.updateBuilding(building.id,{address:v.buildingAddress});
         for(const r of d.rooms)if(!S.one('rooms',x=>I.code(x.code)===I.roomCode(r.number,v.buildingCode)))X.addRoom(building.id,r);
         if(!contract){
@@ -120,9 +120,10 @@
           const ownerPatch={partyType:v.partyType||owner.partyType||null,relatedPersons:v.relatedPersons||owner.relatedPersons||''};
           for(const [key,value] of [['name',v.name],['phone',v.phone],['idNo',v.idNo],['bank',v.bank],['address',v.partyAddress]])if(value!=null&&value!==''&&(!owner[key]||d.existingChoices?.[key==='address'?'partyAddress':key]==='source'))ownerPatch[key]=value;
           S.update('owners',owner.id,ownerPatch);
-          S.update('ownerContracts',contract.id,{intakeId:d.id,contractCode:v.contractCode,signDate:v.signDate,handoverDate:v.handoverDate,operator:{name:v.operatorName,idNo:v.operatorIdNo,phone:v.operatorPhone},terms:v.terms,holdPriceTo:v.holdPriceTo,dueFromDay:v.dueFromDay,dueDay:v.dueDay,dueMonthOffset:v.dueMonthOffset,depositPaidDeclared:v.depositPaid??null,buildingFeatures:v.buildingFeatures,businessRegistration:v.businessRegistration,sourceFiles:d.files});
+          S.update('ownerContracts',contract.id,{intakeId:d.id,contractCode:v.contractCode,signDate:v.signDate,handoverDate:v.handoverDate,operator:{name:v.operatorName,idNo:v.operatorIdNo,phone:v.operatorPhone},terms:v.terms,holdPriceTo:v.holdPriceTo,dueFromDay:v.dueFromDay,dueDay:v.dueDay,dueMonthOffset:v.dueMonthOffset,depositPaidDeclared:v.depositPaid??null,buildingFeatures:v.buildingFeatures,businessRegistration:v.businessRegistration,sourceRef:d.sources?.[0]?.name||'Hồ sơ intake '+d.id,sourceFiles:d.files});
         }
         else if(L.party){const patch={};for(const [key,value] of [['name',v.name],['phone',v.phone],['idNo',v.idNo],['bank',v.bank],['address',v.partyAddress]])if(value!=null&&value!==''&&(!L.party[key]||d.existingChoices?.[key==='address'?'partyAddress':key]==='source'))patch[key]=value;if(Object.keys(patch).length)S.update('owners',L.party.id,patch);}
+        const bp={}; if(v.area)bp.floorAreaM2=v.area;if(v.buildingFeatures)bp.features=v.buildingFeatures;if(v.businessRegistration)bp.businessRegistration=v.businessRegistration;if(v.handoverDate||v.startDate)bp.operatedFrom=v.handoverDate||v.startDate;if(Object.keys(bp).length)X.updateBuildingProfile(building.id,bp);
       }else if(!stay){
         if(L.building&&d.existingChoices?.buildingAddress==='source'&&!same(L.building.address,v.buildingAddress))X.updateBuilding(L.building.id,{address:v.buildingAddress});
         stay=X.createStay({...v,roomId:L.room.id,customerId:L.party?.id,dealDate:v.signDate,rentStart:v.startDate,openingDepositDate:v.openingAsOf,confirmedContract:true,items:d.items});

@@ -14,6 +14,7 @@
     const group = F.groupOf(code) || d.group || 'S';
     const tpl = { T: 'TECH', G: 'G1_TECH', S: 'VP' }[group];
     const b = S.add('buildings', { id: 'b_' + code, code, group, areaId: d.areaId, address: d.address.trim(), status: 'active', floors: Number(d.floors) || null,
+      floorAreaM2: d.floorAreaM2 === '' || d.floorAreaM2 == null ? null : Number(d.floorAreaM2), businessRegistration: d.businessRegistration || '', features: d.features || '',
       template: tpl, accountId: (S.one('accounts', a => a.template === tpl) || {}).id, ownerRent: 0, operatedFrom: d.operatedFrom || F.today(), note: d.note || '' });
     S.add('assignments', { employeeId: d.managerId, buildingId: b.id, responsibility: 'operate', from: d.operatedFrom || F.today(), to: null, reason: 'Nhận tòa mới' });
     const n = Number(d.rooms) || 0, floors = Number(d.floors) || 1;
@@ -32,19 +33,22 @@
     if (d.address != null && !String(d.address).trim()) errs.address = 'Nhập địa chỉ';
     if (d.areaId != null && d.areaId !== '' && !S.get('areas', d.areaId)) errs.areaId = 'Chọn khu vực';
     if (d.floors != null && d.floors !== '' && !(Number(d.floors) >= 1 && Number(d.floors) <= 60)) errs.floors = 'Số tầng từ 1 đến 60';
+    if (d.floorAreaM2 != null && d.floorAreaM2 !== '' && !(Number(d.floorAreaM2) > 0)) errs.floorAreaM2 = 'Diện tích sàn phải lớn hơn 0';
     if (d.group && !['T', 'S', 'G'].includes(d.group)) errs.group = 'Nhóm T/S/G';
     if (d.status && !['active', 'inactive'].includes(d.status)) errs.status = 'Trạng thái không hợp lệ';
     if (d.status === 'inactive' && (Q.roomsByBuilding()[id] || []).some(r => Q.currentStay(r.id) || Q.pendingStay(r.id))) errs.status = 'Tòa còn lượt thuê hiệu lực – kết thúc lượt thuê trước khi ngừng khai thác';
     if (Object.keys(errs).length) { const e = new Error('Dữ liệu chưa hợp lệ'); e.fields = errs; throw e; }
     const patch = {};
-    ['address', 'areaId', 'operatedFrom', 'level', 'note', 'status', 'group', 'template', 'accountId'].forEach(k => { if (d[k] != null && d[k] !== '') patch[k] = typeof d[k] === 'string' ? d[k].trim() : d[k]; });
+    ['address', 'areaId', 'operatedFrom', 'level', 'note', 'status', 'group', 'template', 'accountId', 'businessRegistration', 'features'].forEach(k => { if (d[k] != null) patch[k] = typeof d[k] === 'string' ? d[k].trim() : d[k]; });
     if (d.floors != null && d.floors !== '') patch.floors = Number(d.floors);
+    if (d.floorAreaM2 != null) patch.floorAreaM2 = d.floorAreaM2 === '' ? null : Number(d.floorAreaM2);
     if (patch.status === 'inactive') (Q.roomsByBuilding()[id] || []).forEach(r => S.update('rooms', r.id, { status: 'inactive' }));
     if (patch.status === 'active' && b.status === 'inactive') (Q.roomsByBuilding()[id] || []).forEach(r => { if (r.status === 'inactive') S.update('rooms', r.id, { status: 'vacant_cleaning' }); });
     const changed = Object.keys(patch).filter(k => String(patch[k] ?? '') !== String(b[k] ?? ''));
     S.update('buildings', id, patch);
     _.audit('update', 'building', id, `Sửa tòa ${b.code}: ${changed.join(', ') || 'không đổi'}`); _.done(); return Q.building(id);
   };
+  X.updateBuildingProfile = (id, data) => X.updateBuilding(id, data);
   X.addRoom = (buildingId, d) => {
     _.need('buildings.manage');
     const b = Q.building(buildingId); const num = String(d.number ?? '').trim().toUpperCase();
@@ -144,10 +148,23 @@
     _.guardEffective(d.startDate, 'HĐ chủ nhà');
     const owner = d.ownerId ? S.get('owners', d.ownerId) : S.add('owners', { name: d.ownerName.trim(), phone: d.ownerPhone || '', idNo: d.ownerIdNo || '', bank: d.ownerBank || '' });
     const code = d.code || 'HĐCN-' + b.code + (S.where('ownerContracts', c => c.buildingId === b.id).length ? '-' + (S.where('ownerContracts', c => c.buildingId === b.id).length + 1) : '');
-    const oc = S.add('ownerContracts', { id: 'oc_' + code, code, buildingId: b.id, ownerId: owner.id, signDate: d.signDate || d.startDate, startDate: d.startDate, endDate: d.endDate, deposit: Number(d.deposit) || 0, payCycleMonths: Number(d.payCycleMonths), payDay, dueMonthOffset:Number(d.dueMonthOffset)||0, status: 'active', source: 'web' });
+    const oc = S.add('ownerContracts', { id: 'oc_' + code, code, buildingId: b.id, ownerId: owner.id, signDate: d.signDate || d.startDate, startDate: d.startDate, endDate: d.endDate, deposit: Number(d.deposit) || 0, payCycleMonths: Number(d.payCycleMonths), payDay, dueMonthOffset:Number(d.dueMonthOffset)||0, status: 'active', source: 'web',
+      holdPriceTo: d.holdPriceTo || null, terms: d.terms || '', operator: d.operator || (d.operatorName || d.operatorPhone || d.operatorIdNo ? { name: d.operatorName || '', phone: d.operatorPhone || '', idNo: d.operatorIdNo || '' } : null), buildingFeatures: d.buildingFeatures || '', businessRegistration: d.businessRegistration || '', sourceRef: d.sourceRef || 'Nhập trên web', note: d.note || '' });
     S.add('ownerRateVersions', { contractId: oc.id, from: d.startDate, to: null, monthlyRent: Number(d.monthlyRent), reason: 'Giá theo HĐ gốc' });
     const n = X.buildOwnerSchedule(oc.id);
     _.audit('create', 'ownerContract', oc.id, `HĐ chủ nhà ${code} tòa ${b.code}: ${F.vnd(Number(d.monthlyRent))}/tháng, ${n} kỳ trả`); _.done(); return oc;
+  };
+  X.updateOwnerContractMeta = (id, d) => {
+    _.need('owners.manage');
+    const oc = S.get('ownerContracts', id); if (!oc) throw new Error('Không tìm thấy hợp đồng chủ nhà');
+    if (!TH.auth.inScope(oc.buildingId)) throw new Error('Hợp đồng ngoài phạm vi được giao');
+    const before = {}; const patch = {};
+    ['holdPriceTo', 'terms', 'buildingFeatures', 'businessRegistration', 'sourceRef', 'note'].forEach(k => { if (d[k] != null) { before[k] = oc[k] || ''; patch[k] = typeof d[k] === 'string' ? d[k].trim() : d[k]; } });
+    patch.operator = { name: String(d.operatorName || '').trim(), idNo: String(d.operatorIdNo || '').trim(), phone: String(d.operatorPhone || '').trim() };
+    before.operator = oc.operator || null;
+    S.update('ownerContracts', id, patch);
+    _.audit('update', 'ownerContract', id, `Cập nhật thông tin bổ sung HĐ ${oc.code}`, { before, after: patch, reason: d.reason || 'Cập nhật hồ sơ', sourceRef: patch.sourceRef || oc.sourceRef || 'web' });
+    _.done(); return S.get('ownerContracts', id);
   };
   X.ownerRentAt = (contractId, date) => { const v = S.where('ownerRateVersions', x => x.contractId === contractId && x.from <= date && (!x.to || date <= x.to))[0]; return v ? v.monthlyRent : 0; };
   /* Khách của chủ nhà đã đóng thẳng cho chủ (UI-03/UI-05, §3.12e, OQ-14): ghi "Chủ nhà đã thu" trên hóa đơn

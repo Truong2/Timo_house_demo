@@ -9,7 +9,8 @@
     { name: 'address', label: 'Địa chỉ', req: true, span: true },
     { name: 'managerId', label: 'Quản lý vận hành', type: 'select', req: true, options: S.all('employees').filter(e => ['NVVH', 'TNVH', 'TPVH'].includes(e.title)).map(e => [e.id, e.name]) },
     { name: 'operatedFrom', label: 'Ngày nhận nhà', type: 'date', value: F.today() },
-    { name: 'floors', label: 'Số tầng', type: 'number' }, { name: 'rooms', label: 'Số phòng tạo sẵn', type: 'number', help: 'Có thể thêm/sửa phòng sau' },
+    { name: 'floors', label: 'Số tầng', type: 'number' }, { name: 'floorAreaM2', label: 'Tổng diện tích sàn (m²)', type: 'number' }, { name: 'rooms', label: 'Số phòng tạo sẵn', type: 'number', help: 'Có thể thêm/sửa phòng sau' },
+    { name: 'businessRegistration', label: 'Đăng ký kinh doanh / PCCC', type: 'textarea', span: true }, { name: 'features', label: 'Đặc điểm tòa / tài sản bàn giao', type: 'textarea', span: true },
     { name: 'note', label: 'Ghi chú', type: 'textarea', span: true },
   ], submit: 'Lưu tòa', onSubmit: (d) => { const b = X.addBuilding(d); U.toast('ok', 'Đã thêm tòa ' + b.code); TH.go('#/buildings/' + b.id); } });
 
@@ -20,11 +21,12 @@
   const editBuilding = (b) => K.formDrawer({ title: 'Sửa hồ sơ tòa ' + b.code, sub: 'Mã tòa không đổi; ngừng khai thác thay cho xóa', fields: [
     { name: 'areaId', label: 'Khu vực', type: 'select', req: true, options: K.areaOpts(), value: b.areaId }, { name: 'group', label: 'Nhóm T/S/G', type: 'select', options: [['T', 'Nhà T'], ['S', 'Nhà S'], ['G', 'Nhà G']], value: b.group, help: 'Mặc định theo tiền tố mã tòa' },
     { name: 'address', label: 'Địa chỉ', req: true, span: true, value: b.address },
-    { name: 'floors', label: 'Số tầng', type: 'number', value: b.floors || '' }, { name: 'operatedFrom', label: 'Ngày nhận vận hành', type: 'date', value: b.operatedFrom || '' },
+    { name: 'floors', label: 'Số tầng', type: 'number', value: b.floors || '' }, { name: 'floorAreaM2', label: 'Tổng diện tích sàn (m²)', type: 'number', value: b.floorAreaM2 || '' }, { name: 'operatedFrom', label: 'Ngày nhận vận hành', type: 'date', value: b.operatedFrom || '' },
     { name: 'level', label: 'Tình trạng nhà', type: 'select', options: [...new Set([...LEVELS, b.level].filter(Boolean))].map(x => [x, x]), value: b.level || '' },
     { name: 'status', label: 'Trạng thái', type: 'select', options: [['active', 'Đang khai thác'], ['inactive', 'Ngừng khai thác']], value: b.status, help: 'Ngừng khai thác chỉ khi không còn lượt thuê hiệu lực' },
+    { name: 'businessRegistration', label: 'Đăng ký kinh doanh / PCCC', type: 'textarea', span: true, value: b.businessRegistration || '' }, { name: 'features', label: 'Đặc điểm tòa / tài sản bàn giao', type: 'textarea', span: true, value: b.features || '' },
     { name: 'note', label: 'Ghi chú', type: 'textarea', span: true, value: b.note || '' }],
-    submit: 'Lưu', onSubmit: (d) => { X.updateBuilding(b.id, d); U.toast('ok', 'Đã lưu hồ sơ tòa'); } });
+    submit: 'Lưu', onSubmit: (d) => { X.updateBuildingProfile(b.id, d); U.toast('ok', 'Đã lưu hồ sơ tòa'); } });
   /* UI-03 E02 sửa phòng */
   const editRoom = (room, after) => K.formDrawer({ title: 'Sửa phòng ' + room.code, sub: 'Đổi giá cần ngày hiệu lực – giữ lịch sử giá', fields: [
     { name: 'floor', label: 'Tầng', type: 'number', value: room.floor ?? '' }, { name: 'type', label: 'Loại phòng', type: 'select', options: [...new Set(['Phòng đơn', 'Studio', 'Phòng đôi', room.type].filter(Boolean))].map(x => [x, x]), value: room.type || '' },
@@ -76,7 +78,7 @@
       ...(rep ? [{ key: 'lnr', label: 'LN ' + F.periodShort(S.meta.period), num: true, sortable: true, sortVal: r => r.lnr || 0, render: r => r.lnr == null ? '–' : `<b class="${r.lnr < 0 ? 'red' : ''}">${F.vnd(r.lnr)}</b>` }] : []),
       { key: 'st', label: 'Trạng thái', render: r => r.b.status === 'active' ? U.chip('Đang khai thác', 'green', true) : U.chip('Ngừng khai thác', 'gray', true) },
     ] });
-    U.bind(root, { add: addBuilding, export: () => K.csv('toa-nha.csv', ['Mã tòa', 'Loại', 'Địa chỉ', 'Quản lý', 'Số phòng', 'Đang ở', 'Trống'], rows.map(r => [r.b.code, r.b.group, r.b.address, r.mgr ? r.mgr.name : '', r.rooms, r.occ, r.vac])) });
+    U.bind(root, { add: addBuilding, export: () => K.csv('toa-nha.csv', ['Mã tòa', 'Loại', 'Địa chỉ', 'Khu vực', 'Tổng diện tích sàn (m²)', 'Ngày nhận vận hành', 'ĐKKD / PCCC', 'Quản lý', 'Số phòng', 'Đang ở', 'Trống'], rows.map(r => [r.b.code, r.b.group, r.b.address, r.area, r.b.floorAreaM2 || '', r.b.operatedFrom || '', r.b.businessRegistration || '', r.mgr ? r.mgr.name : '', r.rooms, r.occ, r.vac])) });
     if (q.open === 'new') addBuilding();
   });
 
@@ -130,7 +132,7 @@
       const byStatus = {}; rooms.forEach(r => { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
       body.innerHTML = `<div class="two-col"><div class="side-stack">${U.card({ title: 'Tình trạng phòng', icon: 'door', body: `<div class="row wrap gap12">${Object.entries(byStatus).map(([k, v]) => `<div class="stat-tile">${K.roomChip(k)}<b class="mt4" style="display:block;font-size:20px">${v}</b></div>`).join('')}</div>` })}
         ${U.card({ title: 'Hóa đơn kỳ ' + F.periodShort(period), icon: 'receipt', body: `<div class="row wrap gap12">${Object.entries(TH.calc.payments.STATUS).map(([k]) => { const n = invs.filter(i => Q.invState(i).status === k).length; return n ? `<div class="stat-tile">${K.payChip(k)}<b class="mt4" style="display:block;font-size:20px">${n}</b></div>` : ''; }).join('')}</div><a class="btn btn-ghost btn-sm mt12" href="#/billing/invoices?building=${b.id}&period=${period}">Xem hóa đơn tòa</a>` })}</div>
-        <div class="side-stack">${U.card({ title: 'Thông tin tòa', icon: 'info', body: U.kv([['Mã tòa', esc(b.code)], ['Loại', 'Nhà ' + b.group + ' (tiền tố mã)'], ['Khu vực', esc((S.get('areas', b.areaId) || {}).name || '')], ['Số tầng', b.floors || '–'], ['Nhận nhà', F.date(b.operatedFrom)], ['Mức tòa', b.level || '–']]) })}</div></div>`;
+        <div class="side-stack">${U.card({ title: 'Thông tin tòa', icon: 'info', body: U.kv([['Mã tòa', esc(b.code)], ['Loại', 'Nhà ' + b.group + ' (tiền tố mã)'], ['Khu vực', esc((S.get('areas', b.areaId) || {}).name || '')], ['Số tầng', b.floors || '–'], ['Tổng diện tích sàn', b.floorAreaM2 ? F.num0(b.floorAreaM2) + ' m²' : 'Chưa có dữ liệu'], ['Nhận vận hành', b.operatedFrom ? F.date(b.operatedFrom) : 'Chưa có dữ liệu'], ['ĐKKD / PCCC', esc(b.businessRegistration || 'Chưa có dữ liệu')], ['Đặc điểm / tài sản bàn giao', esc(b.features || 'Chưa có dữ liệu')], ['Mức tòa', b.level || '–']]) })}</div></div>`;
     }
     if (tab === 'phong') {
       body.innerHTML = K.filters([{ name: 'rs', label: 'Trạng thái', options: Object.entries(TH.data.catalog.roomStatuses).map(([k, v]) => [k, v.label]) }], q, '') + '<div class="mt12">' + K.tableCard('rt', 'Danh sách phòng') + '</div>';
@@ -158,7 +160,9 @@
         { name: 'ownerPhone', label: 'SĐT chủ nhà' }, { name: 'ownerBank', label: 'Tài khoản nhận tiền' },
         { name: 'startDate', label: 'Ngày bắt đầu', type: 'date', req: true, value: F.today() }, { name: 'endDate', label: 'Ngày kết thúc', type: 'date', req: true, value: F.addDays(F.addMonths(F.today(), 60), -1) },
         { name: 'monthlyRent', label: 'Giá thuê/tháng', type: 'money', req: true }, { name: 'deposit', label: 'Cọc chủ nhà', type: 'money' },
-        { name: 'payCycleMonths', label: 'Kỳ trả', type: 'select', req: true, value: '3', options: [['1', '1 tháng'], ['2', '2 tháng'], ['3', '3 tháng'], ['6', '6 tháng'], ['12', '12 tháng']] }, { name: 'payDay', label: 'Hạn trả (ngày đầu kỳ)', type: 'number', value: 5 }],
+        { name: 'payCycleMonths', label: 'Kỳ trả', type: 'select', req: true, value: '3', options: [['1', '1 tháng'], ['2', '2 tháng'], ['3', '3 tháng'], ['6', '6 tháng'], ['12', '12 tháng']] }, { name: 'payDay', label: 'Hạn trả (ngày đầu kỳ)', type: 'number', value: 5 },
+        { name: 'holdPriceTo', label: 'Giữ giá đến ngày', type: 'date' }, { name: 'sourceRef', label: 'Nguồn / mã hồ sơ', value: 'Nhập trên web' }, { name: 'operatorName', label: 'Bên thuê khai thác' }, { name: 'operatorPhone', label: 'SĐT bên khai thác' },
+        { name: 'terms', label: 'Thuế / PCCC / điều khoản', type: 'textarea', span: true }, { name: 'buildingFeatures', label: 'Đặc điểm / tài sản bàn giao', type: 'textarea', span: true }, { name: 'businessRegistration', label: 'ĐKKD / PCCC', type: 'textarea', span: true }, { name: 'note', label: 'Ghi chú', type: 'textarea', span: true }],
         submit: 'Tạo HĐ', onSubmit: (x) => { const c = X.addOwnerContract(Object.assign(x, { buildingId: b.id })); U.toast('ok', 'Đã tạo ' + c.code); TH.go('#/owners/' + c.id); } });
       U.bind(body, { addoc: addOc });
       body.innerHTML = oc ? `<div class="two-col"><div>${U.card({ title: 'Hợp đồng thuê đầu vào ' + esc(oc.code), icon: 'file-text', actions: `<a class="btn btn-ghost btn-sm" href="#/owners/${oc.id}">Mở chi tiết</a>`, body: U.kv([['Chủ nhà', esc(own.name)], ['Hiệu lực', F.date(oc.startDate) + ' → ' + F.date(oc.endDate)], ['Giá thuê hiện hành', F.vndd(X.ownerRentAt(oc.id, F.today()))], ['Cọc chủ nhà', F.vndd(oc.deposit)], ['Kỳ trả', oc.payCycleMonths + ' tháng/lần, hạn ngày ' + oc.payDay]]) })}</div>

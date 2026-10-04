@@ -11,6 +11,20 @@
     return TH.f.hash(sig);
   };
   const defaultMeta = () => ({ today: TH.f.DEMO_TODAY, period: '2026-09', milestone: '3', prefs: {}, seedHash: seedHash() });
+  /* Migration nhẹ, idempotent: chỉ chuyển các trường có cấu trúc của intake đã duyệt; không đọc/đoán từ ghi chú tự do. */
+  const migrateWorkbookFields = () => {
+    let changed = false;
+    (S.state.ownerContracts || []).filter(c => c.intakeId).forEach(c => {
+      const b = (S.state.buildings || []).find(x => x.id === c.buildingId); if (!b) return;
+      const patch = {};
+      if (!b.features && c.buildingFeatures) patch.features = c.buildingFeatures;
+      if (!b.businessRegistration && c.businessRegistration) patch.businessRegistration = c.businessRegistration;
+      if (!b.operatedFrom && c.handoverDate) patch.operatedFrom = c.handoverDate;
+      if (!Object.keys(patch).length) return;
+      Object.assign(b, patch); (S._dirty.buildings = S._dirty.buildings || {})[b.id] = b; changed = true;
+    });
+    return changed;
+  };
 
   S.load = () => {
     S.state = TH.seed.build();
@@ -35,8 +49,10 @@
       if (saved && saved.meta && saved.meta.seedHash !== seedHash()) S.seedChanged = true;
       S.meta = defaultMeta(); S.session = saved && saved.session || null; S._dirty = {};
     }
+    const migrated = migrateWorkbookFields();
     S.applyCatalog();
     S.version++;
+    if (migrated) S.saveNow();
   };
   /* Danh mục mở rộng (UI-38): mục bổ sung / ngừng dùng lưu ở collection catalogItems, phủ lên TH.data.catalog để mọi nơi đọc catalog không phải sửa.
      Dòng báo cáo và 13 loại phí hóa đơn là cấu trúc mẫu – cố định. */

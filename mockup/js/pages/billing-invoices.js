@@ -70,15 +70,8 @@
 
   TH.router.handle('/billing/invoices', (root, p, q) => {
     const period = q.period || S.meta.period;
-    let rows = Q.scoped(Q.invoicesOf(period));
-    const all = rows;
-    if (q.building) rows = rows.filter(i => i.buildingId === q.building);
-    if (q.group) rows = rows.filter(i => (Q.building(i.buildingId) || {}).group === q.group);
-    if (q.life) rows = rows.filter(i => i.lifecycle === q.life);
-    if (q.pay) rows = rows.filter(i => Q.invState(i).status === q.pay);
-    if (q.kind === 'new') rows = rows.filter(i => i.isNewStay); if (q.kind === 'breach') rows = rows.filter(i => i.isBreach);
-    if (q.manager) { const mm = Q.managerMap(); rows = rows.filter(i => (mm[i.buildingId] || {}).id === q.manager); }
-    if (q.q) rows = rows.filter(i => K.match(q.q, i.code, i.customerCode, Q.roomCode(i.roomId)));
+    const detailed = Q.scoped(Q.invoiceRows(Object.assign({}, q, { period })));
+    const rows = detailed.map(x => x.invoice), detailOf = Object.fromEntries(detailed.map(x => [x.invoice.id, x]));
     const money = TH.auth.can('debts.viewAmounts');
     const st = (i) => Q.invState(i);
     const tot = (f) => rows.reduce((s, i) => s + f(i), 0);
@@ -89,12 +82,14 @@
         ${U.kpi({ label: 'Tổng cần đóng', value: money ? F.vnd(tot(i => i.totalDue)) : '•••', icon: 'coins', tone: 'blue' })}${U.kpi({ label: 'Đã thu', value: money ? F.vnd(tot(i => Math.min(i.totalDue, st(i).paid))) : '•••', cap: rows.filter(i => ['DU', 'THUA'].includes(st(i).status)).length + ' hóa đơn đủ/thừa', icon: 'check-circle', tone: 'green' })}
         ${U.kpi({ label: 'Còn nợ', value: money ? F.vnd(tot(i => st(i).remaining)) : '•••', cap: rows.filter(i => st(i).remaining > 0).length + ' hóa đơn', icon: 'alert-triangle', tone: 'red' })}</div>`
       + K.filters([{ name: 'period', label: 'Kỳ', options: periodOpts(), value: period, all: false }, { name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã HĐ, mã KH, phòng…' }, { name: 'building', label: 'Tòa', options: K.buildingOpts() }, { name: 'group', label: 'T/S/G', options: K.groupOpts() },
-        { name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'life', label: 'Vòng đời', options: [['draft', 'Nháp'], ['issued', 'Đã phát hành'], ['adjusted', 'Đã điều chỉnh']] },
-        { name: 'pay', label: 'Trạng thái thu', options: Object.entries(TH.calc.payments.STATUS).map(([k, v]) => [k, v.label + ' – ' + v.web]) }, { name: 'kind', label: 'Loại', options: [['new', 'Phòng mới'], ['breach', 'Phá HĐ']] }], q)
+        { name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'leader', label: 'Leader', options: Q.teamLeaders().map(e => [e.id, e.name]) }, ...(q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh' }] : []), { name: 'life', label: 'Vòng đời', options: [['draft', 'Nháp'], ['issued', 'Đã phát hành'], ['adjusted', 'Đã điều chỉnh']] },
+        { name: 'pay', label: 'Trạng thái thu', options: Object.entries(TH.calc.payments.STATUS).map(([k, v]) => [k, v.label + ' – ' + v.web]) }, { name: 'dueStatus', label: 'Hạn thanh toán', options: [['overdue', 'Quá hạn'], ['due', 'Đến hạn ≤ 7 ngày'], ['not_due', 'Chưa đến hạn'], ['paid', 'Đã thanh toán']] }, { name: 'dueFrom', type: 'date', label: 'Hạn từ' }, { name: 'dueTo', type: 'date', label: 'Hạn đến' }, { name: 'kind', label: 'Loại', options: [['new', 'Phòng mới'], ['breach', 'Phá HĐ']] }], q)
       + '<div class="mt16">' + K.tableCard('t', `${rows.length} hóa đơn`, '', 'Trạng thái thu theo cột "Tình trạng" của Excel: Chưa TT / Thiếu / Đủ / Thừa') + '</div>';
     K.bindFilters(root, ['period']);
     const tbl = U.table(root.querySelector('#t'), { rows, pageSize: 25, selectable: TH.auth.can('invoices.issue'), selectableIf: i => i.lifecycle === 'draft', rowHref: i => '#/billing/invoices/' + i.id, cols: [
       { key: 'code', label: 'Mã KH / phòng', sortable: true, sortVal: i => i.customerCode, render: i => U.cell2(`<b>${esc(i.customerCode)}</b>`, esc(Q.roomCode(i.roomId)) + ' · ' + esc((Q.building(i.buildingId) || {}).code)) },
+      { key: 'mgr', label: 'Quản lý / leader', render: i => { const x = detailOf[i.id]; return U.cell2(esc((x.manager || {}).name || 'Chưa phân công'), esc((x.leader || {}).name || 'Chưa có leader')); } },
+      { key: 'contract', label: 'Giá thuê / niêm yết', num: true, render: i => { const x = detailOf[i.id]; return money ? U.cell2(F.vnd((x.stay || {}).rent || 0) + ' / ' + F.vnd((x.room || {}).listPrice || 0), 'Cọc ' + F.vnd((x.stay || {}).depositAmount || 0) + ' · ' + ((x.stay || {}).payMonths || 1) + ' tháng/lần') : '•••'; } },
       { key: 'k', label: 'Loại', render: i => [i.isNewStay ? U.chip('Phòng mới', 'blue') : '', i.isBreach ? U.chip('Phá HĐ', 'red') : '', i.kind === 'opening' ? U.chip('Số dư đầu kỳ', 'gray') : '', i.kind === 'deposit_excess' ? U.chip('Vượt cọc', 'purple') : '', i.ownerSettled ? U.chip('Chủ nhà đã thu', 'teal') : X.isOwnerTenantInv(i) ? U.chip('Khách chủ nhà', 'gray') : '', Q.prorataFlag(i) ? U.chip('Lệch tháng lẻ', 'amber') : '', i.excel && !i.isBreach && Math.abs(i.excel.total - i.totalDue) > 1 ? U.chip('Lệch Excel nguồn', 'amber') : ''].join(' ') },
       { key: 'tpl', label: 'Mẫu in', render: i => `<span class="small">${esc(B.TEMPLATES[i.template].name)}</span>` },
       { key: 'due', label: 'Tổng cần đóng', num: true, sortable: true, sortVal: i => i.totalDue, render: i => money ? F.vnd(i.totalDue) : '•••' },
@@ -102,12 +97,12 @@
       { key: 'rem', label: 'Còn nợ / dư', num: true, sortable: true, sortVal: i => st(i).remaining - st(i).credit, render: i => { const x = st(i); return x.remaining > 0 ? `<b class="red">${money ? F.vnd(x.remaining) : 'Còn nợ'}</b>` : x.credit > 0 ? `<span class="blue">dư ${money ? F.vnd(x.credit) : ''}</span>` : '0'; } },
       { key: 'last', label: 'Ngày thu', render: i => st(i).lastPaid ? F.date(st(i).lastPaid) : '–' },
       { key: 'life', label: 'Vòng đời', render: i => K.lifeChip(i.lifecycle) }, { key: 'st', label: 'Trạng thái thu', render: i => i.lifecycle === 'draft' ? '' : K.payChip(st(i).status) },
-      { key: 'debt', label: 'Hạn / công nợ', render: i => K.debtChip(st(i).debt) },
+      { key: 'debt', label: 'Thời hạn / công nợ', render: i => { const x = detailOf[i.id]; return U.cell2((i.dueFrom ? F.date(i.dueFrom) + ' → ' : '') + F.date(x.dueDate), K.debtChip(st(i).debt)); } },
     ] });
     U.bind(root, {
       wizard: () => wizard(q),
       issueall: async () => { const sel = tbl.selected(); const ids = sel.length ? sel : drafts.map(i => i.id); const ok = await U.confirm({ title: 'Phát hành hóa đơn', text: `Phát hành ${ids.length} hóa đơn nháp? Sau phát hành giá được chụp lại (snapshot), sửa bằng điều chỉnh có lý do.`, ok: 'Phát hành' }); if (!ok) return; const r = K.act(() => X.issueInvoices(ids)); if (r) U.toast(r.errs.length ? 'warn' : 'ok', `Đã phát hành ${r.issued} hóa đơn`, r.errs.slice(0, 3).join(' · ')); },
-      exp: () => K.csv(`hoa-don-${period}.csv`, ['Mã KH', 'Phòng', 'Tòa', 'Mẫu', 'Tổng cần đóng', 'Đã đóng', 'Còn nợ', 'Tình trạng', 'Vòng đời'], rows.map(i => [i.customerCode, Q.roomCode(i.roomId), (Q.building(i.buildingId) || {}).code, B.TEMPLATES[i.template].name, Math.round(i.totalDue), Math.round(st(i).paid), Math.round(st(i).remaining), TH.calc.payments.STATUS[st(i).status].label, i.lifecycle]), ['Tổng cần đóng', 'Đã đóng', 'Còn nợ']),
+      exp: () => K.csv(`hoa-don-${period}.csv`, ['Mã KH', 'Phòng', 'Tòa', 'Quản lý', 'Leader', 'Giá niêm yết', 'Giá thuê', 'Tiền cọc', 'Kỳ trả (tháng)', 'Hạn từ', 'Hạn đến', 'Mẫu', 'Tổng cần đóng', 'Đã đóng', 'Còn nợ', 'Tình trạng', 'Vòng đời'], rows.map(i => { const x = detailOf[i.id]; return [i.customerCode, Q.roomCode(i.roomId), x.building.code, (x.manager || {}).name || '', (x.leader || {}).name || '', x.room.listPrice || 0, x.stay.rent || 0, x.stay.depositAmount || 0, x.stay.payMonths || 1, i.dueFrom || '', x.dueDate, B.TEMPLATES[i.template].name, Math.round(i.totalDue), Math.round(st(i).paid), Math.round(st(i).remaining), TH.calc.payments.STATUS[st(i).status].label, i.lifecycle]; }), ['Giá niêm yết', 'Giá thuê', 'Tiền cọc', 'Tổng cần đóng', 'Đã đóng', 'Còn nợ']),
     });
     if (q.open === 'wizard' && TH.auth.can('invoices.prepare')) wizard(q);
   });

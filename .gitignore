@@ -9,5 +9,6 @@ tmp/
 docs/uat/**/_rendered/
 output/smoke/
 output/ui-audit/
+output/workbook-content/
 __pycache__/
 mockup/vendor/intake/

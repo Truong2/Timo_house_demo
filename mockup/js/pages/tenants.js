@@ -1,7 +1,7 @@
 /* UI-06 Khách thuê / lượt thuê (chế độ xem: đang ở, chờ nhận, sắp hết hạn, đã kết thúc, phá HĐ) · UI-07 tạo khách & lượt thuê. */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc;
-  const VIEWS = [['active', 'Đang ở'], ['pending', 'Chờ nhận / giữ phòng'], ['expiring', 'Sắp hết hạn'], ['ended', 'Đã kết thúc'], ['broken', 'Phá HĐ / bỏ trốn'], ['all', 'Tất cả']];
+  const VIEWS = [['active', 'Đang ở'], ['pending', 'Chờ nhận / giữ phòng'], ['expiring', 'Sắp hết hạn'], ['refund_pending', 'Chờ hoàn cọc'], ['ended', 'Đã kết thúc'], ['broken', 'Phá HĐ / bỏ trốn'], ['all', 'Tất cả']];
   TH.router.handle('/tenants', (root, p, q) => {
     const view = q.view || 'active';
     const warn = Q.param('expiryWarnDays');
@@ -9,10 +9,11 @@
     const all = Q.scoped(S.all('stays'));
     const counts = {};
     const pick = (v, s) => v === 'all' ? true : v === 'active' ? s.status === 'active' : v === 'pending' ? s.status === 'pending' : v === 'expiring' ? s.status === 'active' && s.endDate && F.daysBetween(F.today(), s.endDate) <= warn && s.endDate >= F.today()
-      : v === 'ended' ? s.status === 'ended' : v === 'broken' ? ['breach', 'abscond'].includes(s.endType) : true;
+      : v === 'refund_pending' ? s.status === 'ended' && s.depositStatus === 'refund_pending' : v === 'ended' ? s.status === 'ended' : v === 'broken' ? ['breach', 'abscond'].includes(s.endType) : true;
     VIEWS.forEach(([k]) => { counts[k] = all.filter(s => pick(k, s)).length; });
     let rows = all.filter(s => pick(view, s));
     if (q.building) rows = rows.filter(s => s.buildingId === q.building);
+    if (q.leader) { const bs = Q.scopeBuildingIds({ leader: q.leader, direct: q.direct }); rows = rows.filter(s => bs.has(s.buildingId)); }
     if (q.debt === '1') rows = rows.filter(s => (inv[s.id] || []).some(i => Q.invState(i).remaining > 0));
     if (q.zalo) rows = rows.filter(s => String(!!(Q.customer(s.customerId) || {}).zaloLinked) === q.zalo);
     if (q.q) rows = rows.filter(s => { const c = Q.customer(s.customerId) || {}; return K.match(q.q, s.code, c.name, c.phone, Q.roomCode(s.roomId)); });
@@ -21,7 +22,7 @@
     root.innerHTML = U.pageHead({ title: 'Khách hàng', sub: 'Hồ sơ khách liên kết các lượt thuê; không gộp các lượt thuê chỉ vì chung phòng', acts: [
       U.btn({ label: 'Xuất', icon: 'download', act: 'exp' }), U.btn({ label: 'Xem công nợ', icon: 'alert-triangle', href: '#/billing/debts' }), U.btn({ label: 'Thêm khách hàng', icon: 'user-plus', cls: 'btn-primary', href: '#/tenants/intake', perm: 'tenants.manage' })] })
       + U.statusTabs(VIEWS.map(([k, l]) => ({ key: k, label: l, count: counts[k] })), view, 'view')
-      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã KH, mã phòng, tên, SĐT…' }, { name: 'building', label: 'Tòa', options: K.buildingOpts() },
+      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã KH, mã phòng, tên, SĐT…' }, { name: 'building', label: 'Tòa', options: K.buildingOpts() }, { name: 'leader', label: 'Leader', options: Q.teamLeaders().map(e => [e.id, e.name]) }, ...(q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh' }] : []),
         { name: 'debt', label: 'Công nợ', options: [['1', 'Có nợ']] }, { name: 'zalo', label: 'Zalo', options: [['true', 'Đã liên kết'], ['false', 'Chưa liên kết']] }], q)
       + (view === 'expiring' ? U.note('warn', `${counts.expiring} lượt thuê còn ≤ ${warn} ngày`, 'Mốc cảnh báo cố định toàn hệ thống (CH-09). Cảnh báo không tự đổi trạng thái hợp đồng.') : '')
       + (view === 'broken' ? U.note('info', 'Phá HĐ / bỏ trốn', 'Không hoàn cọc; khoản còn thu = tiền điện theo chỉ số (GĐ OQ-03). Tháng 9/2026: 20 phòng, phải thu 16.048.000 / đã thu 3.662.000.') : '')
@@ -32,7 +33,7 @@
       { key: 'code', label: 'Mã KH', sortable: true, render: s => `<b>${esc(s.code)}</b>` },
       { key: 'room', label: 'Phòng', sortable: true, sortVal: s => Q.roomCode(s.roomId), render: s => `<span class="code">${esc(Q.roomCode(s.roomId))}</span>` },
       { key: 'name', label: 'Khách đại diện', render: s => { const c = Q.customer(s.customerId) || {}; return U.cell2(esc(c.name || ''), esc(Q.pii(c.phone || ''))); } },
-      { key: 'mgr', label: 'Quản lý', render: s => esc((Q.managerMap()[s.buildingId] || {}).name || '') },
+      { key: 'mgr', label: 'Quản lý / leader', render: s => { const m = Q.managerMap()[s.buildingId], l = m && Q.leaderOf(m.id); return U.cell2(esc((m || {}).name || 'Chưa phân công'), esc((l || {}).name || 'Chưa có leader')); } },
       { key: 'from', label: 'Ngày tính tiền', sortable: true, sortVal: s => s.rentStart, render: s => F.date(s.rentStart) },
       { key: 'end', label: 'Hết hạn HĐ', sortable: true, sortVal: s => s.endDate, render: s => F.date(s.endDate) },
       { key: 'st', label: 'Trạng thái', render: s => K.stayChip(s) },
@@ -41,8 +42,8 @@
       { key: 'zalo', label: 'Zalo', render: s => (Q.customer(s.customerId) || {}).zaloLinked ? U.chip('Đã liên kết', 'green') : U.chip('Chưa liên kết', 'gray') },
     ];
     if (view === 'broken') cols.splice(6, 0, { key: 'reason', label: 'Lý do', render: s => esc(s.breachReason || s.endReason || '') }, { key: 'br', label: 'Phải thu / đã thu (tiền điện)', num: true, render: s => { const iv = (inv[s.id] || []).find(i => i.isBreach); if (!iv) return '–'; const st = Q.invState(iv); return money ? F.vnd(iv.totalDue) + ' / ' + F.vnd(st.paid) : '••• / •••'; } });
-    U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: s => '#/stays/' + s.id, cols });
-    U.bind(root, { view: (el) => TH.router.setQuery({ view: el.dataset.key }), exp: () => K.csv('khach-thue.csv', ['Mã KH', 'Phòng', 'Khách', 'Ngày tính tiền', 'Hết hạn', 'Trạng thái', 'Cọc', 'Còn nợ'], rows.map(s => [s.code, Q.roomCode(s.roomId), (Q.customer(s.customerId) || {}).name, s.rentStart, s.endDate, s.status + (s.endType ? '/' + s.endType : ''), s.depositAmount, debtOf(s)]), ['Còn nợ']) });
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: s => TH.router.href('/stays/' + s.id, { return: TH.router.href('/tenants', q) }), cols });
+    U.bind(root, { view: (el) => TH.router.setQuery({ view: el.dataset.key }), exp: () => K.csv('khach-thue.csv', ['Mã KH', 'Phòng', 'Khách', 'Quản lý', 'Leader', 'Ngày tính tiền', 'Hết hạn', 'Trạng thái', 'Trạng thái cọc', 'Cọc', 'Còn nợ'], rows.map(s => { const m = Q.managerOf(s.buildingId), l = m && Q.leaderOf(m.id); return [s.code, Q.roomCode(s.roomId), (Q.customer(s.customerId) || {}).name, (m || {}).name || '', (l || {}).name || '', s.rentStart, s.endDate, s.status + (s.endType ? '/' + s.endType : ''), s.depositStatus || '', s.depositAmount, debtOf(s)]; }), ['Cọc', 'Còn nợ']) });
   });
 
   /* UI-07 tạo khách & lượt thuê: chờ nhận (đã cọc) hoặc vào ở ngay */

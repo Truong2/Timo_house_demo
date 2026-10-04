@@ -72,6 +72,18 @@
     const withL = rows.filter(r => r.L != null); tot.L = r2(sum(withL, 'L')); tot.M = r2(sum(withL, 'M')); tot.realM = r2(sum(withL, 'realM'));
     return { period, kind, mode, status: !invs.length ? 'no_data' : withL.length < rows.length ? 'no_cost' : 'ready', rows, total: tot, withVac, vacantSeparated: true, costCoverage: withL.length + '/' + rows.length };
   };
+  /* Đối chiếu thu/chi dịch vụ là phương án web chờ xác nhận; không giả lập số Excel khi nguồn không có sheet tương ứng. */
+  Q.utilityMargin = (period, kind = 'service', mode = 'web', filters = {}) => {
+    if (kind !== 'service') return QO.amDuong(period, kind, mode);
+    if (mode === 'excel') return { period, kind, mode, status: 'no_data', rows: [], total: { due: 0, collected: 0, cost: 0, net: 0 }, policyStatus: 'proposed', sourceRef: 'Workbook – chưa có sheet công thức dịch vụ' };
+    const scope = Q.scopeBuildingIds(filters, D.periodEnd(period)), by = {}, get = bid => by[bid] = by[bid] || { buildingId: bid, b: (Q.building(bid) || {}).code || bid, due: 0, collected: 0, cost: 0, net: 0, invoices: [], expenses: [] };
+    Q.invoicesOf(period).filter(i => i.lifecycle !== 'draft' && scope.has(i.buildingId)).forEach(i => { const lines = Q.lineState(i).filter(l => l.no >= 5 && l.no <= 10), x = get(i.buildingId); x.due += sum(lines, 'amount'); x.collected += sum(lines, 'paid'); if (lines.some(l => l.amount)) x.invoices.push(i.id); });
+    const costLines = new Set(['cost_net', 'cost_garbage', 'cost_env', 'cost_elev']);
+    S.all('expenses').filter(e => e.period === period && e.status !== 'void' && scope.has(e.buildingId) && costLines.has(e.reportLine)).forEach(e => { const x = get(e.buildingId); x.cost += Number(e.amount) || 0; x.expenses.push(e.id); });
+    const rows = Object.values(by).map(x => { x.due = r2(x.due); x.collected = r2(x.collected); x.cost = r2(x.cost); x.net = r2(x.collected - x.cost); return x; }).sort((a, b) => String(a.b).localeCompare(String(b.b), 'vi', { numeric: true }));
+    const total = { due: r2(sum(rows, 'due')), collected: r2(sum(rows, 'collected')), cost: r2(sum(rows, 'cost')) }; total.net = r2(total.collected - total.cost);
+    return { period, kind, mode, status: rows.length ? 'ready' : 'no_data', rows, total, policyStatus: 'proposed', sourceRef: 'Dòng hóa đơn 5–10; chi phí mạng/rác/môi trường/thang máy', ruleVersion: 'OQ-SERVICE-draft-1' };
+  };
   /* Sản lượng / biến động chi (tab 3 UI-43): chi điện/nước theo hóa đơn nhà cung cấp tháng m so với tháng m−1 */
   QO.costTrend = (kind = 'electric') => {
     const months = ['2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'];
