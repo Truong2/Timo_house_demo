@@ -34,9 +34,11 @@
     "zip": "npm run build && tar -a -c -f timohouse-mockup.zip -C dist .",
     "verify:intake:ui": "node scripts/verify-intake-ui.mjs",
     "verify:p2:fixes": "node scripts/verify-p2-audit-fixes.mjs",
-    "verify:ui-audit": "node scripts/verify-ui-audit.mjs"
+    "verify:ui-audit": "node scripts/verify-ui-audit.mjs",
+    "verify:v5-gaps": "node --test tests/v5-gaps.test.mjs && npm run verify:ui-audit"
   },
   "devDependencies": {
+    "axe-core": "^4.10.3",
     "playwright-core": "^1.63.0"
   },
   "dependencies": {

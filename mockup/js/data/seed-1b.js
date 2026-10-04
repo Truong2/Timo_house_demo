@@ -78,6 +78,6 @@
     });
     Object.entries(FUND08).forEach(([f, amt]) => { const r = TH.data.allocRules.find(x => x.fundCode === f); add({ category: f === 'F_OFFICE' ? 'office' : f === 'F_MKT' ? 'marketing' : 'salary', reportLine: r.lineCode, scope: 'fund', fundCode: f, amount: amt, note: 'Quỹ chung T8 theo công thức G1 ' + r.g1 }); });
     st.expenses.forEach(e => { if (e.isEquipment == null) e.isEquipment = false; });
-    st.payrollRuns = []; st.allocationRuns = [];
+    st.payrollRuns = []; st.payrollDisbursements = []; st.allocationRuns = [];
   };
 })(window.TH);

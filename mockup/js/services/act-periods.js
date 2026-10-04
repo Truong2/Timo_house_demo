@@ -185,9 +185,26 @@
     if (!/^[\d ]{6,24}$/.test(String(d.number || '').trim())) errs.number = 'Số tài khoản 6–24 chữ số';
     if (!String(d.holder || '').trim()) errs.holder = 'Nhập chủ tài khoản';
     if (Object.keys(errs).length) fail(errs);
-    const rec = { template: d.template, bank: d.bank.trim(), number: d.number.trim(), holder: d.holder.trim() };
-    const a = d.id ? S.update('accounts', d.id, rec) : S.add('accounts', rec);
-    _.audit(d.id ? 'update' : 'create', 'account', a.id, `${d.id ? 'Sửa' : 'Thêm'} TK nhận ${rec.bank} ${rec.number} (${rec.template})`); _.done(); return a;
+    const effectiveFrom = d.effectiveFrom || F.today(), sourceRef = String(d.sourceRef || 'Cấu hình tài khoản nhận tiền').trim();
+    _.guardEffective(effectiveFrom, 'đổi tài khoản nhận tiền');
+    const old = d.id ? S.get('accounts', d.id) : null;
+    const issuedRef = old && S.one('invoices', i => i.accountId === old.id && i.lifecycle !== 'draft');
+    if (old && !issuedRef) {
+      const before = { bank: old.bank, number: old.number, holder: old.holder, sourceRef: old.sourceRef };
+      const a = S.update('accounts', old.id, { template: d.template, bank: d.bank.trim(), number: d.number.trim(), holder: d.holder.trim(), sourceRef });
+      _.audit('update', 'account', a.id, `Sửa TK nhận ${a.bank} ${a.number} (${a.template})`, { before, after: { bank: a.bank, number: a.number, holder: a.holder, sourceRef }, reason: 'Cấu hình chưa được hóa đơn phát hành tham chiếu', sourceRef }); _.done(); return a;
+    }
+    const versions = S.where('accounts', a => a.template === d.template);
+    const latestFrom = versions.map(a => a.effectiveFrom || '1900-01-01').sort().pop();
+    if (latestFrom && effectiveFrom <= latestFrom) throw new Error(`Ngày hiệu lực phải sau phiên gần nhất (${F.date(latestFrom)})`);
+    const version = Math.max(0, ...versions.map(a => Number(a.version || 1))) + 1;
+    const rec = { template: d.template, bank: d.bank.trim(), number: d.number.trim(), holder: d.holder.trim(), version, effectiveFrom, effectiveTo: null, sourceRef, createdAt: F.nowISO(), createdBy: _.who() };
+    const prior = S.where('accounts', a => a.template === d.template && !a.effectiveTo && a.effectiveFrom < effectiveFrom);
+    prior.forEach(a => S.update('accounts', a.id, { effectiveTo: D.addDays(effectiveFrom, -1) }));
+    const a = S.add('accounts', rec);
+    const replacedIds = new Set(prior.map(x => x.id)); if (old) replacedIds.add(old.id);
+    S.where('buildings', b => replacedIds.has(b.accountId)).forEach(b => S.update('buildings', b.id, { accountId: a.id, template: a.template }));
+    _.audit('create_version', 'account', a.id, `Tạo phiên TK nhận v${version} ${rec.bank} ${rec.number} (${rec.template}), hiệu lực ${rec.effectiveFrom}; nguồn ${rec.sourceRef}`); _.done(); return a;
   };
   /* Danh mục mở rộng được: loại chi phí (kèm dòng báo cáo), lý do phá HĐ, chức danh. Mục đã dùng chỉ "ngừng dùng" (có lý do), không xóa. */
   X.CATALOG_KINDS = { expenseCategories: 'loại chi phí', breachReasons: 'lý do phá HĐ', titles: 'chức danh' };

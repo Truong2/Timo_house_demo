@@ -107,7 +107,7 @@ table.rpt{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
 .rpt tr.note td{color:var(--muted);font-style:italic}
 .rpt tr.ratio td{color:var(--text-2)}
 .rpt td.cell{cursor:pointer}.rpt td.cell:hover{background:var(--primary-50)}
-.rpt .diff{display:block;font-size:11px}.rpt .diff.bad{color:var(--red-500)}.rpt .diff.ok{color:var(--green-500)}
+.rpt .diff{display:block;font-size:11px}.rpt .diff.bad{color:var(--red)}.rpt .diff.ok{color:var(--green)}
 .bridge td,.bridge th{padding:8px 10px}
 .bridge td:first-child{white-space:normal}.bridge td.num{width:170px;vertical-align:top}
 /* Lương */

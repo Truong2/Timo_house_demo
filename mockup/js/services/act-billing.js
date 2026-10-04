@@ -152,15 +152,38 @@
   };
   X.updateDraftLine = (id, no, patch) => X.updateDraftLines(id, [Object.assign({ no }, patch)], patch && patch.reason);
   X.deleteDraft = (id) => { _.need('invoices.prepare'); const inv = Q.invoice(id); if (inv.lifecycle !== 'draft') throw new Error('Chỉ xóa được hóa đơn nháp'); S.remove('invoices', id); _.audit('delete', 'invoice', id, 'Xóa nháp ' + inv.code); _.done(); };
+  X.setInvoiceTemplate = (id, template) => {
+    _.need('invoices.prepare');
+    const inv = Q.invoice(id); if (!inv) throw new Error('Không tìm thấy hóa đơn');
+    if (inv.lifecycle !== 'draft') throw new Error('Hóa đơn đã phát hành chỉ được xem snapshot bản in');
+    if (!Cc.billing.TEMPLATES[template]) throw new Error('Mẫu in không hợp lệ');
+    _.guardPeriod(inv.period, 'đổi mẫu in');
+    const account = Q.accountForTemplate(template, inv.issueDate || F.today());
+    if (!account) throw new Error('Chưa có tài khoản nhận tiền hiệu lực cho mẫu in đã chọn');
+    const before = { template: inv.template, accountId: inv.accountId };
+    S.update('invoices', id, { template, accountId: account.id });
+    _.audit('change_template', 'invoice', id, `Đổi mẫu in ${inv.code}: ${before.template} → ${template}`, { before, after: { template, accountId: account.id }, reason: 'Chọn mẫu trên hóa đơn nháp', sourceRef: account.sourceRef });
+    _.done(); return Q.invoice(id);
+  };
+  const printSnapshot = (inv, effectiveAccount) => {
+    const tpl = Cc.billing.TEMPLATES[inv.template] || Cc.billing.TEMPLATES.VP;
+    const acc = effectiveAccount || Q.accountForTemplate(inv.template, inv.issueDate || F.today()) || {};
+    return { template: inv.template, templateName: tpl.name, templateVersion: tpl.version, accountId: acc.id || null, accountVersion: acc.version || 1,
+      bank: acc.bank || '', number: acc.number || '', holder: acc.holder || '', transferPrefix: tpl.transferPrefix || '',
+      transferNote: 'LƯU Ý: QUÝ KHÁCH HÀNG CHUYỂN KHOẢN KHÔNG ĐÚNG NỘI DUNG KẾ TOÁN KHÔNG CHECK ĐƯỢC SẼ TÍNH LÀ CHƯA THANH TOÁN. TRÂN TRỌNG !',
+      footer: 'TRÂN TRỌNG THÔNG BÁO', sourceRef: acc.sourceRef || null, capturedAt: F.nowISO() };
+  };
   X.issueInvoices = (ids) => {
     _.need('invoices.issue');
     let n = 0; const errs = [];
     ids.forEach(id => {
       const inv = Q.invoice(id); if (!inv || inv.lifecycle !== 'draft') return;
       _.guardPeriod(inv.period, 'phát hành');
+      const effectiveAccount = Q.accountForTemplate(inv.template, inv.issueDate || F.today());
+      if (!effectiveAccount) { errs.push(inv.code + ': Chưa có tài khoản nhận tiền hiệu lực cho mẫu in'); return; }
       const chk = Cc.billing.checkBeforeIssue(inv, { duplicate: S.where('invoices', i => i.stayId === inv.stayId && i.period === inv.period).length > 1 });
       if (!chk.ok) { errs.push(inv.code + ': ' + chk.errs.join('; ')); return; }
-      S.update('invoices', id, { lifecycle: 'issued', issuedAt: F.nowISO(), issuedBy: _.who(), snapshot: { lines: JSON.parse(JSON.stringify(inv.lines)), total: inv.totalDue } });
+      S.update('invoices', id, { lifecycle: 'issued', issuedAt: F.nowISO(), issuedBy: _.who(), accountId: effectiveAccount.id, snapshot: { lines: JSON.parse(JSON.stringify(inv.lines)), total: inv.totalDue }, printSnapshot: printSnapshot(inv, effectiveAccount) });
       // Nợ cũ đã chuyển sang dòng 11 → khóa phần còn nợ của hóa đơn cũ để không đếm hai lần
       (inv.oldDebtFrom || []).forEach(pid => { const p = Q.invoice(pid); const st = Q.invState(p); if (st.remaining > 0) S.update('invoices', pid, { carriedOut: (p.carriedOut || 0) + st.remaining, carriedTo: id }); });
       if (inv.readingId) S.update('meterReadings', inv.readingId, { locked: true });

@@ -127,11 +127,12 @@
     const pad = (n) => String(n).padStart(2, '0');
     const dd = (iso) => iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : '';
     const fee = ctx.lateFee != null ? ctx.lateFee : 200000;
-    const acc = ctx.account || {};
-    const tpl = B.TEMPLATES[ctx.template] || B.TEMPLATES.VP;
+    const snap = ctx.snapshot || inv.printSnapshot || null;
+    const acc = snap ? { bank: snap.bank, number: snap.number, holder: snap.holder } : (ctx.account || {});
+    const tpl = B.TEMPLATES[(snap && snap.template) || ctx.template] || B.TEMPLATES.VP;
     return {
-      template: tpl.name,
-      templateVersion: `${tpl.version} · ${extended ? 'Mẫu mở rộng · 13 dòng' : 'Mẫu chuẩn · 12 dòng'}`,
+      template: (snap && snap.templateName) || tpl.name,
+      templateVersion: `${(snap && snap.templateVersion) || tpl.version} · ${extended ? 'Mẫu mở rộng · 13 dòng' : 'Mẫu chuẩn · 12 dòng'}`,
       title: `HÓA ĐƠN THÁNG ${Number(m)}/${y}`,
       intro: `Xin thông báo để anh/chị biết tiền thuê phòng Tháng ${Number(m)} và tiền dịch vụ Tháng ${Number(m)} năm ${y} như sau:`,
       customerCode: ctx.customerCode, room: ctx.roomCode, cutoff: dd(inv.cutoff),
@@ -140,11 +141,11 @@
       noteJ7: `ĐỀ NGHỊ QUÝ KHÁCH HÀNG THANH TOÁN ĐÚNG HẠN NGÀY ${Number((inv.dueTo || '').slice(8, 10))}/${Number(pm)} VÀ GHI ĐÚNG NỘI DUNG CK. TRƯỜNG HỢP THANH TOÁN CHẬM PHÍ PHẠT ${Math.round(fee / 1000)}K/NGÀY.`,
       dueText: `Yêu cầu khách hàng thanh toán đầy đủ và đúng hạn từ ngày ${Number((inv.dueFrom || '').slice(8, 10))} đến ngày ${Number((inv.dueTo || '').slice(8, 10))} tháng ${Number(pm)} năm ${py}`,
       warnText: 'Quá thời hạn thanh toán trên, nếu khách hàng chưa thanh toán thì Ban Quản Lý Tòa Nhà sẽ cắt dịch vụ và trục xuất ra khỏi phòng',
-      transfer: tpl.transferPrefix + ctx.customerCode,
+      transfer: ((snap && snap.transferPrefix) != null ? snap.transferPrefix : tpl.transferPrefix) + ctx.customerCode,
       accountTemplate: tpl.accountTemplate,
-      transferNote: 'LƯU Ý: QUÝ KHÁCH HÀNG CHUYỂN KHOẢN KHÔNG ĐÚNG NỘI DUNG KẾ TOÁN KHÔNG CHECK ĐƯỢC SẼ TÍNH LÀ CHƯA THANH TOÁN. TRÂN TRỌNG !',
+      transferNote: (snap && snap.transferNote) || 'LƯU Ý: QUÝ KHÁCH HÀNG CHUYỂN KHOẢN KHÔNG ĐÚNG NỘI DUNG KẾ TOÁN KHÔNG CHECK ĐƯỢC SẼ TÍNH LÀ CHƯA THANH TOÁN. TRÂN TRỌNG !',
       accountLine: acc.number ? `TK ${acc.number} - ${acc.bank} - ${acc.holder}` : '(chưa gán tài khoản nhận)',
-      closing: 'TRÂN TRỌNG THÔNG BÁO',
+      closing: (snap && snap.footer) || 'TRÂN TRỌNG THÔNG BÁO',
       pad,
     };
   };

@@ -191,7 +191,48 @@
       run.lines.forEach(l => { const f = FUND_OF[l.title]; if (!f) return; fund[f] = (fund[f] || 0) + l.X - l.W - (l.labor || 0); });
       Object.entries(fund).forEach(([f, amt]) => { if (amt > 0) X.addExpense({ date: pDate, period: run.period, category: 'salary', scope: 'fund', fundCode: f, amount: Math.round(amt), source: 'payroll', refId: run.id, note: 'Quỹ lương chung – ' + run.code }, true); });
     }
-    S.update('payrollRuns', runId, { status: 'closed', closedAt: F.nowISO(), closedBy: _.who() });
+    const obligations = run.lines.filter(l => Math.round(l.X) > 0).map(l => ({ id: `${run.id}:employee:${l.employeeId}`, kind: 'employee', employeeId: l.employeeId, payee: (Q.emp(l.employeeId) || {}).name || l.employeeId, amount: Math.round(l.X), source: 'X', buildingId: null }))
+      .concat((run.buildingCosts || []).filter(c => c.kind === 'building_salary' && !c.employeeId && Math.round(c.amount) > 0).map((c, i) => ({ id: `${run.id}:external:${c.buildingId}:${c.line}:${i + 1}`, kind: 'external', employeeId: null, payee: `${c.line === 'sal_clean' ? 'Vệ sinh' : 'Bảo vệ'} · ${(Q.building(c.buildingId) || {}).code || c.buildingId}`, amount: Math.round(c.amount), source: c.line, buildingId: c.buildingId })));
+    S.update('payrollRuns', runId, { status: 'closed', obligations, closedAt: F.nowISO(), closedBy: _.who() });
     _.audit('close', 'payroll', runId, `Chốt bảng lương ${run.code}`); _.done();
+  };
+
+  const obligationRows = (run) => (run.obligations || []).map(o => {
+    const paid = S.where('payrollDisbursements', d => d.payrollRunId === run.id && d.obligationId === o.id && d.status !== 'void').reduce((t, d) => t + Number(d.amount || 0), 0);
+    const remaining = Math.max(0, Number(o.amount || 0) - paid);
+    return Object.assign({}, o, { paid, remaining, status: remaining <= 0.5 ? 'paid' : paid > 0 ? 'partial' : 'unpaid' });
+  });
+  Q.payrollDisbursementSummary = (runId, obligationId) => {
+    const run = S.get('payrollRuns', runId); if (!run) return { run: null, rows: [], obligation: null, total: 0, paid: 0, remaining: 0 };
+    const rows = obligationRows(run); const selected = obligationId ? rows.find(o => o.id === obligationId) || null : null;
+    return { run, rows, obligation: selected, total: rows.reduce((t, o) => t + o.amount, 0), paid: rows.reduce((t, o) => t + o.paid, 0), remaining: rows.reduce((t, o) => t + o.remaining, 0) };
+  };
+  X.recordPayrollDisbursement = (obligationId, d) => {
+    _.need('payroll.manage');
+    const run = S.one('payrollRuns', r => r.status === 'closed' && (r.obligations || []).some(o => o.id === obligationId));
+    if (!run) throw new Error('Chỉ được chi nghĩa vụ của bảng lương đã chốt');
+    const summary = Q.payrollDisbursementSummary(run.id, obligationId), obligation = summary.obligation;
+    const amount = Number(d.amount), date = d.date, period = F.period(date || '');
+    if (!(amount > 0)) throw new Error('Nhập số tiền chi lớn hơn 0');
+    if (amount > obligation.remaining + 0.5) throw new Error(`Số chi vượt còn phải trả ${F.vnd(obligation.remaining)}`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Nhập ngày chi');
+    const p = S.get('periods', period); if (!p) throw new Error(`Kỳ chi ${F.periodShort(period)} chưa được mở`);
+    _.guardPeriod(period, 'ghi chi lương');
+    if (!['bank', 'cash'].includes(d.method)) throw new Error('Chọn phương thức chi');
+    const rec = S.add('payrollDisbursements', { code: S.nextCode('payrollDisbursements', 'CL-' + period.replace('-', '') + '-', 4), payrollRunId: run.id, obligationId, employeeId: obligation.employeeId || null, buildingId: obligation.buildingId || null, payee: obligation.payee,
+      amount: Math.round(amount), paidAt: date, period, method: d.method, accountId: d.accountId || null, reference: String(d.reference || '').trim(), evidence: String(d.evidence || '').trim(), documentIds: d.documentIds || [], status: 'posted', createdAt: F.nowISO(), createdBy: _.who() });
+    _.audit('pay', 'payrollDisbursement', rec.id, `Chi lương ${rec.code}: ${rec.payee} ${F.vnd(rec.amount)}`, { before: { remaining: obligation.remaining }, after: { remaining: obligation.remaining - rec.amount }, reason: d.reference || 'Giải ngân bảng lương', sourceRef: rec.evidence || rec.reference || null });
+    _.done(); return rec;
+  };
+  X.voidPayrollDisbursement = (id, reason) => {
+    _.need('payroll.manage');
+    const rec = S.get('payrollDisbursements', id); if (!rec) throw new Error('Không tìm thấy giao dịch chi lương');
+    if (rec.status === 'void') throw new Error('Giao dịch đã hủy');
+    if (!String(reason || '').trim()) throw new Error('Nhập lý do hủy');
+    _.guardPeriod(F.period(F.today()), 'hủy giao dịch chi lương');
+    const before = { status: rec.status, amount: rec.amount };
+    S.update('payrollDisbursements', id, { status: 'void', voidReason: reason.trim(), voidedAt: F.nowISO(), voidedBy: _.who() });
+    _.audit('void', 'payrollDisbursement', id, `Hủy chi lương ${rec.code}: ${reason.trim()}`, { before, after: { status: 'void', amount: rec.amount }, reason: reason.trim(), sourceRef: rec.reference || rec.evidence || null });
+    _.done(); return S.get('payrollDisbursements', id);
   };
 })(window.TH);

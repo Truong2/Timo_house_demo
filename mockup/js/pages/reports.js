@@ -47,7 +47,7 @@
   const reportTable = (rep, cols, compare, clickable) => {
     const heads = [['TOTAL', 'TỔNG'], ['T', 'NHÀ T'], ['S', 'NHÀ S'], ['G', 'NHÀ G']];
     let lastGroup = null;
-    return `<div class="rpt-wrap"><table class="rpt"><thead><tr><th>Dòng</th><th>Chỉ tiêu</th>${heads.map(([k, l]) => `<th>${l}</th>`).join('')}</tr></thead><tbody>
+    return `<div class="rpt-wrap" role="region" aria-label="Bảng báo cáo dòng 3 đến 61" tabindex="0"><table class="rpt"><thead><tr><th>Dòng</th><th>Chỉ tiêu</th>${heads.map(([k, l]) => `<th>${l}</th>`).join('')}</tr></thead><tbody>
       ${CAT().reportLines.map(l => {
         let g = ''; if (l.group && l.group !== lastGroup) { lastGroup = l.group; g = `<tr class="grp"><td></td><td colspan="5">${esc(l.group)}</td></tr>`; }
         if (l.section === 'ratio' && lastGroup !== 'TỶ LỆ') { lastGroup = 'TỶ LỆ'; g = `<tr class="grp"><td></td><td colspan="5">TỶ LỆ</td></tr>`; }
@@ -152,7 +152,7 @@
     const cmpRow = q.cmp === '1' && rep.parallel && !TH.auth.buildingScope();
     root.innerHTML = TH.pages.reportTabs('buildings') + U.pageHead({ title: 'Báo cáo theo tòa', sub: `${type === 'total' ? 'Báo cáo tổng' : 'Báo cáo kinh doanh'} · ${F.periodLabel(period)} · Nhà ${group}: ${bids.length} tòa · bố cục như sheet BC DT NHÀ ${group}`, acts: [U.btn({ label: 'Xuất Excel theo mẫu', icon: 'download', act: 'exp', perm: 'reports.export' })] })
       + filterBar(q, [{ name: 'type', label: 'Loại báo cáo', options: [['total', 'Báo cáo tổng'], ['business', 'Báo cáo kinh doanh']], value: 'total', all: false }, { name: 'group', label: 'Nhóm nhà', options: K.groupOpts(), value: 'G', all: false }, ...(rep.parallel && !TH.auth.buildingScope() ? [{ name: 'cmp', label: 'Đối chiếu', options: [['1', 'Hiện số Excel từng tòa']] }] : [])])
-      + `<div class="rpt-wrap mt16"><table class="rpt"><thead><tr><th>Dòng</th><th>Chỉ tiêu</th><th>TỔNG NHÀ ${group}</th>${bids.map(b => `<th>${esc(code(b))}</th>`).join('')}</tr></thead><tbody>
+      + `<div class="rpt-wrap mt16" role="region" aria-label="Báo cáo chi tiết theo tòa" tabindex="0"><table class="rpt"><thead><tr><th>Dòng</th><th>Chỉ tiêu</th><th>TỔNG NHÀ ${group}</th>${bids.map(b => `<th>${esc(code(b))}</th>`).join('')}</tr></thead><tbody>
         ${CAT().reportLines.filter(l => l.row <= 47 || l.code === 'r_lnr_gv' || l.code === 'r_nha_thue').map(l => `<tr class="${l.bold ? 'b' : ''} ${l.ratio ? 'ratio' : ''}"><td>${l.row}</td><td>${esc(l.label)}</td><td class="num"><b>${fmt(l, groupCol[l.code])}</b></td>${bids.map(b => { const v = rep.byBuilding[b][l.code]; const x = cmpRow && !l.ratio && bench[b] ? bench[b][l.code] : null;
           return `<td class="num ${TH.auth.can('reports.drill') && !l.ratio ? 'cell' : ''}" data-code="${l.code}" data-b="${b}">${fmt(l, v)}${x != null ? `<span class="diff ${Math.abs((v || 0) - x) > 1 ? 'bad' : 'ok'}">Excel ${fmt(l, x)}</span>` : ''}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`
       + (TH.auth.buildingScope() ? '' : U.note('info', 'Tòa G1', 'Cột G1 đối chiếu thêm mẫu báo cáo G1 (SRC-07): lương quản lý tổng 141.100 = 13.000.000/1.382×15; trưởng phòng 367.077 = 20.000.000/1.382×15 + 10.000×15; sửa chữa Excel dùng 25.000.000/1.343×15 (sót mẫu số tháng 7) – web dùng 1.382.'));

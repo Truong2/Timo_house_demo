@@ -1,8 +1,12 @@
 /* UI regression: owners, drafts, sources, rooms, fees, commit guards and responsive evidence. */
 import {chromium} from 'playwright-core';
+import {spawn} from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const server=spawn(process.execPath,[path.join(ROOT,'scripts','serve.mjs')],{cwd:ROOT,env:{...process.env,PORT:'8765'},stdio:'ignore'});await new Promise(r=>setTimeout(r,700));
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const context=await browser.newContext({viewport:{width:1600,height:1000}}),page=await context.newPage(),errors=[],checks=[];
 const out='output/verify-intake-ui';await fs.mkdir(out+'/shots',{recursive:true});
@@ -105,4 +109,4 @@ try{
   await go('/tenants/intake');await page.waitForFunction(()=>document.querySelector('#content')?.textContent.includes('403'));checks.push('accountant view only and operator direct-route restrictions');
   assert.deepEqual(errors,[]);await fs.rm(out+'/failure.png',{force:true});await fs.writeFile(out+'/result.json',JSON.stringify({passed:true,checks,pageErrors:errors},null,2));console.log('PASS: '+checks.join('; '));
 }catch(e){await page.screenshot({path:out+'/failure.png',fullPage:true});await fs.writeFile(out+'/result.json',JSON.stringify({passed:false,checks,pageErrors:errors,error:e.message},null,2));console.error('PAGE:',(await page.locator('#content').innerText()).slice(0,6000));throw e;}
-finally{await browser.close();}
+finally{await browser.close();server.kill();}

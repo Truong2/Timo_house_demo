@@ -149,7 +149,7 @@
     U.onInput(ov); U.bindDropzones(ov);
     const api = { el: ov, box: ov.firstElementChild, body: ov.querySelector('.drawer-b'), close, data: () => U.formData(ov) };
     onMount && onMount(api);
-    setTimeout(() => { if (!ov.isConnected || ov.contains(document.activeElement)) return; const f = ov.querySelector('input:not([hidden]),select,textarea,button.btn-primary'); f && f.focus && f.focus(); }, 30);
+    setTimeout(() => { if (!ov.isConnected || ov.contains(document.activeElement)) return; const f = ov.querySelector('input:not([hidden]),select,textarea,button.btn-primary,button,a[href],[tabindex]:not([tabindex="-1"])'); f && f.focus && f.focus(); }, 30);
     return api;
   };
   U.modal = (o) => U.drawer(Object.assign({ modal: true }, o));

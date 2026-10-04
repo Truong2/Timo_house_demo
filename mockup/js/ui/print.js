@@ -5,7 +5,7 @@
   const n = (v, dec) => v == null || v === '' ? '' : (dec ? F.dec(v, dec) : F.vnd(v));
   P.invoiceHtml = (inv) => {
     const b = Q.building(inv.buildingId); const acc = Q.account(inv.accountId);
-    const m = TH.calc.billing.printModel(inv, { template: inv.template, account: acc, customerCode: inv.customerCode, roomCode: Q.roomCode(inv.roomId), lateFee: Q.param('lateFeePerDay') });
+    const m = TH.calc.billing.printModel(inv, { template: inv.template, account: acc, snapshot: inv.printSnapshot || null, customerCode: inv.customerCode, roomCode: Q.roomCode(inv.roomId), lateFee: Q.param('lateFeePerDay') });
     const factor = (r) => r.factor == null ? '' : Math.abs(r.factor - 1) < 1e-9 ? '1' : F.dec(r.factor, 4);
     return `<div class="inv-print">
       <div class="ip-tpl">${esc(m.template)} · ${esc(m.templateVersion)} · Tòa ${esc(b.code)}</div>

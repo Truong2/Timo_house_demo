@@ -10,7 +10,8 @@
     const all = S.all('commissions').filter(c => c.status !== 'void');
     const el = {}; S.all('deals').forEach(d => { el[d.id] = Q.dealEligibility(d); });
     const left = (c) => (c.approvedAmount || 0) - Q.commissionPaid(c);
-    root.innerHTML = U.pageHead({ title: 'Hoa hồng & nhân sự sale', sub: 'I = F × H − khoản trừ · tỷ lệ tự động chỉ là gợi ý, duyệt khác gợi ý phải có lý do · chi sau khi đủ 1 cọc + 1 tháng + HĐ đã ký (CH-19), từng cá nhân (CH-20) · ghi nhận kỳ đủ điều kiện, dòng 40 Phí marketing (OQ-13)' })
+    const recognition = Q.param('commissionRecognitionMode', F.today()) || 'paidAt', byPaidAt = recognition === 'paidAt';
+    root.innerHTML = U.pageHead({ title: 'Hoa hồng & nhân sự sale', sub: 'I = F × H − khoản trừ · tỷ lệ tự động chỉ là gợi ý, duyệt khác gợi ý phải có lý do · chi sau khi đủ 1 cọc + 1 tháng + HĐ đã ký (CH-19), từng cá nhân (CH-20) · ' + (byPaidAt ? 'ghi nhận chi phí theo tháng thực chi từng đợt' : 'phương án đề xuất OQ-13: ghi nhận kỳ đủ điều kiện') + ', dòng 40 Phí marketing' })
       + TH.salesNav('commission')
       + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Chờ duyệt', value: all.filter(c => c.status === 'pending').length, cap: F.vnd(all.filter(c => c.status === 'pending').reduce((t, c) => t + c.amount, 0)) + 'đ theo gợi ý', icon: 'clock', tone: 'amber' })}
         ${U.kpi({ label: 'Đã duyệt – đủ điều kiện chi', value: all.filter(c => c.status === 'approved' && el[c.dealId] && el[c.dealId].ok).length, cap: F.vnd(all.filter(c => c.status === 'approved' && el[c.dealId] && el[c.dealId].ok).reduce((t, c) => t + left(c), 0)) + 'đ còn phải chi', icon: 'check-circle', tone: 'green' })}
@@ -55,7 +56,7 @@
         { key: 'i', label: 'Thành tiền I', num: true, render: c => `<b>${F.vnd(c.approvedAmount != null ? c.approvedAmount : c.amount)}</b>${c.deduction ? `<small class="muted"> (trừ ${F.vnd(c.deduction)})</small>` : ''}` },
         { key: 'pd', label: 'Đã chi', num: true, render: c => F.vnd(Q.commissionPaid(c)) + (c.recover ? ` <small class="red">cần thu hồi ${F.vnd(c.recover)}</small>` : '') },
         { key: 'dt', label: 'Ngày chi · chứng từ', render: c => (c.installments || []).map(i => { const e = S.get('expenses', i.expenseId); return F.date(i.date) + (e ? ' ' + U.link('#/expenses?period=' + e.period + '&q=' + encodeURIComponent(e.code), esc(e.code)) : ''); }).join('<br>') || '–' },
-        { key: 'e', label: 'Điều kiện chi', render: c => el[c.dealId].ok ? U.chip('Đủ – kỳ ' + F.periodShort(F.period(el[c.dealId].date)), 'green') : `<span data-tip="${esc(el[c.dealId].missing.join(' · '))}">${U.chip('Chưa đủ', 'gray')}</span>` },
+        { key: 'e', label: 'Điều kiện chi', render: c => el[c.dealId].ok ? U.chip(byPaidAt ? 'Đủ từ ' + F.date(el[c.dealId].date) : 'Đủ – kỳ ' + F.periodShort(F.period(el[c.dealId].date)) + ' · OQ-13', 'green') : `<span data-tip="${esc(el[c.dealId].missing.join(' · '))}">${U.chip('Chưa đủ', 'gray')}</span>` },
         { key: 'st', label: 'Trạng thái', render: c => U.chip(Q.CM_ST[c.status][0], Q.CM_ST[c.status][1], true) + (c.note ? `<div class="small muted">${esc(c.note)}</div>` : '') },
         { key: 'actions', label: '', render: c => U.rowActions([U.actBtn({ icon: 'history', label: 'Nguồn số', act: 'trace', attrs: { 'data-id': c.id } }), ['pending', 'approved'].includes(c.status) ? U.actBtn({ icon: 'check', label: 'Duyệt', act: 'ap', attrs: { 'data-id': c.id }, perm: 'commission.approve' }) : '',
           c.status === 'approved' ? U.actBtn({ icon: 'banknote', label: 'Chi', act: 'pay', attrs: { 'data-id': c.id }, perm: 'commission.pay', disabled: !el[c.dealId].ok }) : ''].filter(Boolean)) }] });
@@ -66,7 +67,7 @@
             ['Giao dịch', d.id ? U.link('#/sales/deals/' + d.id, esc(d.code)) + ` · ${F.date(d.closeDate)}` : '–'],
             ['Nhân viên / tỷ lệ chia', `${esc(c.recipient.name)} · ${c.share > 1 ? 'chia ' + c.share + ' người' : 'một người'} · H ${pct(c.H)} (gợi ý ${pct(c.suggestedH)})`],
             ['Căn cứ tỷ lệ', esc((c.reasons || []).join(' · ') || c.reason || 'Chính sách hiệu lực tại ngày chốt')],
-            ['Kỳ đủ điều kiện', eligibility.date ? `${F.date(eligibility.date)} · ${F.periodLabel(F.period(eligibility.date))}` : `Chưa đủ: ${esc((eligibility.missing || []).join(' · '))}`],
+            [byPaidAt ? 'Điều kiện được phép chi' : 'Kỳ đủ điều kiện · OQ-13', eligibility.date ? (byPaidAt ? `Đủ từ ${F.date(eligibility.date)}; chi phí theo ngày thực chi` : `${F.date(eligibility.date)} · ${F.periodLabel(F.period(eligibility.date))}`) : `Chưa đủ: ${esc((eligibility.missing || []).join(' · '))}`],
             ['Từng lần chi', (c.installments || []).map(i => `${F.date(i.date)} · ${F.vnd(i.amount)} · kỳ ${F.periodShort(i.period || F.period(i.date))} · ${esc(i.by || '')}`).join('<br>') || 'Chưa chi']
           ]) + U.note('warn', 'Công thức chuyển đổi', 'Tỷ lệ chốt/xem vẫn là chỉ số đề xuất cho đến khi OQ-06 được xác nhận; drawer này chỉ truy vết nguồn, không biến chỉ số đó thành KPI chính thức.') }); },
         ap: (b) => { const c = S.get('commissions', b.dataset.id); K.formDrawer({ title: 'Duyệt hoa hồng – ' + esc(c.recipient.name), modal: true,
@@ -74,7 +75,7 @@
           fields: [{ name: 'H', label: 'Tỷ lệ H (%)', type: 'number', value: Math.round(c.H * 10000) / 100, req: true }, { name: 'deduction', label: 'Khoản trừ (hỗ trợ khách…)', type: 'money', value: c.deduction || '' }, { name: 'reason', label: 'Lý do (bắt buộc khi khác gợi ý / có khoản trừ)', span: true }],
           submit: 'Duyệt', onSubmit: (x) => { X.approveCommission(c.id, { H: F.num(x.H) / 100, deduction: F.num(x.deduction), reason: x.reason }); U.toast('ok', 'Đã duyệt hoa hồng'); } }); },
         pay: (b) => { const c = S.get('commissions', b.dataset.id); K.formDrawer({ title: 'Chi hoa hồng – ' + esc(c.recipient.name), modal: true,
-          note: U.note('info', '', `Còn được chi ${F.vndd(left(c))}. Chứng từ chi phí "Hoa hồng" dòng 40 Phí marketing, kỳ ${F.periodShort(F.period(el[c.dealId].date))} (tháng đủ điều kiện – OQ-13). Có thể chi nhiều đợt.`),
+          note: U.note(byPaidAt ? 'info' : 'warn', byPaidAt ? 'Ghi nhận theo tháng thực chi' : 'Phương án đề xuất OQ-13', `Còn được chi ${F.vndd(left(c))}. ${byPaidAt ? 'Mỗi lần chi tạo chi phí Hoa hồng dòng 40 trong tháng của ngày chi; ngày chi phải thuộc kỳ mở.' : `Chi phí dự kiến ghi ở kỳ ${F.periodShort(F.period(el[c.dealId].date))} là kỳ đủ điều kiện.`} Có thể chi nhiều đợt.`),
           fields: [{ name: 'amount', label: 'Số chi', type: 'money', value: left(c), req: true }, { name: 'date', label: 'Ngày chi', type: 'date', value: F.today(), req: true }, { name: 'method', label: 'Phương thức', type: 'select', options: [['bank', 'Chuyển khoản'], ['cash', 'Tiền mặt']], value: 'bank' }],
           submit: 'Ghi chi', onSubmit: (x) => { X.payCommission(c.id, { amount: F.num(x.amount), date: x.date, method: x.method }); U.toast('ok', 'Đã ghi chi hoa hồng'); } }); },
       });

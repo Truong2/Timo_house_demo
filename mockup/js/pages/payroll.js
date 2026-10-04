@@ -58,6 +58,16 @@
       mdel: (b) => K.act(() => X.removePayrollManual(b.dataset.id), 'Đã xóa dòng'),
     });
   };
+  const disbursementDrawer = (run, obligation) => {
+    const summary = Q.payrollDisbursementSummary(run.id, obligation.id), rows = S.where('payrollDisbursements', d => d.obligationId === obligation.id).slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+    const d = U.drawer({ title: 'Lịch sử chi lương – ' + obligation.payee, sub: `${run.code} · nghĩa vụ ${F.vndd(obligation.amount)}`, wide: true, body: U.kv([['Trạng thái', obligation.status === 'paid' ? U.chip('Đã chi','green') : obligation.status === 'partial' ? U.chip('Một phần','amber') : U.chip('Chưa chi','gray')], ['Đã chi', F.vndd(summary.obligation.paid)], ['Còn phải trả', F.vndd(summary.obligation.remaining)]])
+      + `<div class="tbl-wrap mt16"><table class="tbl"><thead><tr><th>Mã / ngày chi</th><th>Phương thức</th><th>Tham chiếu / chứng từ</th><th>Người ghi</th><th class="num">Số tiền</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.code)}<br><small>${F.date(x.paidAt)} · kỳ ${F.periodShort(x.period)}</small></td><td>${x.method==='cash'?'Tiền mặt':'Chuyển khoản'}</td><td>${esc(x.reference||'–')}<br><small>${esc(x.evidence||'')}</small></td><td>${esc(x.createdBy||'')}</td><td class="num ${x.status==='void'?'muted':''}">${x.status==='void'?'<s>'+F.vnd(x.amount)+'</s>':F.vnd(x.amount)}${x.status==='void'?'<br><small>Đã hủy: '+esc(x.voidReason||'')+'</small>':''}</td><td>${x.status!=='void'?U.actBtn({icon:'undo',label:'Hủy giao dịch',act:'voidpay',attrs:{'data-id':x.id},perm:'payroll.manage'}):''}</td></tr>`).join('')||'<tr><td colspan="6">Chưa có lần chi</td></tr>'}</tbody></table></div>` });
+    U.bind(d.el,{ voidpay:(b)=>K.formDrawer({title:'Hủy giao dịch chi lương',modal:true,size:'sm',fields:[{name:'reason',label:'Lý do hủy',type:'textarea',req:true,span:true}],submit:'Hủy giao dịch',onSubmit:(x)=>{X.voidPayrollDisbursement(b.dataset.id,x.reason);d.close();U.toast('ok','Đã hủy giao dịch','Số còn phải trả đã được khôi phục.');}}) });
+  };
+  const payObligation = (run, obligation) => K.formDrawer({ title: 'Chi lương – ' + obligation.payee, sub: `${run.code} · còn phải trả ${F.vndd(obligation.remaining)}`, modal: true, fields: [
+    { name:'amount',label:'Số tiền chi',type:'money',req:true,value:obligation.remaining }, { name:'date',label:'Ngày chi',type:'date',req:true,value:F.today() },
+    { name:'method',label:'Phương thức',type:'select',req:true,value:'bank',options:[['bank','Chuyển khoản'],['cash','Tiền mặt']] }, { name:'accountId',label:'Tài khoản chi',type:'select',options:S.all('accounts').filter(a=>!a.effectiveTo||a.effectiveTo>=F.today()).map(a=>[a.id,a.bank+' · '+a.number]) },
+    { name:'reference',label:'Mã tham chiếu',placeholder:'UNC / mã giao dịch' }, { name:'evidence',label:'Chứng từ / nguồn',span:true,placeholder:'Tên file hoặc mã tài liệu; có thể tải file trong Kho tài liệu' }], submit:'Ghi chi', onSubmit:(x)=>{X.recordPayrollDisbursement(obligation.id,{amount:F.num(x.amount),date:x.date,method:x.method,accountId:x.accountId,reference:x.reference,evidence:x.evidence});U.toast('ok','Đã ghi chi lương','Không tạo thêm chi phí.');} });
   let lastExp = null;
   TH.router.handle('/hr/payroll', (root, p, q) => {
     const period = q.period || '2026-08';
@@ -81,7 +91,7 @@
         ${U.kpi({ label: 'Cần duyệt tay', value: pending.length, cap: 'HS>100 · HS<70 · không có phòng', icon: 'alert-triangle', tone: pending.length ? 'red' : 'green' })}</div>`
       + (period === '2026-08' ? U.note('info', 'Kỳ chạy song song', 'Input lấy từ bảng lương Excel tháng 8 (cột J–S); web tính lại T, HS, V, W theo quy tắc. Ngoại lệ đã biết: V51 (S39) Excel dùng 130.000/100, quy tắc cho 120.000/95 → 122.858đ/phòng; S28, S36 Excel dùng bảng dưới 1 năm trong khi các tòa khác của cùng NV dùng bảng trên 1 năm.') : '')
       + (stale ? U.note('warn', 'Dữ liệu nhập tay đã đổi', 'Bảng lương đang lưu được tính trước khi sửa dữ liệu nhập tay – bấm "Tính lại" trước khi chốt.') : '')
-      + U.tabs([{ key: 'van-hanh', label: 'NV vận hành theo tòa', count: flat.length }, { key: 'nhap-tay', label: 'Nhập tay', count: manualCount }, { key: 'tong-hop', label: 'Tổng hợp theo người', count: lines.length }, { key: 'co', label: 'Cần duyệt', count: flags.length }], tab)
+      + U.tabs([{ key: 'van-hanh', label: 'NV vận hành theo tòa', count: flat.length }, { key: 'nhap-tay', label: 'Nhập tay', count: manualCount }, { key: 'tong-hop', label: 'Tổng hợp theo người', count: lines.length }, { key: 'chi-luong', label: 'Chi lương', count: run && run.obligations ? run.obligations.length : 0 }, { key: 'co', label: 'Cần duyệt', count: flags.length }], tab)
       + '<div class="mt12">' + K.tableCard('t') + '</div>';
     K.bindFilters(root, []);
     const el = root.querySelector('#t');
@@ -105,6 +115,15 @@
       { key: 'ld', label: 'Lương trưởng nhóm', num: true, render: l => l.lead ? F.vnd(l.lead) + `<br><small class="muted">${esc(l.leadNote)}</small>` : '–' }, { key: 'sp', label: 'Hỗ trợ', num: true, render: l => F.vnd(l.support) },
       { key: 'lb', label: 'Tiền công thợ', num: true, render: l => l.labor ? F.vnd(l.labor) : '–' }, { key: 'mp', label: 'Nhập tay', num: true, render: l => l.manualPay ? F.vnd(l.manualPay) : '–' },
       { key: 'x', label: 'Thực nhận', num: true, sortable: true, sortVal: l => l.X, render: l => `<b>${F.vnd(l.X)}</b>` }] });
+    if (tab === 'chi-luong') {
+      const ds = run && run.status === 'closed' ? Q.payrollDisbursementSummary(run.id) : { rows:[],total:0,paid:0,remaining:0 };
+      el.innerHTML = run && run.status === 'closed' ? `<div class="grid grid-3 mb16">${U.kpi({label:'Nghĩa vụ đã chốt',value:F.vnd(ds.total),cap:ds.rows.length+' người nhận',icon:'wallet'})}${U.kpi({label:'Đã giải ngân',value:F.vnd(ds.paid),cap:'Dòng tiền, không tạo lại chi phí',icon:'check-circle',tone:'green'})}${U.kpi({label:'Còn phải trả',value:F.vnd(ds.remaining),cap:ds.rows.filter(o=>o.status!=='paid').length+' nghĩa vụ',icon:'clock',tone:ds.remaining?'amber':'green'})}</div><div id="pay-obligations"></div>` : U.empty({icon:'lock',title:'Chưa có nghĩa vụ chi lương',text:'Chốt bảng lương để đóng băng nghĩa vụ theo X và các người nhận ngoài theo tòa.'});
+      const pe=el.querySelector('#pay-obligations'); if(pe) U.table(pe,{rows:ds.rows,pageSize:40,cols:[
+        {key:'p',label:'Người nhận',render:o=>U.cell2(esc(o.payee),o.kind==='employee'?'Nhân viên · X thực nhận':'Người nhận ngoài · '+esc((Q.building(o.buildingId)||{}).code||''))},
+        {key:'a',label:'Nghĩa vụ',num:true,render:o=>`<b>${F.vnd(o.amount)}</b>`},{key:'pd',label:'Đã chi',num:true,render:o=>F.vnd(o.paid)},{key:'r',label:'Còn trả',num:true,render:o=>`<b>${F.vnd(o.remaining)}</b>`},
+        {key:'s',label:'Trạng thái',render:o=>o.status==='paid'?U.chip('Đã chi','green'):o.status==='partial'?U.chip('Một phần','amber'):U.chip('Chưa chi','gray')},
+        {key:'x',label:'',render:o=>U.rowActions([U.actBtn({icon:'history',label:'Lịch sử chi',act:'histob',attrs:{'data-id':o.id}}),o.remaining>0?U.actBtn({icon:'banknote',label:'Ghi chi',act:'payob',attrs:{'data-id':o.id},perm:'payroll.manage'}):''].filter(Boolean))}]});
+    }
     if (tab === 'co') U.table(el, { rows: flags, noPager: true, empty: U.empty({ title: 'Không có ca cần duyệt' }), cols: [
       { key: 'e', label: 'Nhân viên', render: x => esc(Q.emp(x.l.employeeId).name) }, { key: 'b', label: 'Tòa', render: x => esc((Q.building(x.f.buildingId) || {}).code) }, { key: 'f', label: 'Cờ', render: x => `<span class="flag">${esc(x.f.flag)}</span>` },
       { key: 'h', label: 'HS', num: true, render: x => x.f.HS == null ? '–' : F.dec(x.f.HS, 2) },
@@ -113,6 +132,8 @@
       tab: (b) => TH.router.setQuery({ tab: b.dataset.key }),
       compute: () => K.act(() => X.computePayroll(period), 'Đã tính và lưu phiên lương'),
       appr: (b) => K.formDrawer({ title: 'Duyệt ca lương đặc biệt', modal: true, size: 'sm', fields: [{ name: 'note', label: 'Ghi chú duyệt', type: 'textarea', req: true, span: true }], submit: 'Duyệt', onSubmit: (d) => { if (!d.note) { const e = new Error('Nhập ghi chú'); e.fields = { note: 'Bắt buộc' }; throw e; } X.approvePayFlag(run.id, b.dataset.key, d.note); U.toast('ok', 'Đã duyệt'); } }),
+      payob: (b) => { const o=Q.payrollDisbursementSummary(run.id,b.dataset.id).obligation;if(o)payObligation(run,o); },
+      histob: (b) => { const o=Q.payrollDisbursementSummary(run.id,b.dataset.id).obligation;if(o)disbursementDrawer(run,o); },
       adj: () => TH.pages.adjustDrawer(period, { reportLine: 'sal_mgr' }),
       close: async () => { if (await U.confirm({ title: 'Chốt bảng lương', text: 'Chốt sẽ ghi chi phí "Lương quản lý" theo tòa' + (run.parallel ? '' : ' và quỹ lương chung') + '. Sau chốt chỉ điều chỉnh có vết.', ok: 'Chốt' })) K.act(() => X.closePayroll(run.id), 'Đã chốt bảng lương'); },
       exp: () => K.csv('bang-luong-' + period + '.csv', ['Nhân viên', 'Chức danh', 'Tòa', 'J', 'K', 'L', 'A', 'B', 'C', 'T', 'HS', 'V', 'W'], flat.map(x => [Q.emp(x.l.employeeId).name, x.l.title, (Q.building(x.b.buildingId) || {}).code, x.b.J, Math.round(x.b.K), Math.round(x.b.L), Math.round(x.b.A), x.b.B, Math.round(x.b.C), Math.round(x.b.T), x.b.HS, Math.round(x.b.V), Math.round(x.b.W)])),

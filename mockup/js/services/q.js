@@ -16,6 +16,11 @@
   Q.emp = (id) => S.get('employees', id);
   Q.invoice = (id) => S.get('invoices', id);
   Q.account = (id) => S.get('accounts', id);
+  Q.accountForTemplate = (template, at) => {
+    const day = at || F.today();
+    return S.where('accounts', a => a.template === template && (!a.effectiveFrom || a.effectiveFrom <= day) && (!a.effectiveTo || a.effectiveTo >= day))
+      .sort((a, b) => String(b.effectiveFrom || '').localeCompare(String(a.effectiveFrom || '')) || Number(b.version || 1) - Number(a.version || 1))[0] || null;
+  };
   Q.roomCode = (roomId) => { const r = S.get('rooms', roomId); return r ? r.code : '–'; };
 
   /* ---- phạm vi ---- */
@@ -143,9 +148,10 @@
   };
   Q.contractTimeline = (stayId) => {
     const versions = S.where('stayVersions', v => v.stayId === stayId).map(v => ({ at: v.createdAt || v.effectiveFrom, type: 'version', title: `Phiên hợp đồng v${v.version}`, detail: v.reason, ref: v.id }));
-    const docs = (Q.contractsOfStay ? Q.contractsOfStay(stayId) : []).map(d => ({ at: d.uploadedAt || d.createdAt, type: 'document', title: d.signed ? 'Hợp đồng đã ký' : 'Tài liệu hợp đồng', detail: d.name, ref: d.id }));
-    const audits = S.where('auditLog', a => (a.entity === 'stay' && a.entityId === stayId) || (a.entity === 'stayVersion' && versions.some(v => v.ref === a.entityId))).map(a => ({ at: a.at, type: 'audit', title: a.summary, detail: a.userName, ref: a.id }));
-    return [...versions, ...docs, ...audits].filter(x => x.at).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    const docs = (Q.contractsOfStay ? Q.contractsOfStay(stayId) : []).filter(d => !Q.canDownloadDoc || Q.canDownloadDoc(Object.assign({ status: 'current', objectType: 'stay', objectId: stayId }, d))).map(d => ({ at: d.uploadedAt || d.createdAt, type: 'document', title: d.signed ? 'Hợp đồng đã ký' : 'Tài liệu hợp đồng', detail: d.name, ref: d.id }));
+    const payments = TH.auth.can('payments.view') ? S.where('payments', p => p.stayId === stayId && p.status !== 'reversed').map(p => ({ at: p.receivedAt, type: 'payment', title: `Phiếu thu ${p.code}`, detail: F.vndd(p.amount), ref: p.id, href: '#/billing/receipts/' + p.id })) : [];
+    const audits = TH.auth.can('settings.view') ? S.where('auditLog', a => (a.entity === 'stay' && a.entityId === stayId) || (a.entity === 'stayVersion' && versions.some(v => v.ref === a.entityId))).map(a => ({ at: a.at, type: 'audit', title: a.summary, detail: a.userName, ref: a.id })) : [];
+    return [...versions, ...docs, ...payments, ...audits].filter(x => x.at).sort((a, b) => String(b.at).localeCompare(String(a.at)));
   };
   Q.debtAging = (asOf, filters = {}) => {
     const day = asOf || F.today();

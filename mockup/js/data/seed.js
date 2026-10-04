@@ -10,7 +10,7 @@
 
     /* --- danh mục --- */
     col('params', [...CAT.params.map((p, i) => Object.assign({ id: 'prm_' + i }, p)), ...(CAT.policyParams || []).map((p, i) => Object.assign({ id: 'policy_' + i }, p))]);
-    col('accounts', CAT.accounts.map(a => Object.assign({}, a)));
+    col('accounts', CAT.accounts.map(a => Object.assign({ version: 1, effectiveFrom: '1900-01-01', effectiveTo: null, sourceRef: 'SRC-08 – cấu hình tài khoản nhận tiền' }, a)));
     col('areas', M.areas.map(a => Object.assign({}, a)));
     const accByTpl = {}; CAT.accounts.forEach(a => { accByTpl[a.template] = a.id; });
 
@@ -233,7 +233,7 @@
     ]);
     col('expenses', []);
     col('assets', []); // Phase 3: thay collection equipment – tài sản chủ nhà + công ty (UI-34)
-    col('allocationRuns', []); col('payrollRuns', []); col('adjustments', []); col('reportSnapshots', []); col('reportSnapshotVersions', []); col('payrollManual', []);
+    col('allocationRuns', []); col('payrollRuns', []); col('payrollDisbursements', []); col('adjustments', []); col('reportSnapshots', []); col('reportSnapshotVersions', []); col('payrollManual', []);
     col('zaloTemplates', CAT.zaloTemplates.map(t => Object.assign({}, t)));
     col('zaloRules', CAT.zaloRules.map(t => Object.assign({}, t)));
     col('zaloBatches', []); col('zaloMessages', []); col('zaloInbox', []); col('smsMessages', []);
