@@ -217,7 +217,7 @@
     const rent = moneyOf(val('rent')); if (!(rent > 0)) fail({ from: 'Giá thuê trên bản OCR không hợp lệ – sửa trường "Giá thuê" trước khi áp dụng' });
     const bad = o.fields.filter(f => !(o.real&&f.group==='fees'&&f.feeAction!=='set') && Q.ocrValue(f.key, f.value) === null); if (bad.length) fail({ from: 'Trường không hợp lệ: ' + bad.map(f => f.label).join(', ') });
     FEE.forEach(([k, , , method]) => {const f=o.fields.find(f=>f.key==='fee_'+k),v=moneyOf(val('fee_'+k));if(o.real){if(f.feeAction==='remove')delete items[k];else if(f.feeAction==='set')items[k]=Object.assign({},items[k]||{}, {unit:v,method:f.method||method});}else if(v!=null)items[k]=Object.assign({},items[k]||{method},{unit:v});});
-    const res = X.addRateVersion(o.stayId, { from: d.from, rent, items, reason: 'Áp dụng từ OCR hợp đồng (phiên ' + o.run + ') – ' + (d.reason || 'đã rà soát') }, true);
+    const res = X.addRateVersion(o.stayId, { from: d.from, rent, items, source: 'contract', sourceRef: o.fileId, contractFileId: o.fileId, ocrSessionId: sid, reason: 'Áp dụng từ OCR hợp đồng (phiên ' + o.run + ') – ' + (d.reason || 'đã rà soát') }, true);
     // D8: điều khoản HĐ (hết hạn, kỳ / hạn trả, cọc theo HĐ, người / xe, ngày) vào lượt thuê
     const terms = {}; Q.OCR_TERMS.forEach(([k]) => { const v = Q.ocrValue(k, val(k)); if (v !== '' && v != null) terms[k] = v; });
     const tr = _.applyStayTerms(o.stayId, terms, 'OCR phiên ' + o.run);

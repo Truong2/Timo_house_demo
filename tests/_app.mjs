@@ -75,5 +75,5 @@ export function completePayroll(TH, period, perRoom = 6000) {
   }));
   run = X.computePayroll(period);
   run.lines.forEach(l => l.flags.forEach(f => X.approvePayFlag(run.id, l.employeeId + ':' + f.buildingId, 'kiểm thử')));
-  return run;
+  return X.approvePayrollRun(run.id, 'Đã rà soát nguồn, chính sách và các ca lương trong kịch bản kiểm thử');
 }

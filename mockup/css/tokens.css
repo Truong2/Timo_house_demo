@@ -1,4 +1,7 @@
 :root{
+  /* Reserve the bottom edge for the floating Netlify badge and device safe area. */
+  --netlify-clearance:88px;
+  --bottom-clearance:calc(var(--netlify-clearance) + env(safe-area-inset-bottom,0px));
   --sidebar-w:240px;--sidebar-collapsed-w:72px;--topbar-h:64px;--guide-w:360px;--drawer-w:480px;
   --sidebar-bg:#0F2854;
   --sidebar-active:#2563EB;--sidebar-text:#E8EEFA;--sidebar-muted:rgba(232,238,250,.62);

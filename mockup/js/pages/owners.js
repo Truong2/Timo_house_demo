@@ -1,6 +1,16 @@
 /* UI-04 Chủ nhà & HĐ đầu vào (E03 phụ lục thay giá) · UI-05 Lịch trả chủ nhà (ghi chi → UI-15). */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc;
+  const pcccLabel = value => ({ yes: 'Có', no: 'Không', unknown: 'Chưa xác nhận' }[value] || 'Chưa xác nhận');
+  const editOwner = o => K.formDrawer({ title: 'Cập nhật hồ sơ chủ nhà', wide: true, fields: [
+    { name: 'name', label: 'Họ tên / tên pháp nhân', value: o.name, req: true }, { name: 'partyType', label: 'Loại chủ thể', type: 'select', value: o.partyType || 'personal', options: [['personal', 'Cá nhân'], ['legal', 'Pháp nhân']] },
+    { name: 'phone', label: 'Số điện thoại', value: o.phone }, { name: 'birthDate', label: 'Ngày sinh', type: 'date', value: o.birthDate },
+    { name: 'idNo', label: 'CCCD / mã số doanh nghiệp', value: o.idNo }, { name: 'idIssuedAt', label: 'Ngày cấp giấy tờ', type: 'date', value: o.idIssuedAt },
+    { name: 'idIssuedBy', label: 'Nơi cấp giấy tờ', value: o.idIssuedBy }, { name: 'address', label: 'Địa chỉ thường trú / trụ sở', value: o.address || o.partyAddress, span: true },
+    { name: 'relatedPersons', label: 'Đại diện / đồng sở hữu', value: o.relatedPersons, type: 'textarea', span: true },
+    { name: 'bank', label: 'Ngân hàng', value: o.bank }, { name: 'bankAccount', label: 'Số tài khoản', value: o.bankAccount }, { name: 'accountHolder', label: 'Chủ tài khoản', value: o.accountHolder },
+    { name: 'note', label: 'Ghi chú', type: 'textarea', value: o.note, span: true }, { name: 'sourceRef', label: 'Nguồn hồ sơ', req: true, value: o.sourceRef || '', span: true }, { name: 'reason', label: 'Lý do cập nhật', req: true, type: 'textarea', span: true }
+  ], onSubmit: d => { X.updateOwnerProfile(o.id, d); U.toast('ok', 'Đã lưu hồ sơ chủ nhà'); } });
 
 
   const contractState=c=>c.startDate>F.today()?'future':c.endDate&&c.endDate<F.today()?'expired':c.endDate&&F.daysBetween(F.today(),c.endDate)<=90?'expiring':'active';
@@ -50,7 +60,10 @@
       {key:'status',label:'Trạng thái',render:contractChip},
       {key:'actions',label:'Thao tác',render:c=>U.btn({label:'Xem hợp đồng',icon:'file-text',size:'btn-sm',href:TH.router.href('/owners/'+c.id,{return:here})})+U.btn({label:'Lịch trả',icon:'calendar',size:'btn-sm',href:'#/owner-payments?building='+c.buildingId})}
     ]});
-    U.bind(root,{'owner-history':el=>TH.intakeView.historyDrawer(S.get('intakeResults',el.dataset.id).draft)});
+    root.querySelector('.page-head .acts').insertAdjacentHTML('afterbegin', U.btn({label:'Sửa hồ sơ',act:'edit-owner',icon:'pencil',perm:'owners.manage'}));
+    const versions = S.where('ownerProfileVersions', v => v.ownerId === o.id).slice().reverse();
+    root.insertAdjacentHTML('beforeend', '<div class="mt16">' + U.card({ title: 'Giấy tờ, thanh toán và lịch sử hồ sơ', body: U.kv([['Ngày sinh', F.date(o.birthDate)], ['Giấy tờ cấp ngày / nơi cấp', [F.date(o.idIssuedAt), esc(o.idIssuedBy || '—')].join(' · ')], ['Số tài khoản', esc(Q.pii(o.bankAccount || '—'))], ['Chủ tài khoản', esc(o.accountHolder || '—')], ['Nguồn hồ sơ', esc(o.sourceRef || 'Chưa cập nhật')], ['Người cập nhật', esc(o.updatedBy || 'Dữ liệu nguồn')], ['Ghi chú', esc(o.note || '—')]]) + (versions.length ? U.timeline(versions.map(v => ({ when: F.datetime(v.createdAt), title: 'Phiên ' + v.version + ' · ' + esc(v.reason), sub: esc(v.createdBy + ' · ' + v.sourceRef), color: 'blue' }))) : '') }) + '</div>');
+    U.bind(root,{'edit-owner':()=>editOwner(o),'owner-history':el=>TH.intakeView.historyDrawer(S.get('intakeResults',el.dataset.id).draft)});
     root.querySelectorAll('[data-file]').forEach(el=>el.onclick=()=>TH.intakeFiles.download(el.dataset.file).catch(e=>U.toast('err','Không tải được file',e.message)));
   });
 
@@ -98,8 +111,12 @@
       { key: 'snap', label: 'Snapshot', render: v => U.actBtn({ icon: 'eye', label: 'Xem snapshot', act: 'contract-version', attrs: { 'data-id': v.id } }) },
     ] });
     root.querySelectorAll('[data-file]').forEach(el=>el.onclick=()=>TH.intakeFiles.download(el.dataset.file).catch(e=>U.toast('err','Không tải được file',e.message)));
-    U.bind(root, { docdl: el => TH.pages.docDownload(el.dataset.id), 'contract-version': el => { const v = S.get('ownerContractVersions', el.dataset.id), s = v?.snapshot || {}; U.drawer({ title: `Snapshot hợp đồng ${oc.code} · v${v?.version || ''}`, sub: [v?.reason, v?.sourceRef].filter(Boolean).join(' · '), body: U.kv([['Hiệu lực từ', F.date(v?.effectiveFrom)], ['Giữ giá đến', F.date(s.holdPriceTo)], ['Cọc chủ nhà', F.vndd(s.deposit || 0)], ['Bên khai thác', esc((s.operator || {}).name || '–')], ['Điều khoản / PCCC', esc(s.terms || '–')], ['ĐKKD / PCCC lịch sử', esc(s.businessRegistration || '–')], ['Tài sản bàn giao', esc(s.buildingFeatures || '–')], ['Ghi chú', esc(s.note || '–')]]) }); }, meta: () => K.formDrawer({ title: 'Sửa thông tin bổ sung – ' + oc.code, fields: [
+    root.querySelector('.page-head .acts').insertAdjacentHTML('afterbegin', U.btn({label:'Sửa hồ sơ chủ nhà',act:'edit-owner',icon:'pencil',perm:'owners.manage'}));
+    root.insertAdjacentHTML('beforeend', '<div class="mt16">'+U.card({title:'PCCC và nguồn hợp đồng',body:U.kv([['PCCC theo hợp đồng',pcccLabel(oc.pcccStatus)],['Người nhập nguồn',esc(contractVersions.at(-1)?.createdBy||'Dữ liệu nguồn')],['Lần cập nhật gần nhất',contractVersions[0]?.createdAt?F.datetime(contractVersions[0].createdAt):'—'],['Hồ sơ chủ nhà',`<a href="#/owner-profiles/${esc(own.id)}">Xem thông tin cá nhân, thanh toán và lịch sử</a>`],['Pháp lý / sổ đỏ',`<a href="#/buildings/${b.id}?tab=phap-ly">Xem hồ sơ pháp lý tòa</a>`],['Bổ sung tài liệu',`<a href="#/documents?building=${b.id}">Kho tài liệu của tòa</a>`]])})+'</div>');
+    U.bind(root, { 'edit-owner':()=>editOwner(own), docdl: el => TH.pages.docDownload(el.dataset.id), 'contract-version': el => { const v = S.get('ownerContractVersions', el.dataset.id), s = v?.snapshot || {}; U.drawer({ title: `Snapshot hợp đồng ${oc.code} · v${v?.version || ''}`, sub: [v?.reason, v?.sourceRef].filter(Boolean).join(' · '), body: U.kv([['Hiệu lực từ', F.date(v?.effectiveFrom)], ['Giữ giá đến', F.date(s.holdPriceTo)],['Ngày hết hạn',F.date(s.endDate)],['PCCC theo hợp đồng',pcccLabel(s.pcccStatus)], ['Cọc chủ nhà', F.vndd(s.deposit || 0)], ['Chủ nhà tại phiên',esc(s.owner?.name||'Không có dữ liệu lịch sử')],['Giấy tờ chủ nhà',esc(Q.pii(s.owner?.idNo||''))],['Địa chỉ chủ nhà',esc(s.owner?.address||'—')], ['Bên khai thác', esc((s.operator || {}).name || '–')], ['Điều khoản / PCCC', esc(s.terms || '–')], ['ĐKKD / PCCC lịch sử', esc(s.businessRegistration || '–')], ['Tài sản bàn giao', esc(s.buildingFeatures || '–')], ['Ghi chú', esc(s.note || '–')]]) }); }, meta: () => K.formDrawer({ title: 'Sửa thông tin bổ sung – ' + oc.code, fields: [
       { name: 'holdPriceTo', label: 'Giữ giá đến ngày', type: 'date', value: oc.holdPriceTo || '' }, { name: 'sourceRef', label: 'Nguồn / mã hồ sơ', value: oc.sourceRef || '' },
+      { name: 'endDate', label: 'Ngày hết hạn hợp đồng', type: 'date', value: oc.endDate || '', req: true }, {name:'deposit',label:'Cọc theo hợp đồng',type:'money',value:oc.deposit||0},
+      {name:'pcccStatus',label:'PCCC theo hợp đồng',type:'select',value:oc.pcccStatus||'unknown',options:[['unknown','Chưa xác nhận'],['yes','Có'],['no','Không']]},
       { name: 'effectiveFrom', label: 'Phiên hiệu lực từ', type: 'date', value: F.today(), req: true },
       { name: 'operatorName', label: 'Bên thuê khai thác', value: (oc.operator || {}).name || '' }, { name: 'operatorPhone', label: 'SĐT bên khai thác', value: (oc.operator || {}).phone || '' }, { name: 'operatorIdNo', label: 'CCCD / mã số bên khai thác', value: (oc.operator || {}).idNo || '' },
       { name: 'terms', label: 'Thuế / PCCC / điều khoản, phụ lục', type: 'textarea', span: true, value: oc.terms || '' }, { name: 'buildingFeatures', label: 'Đặc điểm tòa / tài sản bàn giao', type: 'textarea', span: true, value: oc.buildingFeatures || '' },

@@ -28,6 +28,7 @@ npm run verify:p1r # ảnh minh chứng các mục P1 còn lại (sửa nháp, p
 npm run verify:p2  # ảnh minh chứng Phase 2 theo kịch bản F21–F30 → output/verify-p2/shots/
 npm run verify:p3  # ảnh minh chứng Phase 3 → output/verify-p3/shots/
 npm run sweep      # mọi route × 9 tài khoản demo: không lỗi JS / lỗi hiển thị
+npm run verify:module-completion # xe/tạm trú, chủ nhà, phân công, phiên lương, phiên cổ đông, sales và responsive → output/module-completion/
 npm run build      # mockup/ → dist/ (Netlify: netlify.toml)
 node scripts/verify-intake.mjs        # Chrome: 2 PDF mẫu, ảnh OCR, Excel gốc NHÀ G, lưu lại trình duyệt
 node scripts/verify-intake-modes.mjs  # Chrome: nhập tay và XLSX mẫu cho cả chủ nhà/khách hàng

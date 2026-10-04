@@ -25,6 +25,11 @@ test('six entry modes converge: owner→room→pending stay with proposal, idemp
   assert.equal(t.store.where('ownerContracts',c=>c.buildingId==='b_TH01').length,1);
   const d=tenantDraft(t),res=t.intake.commit(d),s=t.store.get('stays',res.targetId);
   assert.equal(s.status,'pending');assert.equal(s.openingReadings.electric,1250);
+  const rate=t.q.rateOf(s.id,d.data.startDate);
+  assert.equal(rate.source,'intake');assert.equal(rate.intakeId,d.id);
+  const version=t.store.get('stayVersions',rate.contractVersionId);
+  assert.equal(version.rates.rateVersionId,rate.id);assert.equal(version.rates.items.water.unit,120000);
+  assert.equal(version.sourceRef,d.id);
   assert.equal(t.store.where('depositLedger',l=>l.stayId===s.id).length,0);
   assert.equal(t.store.where('payments',p=>p.stayId===s.id).length,0);
   assert.equal(t.store.where('intakePaymentProposals',p=>p.stayId===s.id)[0].amount,9000000);

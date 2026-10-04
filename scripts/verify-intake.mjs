@@ -31,6 +31,8 @@ try{
  await page.waitForURL(/stays/);
  const result=await page.evaluate(()=>{const s=TH.store.one('stays',s=>s.roomId==='r_302TH01');return {s,rate:TH.q.rateOf(s.id),ledger:TH.store.where('depositLedger',d=>d.stayId===s.id),proposals:TH.store.where('intakePaymentProposals',p=>p.stayId===s.id)};});
  assert.equal(result.s.status,'pending');assert.equal(result.s.rent,4500000);assert.equal(result.s.openingReadings.electric,1250);assert.equal(result.ledger.length,0);assert.equal(result.proposals[0].amount,9000000);
+ assert.equal(result.rate.source,'intake');assert.ok(result.rate.contractFileId);assert.ok(result.rate.contractVersionId);
+ assert.equal(await page.evaluate(id=>TH.store.get('stayVersions',id).documentIds.length,result.rate.contractVersionId),1);
  await page.reload();await page.waitForFunction(()=>window.TH?.store?.state);
  assert.equal(await page.evaluate(()=>TH.store.where('rooms',r=>r.buildingId==='b_TH01').length),30);
  assert.equal((await page.evaluate(async()=>{const d=(await TH.intakeFiles.drafts('owner'))[0];return (await TH.intakeFiles.file(d.files[0].id)).blob.size;}))>1000,true);

@@ -32,6 +32,10 @@
         + '<div class="mt12">' + U.card({ title: 'Chứng từ góp vốn', icon: 'file-text', body: TH.pages.docDownloadList(Q.documentsScoped().filter(d => d.objectType === 'shareholder' && d.objectId === shx.sh.id && d.status === 'current')) }) + '</div></div>' : '')
       + `<div class="grid grid-2 mt16"><div>${K.tableCard('t', 'Tỷ lệ góp hiệu lực ' + F.date(date))}</div><div>${K.tableCard('h', 'Lịch sử tỷ lệ')}</div></div>`;
     if (TH.ms.on('3') && bid) root.insertAdjacentHTML('afterbegin', TH.pages.shareNav(bid, '/shares'));
+    if (bid) {
+      const ownership = Q.shareOwnershipVersions(bid);
+      root.insertAdjacentHTML('beforeend','<div class="mt16">'+U.card({title:'Phiên sở hữu theo tòa',sub:'Mỗi lần đổi tỷ lệ giữ nguyên bộ tỷ lệ và căn cứ đã lưu.',body:ownership.map(v=>'<div class="mini-row"><span class="code">v'+v.version+'</span><span class="grow"><b>Hiệu lực '+F.date(v.effectiveFrom)+'</b><small class="d-block muted">'+esc(v.createdBy)+' · '+esc(v.reason)+'</small>'+v.rows.map(r=>esc(Q.shareholder(r.shareholderId)?.name||r.shareholderId)+' '+pct(r.pct)).join(' · ')+'</span></div>').join('')||U.empty({title:'Chưa có phiên sở hữu'})})+'</div>');
+    }
     if (bid) root.insertAdjacentHTML('beforeend', '<div class="mt16">' + U.card({ title: 'Lịch sử tổng hợp cổ đông', icon: 'history', sub: 'Tỷ lệ · khóa/lại bảng kê · góp/rút vốn · chi thực · hủy giao dịch', body: shareHistory.length ? U.timeline(shareHistory.slice(0, 80).map(x => ({ when: F.datetime(x.at), title: esc(x.title), sub: esc(x.sub), color: x.color }))) : U.empty({ title: 'Chưa có lịch sử cho tòa này' }) }) + '</div>');
     K.bindFilters(root);
     U.table(root.querySelector('#t'), { rows: ratios, noPager: true, empty: U.empty({ icon: 'percent', title: 'Tòa chưa có tỷ lệ góp', text: 'Bấm "Sửa tỷ lệ" để nhập.' }), cols: [

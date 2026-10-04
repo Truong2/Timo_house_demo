@@ -118,6 +118,7 @@
       + '<div class="mt16">' + K.tableCard('t', rows.length + ' khách') + '</div>';
     K.bindFilters(root);
     U.table(root.querySelector('#t'), { rows, pageSize: 25, onRowOpen: leadDrawer, cols: [
+      {key:'stt',label:'STT',num:true,render:(_row,index)=>index+1},
       { key: 'c', label: 'Mã', render: l => `<b>${esc(l.code)}</b>` }, { key: 'n', label: 'Khách', render: l => U.cell2(esc(l.name), phone(l.phone) + (dupPhones.has(l.phone) ? ' ' + U.chip('Trùng SĐT', 'red') : '')) },
       { key: 's', label: 'Nguồn', render: l => U.cell2(esc(l.source), esc(l.partner || l.group || '')) }, { key: 'sl', label: 'Sale', render: l => esc(Q.saleName(l.saleIds)) }, { key: 'tm', label: 'Team', render: l => esc([...new Set(l.saleIds.map(id => (Q.leaderOf(id) || {}).name || '–'))].join(', ')) },
       { key: 'd', label: 'Ngày gửi', sortable: true, sortVal: l => l.sentAt, render: l => F.date(l.sentAt) }, { key: 'v', label: 'Lượt xem', num: true, render: l => (vcount[l.id] || []).length },

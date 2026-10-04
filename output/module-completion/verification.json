@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": [
+    "two vehicles, residency, browser reload persistence and removal",
+    "editable owner profile, PCCC, hold-price date and immutable contract snapshot UI",
+    "cleaning assignment from building detail UI",
+    "payroll versions, prior snapshot, approval gate and closing UI",
+    "ownership version displayed with source",
+    "sales ordinal column and CSV",
+    "responsive 375/768/1440 across six module screens"
+  ],
+  "errors": []
+}

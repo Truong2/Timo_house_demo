@@ -185,6 +185,8 @@
   /* Phiên biểu phí: chỉ áp dụng hóa đơn chưa phát hành; không chồng ngày */
   X.addRateVersion = (stayId, d, silent) => {
     _.need('rates.manage');
+    const stay = Q.stay(stayId); if (!stay || !TH.auth.inScope(stay.buildingId)) throw new Error('Lượt thuê không tồn tại hoặc ngoài phạm vi');
+    if (d.contractFileId && !S.one('contractFiles', f => f.id === d.contractFileId && f.stayId === stayId)) throw new Error('File hợp đồng không thuộc lượt thuê');
     if (!d.from) throw new Error('Nhập ngày hiệu lực');
     if (!String(d.reason || '').trim()) throw new Error('Nhập lý do/nguồn thay đổi');
     _.guardEffective(d.from, 'biểu phí'); // B16: không đổi biểu phí hiệu lực trong kỳ đã khóa
@@ -194,9 +196,10 @@
     const base = cur[0] || { items: {}, rent: 0 };
     cur.filter(v => !v.to).forEach(v => S.update('rateVersions', v.id, { to: TH.calc.dates.addDays(d.from, -1) }));
     const items = JSON.parse(JSON.stringify(d.items || base.items || {}));
-    const v = S.add('rateVersions', { stayId, from: d.from, to: null, rent: Number(d.rent) || base.rent, items, reason: d.reason, source: 'web' });
+    const v = S.add('rateVersions', { stayId, from: d.from, to: null, rent: Number(d.rent) || base.rent, items, reason: d.reason, source: d.source || 'web', sourceRef: d.sourceRef || d.reason, contractFileId: d.contractFileId || null, ocrSessionId: d.ocrSessionId || null, createdBy: _.who(), createdAt: F.nowISO() });
     if (Number(d.rent)) S.update('stays', stayId, { rent: Number(d.rent) });
-    recordStayVersion(stayId, 'rate_changed', { effectiveFrom: d.from, reason: d.reason, sourceRef: d.sourceRef || 'web' });
+    const contractVersion = recordStayVersion(stayId, 'rate_changed', { effectiveFrom: d.from, reason: d.reason, sourceRef: d.sourceRef || d.reason, documentIds: d.contractFileId ? [d.contractFileId] : [] });
+    S.update('rateVersions', v.id, { contractVersionId: contractVersion.id });
     if (!silent) { _.audit('create', 'rateVersion', v.id, `Phiên biểu phí mới từ ${F.date(d.from)}`); _.done(); }
     return { version: v, warnIssued: issued.map(i => i.period) };
   };
@@ -248,5 +251,37 @@
     if (applied.length) { S.update('stays', stayId, patch); recordStayVersion(stayId, 'ocr_applied', { effectiveFrom: patch.rentStart || F.today(), reason, sourceRef: reason }); _.audit('update', 'stay', stayId, `Điều khoản HĐ ${s.code} theo ${reason}: ${applied.join(', ')}`); }
     return { applied, skipped };
   };
-  X.updateCustomer = (id, patch) => { _.need('tenants.manage'); S.update('customers', id, patch); _.audit('update', 'customer', id, 'Sửa thông tin khách'); _.done(); };
+  X.updateCustomer = (id, patch) => {
+    _.need('tenants.manage');
+    const customer = S.get('customers', id); if (!customer) throw new Error('Không tìm thấy khách hàng');
+    const stays = S.where('stays', s => s.customerId === id);
+    if (stays.length && !stays.some(s => TH.auth.inScope(s.buildingId))) throw new Error('Khách hàng ngoài phạm vi được giao');
+    const errs = {}, next = {};
+    ['name', 'phone', 'occupation', 'idNo', 'idIssuedAt', 'idIssuedBy', 'birthDate', 'address', 'note'].forEach(k => {
+      if (patch[k] != null) next[k] = String(patch[k]).trim();
+    });
+    if ('name' in next && !next.name) errs.name = 'Nhập họ tên';
+    ['birthDate', 'idIssuedAt'].forEach(k => { if (next[k] && (!/^\d{4}-\d{2}-\d{2}$/.test(next[k]) || next[k] > F.today())) errs[k] = 'Ngày không được sau hôm nay'; });
+    if (patch.zaloLinked != null) next.zaloLinked = !!patch.zaloLinked;
+    if (patch.vehicles != null) {
+      if (!Array.isArray(patch.vehicles)) errs.vehicles = 'Danh sách phương tiện không hợp lệ';
+      else {
+        next.vehicles = patch.vehicles.map(v => ({ plate: String(v.plate || '').trim().toUpperCase(), type: String(v.type || '').trim(), note: String(v.note || '').trim() }));
+        const plates = next.vehicles.map(v => v.plate.replace(/[\s.-]/g, ''));
+        if (next.vehicles.some(v => !v.plate || !v.type)) errs.vehicles = 'Mỗi xe cần biển số và loại xe';
+        else if (new Set(plates).size !== plates.length) errs.vehicles = 'Biển số xe bị trùng';
+      }
+    }
+    if (patch.residency != null) {
+      const r = patch.residency;
+      next.residency = { status: String(r.status || '').trim(), address: String(r.address || '').trim(), registeredAt: r.registeredAt || '', reference: String(r.reference || '').trim() };
+      if (r.registeredAt && (!/^\d{4}-\d{2}-\d{2}$/.test(r.registeredAt) || r.registeredAt > F.today())) errs.residencyDate = 'Ngày khai báo không được sau hôm nay';
+      if (r.status === 'registered' && (!r.address || !r.registeredAt)) errs.residencyDate = 'Đã khai báo cần địa chỉ và ngày khai báo';
+    }
+    if (Object.keys(errs).length) { const e = new Error('Hồ sơ khách chưa hợp lệ'); e.fields = errs; throw e; }
+    const before = Object.fromEntries(Object.keys(next).map(k => [k, customer[k] ?? null]));
+    S.update('customers', id, next);
+    _.audit('update', 'customer', id, 'Cập nhật hồ sơ, phương tiện và tạm trú', { before: JSON.parse(JSON.stringify(before)), after: next });
+    _.done(); return S.get('customers', id);
+  };
 })(window.TH);

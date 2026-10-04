@@ -45,7 +45,7 @@
     const al = run || TH.actions.previewAllocation(period);
     al.lines.forEach(l => Object.entries(l.results).forEach(([b, v]) => add(m, b, l.lineCode, v)));
     src.allocation = run ? `${run.code} (${run.status === 'closed' ? 'đã chốt' : 'nháp'}) · mẫu số ${run.denominator}` : 'Xem trước (chưa lưu phiên phân bổ) · mẫu số ' + al.denominator;
-    const pr = S.one('payrollRuns', r => r.period === period);
+    const pr = S.one('payrollRuns', r => r.period === period && r.status !== 'superseded');
     const pv = pr ? (pr.status === 'closed' ? null : pr) : TH.actions.previewPayroll(period);
     if (pv) {
       pv.lines.forEach(l => l.buildings.forEach(b => add(m, b.buildingId, 'sal_mgr', b.W)));
@@ -206,7 +206,7 @@
         if (ln) Object.entries(ln.results).filter(([b, v]) => inB(b) && v).forEach(([b, v]) => push({ type: 'Phân bổ quỹ chung', label: (run ? run.code : 'xem trước') + ' · ' + bc(b), sub: 'quỹ ' + F.vnd(ln.fund) + ' / ' + al.denominator + ' × số phòng', href: '#/expenses/allocation?period=' + period, amount: v, buildingId: b }));
         S.all('expenses').filter(e => e.period === period && e.status !== 'void' && e.scope === 'fund' && e.fundCode === rule.fundCode).forEach(e => push({ type: 'Chứng từ quỹ (cả hệ thống)', label: e.code, sub: (e.note || '').slice(0, 70), href: '#/expenses?period=' + period + '&scope=fund&q=' + encodeURIComponent(e.code), amount: e.amount, buildingId: null, context: true }));
       }
-      const pr = S.one('payrollRuns', r => r.period === period); const pv = pr ? (pr.status === 'closed' ? null : pr) : (code === 'sal_mgr' || ['sal_clean', 'sal_guard', 'repair'].includes(code) ? TH.actions.previewPayroll(period) : null);
+      const pr = S.one('payrollRuns', r => r.period === period && r.status !== 'superseded'); const pv = pr ? (pr.status === 'closed' ? null : pr) : (code === 'sal_mgr' || ['sal_clean', 'sal_guard', 'repair'].includes(code) ? TH.actions.previewPayroll(period) : null);
       if (pv && code === 'sal_mgr') pv.lines.forEach(l => l.buildings.filter(b => inB(b.buildingId) && b.W).forEach(b => push({ type: pr ? 'Bảng lương (tạm tính)' : 'Bảng lương (xem trước)', label: (Q.emp(l.employeeId) || {}).name + ' · ' + bc(b.buildingId), sub: 'HS ' + (b.HS == null ? '–' : F.dec(b.HS, 2)) + ' · ' + b.J + ' phòng', href: '#/hr/payroll?period=' + period, amount: b.W, buildingId: b.buildingId })));
       if (pv) (pv.buildingCosts || []).filter(c => c.line === code && inB(c.buildingId)).forEach(c => push({ type: 'Bảng lương – nhập tay', label: c.kind === 'repair_labor' ? 'Tiền công ' + ((Q.emp(c.employeeId) || {}).name || '') : c.line === 'sal_clean' ? 'Lương vệ sinh' : 'Lương bảo vệ', sub: c.note, href: '#/hr/payroll?period=' + period + '&tab=nhap-tay', amount: c.amount, buildingId: c.buildingId }));
     }

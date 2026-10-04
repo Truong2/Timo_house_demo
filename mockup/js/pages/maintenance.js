@@ -21,6 +21,7 @@
     root.innerHTML = U.pageHead({ title: 'Lịch bảo dưỡng & kết quả', sub: `Thiết bị theo UI-34 · nhắc trước ${st.remindDays} ngày trên web và Zalo nội bộ (CH-32, tham số UI-38) · chi phí ghi UI-15 dòng 41 · không có quy trình SLA / duyệt nhiều cấp`,
       acts: [U.btn({ label: 'Xuất lịch', icon: 'download', act: 'exp' }), U.btn({ label: 'Lập lịch bảo dưỡng', icon: 'plus', cls: 'btn-primary', act: 'plan', perm: 'maintenance.plan' })] })
       + TH.pages.assetNav('/assets/maintenance')
+      + '<nav class="subnav" aria-label="Loại lịch bảo dưỡng">'+[['','Tất cả'],...AS.TYPES.filter(([key])=>['elevator','pump','washer','water_filter'].includes(key))].map(([key,label])=>'<a class="'+((q.type||'')===key?'on':'')+'" href="'+esc(TH.router.href('/assets/maintenance',{...q,type:key||undefined}))+'">'+esc(label)+'</a>').join('')+'<a href="#/assets/inventory?type=decor">Kiểm kê đồ décor</a></nav>'
       + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Lịch trong tháng ' + F.periodShort(month), value: inMonth.length, cap: inMonth.filter(t => t.state.status === 'done').length + ' đã thực hiện · ' + st.planned + ' dự kiến (mọi kỳ)', icon: 'calendar', tone: 'blue' })}
         ${U.kpi({ label: 'Quá hạn', value: st.overdue, cap: 'quá ngày dự kiến, chưa ghi kết quả', icon: 'alert-triangle', tone: st.overdue ? 'red' : 'gray' })}
         ${U.kpi({ label: 'Sắp đến hạn ' + st.remindDays + ' ngày', value: st.soon, cap: 'cờ nhắc – vẫn là "Dự kiến"', icon: 'bell', tone: st.soon ? 'amber' : 'gray' })}

@@ -27,8 +27,15 @@ test('v5 issued invoice freezes template and account print snapshot', () => {
   const draft = S.add('invoices', { ...source, id: 'inv_v5_snapshot', code: 'INV-V5-SNAPSHOT', period: '2026-10', lifecycle: 'draft', issuedAt: null, issuedBy: null, snapshot: null, printSnapshot: null,
     issueDate: '2026-10-01', cutoff: '2026-09-25', dueFrom: '2026-10-01', dueTo: '2026-10-05', oldDebtFrom: [], carriedOut: 0, carriedTo: null });
   X.setInvoiceTemplate(draft.id, 'TECH');
+    const rate = Q.rateOf(draft.stayId, '2026-10-01');
+    S.update('invoices', draft.id, { rateVersionId: rate.id });
   const issued = X.issueInvoices([draft.id]); assert.equal(issued.issued, 1);
   const frozen = Q.invoice(draft.id), snap = { ...frozen.printSnapshot };
+    const frozenRate = JSON.stringify(frozen.snapshot.rate);
+    assert.equal(frozen.snapshot.rateVersionId, rate.id);
+    assert.equal(frozen.snapshot.rate.id, rate.id);
+    S.update('rateVersions', rate.id, { note: 'Changed after issue' });
+    assert.equal(JSON.stringify(frozen.snapshot.rate), frozenRate, 'issued service prices must retain their source version');
   assert.equal(snap.template, 'TECH'); assert.ok(snap.templateVersion && snap.number && snap.bank && snap.holder);
   const oldAccount = Q.account(snap.accountId);
   const next = X.saveAccount({ id: oldAccount.id, template: 'TECH', bank: 'Ngân hàng mới', number: '9988 776655', holder: 'Chủ mới', effectiveFrom: '2026-10-02', sourceRef: 'V5-ACCOUNT-TEST' });

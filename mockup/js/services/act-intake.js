@@ -135,7 +135,16 @@
       }
       if(d.kind==='tenant'&&stay&&L.party&&stay===L.stay){if(L.building&&d.existingChoices?.buildingAddress==='source'&&!same(L.building.address,v.buildingAddress))X.updateBuilding(L.building.id,{address:v.buildingAddress});const customerPatch={};for(const [key,value] of [['name',v.name],['phone',v.phone],['idNo',v.idNo],['birthDate',v.birthDate],['partyAddress',v.partyAddress],['occupation',v.occupation]])if(value!=null&&value!==''&&(!L.party[key]||d.existingChoices?.[key]==='source'))customerPatch[key]=value;if(Object.keys(customerPatch).length)S.update('customers',L.party.id,customerPatch);}
       const target=contract||stay;
-      if (d.kind === 'tenant') for (const file of d.files || []) if (/\.(pdf|png|jpe?g)$/i.test(file.name)) X.registerContractFile(stay.id, { name:file.name, size:file.size, blobId:file.id, hash:file.hash, source:'intake', signed:d.contractSigned === true });
+      const contractFiles = [];
+      if (d.kind === 'tenant') for (const file of d.files || []) if (/\.(pdf|png|jpe?g)$/i.test(file.name)) contractFiles.push(X.registerContractFile(stay.id, { name:file.name, size:file.size, blobId:file.id, hash:file.hash, source:'intake', signed:d.contractSigned === true }));
+      if (d.kind === 'tenant' && !L.stay) {
+        const rate = TH.q.rateOf(stay.id, v.startDate), fileIds = contractFiles.map(f => f.id);
+        if (rate) {
+          S.update('rateVersions', rate.id, { source: 'intake', sourceRef: d.id, intakeId: d.id, contractFileId: fileIds[0] || null, contractFileIds: fileIds, fieldSources: JSON.parse(JSON.stringify(d.sources || {})), createdBy: S.session.userId, createdAt: F.nowISO() });
+          const version = X.recordStayVersion(stay.id, 'intake_confirmed', { effectiveFrom: v.startDate, sourceRef: d.id, documentIds: fileIds, reason: 'Xác nhận điều khoản và biểu phí từ hồ sơ nhập' });
+          S.update('rateVersions', rate.id, { contractVersionId: version.id });
+        }
+      }
       for(const file of d.files||[])if(!S.one('intakeAttachments',a=>a.targetId===target.id&&a.fileId===file.id))S.add('intakeAttachments',{targetId:target.id,kind:d.kind,fileId:file.id,name:file.name,contractSigned:d.contractSigned===true});
       if(d.kind==='tenant'&&v.declaredPaid>0&&!S.one('intakePaymentProposals',p=>p.stayId===stay.id&&p.contractCode===v.contractCode))S.add('intakePaymentProposals',{stayId:stay.id,contractCode:v.contractCode,amount:+v.declaredPaid,deposit:+v.paidDeposit||0,rent:+v.paidRent||0,status:'pending',intakeId:d.id});
       d.history ||= [];d.history.push({at:F.nowISO(),by:S.session.userId,action:'confirm',targetId:target.id});

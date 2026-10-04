@@ -4,7 +4,7 @@
   const clone = v => JSON.parse(JSON.stringify(v == null ? null : v));
   const LEGAL_KINDS = { business_registration: 'Đăng ký kinh doanh', pccc: 'PCCC', red_book: 'Sổ đỏ' };
   const LEGAL_STATUSES = { missing: 'Chưa có', pending: 'Chờ hoàn thiện', valid: 'Còn hiệu lực', expired: 'Hết hiệu lực', not_required: 'Không yêu cầu' };
-  const ownerSnapshot = oc => ({ holdPriceTo: oc.holdPriceTo || null, terms: oc.terms || '', operator: clone(oc.operator), buildingFeatures: oc.buildingFeatures || '', businessRegistration: oc.businessRegistration || '', sourceRef: oc.sourceRef || oc.source || '', note: oc.note || '', deposit: Number(oc.deposit) || 0 });
+  const ownerSnapshot = oc => ({ holdPriceTo: oc.holdPriceTo || null, endDate: oc.endDate || null, pcccStatus: oc.pcccStatus || 'unknown', terms: oc.terms || '', operator: clone(oc.operator), owner: clone(S.get('owners', oc.ownerId)), buildingFeatures: oc.buildingFeatures || '', businessRegistration: oc.businessRegistration || '', sourceRef: oc.sourceRef || oc.source || '', note: oc.note || '', deposit: Number(oc.deposit) || 0 });
   const addOwnerVersion = (oc, d = {}) => {
     const versions = S.where('ownerContractVersions', v => v.contractId === oc.id);
     return S.add('ownerContractVersions', { id: `ocv_${oc.id}_${versions.length + 1}`, contractId: oc.id, version: versions.length + 1, effectiveFrom: d.effectiveFrom || F.today(), kind: d.kind || 'metadata', snapshot: ownerSnapshot(oc),
@@ -204,14 +204,42 @@
     if (!TH.auth.inScope(oc.buildingId)) throw new Error('Hợp đồng ngoài phạm vi được giao');
     const effectiveFrom = d.effectiveFrom || F.today(); _.guardEffective(effectiveFrom, 'thay đổi điều khoản hợp đồng chủ nhà');
     const before = {}; const patch = {};
-    ['holdPriceTo', 'terms', 'buildingFeatures', 'businessRegistration', 'sourceRef', 'note'].forEach(k => { if (d[k] != null) { before[k] = oc[k] || ''; patch[k] = typeof d[k] === 'string' ? d[k].trim() : d[k]; } });
-    patch.operator = { name: String(d.operatorName || '').trim(), idNo: String(d.operatorIdNo || '').trim(), phone: String(d.operatorPhone || '').trim() };
-    before.operator = oc.operator || null;
+    const errs = {};
+    if (d.endDate && d.endDate < oc.startDate) errs.endDate = 'Ngày hết hạn phải từ ngày bắt đầu hợp đồng';
+    if (d.holdPriceTo && d.holdPriceTo < oc.startDate) errs.holdPriceTo = 'Ngày giữ giá phải từ ngày bắt đầu hợp đồng';
+    if (d.pcccStatus != null && !['unknown', 'yes', 'no'].includes(d.pcccStatus)) errs.pcccStatus = 'Chọn tình trạng PCCC';
+    if (d.deposit != null && (!Number.isFinite(Number(d.deposit)) || Number(d.deposit) < 0)) errs.deposit = 'Tiền cọc không được âm';
+    if (Object.keys(errs).length) { const e = new Error('Điều khoản chưa hợp lệ'); e.fields = errs; throw e; }
+    ['holdPriceTo', 'endDate', 'pcccStatus', 'terms', 'buildingFeatures', 'businessRegistration', 'sourceRef', 'note'].forEach(k => { if (d[k] != null) { before[k] = oc[k] || ''; patch[k] = typeof d[k] === 'string' ? d[k].trim() : d[k]; } });
+    if (d.deposit != null) { before.deposit = oc.deposit; patch.deposit = Number(d.deposit); }
+    if (['operatorName', 'operatorIdNo', 'operatorPhone'].some(k => k in d)) {
+      patch.operator = Object.assign({}, oc.operator);
+      [['operatorName', 'name'], ['operatorIdNo', 'idNo'], ['operatorPhone', 'phone']].forEach(([key, field]) => { if (d[key] != null) patch.operator[field] = String(d[key]).trim(); });
+      before.operator = oc.operator || null;
+    }
     S.update('ownerContracts', id, patch);
     const updated = S.get('ownerContracts', id); addOwnerVersion(updated, { effectiveFrom, kind: 'metadata', reason: d.reason || 'Cập nhật hồ sơ', sourceRef: patch.sourceRef || oc.sourceRef || 'web', documentIds: d.documentIds || [] });
     _.audit('update', 'ownerContract', id, `Cập nhật thông tin bổ sung HĐ ${oc.code}`, { before, after: patch, reason: d.reason || 'Cập nhật hồ sơ', sourceRef: patch.sourceRef || oc.sourceRef || 'web' });
     _.done(); return updated;
   };
+  X.updateOwnerProfile = (id, d) => S.atomic(() => {
+    _.need('owners.manage');
+    const owner = S.get('owners', id); if (!owner) throw new Error('Không tìm thấy chủ nhà');
+    const contracts = S.where('ownerContracts', c => c.ownerId === id);
+    if (contracts.some(c => !TH.auth.inScope(c.buildingId))) throw new Error('Hồ sơ liên kết hợp đồng ngoài phạm vi được giao');
+    const errs = {}, next = {};
+    if (!String(d.name || '').trim()) errs.name = 'Nhập họ tên / tên pháp nhân';
+    if (!String(d.reason || '').trim()) errs.reason = 'Nhập lý do cập nhật';
+    if (!String(d.sourceRef || '').trim()) errs.sourceRef = 'Nhập nguồn hồ sơ';
+    ['birthDate', 'idIssuedAt'].forEach(k => { if (d[k] && (!/^\d{4}-\d{2}-\d{2}$/.test(d[k]) || d[k] > F.today())) errs[k] = 'Ngày không được sau hôm nay'; });
+    if (Object.keys(errs).length) { const e = new Error('Hồ sơ chủ nhà chưa hợp lệ'); e.fields = errs; throw e; }
+    ['name', 'partyType', 'phone', 'idNo', 'birthDate', 'idIssuedAt', 'idIssuedBy', 'address', 'relatedPersons', 'bank', 'bankAccount', 'accountHolder', 'note'].forEach(k => { if (d[k] != null) next[k] = String(d[k]).trim(); });
+    const before = clone(owner);
+    S.update('owners', id, Object.assign(next, { sourceRef: d.sourceRef, updatedBy: _.who(), updatedAt: F.nowISO() }));
+    S.add('ownerProfileVersions', { ownerId: id, version: S.where('ownerProfileVersions', v => v.ownerId === id).length + 1, before, snapshot: clone(S.get('owners', id)), sourceRef: d.sourceRef, reason: d.reason, createdBy: _.who(), createdAt: F.nowISO() });
+    _.audit('update', 'owner', id, 'Cập nhật hồ sơ chủ nhà ' + next.name, { before, after: clone(S.get('owners', id)), reason: d.reason, sourceRef: d.sourceRef });
+    _.done(); return S.get('owners', id);
+  });
   X.ownerRentAt = (contractId, date) => { const v = S.where('ownerRateVersions', x => x.contractId === contractId && x.from <= date && (!x.to || date <= x.to))[0]; return v ? v.monthlyRent : 0; };
   /* Khách của chủ nhà đã đóng thẳng cho chủ (UI-03/UI-05, §3.12e, OQ-14): ghi "Chủ nhà đã thu" trên hóa đơn
      → hóa đơn không còn là công nợ khách; số đó trừ vào kỳ trả chủ nhà (kỳ chứa tháng hóa đơn, nếu đã chi đủ thì kỳ chưa chi kế tiếp). */

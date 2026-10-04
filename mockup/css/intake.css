@@ -68,7 +68,7 @@
 .intake-confirm{border:1px solid var(--primary-100);background:var(--primary-50);border-radius:var(--radius-sm);padding:14px}
 .intake-confirm .chk{align-items:flex-start;line-height:1.6}
 .intake-confirm input{flex:none;margin-top:4px}
-.intake-footer{position:sticky;top:calc(100vh - 92px);bottom:auto;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;margin-top:16px;box-shadow:var(--shadow-md)}
+.intake-footer{position:sticky;top:calc(100dvh - 92px - var(--bottom-clearance));bottom:auto;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;margin-top:16px;box-shadow:var(--shadow-md)}
 .intake-footer>div:first-child{min-width:0}
 .intake-footer b{font-size:13px}.intake-footer small{display:block;font-size:11px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
 .intake-source-row{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere;font-size:13px}
@@ -90,7 +90,7 @@
   .intake-workspace .wizard{padding:14px}
   .intake-workspace .wizard .wz-step{gap:10px}
   .intake-review-fields,.intake-compare{grid-template-columns:minmax(0,1fr)}
-  .intake-footer{top:calc(100vh - 130px);bottom:auto;padding:12px;gap:10px;flex-wrap:wrap}
+  .intake-footer{top:calc(100dvh - 130px - var(--bottom-clearance));bottom:auto;padding:12px;gap:10px;flex-wrap:wrap}
   .intake-footer .row{width:100%;justify-content:flex-end}
   .intake-footer .btn{min-height:42px}
   .intake-workspace .file-it{flex-wrap:wrap}

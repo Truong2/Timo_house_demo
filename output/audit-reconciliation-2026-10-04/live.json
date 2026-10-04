@@ -1,0 +1,904 @@
+{
+  "origin": "https://timohousev2.netlify.app/",
+  "capturedAt": "2026-10-04T09:28:50.462Z",
+  "routes": [
+    {
+      "route": "#/dashboard",
+      "path": "/dashboard",
+      "hash": "#/dashboard",
+      "title": "Tổng quan · TimoHouse",
+      "headings": [
+        "Tổng quan",
+        "Tiến độ thu theo mốc (ngày tiền thực nhận)",
+        "Tòa cần chú ý",
+        "Việc cần xử lý",
+        "Hợp đồng sắp hết hạn"
+      ],
+      "tabs": [],
+      "headers": [
+        "Tòa",
+        "Quản lý",
+        "Lấp đầy",
+        "% thu⇅",
+        "Còn nợ⇅"
+      ],
+      "text": "Tổng quan\nTháng 9/2026 · 109 tòa trong phạm vi · số liệu tính đến 29/09/2026\nKỳ\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\nLoại nhà\nTất cả\nNhà T\nNhà S\nNhà G\nKhu vực\nTất cả\nKhu Cầu Giấy\nKhu Nam Từ Liêm\nKhu Thanh Xuân\nKhu Hà Đông\nQuản lý\nTất cả\nHoàng Ngọc Lan\nHoàng Ngọc Phong\nVũ Khánh Bình\nNguyễn Minh Loan\nHoàng Đức Hà\nPhan Đức Vy\nMai Tuấn Trung\nLê Đức Ngân\nHoàng Anh Oanh\nHoàng Đức Phong\nVũ Thị Trang\nĐỗ Phương Đạt\nLeader / trưởng nhóm\nTất cả\nTrịnh Bảo Trang\nBùi Quang Nam\nLê Minh Châu\nHoàng Văn Hiếu\n \nXóa bộ lọc\nTrống ở luôn\n6\nphòng sẵn sàng, chưa có khách cọc → xem chi tiết\nTrống cuối tháng\n1\nkhách hết HĐ / báo trả trong tháng → xem HĐ\nĐang chờ (đã cọc)\n26\nkhách đã cọc, chưa vào ở → xem HĐ\nDoanh thu tiền phòng\n5.497.990.699\ndrill-down báo cáo và giao dịch nguồn\nCọc mới\n835.200.000\nhóa đơn có cọc mới\nPhá hợp đồng\n16.048.000\ngiữ cọc, khoản còn thu tách riêng\nPhải thu kỳ 09/2026\n8.060.311.463\n1451 hóa đơn (không gồm phá HĐ)\nĐã thu\n8.003.513.798\n99,3% số phải thu\nCòn nợ\n56.797.665\n80 hóa đơn đã thành công nợ (mặc định 5 ngày từ phát hành)\nPhá HĐ / bỏ trốn\n20\ncòn thu 13.112.000 (tiền điện)\nHS thực tế\n91,9\nthu trong 3 mốc / giá niêm yết – cùng công thức lương (OQ-18) · chi tiết theo tòa (UI-45)\nHS tạm tính\n93,9\n(tiền nhà đã thu + bỏ cọc) / giá niêm yết – không phải lấp đầy\nDeal chốt – 09/2026\n39\n26 chờ nhận · 22 đã nhận · doanh số 151.550.000\nPhản hồi Zalo chờ xử lý\n4\ntoàn hệ thống · mở hộp thư\nBảo dưỡng\n2 quá hạn\n3 việc trong 7 ngày tới · mở lịch UI-35\nKiểm kê 09/2026\n24/24 tòa chưa xong\nMở kiểm kê UI-36\nTiến độ thu theo mốc (ngày tiền thực nhận)\nMốc 5/10/15 (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu\nĐến hết ngày 5/9\n7.107.593.927 · 88,2%\nĐến hết ngày 10/9\n7.822.439.798 · 97,0%\nĐến hết ngày 15/9\n7.856.650.798 · 97,5%\nTòa cần chú ý\nXếp theo số còn nợ\nTòa\tQuản lý\tLấp đầy\t\n% thu\n⇅\n\t\nCòn nợ\n⇅\n\nG15 G\tHoàng Anh Oanh\t11/11\t75,2%\t22.992.226\nG17 G\tHoàng Đức Phong\t14/14\t90,2%\t9.507.742\nS47 S\tHoàng Anh Oanh\t10/10\t91,1%\t5.271.667\nS48A S\tChưa phân công\t1/1\t39,4%\t3.070.000\nG18 G\tHoàng Đức Hà\t14/26\t97,1%\t2.613.333\nS18 S\tHoàng Anh Oanh\t20/21\t97,6%\t2.500.000\nG5 G\tLê Đức Ngân\t22/23\t99,1%\t1.834.667\nG8 G\tHoàng Anh Oanh\t20/20\t98,5%\t1.468.000\nHiển thị 1 - 8 của 109 bản ghi\n1\n2\n3\n4\n5\n…\n14\n10 / trang\n20 / trang\n50 / trang\n100 / trang\nViệc cần xử lý\nHĐ sắp hết hạn (≤ 35 ngày)\n116\nHóa đơn đã thành công nợ\n80\nTin Zalo gửi lỗi\n0\nHoàn cọc đang xử lý\n8\nPhòng trống cần kiểm tra/dọn\n0\nHợp đồng sắp hết hạn\n303T18\nĐặng Hải Hiếu\n03/10/2026 · còn 4 ngày\n503T18\nHuỳnh Thu Tâm\n03/11/2026 · còn 35 ngày\n302T12\nTrần Tuấn Nhung\n23/10/2026 · còn 24 ngày\n401T12\nTrần Khánh An\n15/10/2026 · còn 16 ngày\n602T13\nNgô Bảo Tâm\n12/10/2026 · còn 13 ngày\n203T14\nHuỳnh Gia Khánh\n30/09/2026 · còn 1 ngày"
+    },
+    {
+      "route": "#/buildings/b_G1?tab=phap-ly",
+      "path": "/buildings/b_G1",
+      "hash": "#/buildings/b_G1?tab=phap-ly",
+      "title": "Chi tiết tòa nhà · TimoHouse",
+      "headings": [
+        "Tòa G1 Nhà G",
+        "Hồ sơ hiện hành",
+        "Lịch sử phiên"
+      ],
+      "tabs": [
+        {
+          "key": "tong-quan",
+          "label": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "key": "phong",
+          "label": "Phòng (16)",
+          "selected": "false"
+        },
+        {
+          "key": "chu-nha-hd",
+          "label": "Chủ nhà & HĐ",
+          "selected": "false"
+        },
+        {
+          "key": "phap-ly",
+          "label": "Pháp lý (0)",
+          "selected": "true"
+        },
+        {
+          "key": "lich-tra",
+          "label": "Lịch trả chủ nhà",
+          "selected": "false"
+        },
+        {
+          "key": "nhan-su",
+          "label": "Nhân sự",
+          "selected": "false"
+        },
+        {
+          "key": "dich-vu-dau-vao",
+          "label": "Dịch vụ đầu vào",
+          "selected": "false"
+        },
+        {
+          "key": "tai-chinh",
+          "label": "Tài chính",
+          "selected": "false"
+        },
+        {
+          "key": "tai-san",
+          "label": "Tài sản",
+          "selected": "false"
+        }
+      ],
+      "headers": [
+        "Loại",
+        "Số / cơ quan cấp",
+        "Ngày cấp / hết hạn",
+        "Nguồn",
+        "Tài liệu",
+        "Trạng thái",
+        ""
+      ],
+      "text": "Tòa G1\nNhà G\nSố 45 ngõ 210 Xuân Thủy, Hà Nội · Quản lý: Hoàng Ngọc Phong · Nhận nhà 01/08/2024\nChủ nhà / HĐ\nSửa hồ sơ tòa\nThêm phòng\nLấp đầy\n100,0%\n15/15 phòng có khách\nPhải thu 09/2026\n95.393.000\nCòn nợ\n66.000\nMẫu hóa đơn\nHĐ G1 (TECH)\nTechcombank 1903 26 0004\nTổng quan\nPhòng\n(16)\nChủ nhà & HĐ\nPháp lý\n(0)\nLịch trả chủ nhà\nNhân sự\nDịch vụ đầu vào\nTài chính\nTài sản\nDữ liệu có cấu trúc\nCác chuỗi ĐKKD/PCCC cũ vẫn hiển thị để đối chiếu nhưng không được tự chuyển thành số giấy phép hoặc ngày hiệu lực.\nĐăng ký kinh doanh\nChưa khai báo\nDữ liệu cấu trúc chưa có\nPCCC\nChưa khai báo\nDữ liệu cấu trúc chưa có\nSổ đỏ\nChưa khai báo\nDữ liệu cấu trúc chưa có\nHồ sơ hiện hành\nTài liệu gốc dùng kho tài liệu hiện có.\nThêm hồ sơ\nLoại\tSố / cơ quan cấp\tNgày cấp / hết hạn\tNguồn\tTài liệu\tTrạng thái\t\n\nChưa có hồ sơ pháp lý có cấu trúc\n\nChuỗi lịch sử vẫn được giữ ở Tổng quan; admin có thể khai báo phiên đầu tiên tại đây.\n\nLịch sử phiên\nChưa có lịch sử hồ sơ"
+    },
+    {
+      "route": "#/buildings/b_G1?tab=nhan-su",
+      "path": "/buildings/b_G1",
+      "hash": "#/buildings/b_G1?tab=nhan-su",
+      "title": "Chi tiết tòa nhà · TimoHouse",
+      "headings": [
+        "Tòa G1 Nhà G",
+        "Phân công theo thời gian"
+      ],
+      "tabs": [
+        {
+          "key": "tong-quan",
+          "label": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "key": "phong",
+          "label": "Phòng (16)",
+          "selected": "false"
+        },
+        {
+          "key": "chu-nha-hd",
+          "label": "Chủ nhà & HĐ",
+          "selected": "false"
+        },
+        {
+          "key": "phap-ly",
+          "label": "Pháp lý (0)",
+          "selected": "false"
+        },
+        {
+          "key": "lich-tra",
+          "label": "Lịch trả chủ nhà",
+          "selected": "false"
+        },
+        {
+          "key": "nhan-su",
+          "label": "Nhân sự",
+          "selected": "true"
+        },
+        {
+          "key": "dich-vu-dau-vao",
+          "label": "Dịch vụ đầu vào",
+          "selected": "false"
+        },
+        {
+          "key": "tai-chinh",
+          "label": "Tài chính",
+          "selected": "false"
+        },
+        {
+          "key": "tai-san",
+          "label": "Tài sản",
+          "selected": "false"
+        }
+      ],
+      "headers": [
+        "Nhân viên",
+        "Chức danh",
+        "Phạm vi",
+        "Trách nhiệm",
+        "Từ",
+        "Đến",
+        "Leader",
+        "Người thay đổi"
+      ],
+      "text": "Tòa G1\nNhà G\nSố 45 ngõ 210 Xuân Thủy, Hà Nội · Quản lý: Hoàng Ngọc Phong · Nhận nhà 01/08/2024\nChủ nhà / HĐ\nSửa hồ sơ tòa\nThêm phòng\nLấp đầy\n100,0%\n15/15 phòng có khách\nPhải thu 09/2026\n95.393.000\nCòn nợ\n66.000\nMẫu hóa đơn\nHĐ G1 (TECH)\nTechcombank 1903 26 0004\nTổng quan\nPhòng\n(16)\nChủ nhà & HĐ\nPháp lý\n(0)\nLịch trả chủ nhà\nNhân sự\nDịch vụ đầu vào\nTài chính\nTài sản\nPhân công theo thời gian\nChuyển phân công\nNhân viên\tChức danh\tPhạm vi\tTrách nhiệm\tTừ\tĐến\tLeader\tNgười thay đổi\nHoàng Ngọc Phong\tNhân viên vận hành\tCả tòa\tVận hành phòng / nhắc thu\t01/09/2026\tHiệu lực\tBùi Quang Nam\t\nImport Excel\n01/09/2026 09:00\n\nLê Đức Ngân\tNhân viên vận hành\tCả tòa\tVận hành phòng / nhắc thu\t01/01/2026\t31/08/2026\tTrịnh Bảo Trang\t\nImport Excel\n01/01/2026 09:00"
+    },
+    {
+      "route": "#/owners/oc_G1",
+      "path": "/owners/oc_G1",
+      "hash": "#/owners/oc_G1",
+      "title": "Chủ nhà & hợp đồng đầu vào · TimoHouse",
+      "headings": [
+        "Chủ nhà & hợp đồng đầu vào",
+        "Thông tin hợp đồng Đang hiệu lực",
+        "Lịch sử giá / phụ lục",
+        "Phiên điều khoản hợp đồng",
+        "Chủ nhà",
+        "Điều khoản, khai thác và nguồn",
+        "File hợp đồng, PCCC và sổ đỏ"
+      ],
+      "tabs": [],
+      "headers": [
+        "Phụ lục",
+        "Từ ngày",
+        "Đến ngày",
+        "Giá thuê",
+        "Lý do",
+        "Trạng thái",
+        "Phiên",
+        "Hiệu lực",
+        "Lý do / nguồn",
+        "Người tạo",
+        "Snapshot"
+      ],
+      "text": "Chủ nhà & hợp đồng đầu vào\nHĐCN-G1 · Tòa G1\nXem lịch trả\nSửa thông tin bổ sung\nThêm phụ lục thay giá\nThông tin hợp đồng\nĐang hiệu lực\nMã HĐ\nHĐCN-G1\nPhạm vi\nToàn bộ tòa G1\nNgày ký / bàn giao\n01/08/2024\nThời hạn\n01/08/2024 → 01/08/2029\nGiá thuê hiện hành\n48.000.000 đ/tháng\nCọc chủ nhà\n48.000.000 đ\n(dòng tiền, không vào chi phí lợi nhuận)\nKỳ trả\n1 tháng/lần, hạn ngày 5 đầu kỳ\nGiữ giá đến\nChưa có dữ liệu\nLịch sử giá / phụ lục\nPhụ lục\tTừ ngày\tĐến ngày\tGiá thuê\tLý do\tTrạng thái\nHĐ gốc\t01/08/2024\t–\t48.000.000\tGiá theo HĐ (tiền thuê 1 tháng – báo cáo T8/2026)\tĐang áp dụng\nPhiên điều khoản hợp đồng\nMỗi thay đổi metadata/phụ lục tạo một snapshot bất biến\nPhiên\tHiệu lực\tLý do / nguồn\tNgười tạo\tSnapshot\nv1\ninitial\t01/08/2024\t\nKhởi tạo từ dữ liệu nguồn\nDữ liệu nguồn Excel\n\t\nImport Excel\n01/08/2024 00:00\n\t\nChủ nhà\nHọ tên\nHồ Hữu Hà\nSĐT\n0926163921\nCCCD\n010105737236\nNgân hàng\nVietcombank\nĐiều khoản, khai thác và nguồn\nBên thuê khai thác\nChưa có dữ liệu\nLiên hệ bên khai thác\nChưa có dữ liệu\nThuế / PCCC / điều khoản\nChưa có dữ liệu\nĐặc điểm / tài sản bàn giao\nChưa có dữ liệu\nĐKKD / PCCC\nChưa có dữ liệu\nNguồn\nDữ liệu nguồn Excel\nGhi chú\nChưa có dữ liệu\nFile hợp đồng, PCCC và sổ đỏ\nHĐ thuê nhà G1.pdfowner_contract · v1\nSổ đỏ G1 (bản sao).pdfred_book · v1\nBáo cáo dùng giá nào?\nDòng \"Tiền thuê nhà 1 tháng\" của báo cáo lấy giá hiệu lực trong kỳ (dù trả 3 tháng/lần), như mẫu G1 C22."
+    },
+    {
+      "route": "#/billing/debts",
+      "path": "/billing/debts",
+      "hash": "#/billing/debts",
+      "title": "Công nợ & tiến độ thu · TimoHouse",
+      "headings": [
+        "Công nợ & tiến độ thu",
+        "80 khoản"
+      ],
+      "tabs": [
+        {
+          "key": "main",
+          "label": "Hợp đồng đang vận hành",
+          "selected": "true"
+        },
+        {
+          "key": "ended",
+          "label": "Hợp đồng kết thúc",
+          "selected": "false"
+        },
+        {
+          "key": "broken",
+          "label": "Phá HĐ / bỏ trốn",
+          "selected": "false"
+        }
+      ],
+      "headers": [
+        "Phòng⇅",
+        "Mã KH",
+        "Kỳ",
+        "Hạn",
+        "Phải thu",
+        "Đã phân bổ",
+        "Còn nợ⇅",
+        "Tuổi nợ⇅",
+        "Thu gần nhất",
+        "NV nhắc thu",
+        "Leader",
+        "Nhắc Zalo gần nhất",
+        ""
+      ],
+      "text": "Chỉ số\nHóa đơn\nPhiếu thu\nCông nợ\nCông nợ & tiến độ thu\nTính đến 29/09/2026 · khoản chưa đủ chuyển thành công nợ sau 5 ngày lịch từ ngày phát hành\nXuất danh sách nhắc nợ\nNhắc qua Zalo\nHợp đồng đang vận hành\nHợp đồng kết thúc\nPhá HĐ / bỏ trốn\n1-30 ngày\n0\n0 hóa đơn\n31-60 ngày\n56.797.664\n80 hóa đơn\n61-90 ngày\n0\n0 hóa đơn\n91-180 ngày\n0\n0 hóa đơn\n181+ ngày\n0\n0 hóa đơn\nTính đến ngày\nTrạng thái\nTất cả\nCông nợ\nQuá hạn < 5 ngày\nTrong hạn\nTuổi nợ\nTất cả\n1–30 ngày\n31–60 ngày\n61–90 ngày\n91–180 ngày\n181+ ngày\nKỳ\nTất cả\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\nTòa\nTất cả\nG1\nG2\nG3\nG4\nG5\nG6\nG7\nG8\nG9\nG10\nG11\nG12\nG13\nG14\nG15\nG16\nG17\nG18\nS1\nS2\nS3\nS4\nS5\nS6\nS7\nS8\nS9\nS9B\nS10\nS12\nS13\nS14\nS15\nS16\nS17\nS18\nS19A\nS19B\nS19C\nS20\nS21\nS22\nS23\nS24\nS25A\nS25B\nS26\nS27\nS28\nS29\nS30\nS31\nS32\nS33\nS34\nS35\nS36\nS37\nS37A\nS37B\nS38\nS39\nS40\nS42\nS43\nS44\nS45\nS46\nS47\nS48\nS48A\nS49\nS50\nT2\nT3\nT5\nT7\nT8\nT10\nT11\nT12\nT13\nT14\nT15\nT17\nT18\nT20\nT21\nT22\nT24\nT25\nT26\nT27\nT28\nT30\nT31\nT32\nT33\nT34\nT35\nT36\nT37\nT38\nT41\nT42\nT43\nT44\nT45\nG12A\nNV nhắc thu\nTất cả\nHoàng Ngọc Lan\nHoàng Ngọc Phong\nVũ Khánh Bình\nNguyễn Minh Loan\nHoàng Đức Hà\nPhan Đức Vy\nMai Tuấn Trung\nLê Đức Ngân\nHoàng Anh Oanh\nHoàng Đức Phong\nVũ Thị Trang\nĐỗ Phương Đạt\nLeader / team\nTất cả\nTrịnh Bảo Trang\nBùi Quang Nam\nLê Minh Châu\nHoàng Văn Hiếu\n \nXóa bộ lọc\n80 khoản\nĐịnh danh bằng mã phòng + mã tòa (SRC-02!E4); tên khách xem ở chi tiết\nPhòng\n⇅\n\tMã KH\tKỳ\tHạn\tPhải thu\tĐã phân bổ\t\nCòn nợ\n⇅\n\t\nTuổi nợ\n⇅\n\tThu gần nhất\tNV nhắc thu\tLeader\tNhắc Zalo gần nhất\t\n601T3\t601T3A001\t09/2026\t31/08/2026\t4.940.000\t4.919.000\t21.000\t34 ngày · 31-60\t05/09/2026\tHoàng Ngọc Lan\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n101T8\t101T8A001\t09/2026\t31/08/2026\t1.552.600\t1.552.000\t600\t34 ngày · 31-60\t25/08/2026\tVũ Khánh Bình\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n401T8\t401T8A002\t09/2026\t31/08/2026\t8.580.000\t8.000.000\t580.000\t34 ngày · 31-60\t10/09/2026\tVũ Khánh Bình\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n102T20\t102T20A002\t09/2026\t31/08/2026\t5.366.667\t5.340.000\t26.667\t34 ngày · 31-60\t01/09/2026\tHoàng Ngọc Lan\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n403T20\t403T20A001\t09/2026\t31/08/2026\t6.069.892\t6.069.000\t892\t34 ngày · 31-60\t05/09/2026\tHoàng Ngọc Lan\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n404T20\t404T20A001\t09/2026\t31/08/2026\t3.273.333\t3.260.000\t13.333\t34 ngày · 31-60\t04/09/2026\tHoàng Ngọc Lan\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n103T25\t103T25A001\t09/2026\t31/08/2026\t2.888.000\t2.120.000\t768.000\t34 ngày · 31-60\t05/09/2026\tMai Tuấn Trung\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n302T26\t302T26A001\t09/2026\t31/08/2026\t4.281.968\t4.281.000\t968\t34 ngày · 31-60\t05/09/2026\tVũ Khánh Bình\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n601T26\t601T26A002\t09/2026\t31/08/2026\t7.710.000\t7.700.000\t10.000\t34 ngày · 31-60\t02/09/2026\tVũ Khánh Bình\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n602T26\t602T26A001\t09/2026\t31/08/2026\t4.588.000\t4.566.000\t22.000\t34 ngày · 31-60\t05/09/2026\tVũ Khánh Bình\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n000T37\t000T37A001\t09/2026\t31/08/2026\t2.539.200\t2.539.000\t200\t34 ngày · 31-60\t05/09/2026\tHoàng Anh Oanh\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n301T41\t301T41A002\t09/2026\t31/08/2026\t7.990.000\t7.989.548\t452\t34 ngày · 31-60\t05/09/2026\tHoàng Ngọc Lan\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n403T42\t403T42A002\t09/2026\t31/08/2026\t6.980.000\t6.970.000\t10.000\t34 ngày · 31-60\t09/09/2026\tVũ Thị Trang\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n501T27\t501T27A001\t09/2026\t31/08/2026\t5.576.000\t5.476.000\t100.000\t34 ngày · 31-60\t05/09/2026\tHoàng Anh Oanh\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n301T43\t301T43A002\t09/2026\t31/08/2026\t6.960.000\t6.840.000\t120.000\t34 ngày · 31-60\t05/09/2026\tLê Đức Ngân\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n506S2\t506S2A001\t09/2026\t31/08/2026\t448.000\t440.000\t8.000\t34 ngày · 31-60\t05/09/2026\tNguyễn Minh Loan\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n102S3\t102S3A001\t09/2026\t31/08/2026\t6.398.613\t6.100.000\t298.613\t34 ngày · 31-60\t05/09/2026\tHoàng Ngọc Phong\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n103S3\t103S3A001\t09/2026\t31/08/2026\t5.404.000\t5.304.000\t100.000\t34 ngày · 31-60\t26/08/2026\tHoàng Ngọc Phong\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n102AS4\t102AS4A001\t09/2026\t31/08/2026\t3.956.000\t3.950.000\t6.000\t34 ngày · 31-60\t28/09/2026\tHoàng Đức Phong\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n302S5\t302S5A001\t09/2026\t31/08/2026\t5.366.000\t5.356.000\t10.000\t34 ngày · 31-60\t05/09/2026\tLê Đức Ngân\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n101S8\t101S8A001\t09/2026\t31/08/2026\t4.288.000\t3.988.000\t300.000\t34 ngày · 31-60\t05/09/2026\tHoàng Ngọc Phong\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n203S10\t203S10A001\t09/2026\t31/08/2026\t5.085.600\t5.085.000\t600\t34 ngày · 31-60\t05/09/2026\tHoàng Ngọc Phong\tBùi Quang Nam\t–\tCông nợ · 34 ngày\n101S15\t101S15A001\t09/2026\t31/08/2026\t6.174.100\t6.174.000\t100\t34 ngày · 31-60\t05/09/2026\tĐỗ Phương Đạt\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n201S17\t201S17A002\t09/2026\t31/08/2026\t4.608.000\t4.600.000\t8.000\t34 ngày · 31-60\t08/09/2026\tHoàng Đức Phong\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\n202S17\t202S17A002\t09/2026\t31/08/2026\t5.288.000\t5.180.000\t108.000\t34 ngày · 31-60\t08/09/2026\tHoàng Đức Phong\tTrịnh Bảo Trang\t–\tCông nợ · 34 ngày\nHiển thị 1 - 25 của 80 bản ghi\n1\n2\n3\n4\n10 / trang\n20 / trang\n50 / trang\n100 / trang"
+    },
+    {
+      "route": "#/refunds/rf_HC-202609-0001",
+      "path": "/refunds/rf_HC-202609-0001",
+      "hash": "#/refunds/rf_HC-202609-0001",
+      "title": "Phiếu hoàn cọc · TimoHouse",
+      "headings": [
+        "Phiếu hoàn cọc HC-202609-0001 Đã hoàn",
+        "Chi tiết khấu trừ trong cọc (BC)",
+        "Tính số hoàn",
+        "Duyệt & chi"
+      ],
+      "tabs": [],
+      "headers": [
+        "Khoản",
+        "Chỉ số cũ → mới",
+        "SL",
+        "Đơn giá",
+        "Lý do",
+        "Thành tiền",
+        "Truy vết"
+      ],
+      "text": "Phiếu hoàn cọc HC-202609-0001\nĐã hoàn\nTrần Văn Long · 302G3A001 · Phòng 302G3 · bàn giao 31/08/2026\nIn mẫu hoàn\nTính số hoàn\nxong\nAdmin duyệt\nđã duyệt\nKế toán duyệt\nđã duyệt\nGhi chi & in phiếu\n02/09/2026\nChi tiết khấu trừ trong cọc (BC)\nKhoản\tChỉ số cũ → mới\tSL\tĐơn giá\tLý do\tThành tiền\tTruy vết\nĐiện (số)\t415 → 520\t105\t4.000\tDữ liệu lịch sử từ Excel\t420.000\t\nNước\t11 → 15\t4\t35.000\tDữ liệu lịch sử từ Excel\t140.000\t\nKhấu hao\t–\t1\t200.000\tDữ liệu lịch sử từ Excel\t200.000\t\nTính số hoàn\nTiền cọc (I)\n4.500.000 đ\nTổng khấu trừ (BC)\n− 760.000 đ\nSố tính hoàn (BD = I − BC)\n3.740.000 đ\nSố chi thực tế\n3.740.000 đ\n\nĐối chiếu Excel HOÀN CỌC!5: BC 760.000 · BD 3.740.000\n\nDuyệt & chi\nAdmin\n✓ Hoàng Văn Hiếu\nKế toán\n✓ Mai Hữu Huy\nNgày chi\n02/09/2026\nPhương thức\nChuyển khoản\nKhấu hao hoàn cọc cố định 200.000đ/phòng (CH-17); admin và kế toán cùng duyệt số hoàn cuối."
+    },
+    {
+      "route": "#/hr/payroll?period=2026-09&tab=chinh-sach",
+      "path": "/hr/payroll",
+      "hash": "#/hr/payroll?period=2026-09&tab=chinh-sach",
+      "title": "Bảng lương · TimoHouse",
+      "headings": [
+        "Bảng lương Tháng 9/2026",
+        "Chính sách hiệu lực tại 30/09/2026",
+        "Lịch sử phiên"
+      ],
+      "tabs": [
+        {
+          "key": "van-hanh",
+          "label": "NV vận hành theo tòa (107)",
+          "selected": "false"
+        },
+        {
+          "key": "nhap-tay",
+          "label": "Nhập tay (0)",
+          "selected": "false"
+        },
+        {
+          "key": "tong-hop",
+          "label": "Tổng hợp theo người (43)",
+          "selected": "false"
+        },
+        {
+          "key": "chinh-sach",
+          "label": "Chính sách (5)",
+          "selected": "true"
+        },
+        {
+          "key": "chi-luong",
+          "label": "Chi lương (0)",
+          "selected": "false"
+        },
+        {
+          "key": "co",
+          "label": "Cần duyệt (11)",
+          "selected": "false"
+        }
+      ],
+      "headers": [
+        "Phòng ban",
+        "Cách tính",
+        "Phiên công thức",
+        "Đầu vào bắt buộc",
+        "Nguồn / phê duyệt",
+        "Trạng thái"
+      ],
+      "text": "Nhân viên\nCơ cấu tổ chức\nPhân công\nBảng lương\nBảng lương Tháng 9/2026\nXem trước – chưa lưu phiên\nXuất bảng\nTính thử & lưu\nKỳ lương\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\n \nXóa bộ lọc\nTổng thực nhận\n314.266.363\n43 nhân viên\nLương theo tòa (W)\n154.752.516\n107 dòng tòa\nNguồn\nWeb\nhóa đơn & phiếu thu theo ngày thực nhận\nCần duyệt tay\n11\nHS>100 · HS<70 · không có phòng\nNV vận hành theo tòa\n(107)\nNhập tay\n(0)\nTổng hợp theo người\n(43)\nChính sách\n(5)\nChi lương\n(0)\nCần duyệt\n(11)\nQuản trị theo ngày hiệu lực\nKỳ lịch sử giữ snapshot đã chốt. Phiên đề xuất chỉ dùng xem thử; bảng lương kỳ web chỉ được chốt khi mọi phòng ban liên quan có chính sách đã xác nhận.\nPhòng ban có policy\n5\nVận hành · Kinh doanh · Kỹ thuật · Thị trường · TC-KT\nĐã xác nhận\n5\nChờ xác nhận\n0\nChính sách hiệu lực tại 30/09/2026\nMỗi lần thay đổi tạo phiên mới; không sửa tại chỗ phiên đã dùng.\nTạo phiên chính sách\nPhòng ban\tCách tính\tPhiên công thức\tĐầu vào bắt buộc\tNguồn / phê duyệt\tTrạng thái\nTài chính – Kế toán\tLương cơ bản + phụ cấp\t\nFINANCE-FIXED-v1\n01/01/1900 → nay\n\tbaseSalary, allowances\t\nHồ sơ lương nhân viên hiện hành · lương cơ bản và phụ cấp\nBaseline đã nghiệm thu · 01/09/2026\n\t\nĐã xác nhận\nThị trường\tLương cơ bản + phụ cấp\t\nMARKET-FIXED-v1\n01/01/1900 → nay\n\tbaseSalary, allowances\t\nHồ sơ lương nhân viên hiện hành · lương cơ bản và phụ cấp\nBaseline đã nghiệm thu · 01/09/2026\n\t\nĐã xác nhận\nVận hành\tHS vận hành theo tòa\t\nOPS-HS-v1\n01/01/1900 → nay\n\tinvoices, payments, assignments, hireDate\t\nSRC-03/SRC-05 · HS và bảng bậc lương vận hành\nBaseline đã nghiệm thu · 01/09/2026\n\t\nĐã xác nhận\nKinh doanh\tLương theo ngày công\t\nSALES-WORKDAY-v1\n01/01/1900 → nay\n\tbaseSalary, workdays, allowances\t\nBảng lương hiện hành · lương cứng × ngày công / số ngày chuẩn\nBaseline đã nghiệm thu · 01/09/2026\n\t\nĐã xác nhận\nKỹ thuật\tLương kỹ thuật + tiền công\t\nTECH-REPAIR-v1\n01/01/1900 → nay\n\trepairPay, repairLabor, allowances\t\nSRC-16/OQ-22 · lương cố định và tiền công sửa chữa\nBaseline đã nghiệm thu · 01/09/2026\n\t\nĐã xác nhận\nLịch sử phiên\nTài chính – Kế toán\nFINANCE-FIXED-v101/01/1900 → nay · Hồ sơ lương nhân viên hiện hành · lương cơ bản và phụ cấp\nĐã xác nhận\nThị trường\nMARKET-FIXED-v101/01/1900 → nay · Hồ sơ lương nhân viên hiện hành · lương cơ bản và phụ cấp\nĐã xác nhận\nVận hành\nOPS-HS-v101/01/1900 → nay · SRC-03/SRC-05 · HS và bảng bậc lương vận hành\nĐã xác nhận\nKinh doanh\nSALES-WORKDAY-v101/01/1900 → nay · Bảng lương hiện hành · lương cứng × ngày công / số ngày chuẩn\nĐã xác nhận\nKỹ thuật\nTECH-REPAIR-v101/01/1900 → nay · SRC-16/OQ-22 · lương cố định và tiền công sửa chữa\nĐã xác nhận"
+    },
+    {
+      "route": "#/sales/deals",
+      "path": "/sales/deals",
+      "hash": "#/sales/deals",
+      "title": "Giao dịch chốt · TimoHouse",
+      "headings": [
+        "Giao dịch chốt",
+        "48 giao dịch"
+      ],
+      "tabs": [],
+      "headers": [
+        "Ngày giao dịch⇅",
+        "Tòa / phòng",
+        "Quản lý",
+        "Khách / SĐT",
+        "Cọc / thanh toán",
+        "Giá chốt⇅",
+        "Tính tiền / thời hạn",
+        "Nguồn / công cụ",
+        "Sale / cách chia",
+        "Nhận phòng",
+        "Ghi chú",
+        "Hoa hồng",
+        "Trạng thái"
+      ],
+      "text": "Giao dịch chốt\nNgày chốt, ngày vào ở, ngày tính tiền là ba trường riêng · hủy / đổi phòng / bỏ cọc ghi sự kiện riêng để doanh số, cọc, hoa hồng không bị đếm hai lần\nXuất\nTổng quan hàng\nKhách xem\nGiao dịch chốt\nHoa hồng\nChờ nhận\n26\n5 chưa thu đủ cọc\nĐã nhận\n22\nHủy / bỏ cọc\n0\nDoanh số (Σ giá chốt)\n182.650.000\nkhông gồm deal hủy / bỏ cọc (OQ-25)\nTìm\nTháng chốt\nTất cả\nTháng 9/2026\nTháng 8/2026\nTrạng thái\nTất cả\nĐã chốt – chờ nhận\nĐã nhận\nHủy\nHủy – bỏ cọc\nTòa\nTất cả\nG1\nG2\nG3\nG4\nG5\nG6\nG7\nG8\nG9\nG10\nG11\nG12\nG13\nG14\nG15\nG16\nG17\nG18\nS1\nS2\nS3\nS4\nS5\nS6\nS7\nS8\nS9\nS9B\nS10\nS12\nS13\nS14\nS15\nS16\nS17\nS18\nS19A\nS19B\nS19C\nS20\nS21\nS22\nS23\nS24\nS25A\nS25B\nS26\nS27\nS28\nS29\nS30\nS31\nS32\nS33\nS34\nS35\nS36\nS37\nS37A\nS37B\nS38\nS39\nS40\nS42\nS43\nS44\nS45\nS46\nS47\nS48\nS48A\nS49\nS50\nT2\nT3\nT5\nT7\nT8\nT10\nT11\nT12\nT13\nT14\nT15\nT17\nT18\nT20\nT21\nT22\nT24\nT25\nT26\nT27\nT28\nT30\nT31\nT32\nT33\nT34\nT35\nT36\nT37\nT38\nT41\nT42\nT43\nT44\nT45\nG12A\nSale\nTất cả\nLê Minh Châu\nHoàng Văn Nam\nLý Minh Đạt\nLê Anh Tú\nNguyễn Văn Linh\nHoàng Thu Nhung\nĐỗ Hoàng Châu\nNguyễn Thanh Bình\nNguyễn Thanh Long\nDương Thanh Phúc\nNgô Bảo Long\nNguyễn Ngọc Trung\nVõ Thu Sơn\nTrịnh Anh Oanh\nTrịnh Hữu Nam\nHuỳnh Văn Nam\nHồ Hữu Quân\nTrần Khánh Phúc\nĐỗ Hải Hà\nTrần Văn Hạnh\nNgô Hữu Quân\nNgô Hải Trung\nNguyễn Thanh Châu\n \nXóa bộ lọc\n48 giao dịch\nNgày giao dịch\n⇅\n\tTòa / phòng\tQuản lý\tKhách / SĐT\tCọc / thanh toán\t\nGiá chốt\n⇅\n\tTính tiền / thời hạn\tNguồn / công cụ\tSale / cách chia\tNhận phòng\tGhi chú\tHoa hồng\tTrạng thái\n\n26/09/2026\nGD-2609-007\n\t202S12\t\nHoàng Đức Phong\ntại ngày chốt\n\t\nMai Hoàng Thảo\n0961085713\n\t\n3.700.000 / 3.700.000\nCòn thiếu\n\t3.700.000\t\n01/10/2026\n12 tháng\n\t\nTờ rơi\nPHÒNG KD\n\t\nNgô Hải Trung\nMột sale\n\tChờ nhận\t\t1 dòng · 1.850.000\npending\t\nĐã chốt – chờ nhận\n\n26/09/2026\nGD-2609-016\n\t302G17\t\nHoàng Đức Phong\ntại ngày chốt\n\t\nNguyễn Thanh Phong\n0961468133\n\t\n4.200.000 / 4.200.000\nCòn thiếu\n\t4.200.000\t\n01/10/2026\n12 tháng\n\t\nTờ rơi\nVẬN HÀNH\n\t\nNgô Hải Trung\nMột sale\n\tChờ nhận\t\t1 dòng · 2.100.000\npending\t\nĐã chốt – chờ nhận\n\n26/09/2026\nGD-2609-040\n\t502T14\t\nVũ Thị Trang\ntại ngày chốt\n\t\nNgô Thanh Ngân\n0946707640\n\t\n3.600.000 / 3.600.000\nCòn thiếu\n\t3.600.000\t\n01/10/2026\n12 tháng\n\t\nTờ rơi\nPHÒNG KD\n\t\nVõ Thu Sơn\nMột sale\n\tChờ nhận\t\t1 dòng · 1.800.000\npending\t\nĐã chốt – chờ nhận\n\n25/09/2026\nGD-2609-021\n\t305G4\t\nHoàng Ngọc Phong\ntại ngày chốt\n\t\nPhan Khánh Phúc\n0996063251\n\t\n4.700.000 / 4.700.000\nCòn thiếu\n\t4.700.000\t\n01/10/2026\n12 tháng\n\t\nĐăng tin\nSALE VH\n\t\nNguyễn Văn Linh\nMột sale\n\tChờ nhận\t\t1 dòng · 2.350.000\npending\t\nĐã chốt – chờ nhận\n\n25/09/2026\nGD-2609-024\n\t401T35\t\nPhan Đức Vy\ntại ngày chốt\n\t\nTrịnh Thanh Nam\n0937823959\n\t\n3.000.000 / 3.000.000\nCòn thiếu\n\t3.000.000\t\n01/10/2026\n12 tháng\n\t\nĐăng tin\nPHÒNG KD\n\t\nNguyễn Văn Linh\nMột sale\n\tChờ nhận\t\t1 dòng · 1.500.000\npending\t\nĐã chốt – chờ nhận\n\n25/09/2026\nGD-2609-036\n\t404S4\t\nHoàng Đức Phong\ntại ngày chốt\n\t\nLê Đức Minh\n0942534564\n\t\n3.200.000 / 3.200.000\nCòn thiếu\n\t3.200.000\t\n01/10/2026\n12 tháng\n\t\nĐăng tin\nPHÒNG KD\n\t\nNguyễn Thanh Châu\nMột sale\n\tChờ nhận\t\t1 dòng · 1.600.000\npending\t\nĐã chốt – chờ nhận\n\n23/09/2026\nGD-2609-014\n\t301G6\t\nĐỗ Phương Đạt\ntại ngày chốt\n\t\nTrịnh Hữu Ngân\n0996159448\n\t\n4.000.000 / 4.000.000\nCòn thiếu\n\t4.000.000\t\n01/10/2026\n12 tháng\n\t\nFacebook\nVẬN HÀNH\n\t\nVõ Thu Sơn\nMột sale\n\tChờ nhận\t\t1 dòng · 2.000.000\npending\t\nĐã chốt – chờ nhận\n\n23/09/2026\nGD-2609-022\n\t308T42\t\nVũ Thị Trang\ntại ngày chốt\n\t\nNguyễn Bảo Nam\n0934539057\n\t\n3.400.000 / 3.400.000\nCòn thiếu\n\t3.400.000\t\n01/10/2026\n12 tháng\n\t\nFacebook\nPHÒNG KD\n\t\nDương Thanh Phúc, Hoàng Thu Nhung\nChia 2 sale\n\tChờ nhận\t\t2 dòng · 1.700.000\npending\t\nĐã chốt – chờ nhận\n\n23/09/2026\nGD-2609-043\n\t503T25\t\nMai Tuấn Trung\ntại ngày chốt\n\t\nDương Phương Trung\n0971854581\n\t\n1.000.000 / 3.600.000\nCòn thiếu · thiếu 2.600.000\n\t3.600.000\t\n01/10/2026\n12 tháng\n\t\nFacebook\nSALE VH\n\t\nNgô Hải Trung\nMột sale\n\tChờ nhận\t\t1 dòng · 1.800.000\npending\t\nĐã chốt – chờ nhận\n\n22/09/2026\nGD-2609-017\n\t302S42\t\nHoàng Đức Phong\ntại ngày chốt\n\t\nDương Phương Đạt\n0996239319\n\t\n4.000.000 / 4.000.000\nCòn thiếu\n\t4.000.000\t\n01/10/2026\n12 tháng\n\t\nTờ rơi\nVẬN HÀNH\n\t\nHồ Hữu Quân, Nguyễn Thanh Châu\nChia 2 sale\n\tChờ nhận\t\t2 dòng · 2.000.000\npending\t\nĐã chốt – chờ nhận\n\n21/09/2026\nGD-2609-018\n\t302T24\t\nHoàng Ngọc Lan\ntại ngày chốt\n\t\nTrịnh Hữu Trang\n0968839374\n\t\n3.500.000 / 3.500.000\nCòn thiếu\n\t3.500.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nNICE HOUSE\n\t\nNguyễn Thanh Long\nMột sale\n\tChờ nhận\t\t1 dòng · 1.750.000\npending\t\nĐã chốt – chờ nhận\n\n21/09/2026\nGD-2609-030\n\t402T14\t\nVũ Thị Trang\ntại ngày chốt\n\t\nDương Hải Hà\n0983210115\n\t\n3.600.000 / 3.600.000\nCòn thiếu\n\t3.600.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nTINCITY\n\t\nNguyễn Ngọc Trung\nMột sale\n\tChờ nhận\t\t1 dòng · 1.800.000\npending\t\nĐã chốt – chờ nhận\n\n21/09/2026\nGD-2609-033\n\t403T37\t\nHoàng Anh Oanh\ntại ngày chốt\n\t\nHồ Bảo Khánh\n0954924049\n\t\n4.000.000 / 4.000.000\nCòn thiếu\n\t4.000.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nANHOME\n\t\nHoàng Thu Nhung\nMột sale\n\tChờ nhận\t\t1 dòng · 2.000.000\npending\t\nĐã chốt – chờ nhận\n\n21/09/2026\nGD-2609-037\n\t501S26\t\nHoàng Ngọc Phong\ntại ngày chốt\n\t\nPhan Diệu Quân\n0922854299\n\t\n4.700.000 / 4.700.000\nCòn thiếu\n\t4.700.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nANHOME\n\t\nTrịnh Hữu Nam\nMột sale\n\tChờ nhận\t\t1 dòng · 2.350.000\npending\t\nĐã chốt – chờ nhận\n\n20/09/2026\nGD-2609-031\n\t403G5\t\nLê Đức Ngân\ntại ngày chốt\n\t\nBùi Thị Quân\n0964099030\n\t\n14.000.000 / 7.000.000\nCòn thiếu\n\t7.000.000\t\n26/09/2026\n12 tháng\n\t\nĐăng tin\nSALE VH\n\t\nNguyễn Thanh Bình\nMột sale\n\tCuối tháng\t\t1 dòng · 3.500.000\napproved\t\nĐã nhận\n\n19/09/2026\nGD-2609-026\n\t401T44\t\nNguyễn Minh Loan\ntại ngày chốt\n\t\nBùi Gia Vy\n0942544960\n\t\n2.000.000 / 4.000.000\nCòn thiếu · thiếu 2.000.000\n\t4.000.000\t\n01/10/2026\n12 tháng\n\t\nFacebook\nVẬN HÀNH\n\t\nTrần Văn Hạnh\nMột sale\n\tChờ nhận\t\t1 dòng · 2.000.000\npending\t\nĐã chốt – chờ nhận\n\n19/09/2026\nGD-2609-047\n\t601S21\t\nLê Đức Ngân\ntại ngày chốt\n\t\nDương Bảo Giang\n0973711417\n\t\n4.300.000 / 4.300.000\nCòn thiếu\n\t4.300.000\t\n01/10/2026\n12 tháng\n\t\nFacebook\nPHÒNG KD\n\t\nHồ Hữu Quân, Dương Thanh Phúc\nChia 2 sale\n\tChờ nhận\t\t2 dòng · 2.150.000\npending\t\nĐã chốt – chờ nhận\n\n18/09/2026\nGD-2609-003\n\t102G8\t\nHoàng Anh Oanh\ntại ngày chốt\n\t\nPhạm Văn Phong\n0925261919\n\t\n1.800.000 / 3.600.000\nCòn thiếu · thiếu 1.800.000\n\t3.600.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nSTARHOME\n\t\nLý Minh Đạt, Huỳnh Văn Nam\nChia 2 sale\n\tChờ nhận\t\t1 dòng · 1.800.000\npending\t\nĐã chốt – chờ nhận\n\n18/09/2026\nGD-2609-005\n\t201S26\t\nHoàng Ngọc Phong\ntại ngày chốt\n\t\nHồ Bảo Dũng\n0924913829\n\t\n4.700.000 / 4.700.000\nCòn thiếu\n\t4.700.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nMS63\n\t\nLý Minh Đạt\nMột sale\n\tChờ nhận\t\t1 dòng · 2.350.000\npending\t\nĐã chốt – chờ nhận\n\n18/09/2026\nGD-2609-008\n\t202S23\t\nPhan Đức Vy\ntại ngày chốt\n\t\nVõ Quang Huy\n0901731929\n\t\n3.100.000 / 3.100.000\nCòn thiếu\n\t3.100.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nNT HOME\n\t\nLý Minh Đạt, Nguyễn Văn Linh\nChia 2 sale\n\tChờ nhận\t\t1 dòng · 1.550.000\npending\t\nĐã chốt – chờ nhận\n\n18/09/2026\nGD-2609-013\n\t206G6\t\nĐỗ Phương Đạt\ntại ngày chốt\n\t\nDương Phương Vân\n0959702944\n\t\n3.800.000 / 3.800.000\nCòn thiếu\n\t3.800.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nCD HOUSE\n\t\nTrần Khánh Phúc\nMột sale\n\tChờ nhận\t\t1 dòng · 1.900.000\npending\t\nĐã chốt – chờ nhận\n\n18/09/2026\nGD-2609-025\n\t401T3\t\nHoàng Anh Oanh\ntại ngày chốt\n\t\nVõ Diệu Châu\n0954564529\n\t\n4.500.000 / 4.500.000\nCòn thiếu\n\t4.500.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nTINCITY\n\t\nTrần Khánh Phúc\nMột sale\n\tChờ nhận\t\t1 dòng · 2.250.000\npending\t\nĐã chốt – chờ nhận\n\n18/09/2026\nGD-2609-042\n\t503T15\t\nVũ Thị Trang\ntại ngày chốt\n\t\nVõ Đức Phúc\n0928146952\n\t\n4.000.000 / 4.000.000\nCòn thiếu\n\t4.000.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nNICE HOUSE\n\t\nLý Minh Đạt, Nguyễn Văn Linh\nChia 2 sale\n\tChờ nhận\t\t1 dòng · 2.000.000\npending\t\nĐã chốt – chờ nhận\n\n18/09/2026\nGD-2609-045\n\t504S13\t\nLê Đức Ngân\ntại ngày chốt\n\t\nNgô Thị Tú\n0964462358\n\t\n3.800.000 / 3.800.000\nCòn thiếu\n\t3.800.000\t\n01/10/2026\n12 tháng\n\t\nĐối tác\nTL21\n\t\nTrần Khánh Phúc\nMột sale\n\tChờ nhận\t\t1 dòng · 1.900.000\npending\t\nĐã chốt – chờ nhận\n\n17/09/2026\nGD-2609-038\n\t502S30\t\nVũ Thị Trang\ntại ngày chốt\n\t\nLê Ngọc Nhung\n0924853562\n\t\n3.000.000 / 4.800.000\nCòn thiếu · thiếu 1.800.000\n\t4.800.000\t\n01/10/2026\n12 tháng\n\t\nĐăng tin\nSALE VH\n\t\nVõ Thu Sơn\nMột sale\n\tChờ nhận\t\t1 dòng · 2.400.000\npending\t\nĐã chốt – chờ nhận\nHiển thị 1 - 25 của 48 bản ghi\n1\n2\n10 / trang\n20 / trang\n50 / trang\n100 / trang"
+    },
+    {
+      "route": "#/shares?building=b_G1",
+      "path": "/shares",
+      "hash": "#/shares?building=b_G1",
+      "title": "Cổ đông & tỷ lệ góp · TimoHouse",
+      "headings": [
+        "Cổ đông & tỷ lệ góp",
+        "Tỷ lệ góp hiệu lực 29/09/2026",
+        "Lịch sử tỷ lệ",
+        "Lịch sử tổng hợp cổ đông"
+      ],
+      "tabs": [],
+      "headers": [
+        "Mã",
+        "Nhà đầu tư",
+        "Tỷ lệ",
+        "Hiệu lực từ",
+        "",
+        "Cổ đông",
+        "Tỷ lệ",
+        "Từ",
+        "Đến",
+        "Căn cứ"
+      ],
+      "text": "Cổ phần (UI-31)\nBảng kê (UI-32)\nGóp vốn / chi thực (UI-33)\nCổ đông & tỷ lệ góp\nNhà đầu tư – tòa nhiều-nhiều; tỷ lệ nhập tay có ngày hiệu lực (CH-30); tổng tỷ lệ tòa phải đủ 100% trước khi khóa bảng kê chia\nThêm cổ đông\nSửa tỷ lệ\nTòa\nG1\nG2 (chưa có tỷ lệ)\nG3 (chưa có tỷ lệ)\nG4 (chưa có tỷ lệ)\nG5 (chưa có tỷ lệ)\nG6 (chưa có tỷ lệ)\nG7 (chưa có tỷ lệ)\nG8 (chưa có tỷ lệ)\nG9 (chưa có tỷ lệ)\nG10 (chưa có tỷ lệ)\nG11 (chưa có tỷ lệ)\nG12 (chưa có tỷ lệ)\nG13 (chưa có tỷ lệ)\nG14 (chưa có tỷ lệ)\nG15 (chưa có tỷ lệ)\nG16 (chưa có tỷ lệ)\nG17 (chưa có tỷ lệ)\nG18 (chưa có tỷ lệ)\nS1 (chưa có tỷ lệ)\nS2 (chưa có tỷ lệ)\nS3 (chưa có tỷ lệ)\nS4 (chưa có tỷ lệ)\nS5 (chưa có tỷ lệ)\nS6 (chưa có tỷ lệ)\nS7 (chưa có tỷ lệ)\nS8 (chưa có tỷ lệ)\nS9 (chưa có tỷ lệ)\nS9B (chưa có tỷ lệ)\nS10 (chưa có tỷ lệ)\nS12 (chưa có tỷ lệ)\nS13 (chưa có tỷ lệ)\nS14 (chưa có tỷ lệ)\nS15 (chưa có tỷ lệ)\nS16 (chưa có tỷ lệ)\nS17 (chưa có tỷ lệ)\nS18 (chưa có tỷ lệ)\nS19A (chưa có tỷ lệ)\nS19B (chưa có tỷ lệ)\nS19C (chưa có tỷ lệ)\nS20 (chưa có tỷ lệ)\nS21 (chưa có tỷ lệ)\nS22 (chưa có tỷ lệ)\nS23 (chưa có tỷ lệ)\nS24 (chưa có tỷ lệ)\nS25A (chưa có tỷ lệ)\nS25B (chưa có tỷ lệ)\nS26 (chưa có tỷ lệ)\nS27 (chưa có tỷ lệ)\nS28 (chưa có tỷ lệ)\nS29 (chưa có tỷ lệ)\nS30 (chưa có tỷ lệ)\nS31 (chưa có tỷ lệ)\nS32 (chưa có tỷ lệ)\nS33 (chưa có tỷ lệ)\nS34 (chưa có tỷ lệ)\nS35 (chưa có tỷ lệ)\nS36 (chưa có tỷ lệ)\nS37 (chưa có tỷ lệ)\nS37A (chưa có tỷ lệ)\nS37B (chưa có tỷ lệ)\nS38 (chưa có tỷ lệ)\nS39 (chưa có tỷ lệ)\nS40 (chưa có tỷ lệ)\nS42 (chưa có tỷ lệ)\nS43 (chưa có tỷ lệ)\nS44 (chưa có tỷ lệ)\nS45 (chưa có tỷ lệ)\nS46 (chưa có tỷ lệ)\nS47 (chưa có tỷ lệ)\nS48 (chưa có tỷ lệ)\nS48A (chưa có tỷ lệ)\nS49 (chưa có tỷ lệ)\nS50 (chưa có tỷ lệ)\nT2 (chưa có tỷ lệ)\nT3 (chưa có tỷ lệ)\nT5 (chưa có tỷ lệ)\nT7 (chưa có tỷ lệ)\nT8 (chưa có tỷ lệ)\nT10 (chưa có tỷ lệ)\nT11 (chưa có tỷ lệ)\nT12 (chưa có tỷ lệ)\nT13 (chưa có tỷ lệ)\nT14 (chưa có tỷ lệ)\nT15 (chưa có tỷ lệ)\nT17 (chưa có tỷ lệ)\nT18 (chưa có tỷ lệ)\nT20 (chưa có tỷ lệ)\nT21 (chưa có tỷ lệ)\nT22 (chưa có tỷ lệ)\nT24 (chưa có tỷ lệ)\nT25 (chưa có tỷ lệ)\nT26 (chưa có tỷ lệ)\nT27 (chưa có tỷ lệ)\nT28 (chưa có tỷ lệ)\nT30 (chưa có tỷ lệ)\nT31 (chưa có tỷ lệ)\nT32 (chưa có tỷ lệ)\nT33 (chưa có tỷ lệ)\nT34 (chưa có tỷ lệ)\nT35 (chưa có tỷ lệ)\nT36 (chưa có tỷ lệ)\nT37 (chưa có tỷ lệ)\nT38 (chưa có tỷ lệ)\nT41 (chưa có tỷ lệ)\nT42 (chưa có tỷ lệ)\nT43 (chưa có tỷ lệ)\nT44 (chưa có tỷ lệ)\nT45 (chưa có tỷ lệ)\nG12A (chưa có tỷ lệ)\nTại ngày\nXem theo cổ đông\nTất cả\nCHUNG · Quỹ chung công ty\nCD-01 · Nguyễn Văn Hiếu\nCD-02 · Phạm Thu Huy\nCD-03 · Võ Gia Huy\nCD-04 · Võ Phương Khánh\nCD-05 · Đặng Diệu Dũng\nCD-06 · Trịnh Minh Tâm\nCD-07 · Nguyễn Tuấn Tú\nCD-08 · Ngô Thị Khánh\n \nXóa bộ lọc\nSố cổ đông của tòa\n9\n1 tòa đã có tỷ lệ\nTổng tỷ lệ\n100%\nđủ 100% – khóa được bảng kê\nBảng kê đã khóa\n0\nMở bảng kê chia\nTỷ lệ góp hiệu lực 29/09/2026\nMã\tNhà đầu tư\tTỷ lệ\tHiệu lực từ\t\nCHUNG\tQuỹ chung công ty nhận chênh làm tròn\t10%\t01/01/2026\tHồ sơ\nCD-01\tNguyễn Văn Hiếu\t20%\t01/01/2026\tHồ sơ\nCD-02\tPhạm Thu Huy\t15%\t01/01/2026\tHồ sơ\nCD-03\tVõ Gia Huy\t5%\t01/01/2026\tHồ sơ\nCD-04\tVõ Phương Khánh\t15%\t01/01/2026\tHồ sơ\nCD-05\tĐặng Diệu Dũng\t10%\t01/01/2026\tHồ sơ\nCD-06\tTrịnh Minh Tâm\t5%\t01/01/2026\tHồ sơ\nCD-07\tNguyễn Tuấn Tú\t10%\t01/01/2026\tHồ sơ\nCD-08\tNgô Thị Khánh\t10%\t01/01/2026\tHồ sơ\n\tTổng\t100%\t\t\nLịch sử tỷ lệ\nCổ đông\tTỷ lệ\tTừ\tĐến\tCăn cứ\nQuỹ chung công ty\t10%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nNguyễn Văn Hiếu\t20%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nPhạm Thu Huy\t15%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nVõ Gia Huy\t5%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nVõ Phương Khánh\t15%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nĐặng Diệu Dũng\t10%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nTrịnh Minh Tâm\t5%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nNguyễn Tuấn Tú\t10%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nNgô Thị Khánh\t10%\t01/01/2026\thiện tại\tTỷ lệ góp theo bảng kê G1 (SRC-07)\nHiển thị 1 - 9 của 9 bản ghi\n1\n10 / trang\n20 / trang\n50 / trang\n100 / trang\nLịch sử tổng hợp cổ đông\nTỷ lệ · khóa/lại bảng kê · góp/rút vốn · chi thực · hủy giao dịch\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CD-03\nVõ Gia Huy · 1.200.000 · Dữ liệu demo\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/09/2026\nGóp vốn · GV-op_oc_G1_9_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-03\nVõ Gia Huy · 2.400.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-07\nNguyễn Tuấn Tú · 4.800.000 · Dữ liệu demo\n05/08/2026\nGóp vốn · GV-op_oc_G1_8_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-03\nVõ Gia Huy · 2.400.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-07\nNguyễn Tuấn Tú · 4.800.000 · Dữ liệu demo\n05/07/2026\nGóp vốn · GV-op_oc_G1_7_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-03\nVõ Gia Huy · 2.400.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-07\nNguyễn Tuấn Tú · 4.800.000 · Dữ liệu demo\n05/06/2026\nGóp vốn · GV-op_oc_G1_6_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-03\nVõ Gia Huy · 2.400.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-07\nNguyễn Tuấn Tú · 4.800.000 · Dữ liệu demo\n05/05/2026\nGóp vốn · GV-op_oc_G1_5_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-03\nVõ Gia Huy · 2.400.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-07\nNguyễn Tuấn Tú · 4.800.000 · Dữ liệu demo\n05/04/2026\nGóp vốn · GV-op_oc_G1_4_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-03\nVõ Gia Huy · 2.400.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-07\nNguyễn Tuấn Tú · 4.800.000 · Dữ liệu demo\n05/03/2026\nGóp vốn · GV-op_oc_G1_3_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CHUNG\nQuỹ chung công ty · 4.800.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-01\nNguyễn Văn Hiếu · 9.600.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-02\nPhạm Thu Huy · 7.200.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-03\nVõ Gia Huy · 2.400.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-04\nVõ Phương Khánh · 7.200.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-05\nĐặng Diệu Dũng · 4.800.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-06\nTrịnh Minh Tâm · 2.400.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-07\nNguyễn Tuấn Tú · 4.800.000 · Dữ liệu demo\n05/02/2026\nGóp vốn · GV-op_oc_G1_2_sh_CD-08\nNgô Thị Khánh · 4.800.000 · Dữ liệu demo\n01/01/2026\nTỷ lệ Quỹ chung công ty: 10%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Nguyễn Văn Hiếu: 20%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Phạm Thu Huy: 15%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Võ Gia Huy: 5%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Võ Phương Khánh: 15%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Đặng Diệu Dũng: 10%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Trịnh Minh Tâm: 5%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Nguyễn Tuấn Tú: 10%\nTỷ lệ góp theo bảng kê G1 (SRC-07)\n01/01/2026\nTỷ lệ Ngô Thị Khánh: 10%\nTỷ lệ góp theo bảng kê G1 (SRC-07)"
+    },
+    {
+      "route": "#/shares/capital?building=b_G1",
+      "path": "/shares/capital",
+      "hash": "#/shares/capital?building=b_G1",
+      "title": "Góp vốn, cọc, tài sản & chi thực · TimoHouse",
+      "headings": [
+        "Góp vốn, cọc, tài sản & chi thực",
+        "Lịch góp theo kỳ trả chủ nhà (không lưu lịch riêng)"
+      ],
+      "tabs": [
+        {
+          "key": "lich-dong",
+          "label": "Lịch đóng tiền nhà",
+          "selected": "true"
+        },
+        {
+          "key": "chi-thuc",
+          "label": "Chi thực",
+          "selected": "false"
+        },
+        {
+          "key": "tai-san-coc",
+          "label": "Tài sản / cọc",
+          "selected": "false"
+        },
+        {
+          "key": "dau-tu-ban-dau",
+          "label": "Đầu tư ban đầu",
+          "selected": "false"
+        },
+        {
+          "key": "lich-su",
+          "label": "Lịch sử",
+          "selected": "false"
+        }
+      ],
+      "headers": [
+        "Kỳ / hạn",
+        "Cổ đông",
+        "Tỷ lệ",
+        "Tiền kỳ / phải góp",
+        "Đã góp",
+        "Còn lại",
+        "Trạng thái",
+        ""
+      ],
+      "text": "Góp vốn, cọc, tài sản & chi thực\nTách nghĩa vụ góp theo UI-05 và chi thực theo M đã khóa UI-32 · Gồm quỹ CHUNG\nCổ phần (UI-31)\nBảng kê (UI-32)\nGóp vốn / chi thực (UI-33)\nTòa\nG1\nCổ đông\nTất cả\nCHUNG · Quỹ chung công ty\nCD-01 · Nguyễn Văn Hiếu\nCD-02 · Phạm Thu Huy\nCD-03 · Võ Gia Huy\nCD-04 · Võ Phương Khánh\nCD-05 · Đặng Diệu Dũng\nCD-06 · Trịnh Minh Tâm\nCD-07 · Nguyễn Tuấn Tú\nCD-08 · Ngô Thị Khánh\nTừ ngày\nĐến ngày\n \nXóa bộ lọc\nPhải góp đến nay\n384.000.000\nĐã góp đến nay\n378.000.000\nCòn phải góp\n6.000.000\n2 quá hạn · 9 sắp đến hạn\nNghĩa vụ chi theo bảng kê đã khóa ΣM\n0\nĐã trả\n0\nCòn phải trả\n0\nLịch đóng tiền nhà\nChi thực\nTài sản / cọc\nĐầu tư ban đầu\nLịch sử\nLịch góp theo kỳ trả chủ nhà (không lưu lịch riêng)\nKỳ / hạn\tCổ đông\tTỷ lệ\tTiền kỳ / phải góp\tĐã góp\tCòn lại\tTrạng thái\t\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCHUNG · Quỹ chung công ty\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-01 · Nguyễn Văn Hiếu\t20%\t\n9.600.000\n48.000.000 × 20%\n\t9.600.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-02 · Phạm Thu Huy\t15%\t\n7.200.000\n48.000.000 × 15%\n\t7.200.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-03 · Võ Gia Huy\t5%\t\n2.400.000\n48.000.000 × 5%\n\t2.400.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-04 · Võ Phương Khánh\t15%\t\n7.200.000\n48.000.000 × 15%\n\t7.200.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-05 · Đặng Diệu Dũng\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-06 · Trịnh Minh Tâm\t5%\t\n2.400.000\n48.000.000 × 5%\n\t2.400.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-07 · Nguyễn Tuấn Tú\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\n\n\n2026-02-01 · 1 tháng\n05/02/2026\n\tCD-08 · Ngô Thị Khánh\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCHUNG · Quỹ chung công ty\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-01 · Nguyễn Văn Hiếu\t20%\t\n9.600.000\n48.000.000 × 20%\n\t9.600.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-02 · Phạm Thu Huy\t15%\t\n7.200.000\n48.000.000 × 15%\n\t7.200.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-03 · Võ Gia Huy\t5%\t\n2.400.000\n48.000.000 × 5%\n\t2.400.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-04 · Võ Phương Khánh\t15%\t\n7.200.000\n48.000.000 × 15%\n\t7.200.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-05 · Đặng Diệu Dũng\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-06 · Trịnh Minh Tâm\t5%\t\n2.400.000\n48.000.000 × 5%\n\t2.400.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-07 · Nguyễn Tuấn Tú\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\n\n\n2026-03-01 · 1 tháng\n05/03/2026\n\tCD-08 · Ngô Thị Khánh\t10%\t\n4.800.000\n48.000.000 × 10%\n\t4.800.000\t0\tĐủ\t\nRút vốn\nHiển thị 1 - 18 của 99 bản ghi\n1\n2\n3\n4\n5\n6\n10 / trang\n20 / trang\n50 / trang\n100 / trang"
+    },
+    {
+      "route": "#/assets/maintenance",
+      "path": "/assets/maintenance",
+      "hash": "#/assets/maintenance",
+      "title": "Lịch bảo dưỡng · TimoHouse",
+      "headings": [
+        "Lịch bảo dưỡng & kết quả",
+        "27 lần bảo dưỡng"
+      ],
+      "tabs": [],
+      "headers": [
+        "Mã",
+        "Tài sản / tòa",
+        "Loại bảo dưỡng",
+        "Chu kỳ",
+        "Ngày dự kiến⇅",
+        "Leader / team",
+        "Người được giao",
+        "Người thực hiện / đơn vị",
+        "Trạng thái",
+        "Ngày thực hiện",
+        "Kết quả",
+        "Chi phí",
+        "Ảnh / ghi chú",
+        "Sửa chữa UI-47",
+        ""
+      ],
+      "text": "Lịch bảo dưỡng & kết quả\nThiết bị theo UI-34 · nhắc trước 7 ngày trên web và Zalo nội bộ (CH-32, tham số UI-38) · chi phí ghi UI-15 dòng 41 · không có quy trình SLA / duyệt nhiều cấp\nXuất lịch\nLập lịch bảo dưỡng\nTài sản (UI-34)\nLịch bảo dưỡng (UI-35)\nKiểm kê (UI-36)\nLịch trong tháng 09/2026\n5\n3 đã thực hiện · 11 dự kiến (mọi kỳ)\nQuá hạn\n2\nquá ngày dự kiến, chưa ghi kết quả\nSắp đến hạn 7 ngày\n3\ncờ nhắc – vẫn là \"Dự kiến\"\nChi phí bảo dưỡng tháng\n0\nchứng từ UI-15 gắn lịch\nTòa\nTất cả\nG1\nG2\nG3\nG4\nG5\nG6\nG7\nG8\nG9\nG10\nG11\nG12\nG13\nG14\nG15\nG16\nG17\nG18\nS1\nS2\nS3\nS4\nS5\nS6\nS7\nS8\nS9\nS9B\nS10\nS12\nS13\nS14\nS15\nS16\nS17\nS18\nS19A\nS19B\nS19C\nS20\nS21\nS22\nS23\nS24\nS25A\nS25B\nS26\nS27\nS28\nS29\nS30\nS31\nS32\nS33\nS34\nS35\nS36\nS37\nS37A\nS37B\nS38\nS39\nS40\nS42\nS43\nS44\nS45\nS46\nS47\nS48\nS48A\nS49\nS50\nT2\nT3\nT5\nT7\nT8\nT10\nT11\nT12\nT13\nT14\nT15\nT17\nT18\nT20\nT21\nT22\nT24\nT25\nT26\nT27\nT28\nT30\nT31\nT32\nT33\nT34\nT35\nT36\nT37\nT38\nT41\nT42\nT43\nT44\nT45\nG12A\nLoại thiết bị\nTất cả\nThang máy\nMáy bơm\nMáy giặt\nMáy lọc nước\nĐồ décor\nKhác\nTrạng thái\nTất cả\nDự kiến\nĐã thực hiện\nQuá hạn\nĐã hủy\nNhắc\nTất cả\nChỉ sắp đến hạn\nLeader / team\nTất cả\nTrịnh Bảo Trang – TPVH\nBùi Quang Nam – TNVH\nNgười được giao\nTất cả\nTrịnh Bảo Trang – TPVH\nBùi Quang Nam – TNVH\nHoàng Ngọc Lan – NVVH\nHoàng Ngọc Phong – NVVH\nNguyễn Minh Yến – NVVH\nVũ Khánh Bình – NVVH\nNguyễn Minh Loan – NVVH\nHoàng Đức Hà – NVVH\nPhan Đức Vy – NVVH\nMai Tuấn Trung – NVVH\nLê Đức Ngân – NVVH\nHoàng Anh Oanh – NVVH\nHoàng Đức Phong – NVVH\nHoàng Văn Hiếu – QL TỔNG\nHuỳnh Thu Long – KỸ THUẬT\nPhạm Khánh Yến – KỸ THUẬT\nVũ Thị Trang – NVVH\nĐỗ Phương Đạt – NVVH\nNgười thực hiện\nTất cả\nTrịnh Bảo Trang – TPVH\nBùi Quang Nam – TNVH\nHoàng Ngọc Lan – NVVH\nHoàng Ngọc Phong – NVVH\nNguyễn Minh Yến – NVVH\nVũ Khánh Bình – NVVH\nNguyễn Minh Loan – NVVH\nHoàng Đức Hà – NVVH\nPhan Đức Vy – NVVH\nMai Tuấn Trung – NVVH\nLê Đức Ngân – NVVH\nHoàng Anh Oanh – NVVH\nHoàng Đức Phong – NVVH\nHoàng Văn Hiếu – QL TỔNG\nHuỳnh Thu Long – KỸ THUẬT\nPhạm Khánh Yến – KỸ THUẬT\nVũ Thị Trang – NVVH\nĐỗ Phương Đạt – NVVH\nTừ ngày\nĐến ngày\n \nXóa bộ lọc\n27 lần bảo dưỡng\nMã\tTài sản / tòa\tLoại bảo dưỡng\tChu kỳ\t\nNgày dự kiến\n⇅\n\tLeader / team\tNgười được giao\tNgười thực hiện / đơn vị\tTrạng thái\tNgày thực hiện\tKết quả\tChi phí\tẢnh / ghi chú\tSửa chữa UI-47\t\nBD-202609-0004\tTS-S43-014 Máy bơm nước sinh hoạt\nS43 · Tầng 1\tBảo dưỡng máy bơm\t6 tháng\t20/09/2026\nquá 9 ngày\tTrịnh Bảo Trang\tLê Đức Ngân\t–\t\nQuá hạn\t–\t\t–\t\t–\t\nBD-202609-0005\tTS-S43-015 Máy lọc nước tổng\nS43 · Tầng 1\tThay lõi / vệ sinh máy lọc nước\t3 tháng\t22/09/2026\nquá 7 ngày\tTrịnh Bảo Trang\tLê Đức Ngân\tĐại lý lọc nước Karofi (demo)\t\nQuá hạn\t–\t\t–\t\t–\t\nBD-202610-0006\tTS-T2-015 Máy lọc nước tổng RO\nT2 · Tầng 1\tThay lõi / vệ sinh máy lọc nước\t3 tháng\t01/10/2026\ncòn 2 ngày\tTrịnh Bảo Trang\tHoàng Anh Oanh\tĐại lý lọc nước Karofi (demo)\t\nDự kiến sắp đến hạn\t–\t\t–\t\t–\t\nBD-202610-0001\tTS-S9B-001 Thang máy tải khách\nS9B · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t03/10/2026\ncòn 4 ngày\tBùi Quang Nam\t–\tCty Thang máy Thành Công (demo)\t\nDự kiến sắp đến hạn\t–\t\t–\t\t–\t\nBD-202610-0005\tTS-T17-014 Máy bơm tăng áp\nT17 · Tầng mái\tBảo dưỡng máy bơm\t6 tháng\t05/10/2026\ncòn 6 ngày\tBùi Quang Nam\tVũ Khánh Bình\t–\t\nDự kiến sắp đến hạn\t–\t\t–\t\t–\t\nBD-202610-0002\tTS-S16-002 Thang máy tải khách\nS16 · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t08/10/2026\ncòn 9 ngày\tTrịnh Bảo Trang\t–\tCty Thang máy Thành Công (demo)\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202610-0003\tTS-S37-001 Thang máy tải khách\nS37 · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t12/10/2026\ncòn 13 ngày\tBùi Quang Nam\t–\tCty Thang máy Thành Công (demo)\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202610-0004\tTS-T2-014 Máy bơm tăng áp\nT2 · Tầng mái\tBảo dưỡng máy bơm\t6 tháng\t15/10/2026\ncòn 16 ngày\tTrịnh Bảo Trang\tHoàng Anh Oanh\t–\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202611-0001\tTS-G15-014 Máy lọc nước tổng\nG15 · Tầng 1\tThay lõi / vệ sinh máy lọc nước\t3 tháng\t15/11/2026\ncòn 47 ngày\tTrịnh Bảo Trang\tHoàng Anh Oanh\tĐại lý lọc nước Karofi (demo)\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202611-0002\tTS-T2-016 Máy giặt chung 9kg\nT2 · Tầng 5 – khu giặt\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/11/2026\ncòn 52 ngày\tTrịnh Bảo Trang\tHoàng Anh Oanh\t–\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202611-0003\tTS-T17-015 Máy giặt chung 10kg\nT17 · Tầng 6 – khu giặt\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/11/2026\ncòn 52 ngày\tBùi Quang Nam\tVũ Khánh Bình\t–\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202611-0004\tTS-T5-002 Máy giặt chung 9kg\nT5 · Tầng 5 – khu giặt\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/11/2026\ncòn 52 ngày\tTrịnh Bảo Trang\tNguyễn Minh Loan\t–\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202611-0005\tTS-S4-015 Máy giặt + sấy chung\nS4 · Tầng 1\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/11/2026\ncòn 52 ngày\tTrịnh Bảo Trang\tHoàng Đức Phong\t–\t\nDự kiến\t–\t\t–\t\t–\t\nBD-202609-0003\tTS-S37-001 Thang máy tải khách\nS37 · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t12/09/2026\tBùi Quang Nam\t–\tCty Thang máy Thành Công (demo)\t\nĐã thực hiện\t12/09/2026\tĐạt – đã tra dầu cáp, kiểm tra phanh\t–\t\t–\tkế tiếp BD-202610-0003\nBD-202609-0002\tTS-S16-002 Thang máy tải khách\nS16 · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t08/09/2026\tTrịnh Bảo Trang\t–\tCty Thang máy Thành Công (demo)\t\nĐã thực hiện\t08/09/2026\tĐạt – đã tra dầu cáp, kiểm tra phanh\t–\t\t–\tkế tiếp BD-202610-0002\nBD-202609-0001\tTS-S9B-001 Thang máy tải khách\nS9B · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t03/09/2026\tBùi Quang Nam\t–\tCty Thang máy Thành Công (demo)\t\nĐã thực hiện\t03/09/2026\tĐạt – đã tra dầu cáp, kiểm tra phanh\t–\t\t–\tkế tiếp BD-202610-0001\nBD-202608-0004\tTS-T2-016 Máy giặt chung 9kg\nT2 · Tầng 5 – khu giặt\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/08/2026\tTrịnh Bảo Trang\tHoàng Anh Oanh\tHuỳnh Thu Long\t\nĐã thực hiện\t21/08/2026\tĐạt – vệ sinh lồng giặt, ống xả\t–\t\t–\tkế tiếp BD-202611-0002\nBD-202608-0005\tTS-T17-015 Máy giặt chung 10kg\nT17 · Tầng 6 – khu giặt\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/08/2026\tBùi Quang Nam\tVũ Khánh Bình\tHuỳnh Thu Long\t\nĐã thực hiện\t21/08/2026\tĐạt – vệ sinh lồng giặt, ống xả\t–\t\t–\tkế tiếp BD-202611-0003\nBD-202608-0006\tTS-T5-002 Máy giặt chung 9kg\nT5 · Tầng 5 – khu giặt\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/08/2026\tBùi Quang Nam\tHoàng Ngọc Phong\tHuỳnh Thu Long\t\nĐã thực hiện\t21/08/2026\tĐạt – vệ sinh lồng giặt, ống xả\t–\t\t–\tkế tiếp BD-202611-0004\nBD-202608-0007\tTS-S4-015 Máy giặt + sấy chung\nS4 · Tầng 1\tVệ sinh lồng giặt / bảo dưỡng máy giặt\t3 tháng\t20/08/2026\tTrịnh Bảo Trang\tHoàng Đức Phong\tHuỳnh Thu Long\t\nĐã thực hiện\t21/08/2026\tĐạt – vệ sinh lồng giặt, ống xả\t–\t\t–\tkế tiếp BD-202611-0005\nBD-202608-0003\tTS-S37-001 Thang máy tải khách\nS37 · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t12/08/2026\tBùi Quang Nam\t–\tCty Thang máy Thành Công (demo)\t\nĐã thực hiện\t12/08/2026\tĐạt – đã tra dầu cáp, kiểm tra phanh\t–\t\t–\tkế tiếp BD-202609-0003\nBD-202608-0002\tTS-S16-002 Thang máy tải khách\nS16 · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t08/08/2026\tTrịnh Bảo Trang\t–\tCty Thang máy Thành Công (demo)\t\nĐã thực hiện\t08/08/2026\tĐạt – đã tra dầu cáp, kiểm tra phanh\t–\t\t–\tkế tiếp BD-202609-0002\nBD-202608-0001\tTS-S9B-001 Thang máy tải khách\nS9B · Lõi thang\tBảo dưỡng thang máy\tHằng tháng\t03/08/2026\tBùi Quang Nam\t–\tCty Thang máy Thành Công (demo)\t\nĐã thực hiện\t03/08/2026\tĐạt – đã tra dầu cáp, kiểm tra phanh\t–\t\t–\tkế tiếp BD-202609-0001\nBD-202607-0001\tTS-T2-015 Máy lọc nước tổng RO\nT2 · Tầng 1\tThay lõi / vệ sinh máy lọc nước\t3 tháng\t01/07/2026\tTrịnh Bảo Trang\tHoàng Anh Oanh\tĐại lý lọc nước Karofi (demo)\t\nĐã thực hiện\t01/07/2026\tĐạt – thay lõi 1-2-3\t–\t\t–\tkế tiếp BD-202610-0006\nBD-202606-0001\tTS-S43-015 Máy lọc nước tổng\nS43 · Tầng 1\tThay lõi / vệ sinh máy lọc nước\t3 tháng\t22/06/2026\tTrịnh Bảo Trang\tLê Đức Ngân\tĐại lý lọc nước Karofi (demo)\t\nĐã thực hiện\t23/06/2026\tĐạt – thay lõi 1-2-3\t–\t\t–\tkế tiếp BD-202609-0005\nHiển thị 1 - 25 của 27 bản ghi\n1\n2\n10 / trang\n20 / trang\n50 / trang\n100 / trang"
+    },
+    {
+      "route": "#/assets/inventory",
+      "path": "/assets/inventory",
+      "hash": "#/assets/inventory",
+      "title": "Kiểm kê tài sản · TimoHouse",
+      "headings": [
+        "Kiểm kê tài sản",
+        "Phiên theo tòa",
+        "Kết quả G1",
+        "Đề xuất danh mục"
+      ],
+      "tabs": [],
+      "headers": [
+        "Tài sản",
+        "Số sổ",
+        "Số thực",
+        "Chênh SL",
+        "Tình trạng",
+        "Người kiểm / ảnh"
+      ],
+      "text": "Kiểm kê tài sản\nMỗi tòa một phiên tháng; tự mở ngày 01 · chỉ áp đề xuất sau admin + kế toán duyệt\nTài sản (UI-34)\nLịch bảo dưỡng (UI-35)\nKiểm kê (UI-36)\nKỳ\nTháng 8/2026\nTháng 9/2026\n \nXóa bộ lọc\nPhiên theo tòa\nG1\nChờ duyệt kép\nTự mở 01/09\nG5\nChưa nhập\nTự mở 01/09\nG8\nChưa nhập\nTự mở 01/09\nG10\nChưa nhập\nTự mở 01/09\nG15\nChưa nhập\nTự mở 01/09\nS4\nChưa nhập\nTự mở 01/09\nS9B\nChưa nhập\nTự mở 01/09\nS16\nChưa nhập\nTự mở 01/09\nS19A\nChưa nhập\nTự mở 01/09\nS19C\nChưa nhập\nTự mở 01/09\nS22\nChưa nhập\nTự mở 01/09\nS27\nChưa nhập\nTự mở 01/09\nS34\nChưa nhập\nTự mở 01/09\nS37\nChưa nhập\nTự mở 01/09\nS43\nChưa nhập\nTự mở 01/09\nT2\nChưa nhập\nTự mở 01/09\nT5\nChưa nhập\nTự mở 01/09\nT10\nChưa nhập\nTự mở 01/09\nT11\nChưa nhập\nTự mở 01/09\nT12\nChưa nhập\nTự mở 01/09\nT15\nChưa nhập\nTự mở 01/09\nT17\nChưa nhập\nTự mở 01/09\nT20\nChưa nhập\nTự mở 01/09\nT25\nChưa nhập\nTự mở 01/09\nKết quả G1\nChờ duyệt kép · 0/2 duyệt\nNhập kết quả\nĐề xuất sửa danh mục\nXuất chênh\nDuyệt (Quản trị hệ thống)\nTài sản\tSố sổ\tSố thực\tChênh SL\tTình trạng\tNgười kiểm / ảnh\n\nTS-G1-001 · Điều hòa, kèm điều khiển\nToàn tòa\n\t16\t15\tThiếu 1\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-002 · Thiết bị mạng, công tắc điện, ổ cắm…\nToàn tòa\n\t1\t1\tĐủ\tHỏng\tDữ liệu demo\n\n\nTS-G1-003 · Bình nóng lạnh\nToàn tòa\n\t16\t16\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-004 · Thiết bị vệ sinh (bồn cầu, vòi sen, vòi xịt, lavabo…)\nToàn tòa\n\t16\t16\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-005 · Cửa ra vào\nToàn tòa\n\t16\t16\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-006 · Cửa WC\nToàn tòa\n\t16\t16\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-007 · Cửa sổ các phòng\nToàn tòa\n\t16\t16\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-008 · Cửa ban công\nToàn tòa\n\t6\t6\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-009 · Bóng điện (nhà xe, từng phòng, hành lang…)\nToàn tòa\n\t38\t38\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-010 · Công tơ điện\nToàn tòa\n\t17\t17\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-011 · Đồng hồ nước\nToàn tòa\n\t1\t1\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-012 · Hệ thống báo cháy (chuông, nút ấn, báo nhiệt)\nToàn tòa\n\t1\t1\tĐủ\tSử dụng bình thường\tDữ liệu demo\n\n\nTS-G1-013 · Cửa chống cháy\nToàn tòa\n\t6\t6\tĐủ\tSử dụng bình thường\tDữ liệu demo\nHiển thị 1 - 13 của 13 bản ghi\n1\n10 / trang\n20 / trang\n50 / trang\n100 / trang\nĐề xuất danh mục\nChưa có đề xuất"
+    },
+    {
+      "route": "#/stays/st_302G3A001?tab=nguoi-thue",
+      "path": "/stays/st_302G3A001",
+      "hash": "#/stays/st_302G3A001?tab=nguoi-thue",
+      "title": "Chi tiết lượt thuê · TimoHouse",
+      "headings": [
+        "Phòng 302G3 · Tòa G3 Hết hạn HĐ",
+        "Hồ sơ người thuê",
+        "Xe / biển số",
+        "Tạm trú"
+      ],
+      "tabs": [
+        {
+          "key": "tong-quan",
+          "label": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "key": "nguoi-thue",
+          "label": "Người thuê",
+          "selected": "true"
+        },
+        {
+          "key": "dich-vu-gia",
+          "label": "Dịch vụ & giá",
+          "selected": "false"
+        },
+        {
+          "key": "coc",
+          "label": "Cọc",
+          "selected": "false"
+        },
+        {
+          "key": "thanh-toan",
+          "label": "Thanh toán (0)",
+          "selected": "false"
+        },
+        {
+          "key": "cong-no",
+          "label": "Công nợ (0)",
+          "selected": "false"
+        },
+        {
+          "key": "dien-nuoc",
+          "label": "Điện nước",
+          "selected": "false"
+        },
+        {
+          "key": "ban-giao",
+          "label": "Bàn giao",
+          "selected": "false"
+        },
+        {
+          "key": "gia-han",
+          "label": "Gia hạn",
+          "selected": "false"
+        },
+        {
+          "key": "tai-lieu",
+          "label": "Tài liệu",
+          "selected": "false"
+        },
+        {
+          "key": "lich-su",
+          "label": "Lịch sử",
+          "selected": "false"
+        }
+      ],
+      "headers": [],
+      "text": "Phòng 302G3 · Tòa G3\nHết hạn HĐ\nKhách Trần Văn Long · Mã HĐ 302G3A001 · Quản lý Hoàng Ngọc Lan · Kết thúc\nPhiếu hoàn HC-202609-0001\nNgày tính tiền phòng\n–\nBắt đầu tính dịch vụ\n–\nHết hạn HĐ\n31/08/2026\nCọc\n4.500.000 Đã hoàn\nCòn nợ\n0\nKết thúc\nHết hạn HĐ · 31/08/2026\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(0)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nHồ sơ người thuê\nCập nhật\nHọ tên\nTrần Văn Long\nSĐT\n0917622460\nCCCD\n015067342342\nNghề nghiệp\nSinh viên\nXe / biển số\nDữ liệu lịch sử chưa chi tiết\nNguồn cũ chỉ ghi nhận 0 xe; chưa có biển số và loại xe.\nTạm trú\nTrạng thái\nChưa cập nhật\nĐịa chỉ đăng ký\n–\nNgày khai báo\n–"
+    },
+    {
+      "route": "#/stays/st_302G3A001?tab=gia-han",
+      "path": "/stays/st_302G3A001",
+      "hash": "#/stays/st_302G3A001?tab=gia-han",
+      "title": "Chi tiết lượt thuê · TimoHouse",
+      "headings": [
+        "Phòng 302G3 · Tòa G3 Hết hạn HĐ",
+        "Gia hạn và thay đổi điều khoản"
+      ],
+      "tabs": [
+        {
+          "key": "tong-quan",
+          "label": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "key": "nguoi-thue",
+          "label": "Người thuê",
+          "selected": "false"
+        },
+        {
+          "key": "dich-vu-gia",
+          "label": "Dịch vụ & giá",
+          "selected": "false"
+        },
+        {
+          "key": "coc",
+          "label": "Cọc",
+          "selected": "false"
+        },
+        {
+          "key": "thanh-toan",
+          "label": "Thanh toán (0)",
+          "selected": "false"
+        },
+        {
+          "key": "cong-no",
+          "label": "Công nợ (0)",
+          "selected": "false"
+        },
+        {
+          "key": "dien-nuoc",
+          "label": "Điện nước",
+          "selected": "false"
+        },
+        {
+          "key": "ban-giao",
+          "label": "Bàn giao",
+          "selected": "false"
+        },
+        {
+          "key": "gia-han",
+          "label": "Gia hạn",
+          "selected": "true"
+        },
+        {
+          "key": "tai-lieu",
+          "label": "Tài liệu",
+          "selected": "false"
+        },
+        {
+          "key": "lich-su",
+          "label": "Lịch sử",
+          "selected": "false"
+        }
+      ],
+      "headers": [],
+      "text": "Phòng 302G3 · Tòa G3\nHết hạn HĐ\nKhách Trần Văn Long · Mã HĐ 302G3A001 · Quản lý Hoàng Ngọc Lan · Kết thúc\nPhiếu hoàn HC-202609-0001\nNgày tính tiền phòng\n–\nBắt đầu tính dịch vụ\n–\nHết hạn HĐ\n31/08/2026\nCọc\n4.500.000 Đã hoàn\nCòn nợ\n0\nKết thúc\nHết hạn HĐ · 31/08/2026\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(0)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nGia hạn và thay đổi điều khoản\nChưa có lần gia hạn\n\nPhiên gốc vẫn được giữ bất biến."
+    },
+    {
+      "route": "#/shares/b_G1?period=2026-08",
+      "path": "/shares/b_G1",
+      "hash": "#/shares/b_G1?period=2026-08",
+      "title": "Bảng kê chia lãi · TimoHouse",
+      "headings": [
+        "Bảng kê chia lãi – tòa G1",
+        "Bảng kê chia – Tháng 8/2026"
+      ],
+      "tabs": [],
+      "headers": [
+        "Cổ đông",
+        "G – Tỷ lệ",
+        "H – Vốn",
+        "I – LN gộp",
+        "J – LN ròng",
+        "M – Tổng nhận"
+      ],
+      "text": "Cổ phần (UI-31)\nBảng kê (UI-32)\nGóp vốn / chi thực (UI-33)\nBảng kê chia lãi – tòa G1\nCơ sở là Báo cáo tổng của tòa; kỳ lịch sử giữ số Excel, kỳ web hiển thị riêng chênh làm tròn (OQ-08)\nXuất Excel\nKhóa bảng kê\nKỳ\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\nNguồn số\nBáo cáo tổng tòa (web)\nNhư Excel SRC-07 (đối chiếu)\n \nXóa bộ lọc\nTính thử\nBảng kê chưa khóa – số theo tỷ lệ hiệu lực cuối kỳ 31/08/2026.\nVốn (tiền thuê 1 tháng – dòng 20)\n48.000.000\nLN gộp (dòng 45)\n22.990.932\nLN ròng (dòng 46)\n14.664.969,25\nExcel SRC-07 BÁO CÁO THÁNG 8 (C22, C73, C74)\nΣ Tổng nhận (M = H + J)\n62.664.969\nLNR/GV 23,96 · CP/LNG 3,0238\nBảng kê chia – Tháng 8/2026\nCổ đông\tG – Tỷ lệ\tH – Vốn\tI – LN gộp\tJ – LN ròng\tM – Tổng nhận\nCHUNG · Quỹ chung công ty (+ chênh làm tròn: H 0, I 0, J 1)\t10%\t4.800.000\t2.299.093\t1.466.498\t6.266.498\nCD-01 · Nguyễn Văn Hiếu\t20%\t9.600.000\t4.598.186\t2.932.994\t12.532.994\nCD-02 · Phạm Thu Huy\t15%\t7.200.000\t3.448.640\t2.199.745\t9.399.745\nCD-03 · Võ Gia Huy\t5%\t2.400.000\t1.149.547\t733.248\t3.133.248\nCD-04 · Võ Phương Khánh\t15%\t7.200.000\t3.448.640\t2.199.745\t9.399.745\nCD-05 · Đặng Diệu Dũng\t10%\t4.800.000\t2.299.093\t1.466.497\t6.266.497\nCD-06 · Trịnh Minh Tâm\t5%\t2.400.000\t1.149.547\t733.248\t3.133.248\nCD-07 · Nguyễn Tuấn Tú\t10%\t4.800.000\t2.299.093\t1.466.497\t6.266.497\nCD-08 · Ngô Thị Khánh\t10%\t4.800.000\t2.299.093\t1.466.497\t6.266.497\nTổng\t100%\t48.000.000\t22.990.932\t14.664.969\t62.664.969\nChỉ tiêu dòng tổng (SRC-07 cột K, L)\tK – LNR/GV 23,96\tL – CP/LNG 3,0238\nChênh so với bảng kê Excel SRC-07 (K-9)\nVốn 0 · LNG 0 · LNR\n0\nđ. Ô C43 của file G1 dùng mẫu số 1.343 thay vì 1.382 cho lương sửa chữa (GĐ OQ-04): 25.000.000 × 15 / 1.343 − 25.000.000 × 15 / 1.382 = 7.879,74đ; phần còn lại -7.879,74đ là sai số làm tròn của các ô liên kết ngoài."
+    },
+    {
+      "route": "#/shares/capital?building=b_G1&tab=tai-san-coc",
+      "path": "/shares/capital",
+      "hash": "#/shares/capital?building=b_G1&tab=tai-san-coc",
+      "title": "Góp vốn, cọc, tài sản & chi thực · TimoHouse",
+      "headings": [
+        "Góp vốn, cọc, tài sản & chi thực",
+        "Cọc chủ nhà – tài sản phải thu hồi",
+        "Tài sản theo tòa"
+      ],
+      "tabs": [
+        {
+          "key": "lich-dong",
+          "label": "Lịch đóng tiền nhà",
+          "selected": "false"
+        },
+        {
+          "key": "chi-thuc",
+          "label": "Chi thực",
+          "selected": "false"
+        },
+        {
+          "key": "tai-san-coc",
+          "label": "Tài sản / cọc",
+          "selected": "true"
+        },
+        {
+          "key": "dau-tu-ban-dau",
+          "label": "Đầu tư ban đầu",
+          "selected": "false"
+        },
+        {
+          "key": "lich-su",
+          "label": "Lịch sử",
+          "selected": "false"
+        }
+      ],
+      "headers": [
+        "Mã / tên",
+        "Sở hữu",
+        "SL",
+        "Còn lại"
+      ],
+      "text": "Góp vốn, cọc, tài sản & chi thực\nTách nghĩa vụ góp theo UI-05 và chi thực theo M đã khóa UI-32 · Gồm quỹ CHUNG\nCổ phần (UI-31)\nBảng kê (UI-32)\nGóp vốn / chi thực (UI-33)\nTòa\nG1\nCổ đông\nTất cả\nCHUNG · Quỹ chung công ty\nCD-01 · Nguyễn Văn Hiếu\nCD-02 · Phạm Thu Huy\nCD-03 · Võ Gia Huy\nCD-04 · Võ Phương Khánh\nCD-05 · Đặng Diệu Dũng\nCD-06 · Trịnh Minh Tâm\nCD-07 · Nguyễn Tuấn Tú\nCD-08 · Ngô Thị Khánh\nTừ ngày\nĐến ngày\n \nXóa bộ lọc\nPhải góp đến nay\n384.000.000\nĐã góp đến nay\n378.000.000\nCòn phải góp\n6.000.000\n2 quá hạn · 9 sắp đến hạn\nNghĩa vụ chi theo bảng kê đã khóa ΣM\n0\nĐã trả\n0\nCòn phải trả\n0\nLịch đóng tiền nhà\nChi thực\nTài sản / cọc\nĐầu tư ban đầu\nLịch sử\nCọc chủ nhà – tài sản phải thu hồi\n48.000.000\n\nThu hồi khi kết thúc hợp đồng chủ nhà; không vào doanh thu.\n\nTài sản theo tòa\nMã / tên\tSở hữu\tSL\tCòn lại\nTS-G1-001 · Điều hòa, kèm điều khiển\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-002 · Thiết bị mạng, công tắc điện, ổ cắm…\tChủ nhà\t1\tChờ dữ liệu\nTS-G1-003 · Bình nóng lạnh\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-004 · Thiết bị vệ sinh (bồn cầu, vòi sen, vòi xịt, lavabo…)\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-005 · Cửa ra vào\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-006 · Cửa WC\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-007 · Cửa sổ các phòng\tChủ nhà\t16\tChờ dữ liệu\nTS-G1-008 · Cửa ban công\tChủ nhà\t6\tChờ dữ liệu\nTS-G1-009 · Bóng điện (nhà xe, từng phòng, hành lang…)\tChủ nhà\t38\tChờ dữ liệu\nTS-G1-010 · Công tơ điện\tChủ nhà\t17\tChờ dữ liệu\nTS-G1-011 · Đồng hồ nước\tChủ nhà\t1\tChờ dữ liệu\nTS-G1-012 · Hệ thống báo cháy (chuông, nút ấn, báo nhiệt)\tChủ nhà\t1\tChờ dữ liệu\nTS-G1-013 · Cửa chống cháy\tChủ nhà\t6\tChờ dữ liệu\nTS-G1-901 · lắp máy bơm áp sân thượng\tCông ty\t1\tChờ ghi nhận 2026-10\nTS-G1-902 · điều hòa và vật tư lắp tầng 6\tCông ty\t1\tChờ ghi nhận 2026-10\nTS-G1-903 · thạch cao ngăn phòng tầng 6\tCông ty\t1\tChờ ghi nhận 2026-10\nTS-G1-904 · 2 tủ lạnh aqua\tCông ty\t2\tChờ ghi nhận 2026-10\nTS-G1-905 · rèm G1\tCông ty\t1\tChờ ghi nhận 2026-10\nTS-G1-906 · tủ bếp trên\tCông ty\t1\tChờ ghi nhận 2026-10\nTS-G1-907 · 1 máy giặt aqua 8kg\tCông ty\t1\tChờ ghi nhận 2026-10\nTS-G1-908 · 1 bộ giường tủ P604\tCông ty\t1\tChờ ghi nhận 2026-10"
+    },
+    {
+      "route": "#/hr/payroll?period=2026-09",
+      "path": "/hr/payroll",
+      "hash": "#/hr/payroll?period=2026-09",
+      "title": "Bảng lương · TimoHouse",
+      "headings": [
+        "Bảng lương Tháng 9/2026"
+      ],
+      "tabs": [
+        {
+          "key": "van-hanh",
+          "label": "NV vận hành theo tòa (107)",
+          "selected": "true"
+        },
+        {
+          "key": "nhap-tay",
+          "label": "Nhập tay (0)",
+          "selected": "false"
+        },
+        {
+          "key": "tong-hop",
+          "label": "Tổng hợp theo người (43)",
+          "selected": "false"
+        },
+        {
+          "key": "chinh-sach",
+          "label": "Chính sách (5)",
+          "selected": "false"
+        },
+        {
+          "key": "chi-luong",
+          "label": "Chi lương (0)",
+          "selected": "false"
+        },
+        {
+          "key": "co",
+          "label": "Cần duyệt (11)",
+          "selected": "false"
+        }
+      ],
+      "headers": [
+        "Nhân viên",
+        "Tòa",
+        "Số phòng (J)",
+        "DT niêm yết (K)",
+        "Phải thu (L)",
+        "M5 / M10 / M15",
+        "M1 / M2 / M3",
+        "A (3 mốc)",
+        "B = Q/L",
+        "C",
+        "T",
+        "HS⇅",
+        "Lương/phòng (V)",
+        "Thành tiền (W)⇅",
+        "Nguồn / trạng thái"
+      ],
+      "text": "Nhân viên\nCơ cấu tổ chức\nPhân công\nBảng lương\nBảng lương Tháng 9/2026\nXem trước – chưa lưu phiên\nXuất bảng\nTính thử & lưu\nKỳ lương\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\n \nXóa bộ lọc\nTổng thực nhận\n314.266.363\n43 nhân viên\nLương theo tòa (W)\n154.752.516\n107 dòng tòa\nNguồn\nWeb\nhóa đơn & phiếu thu theo ngày thực nhận\nCần duyệt tay\n11\nHS>100 · HS<70 · không có phòng\nNV vận hành theo tòa\n(107)\nNhập tay\n(0)\nTổng hợp theo người\n(43)\nChính sách\n(5)\nChi lương\n(0)\nCần duyệt\n(11)\nNhân viên\tTòa\tSố phòng (J)\tDT niêm yết (K)\tPhải thu (L)\tM5 / M10 / M15\tM1 / M2 / M3\tA (3 mốc)\tB = Q/L\tC\tT\t\nHS\n⇅\n\tLương/phòng (V)\t\nThành tiền (W)\n⇅\n\tNguồn / trạng thái\n\nHoàng Ngọc Lan\ntrên 1 năm\n\tG3\t17\t76.700.000\t95.370.000\t98.602.000\n104.110.000\n104.110.000\t89.802.000\n4.957.200\n0\t94.759.200\t0,220\t0\t73.923.503\t96,38\t121.743\t2.069.635\tGiao dịch web\n\nHoàng Ngọc Lan\ntrên 1 năm\n\tT3\t22\t103.000.000\t137.067.000\t136.116.000\n142.946.000\n142.946.000\t130.216.000\n6.147.000\n0\t136.363.000\t0,271\t0\t99.425.696\t96,53\t121.932\t2.682.512\tGiao dịch web\n\nHoàng Ngọc Lan\ntrên 1 năm\n\tT20\t17\t42.000.000\t53.751.892\t59.039.333\n61.314.333\n61.314.333\t51.439.333\n2.047.500\n0\t53.486.833\t0,237\t2.000.000\t42.801.032\t101,91\t132.479\t2.252.150\tGiao dịch web HS>100\n\nHoàng Ngọc Lan\ntrên 1 năm\n\tT22\t9\t31.500.000\t43.126.000\t46.626.000\n46.626.000\n46.626.000\t43.126.000\n0\n0\t43.126.000\t0,270\t0\t31.500.000\t100,00\t130.000\t1.170.000\tGiao dịch web\n\nHoàng Ngọc Lan\ntrên 1 năm\n\tT24\t10\t36.200.000\t46.992.000\t57.736.000\n61.992.000\n61.992.000\t46.236.000\n3.830.400\n0\t50.066.400\t0,253\t2.916.667\t40.330.803\t111,41\t144.834\t1.448.344\tGiao dịch web HS>100\n\nHoàng Ngọc Lan\ntrên 1 năm\n\tT41\t16\t65.300.000\t80.946.000\t92.145.548\n92.145.548\n92.145.548\t80.945.548\n0\n0\t80.945.548\t0,243\t0\t61.299.658\t93,87\t117.589\t1.881.431\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tG1\t15\t61.200.000\t78.493.000\t76.165.000\n95.327.000\n95.327.000\t59.265.000\n17.245.800\n0\t76.510.800\t0,252\t0\t57.217.637\t93,49\t117.112\t1.756.682\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tG4\t17\t77.500.000\t98.009.000\t91.830.000\n91.830.000\n97.249.000\t91.830.000\n0\n3.793.300\t95.623.300\t0,212\t0\t75.330.582\t97,20\t122.780\t2.087.258\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS3\t14\t54.800.000\t71.667.000\t70.575.000\n75.816.000\n75.816.000\t66.375.000\n4.716.900\n0\t71.091.900\t0,249\t0\t53.421.842\t97,49\t123.139\t1.723.947\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS6\t13\t49.600.000\t63.120.000\t49.448.000\n70.920.000\n70.920.000\t41.648.000\n19.324.800\n0\t60.972.800\t0,236\t0\t46.560.345\t93,87\t117.587\t1.528.626\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS7\t13\t46.800.000\t61.608.000\t62.974.000\n62.974.000\n62.974.000\t56.174.000\n0\n0\t56.174.000\t0,271\t0\t40.939.693\t87,48\t102.915\t1.337.898\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS8\t10\t30.000.000\t35.197.000\t42.771.000\n42.771.000\n42.771.000\t31.071.000\n0\n0\t31.071.000\t0,190\t2.223.333\t27.402.993\t91,34\t111.642\t1.116.418\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS9\t19\t87.400.000\t110.102.000\t96.140.000\n101.908.000\n101.908.000\t91.540.000\n5.191.200\n0\t96.731.200\t0,253\t0\t72.217.622\t82,63\t91.378\t1.736.178\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS9B\t18\t81.000.000\t106.359.000\t114.821.000\n114.821.000\n114.821.000\t105.521.000\n0\n0\t105.521.000\t0,251\t0\t79.002.597\t97,53\t126.794\t2.282.297\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS10\t15\t57.400.000\t70.849.600\t72.467.000\n78.449.000\n78.449.000\t64.867.000\n5.383.800\n0\t70.250.800\t0,269\t0\t51.362.202\t89,48\t108.372\t1.625.575\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS26\t10\t47.000.000\t60.870.000\t60.870.000\n60.870.000\n60.870.000\t60.870.000\n0\n0\t60.870.000\t0,239\t0\t46.300.000\t98,51\t128.064\t1.280.638\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS34\t9\t27.100.000\t35.108.000\t30.468.000\n30.468.000\n35.108.000\t30.468.000\n0\n3.248.000\t33.716.000\t0,265\t0\t24.777.054\t91,43\t111.746\t1.005.711\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tS37\t0\t0\t0\t0\n0\n0\t0\n0\n0\t0\t0,000\t0\t0\t0,00\t0\t0\tGiao dịch web Thiếu lương/lý do\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tT10\t8\t32.800.000\t39.850.000\t39.580.000\n39.580.000\n39.580.000\t35.580.000\n0\n0\t35.580.000\t0,229\t0\t27.439.010\t83,66\t92.513\t740.105\tGiao dịch web\n\nHoàng Ngọc Phong\ntrên 1 năm\n\tT21\t18\t84.700.000\t108.821.000\t95.070.000\n121.481.000\n121.481.000\t82.570.000\n23.769.900\n0\t106.339.900\t0,256\t2.450.000\t81.554.354\t96,29\t121.625\t2.189.243\tGiao dịch web\n\nVũ Khánh Bình\ndưới 1 năm\n\tT7\t8\t30.400.000\t32.240.000\t22.692.000\n22.692.000\n22.692.000\t22.692.000\n0\n0\t22.692.000\t0,260\t0\t16.786.731\t55,22\t0\t0\tGiao dịch web Thiếu lương/lý do\n\nVũ Khánh Bình\ndưới 1 năm\n\tT8\t9\t47.300.000\t45.216.600\t39.724.000\n48.936.000\n48.936.000\t35.424.000\n8.290.800\n0\t43.714.800\t0,230\t0\t33.644.171\t71,13\t60.968\t548.712\tGiao dịch web\n\nVũ Khánh Bình\ndưới 1 năm\n\tT17\t8\t33.000.000\t39.432.000\t40.404.000\n40.404.000\n46.132.000\t36.204.000\n0\n4.009.600\t40.213.600\t0,237\t0\t30.696.626\t93,02\t106.728\t853.826\tGiao dịch web\n\nVũ Khánh Bình\ndưới 1 năm\n\tT26\t15\t61.200.000\t67.796.968\t95.514.000\n95.514.000\n95.514.000\t67.914.000\n0\n0\t67.914.000\t0,141\t0\t58.333.490\t95,32\t110.366\t1.655.491\tGiao dịch web\n\nVũ Khánh Bình\ndưới 1 năm\n\tT30\t6\t26.100.000\t29.420.400\t32.650.400\n32.650.400\n33.650.400\t28.550.400\n0\n700.000\t29.250.400\t0,191\t0\t23.662.476\t90,66\t100.734\t604.406\tGiao dịch web\n\nVũ Khánh Bình\ndưới 1 năm\n\tT31\t13\t48.000.000\t59.164.000\t62.764.000\n62.764.000\n62.764.000\t59.164.000\n0\n0\t59.164.000\t0,221\t0\t46.100.000\t96,04\t111.206\t1.445.680\tGiao dịch web\n\nVũ Khánh Bình\ndưới 1 năm\n\tT33\t13\t60.800.000\t56.212.000\t58.312.000\n60.312.000\n60.312.000\t54.312.000\n1.800.000\n0\t56.112.000\t0,262\t0\t41.426.172\t68,14\t0\t0\tGiao dịch web Thiếu lương/lý do\n\nVũ Khánh Bình\ndưới 1 năm\n\tT38\t8\t35.500.000\t38.284.000\t47.237.548\n47.237.548\n47.237.548\t38.437.548\n0\n0\t38.437.548\t0,154\t0\t32.529.949\t91,63\t101.815\t814.521\tGiao dịch web\n\nNguyễn Minh Loan\ndưới 1 năm\n\tS2\t18\t58.100.000\t68.827.000\t73.113.000\n76.635.000\n76.635.000\t61.213.000\n3.169.800\n0\t64.382.800\t0,212\t0\t50.725.531\t87,31\t92.443\t1.663.974\tGiao dịch web\n\nNguyễn Minh Loan\ndưới 1 năm\n\tS20\t7\t24.800.000\t33.292.000\t28.398.000\n28.398.000\n33.292.000\t28.398.000\n0\n3.425.800\t31.823.800\t0,312\t0\t21.890.094\t88,27\t97.093\t679.652\tGiao dịch web\nHiển thị 1 - 30 của 107 bản ghi\n1\n2\n3\n4\n10 / trang\n20 / trang\n50 / trang\n100 / trang"
+    },
+    {
+      "route": "#/buildings/b_G1?tab=tong-quan",
+      "path": "/buildings/b_G1",
+      "hash": "#/buildings/b_G1?tab=tong-quan",
+      "title": "Chi tiết tòa nhà · TimoHouse",
+      "headings": [
+        "Tòa G1 Nhà G",
+        "Tình trạng phòng",
+        "Hóa đơn kỳ 09/2026",
+        "Thông tin tòa"
+      ],
+      "tabs": [
+        {
+          "key": "tong-quan",
+          "label": "Tổng quan",
+          "selected": "true"
+        },
+        {
+          "key": "phong",
+          "label": "Phòng (16)",
+          "selected": "false"
+        },
+        {
+          "key": "chu-nha-hd",
+          "label": "Chủ nhà & HĐ",
+          "selected": "false"
+        },
+        {
+          "key": "phap-ly",
+          "label": "Pháp lý (0)",
+          "selected": "false"
+        },
+        {
+          "key": "lich-tra",
+          "label": "Lịch trả chủ nhà",
+          "selected": "false"
+        },
+        {
+          "key": "nhan-su",
+          "label": "Nhân sự",
+          "selected": "false"
+        },
+        {
+          "key": "dich-vu-dau-vao",
+          "label": "Dịch vụ đầu vào",
+          "selected": "false"
+        },
+        {
+          "key": "tai-chinh",
+          "label": "Tài chính",
+          "selected": "false"
+        },
+        {
+          "key": "tai-san",
+          "label": "Tài sản",
+          "selected": "false"
+        }
+      ],
+      "headers": [],
+      "text": "Tòa G1\nNhà G\nSố 45 ngõ 210 Xuân Thủy, Hà Nội · Quản lý: Hoàng Ngọc Phong · Nhận nhà 01/08/2024\nChủ nhà / HĐ\nSửa hồ sơ tòa\nThêm phòng\nLấp đầy\n100,0%\n15/15 phòng có khách\nPhải thu 09/2026\n95.393.000\nCòn nợ\n66.000\nMẫu hóa đơn\nHĐ G1 (TECH)\nTechcombank 1903 26 0004\nTổng quan\nPhòng\n(16)\nChủ nhà & HĐ\nPháp lý\n(0)\nLịch trả chủ nhà\nNhân sự\nDịch vụ đầu vào\nTài chính\nTài sản\nTình trạng phòng\nĐang ở\n16\nHóa đơn kỳ 09/2026\nThiếu\n2\nĐủ\n14\nXem hóa đơn tòa\nThông tin tòa\nMã tòa\nG1\nLoại\nNhà G (tiền tố mã)\nKhu vực\nKhu Thanh Xuân\nSố tầng\n3\nTổng diện tích sàn\nChưa có dữ liệu\nNhận vận hành\n01/08/2024\nĐKKD / PCCC\nChưa có dữ liệu\nĐặc điểm / tài sản bàn giao\nChưa có dữ liệu\nMức tòa\n–"
+    }
+  ],
+  "meta": {
+    "version": "4.0.0",
+    "sha": "fe7925b",
+    "builtAt": "2026-10-04T09:01:41.493Z"
+  },
+  "seed": {
+    "today": "2026-09-29",
+    "period": "2026-09",
+    "milestone": "3",
+    "stayId": "st_302G3A001",
+    "refundId": "rf_HC-202609-0001",
+    "assetTypes": [
+      "other",
+      "decor",
+      "elevator",
+      "pump",
+      "water_filter",
+      "washer"
+    ],
+    "maintenanceTypes": [
+      "elevator",
+      "pump",
+      "water_filter",
+      "washer"
+    ],
+    "salaryPolicies": [
+      {
+        "department": "operations",
+        "mode": "operations_hs",
+        "status": "confirmed"
+      },
+      {
+        "department": "sales",
+        "mode": "workday",
+        "status": "confirmed"
+      },
+      {
+        "department": "technical",
+        "mode": "repair",
+        "status": "confirmed"
+      },
+      {
+        "department": "market",
+        "mode": "fixed",
+        "status": "confirmed"
+      },
+      {
+        "department": "finance",
+        "mode": "fixed",
+        "status": "confirmed"
+      }
+    ],
+    "assignmentRoles": [
+      null
+    ]
+  },
+  "errors": [],
+  "codeComparison": [
+    {
+      "file": "js/pages/dashboard.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/pages/buildings.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/pages/sales.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/pages/maintenance.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/services/act-documents.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/services/act-payroll.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/services/q.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/core/store.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/ui/layout.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    },
+    {
+      "file": "js/data/seed.js",
+      "status": 200,
+      "sameAfterNormalizingNewlines": true
+    }
+  ],
+  "notes": [
+    "Read-only UI checks in a fresh browser context using the admin demo role. No application business records were changed.",
+    "Code comparisons normalize CRLF/LF because the Windows checkout and deploy use different line endings.",
+    "Two initial unsupported tab probes (xe/tam-tru) fell back to Overview; they were excluded from the evidence and replaced with the actual nguoi-thue tab.",
+    "UI presence is separate from complete business-rule or production acceptance. OCR end-to-end and server persistence were not tested in this capture."
+  ]
+}

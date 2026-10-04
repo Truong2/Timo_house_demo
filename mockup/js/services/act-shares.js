@@ -6,6 +6,14 @@
   const fail = (fields, msg = 'Dữ liệu chưa hợp lệ') => { const e = new Error(msg); e.fields = fields; throw e; };
   Q.shareholder = (id) => { const h = S.get('shareholders', id); if (!h || TH.auth.role() !== 'codong') return h; const { phone, bank, history, ...visible } = h; return visible; };
   Q.shareRatios = (bid, date) => { if (!TH.auth.inScope(bid)) return []; const d = date || F.today(); return S.where('shareRatios', r => r.buildingId === bid && (!r.from || r.from <= d) && (!r.to || d <= r.to)); };
+  Q.shareOwnershipVersions = bid => {
+    if (!TH.auth.can('shares.view') || !TH.auth.inScope(bid)) return [];
+    const stored = S.where('shareOwnershipVersions', v => v.buildingId === bid);
+    const grouped = new Map();
+    S.where('shareRatios', r => r.buildingId === bid && !r.ownershipVersionId).forEach(r => { const rows = grouped.get(r.from) || []; rows.push(r); grouped.set(r.from, rows); });
+    const initial = [...grouped].sort(([a], [b]) => String(a).localeCompare(String(b))).map(([from, rows], i) => ({ id: 'ownership_' + bid + '_' + from, version: i + 1, buildingId: bid, effectiveFrom: from, rows: rows.map(r => ({ shareholderId: r.shareholderId, pct: r.pct })), reason: rows[0].reason || 'Tỷ lệ từ dữ liệu nguồn', createdBy: 'Dữ liệu nguồn', sourceRef: rows[0].sourceRef || 'Excel lịch sử' }));
+    return [...initial, ...stored].sort((a, b) => String(b.effectiveFrom).localeCompare(String(a.effectiveFrom)));
+  };
   Q.shareBuildings = () => [...new Set(S.all('shareRatios').map(r => r.buildingId))].filter(id => TH.auth.inScope(id)).map(id => Q.building(id)).filter(Boolean);
   /* Cơ sở chia: web = Báo cáo tổng của tòa trong kỳ; excel = ô C22/C73/C74 của bảng kê SRC-07 (chỉ G1 tháng 8) */
   Q.shareBase = (bid, period, source = 'web') => {
@@ -68,10 +76,11 @@
     _.audit('update', 'shareholder', id, `Sửa cổ đông ${sh.code}: ` + changed.map(k => L[k]).join(', ')); _.done(); return Q.shareholder(id);
   };
   /* Tỷ lệ mới có hiệu lực từ ngày: đóng bộ tỷ lệ cũ; lưu được khi chưa đủ 100% (cảnh báo) nhưng không khóa bảng kê được */
-  X.setShareRatios = (bid, rows, from, reason) => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
+  X.setShareRatios = (bid, rows, from, reason) => S.atomic(() => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
     _.need('shares.manage');
     const errs = {};
     if (!Q.building(bid)) errs.buildingId = 'Chọn tòa';
+    if (!TH.auth.inScope(bid)) errs.buildingId = 'Tòa ngoài phạm vi được giao';
     if (!from) errs.from = 'Nhập ngày hiệu lực';
     if (!String(reason || '').trim()) errs.reason = 'Nhập lý do / căn cứ';
     const clean = (rows || []).filter(r => Number(r.pct) > 0);
@@ -83,11 +92,13 @@
     if (cur.some(r => r.from >= from)) fail({ from: 'Ngày hiệu lực phải sau bộ tỷ lệ đang dùng (từ ' + F.date(cur.map(r => r.from).sort().pop()) + ')' }); // B14
     _.guardEffective(from, 'tỷ lệ góp');
     S.where('shareRatios', r => r.buildingId === bid && !r.to).forEach(r => S.update('shareRatios', r.id, { to: D.addDays(from, -1) }));
-    clean.forEach(r => S.add('shareRatios', { buildingId: bid, shareholderId: r.shareholderId, pct: Number(r.pct), from, to: null, reason }));
+    const version = Math.max(0, ...Q.shareOwnershipVersions(bid).map(v => v.version)) + 1;
+    const snapshot = S.add('shareOwnershipVersions', { buildingId: bid, version, effectiveFrom: from, rows: clean.map(r => ({ shareholderId: r.shareholderId, pct: Number(r.pct) })), reason, sourceRef: reason, createdBy: _.who(), createdAt: F.nowISO() });
+    clean.forEach(r => S.add('shareRatios', { buildingId: bid, shareholderId: r.shareholderId, pct: Number(r.pct), from, to: null, reason, ownershipVersionId: snapshot.id }));
     const v = SH.valid(clean);
     _.audit('update', 'shareRatio', bid, `Tỷ lệ góp ${(Q.building(bid) || {}).code} từ ${F.date(from)}: Σ ${v.sum}%${v.ok ? '' : ' (chưa đủ 100%)'} – ${reason}`); _.done();
     return v;
-  };
+  });
   X.lockShareRun = (bid, period, source = 'web') => { _.needMs('2', 'Chia cổ đông (UI-31/32)');
     _.need('shares.lock');
     // B13: chỉ khóa số web (nguồn "như Excel" để đối chiếu, mang lỗi ô C43 – OQ-04); kỳ báo cáo mở lại sau khi khóa → khóa phiên mới
@@ -103,7 +114,8 @@
     if (hasDelta && (!run.roundingPolicy || run.roundingPolicy.status !== 'confirmed')) throw new Error('Còn chênh làm tròn và OQ-08 chưa được xác nhận – không thể khóa bảng kê');
     if (prev) S.update('shareRuns', prev.id, { status: 'superseded', supersededAt: F.nowISO() });
     const version = prev ? (prev.version || 1) + 1 : 1;
-    const rec = S.add('shareRuns', { id: 'srun_' + bid + '_' + period + (version > 1 ? '_v' + version : ''), version, reopens, buildingId: bid, period, source, status: 'locked', base: run.base, rows: run.rows, totals: run.totals, rounding: run.rounding, roundingMode: run.roundingMode, roundingPolicy: run.roundingPolicy, K: run.K, L: run.L, lockedBy: _.who(), lockedAt: F.nowISO() });
+    const ownership = Q.shareRatios(bid, D.periodEnd(period)).map(r => ({ shareholderId: r.shareholderId, pct: r.pct, effectiveFrom: r.from, ownershipVersionId: r.ownershipVersionId || null }));
+    const rec = S.add('shareRuns', { id: 'srun_' + bid + '_' + period + (version > 1 ? '_v' + version : ''), version, reopens, buildingId: bid, period, source, status: 'locked', ownership, base: run.base, rows: run.rows, totals: run.totals, rounding: run.rounding, roundingMode: run.roundingMode, roundingPolicy: run.roundingPolicy, K: run.K, L: run.L, lockedBy: _.who(), lockedAt: F.nowISO() });
     _.audit('lock', 'shareRun', rec.id, `Khóa bảng kê chia ${(Q.building(bid) || {}).code} kỳ ${F.periodShort(period)}: Σ tổng nhận ${F.vnd(run.totals.M)}`); _.done(); return rec;
   };
 })(window.TH);

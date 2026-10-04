@@ -93,7 +93,7 @@
   let lastExp = null;
   TH.router.handle('/hr/payroll', (root, p, q) => {
     const period = q.period || '2026-08';
-    const run = S.one('payrollRuns', r => r.period === period);
+    const run = Q.payrollRun(period), versions = Q.payrollVersions(period);
     const lines = run ? run.lines : X.previewPayroll(period).lines;
     const flat = lines.flatMap(l => l.buildings.map(b => ({ l, b })));
     const cmp = flat.filter(x => x.b.excel);
@@ -103,22 +103,29 @@
     const tab = q.tab || 'van-hanh';
     const perRec = S.get('periods', period) || {}; const periodClosed = perRec.status === 'closed';
     const manualCount = X.manualOf(period).length;
-    const stale = run && run.status !== 'closed' && (run.manualSig || '') !== X.manualSig(period);
-    root.innerHTML = TH.pages.hrTabs('payroll') + U.pageHead({ title: 'Bảng lương ' + F.periodLabel(period), sub: run ? `${run.code} · ${run.status === 'closed' ? 'đã chốt ' + F.datetime(run.closedAt) : 'tạm tính ' + F.datetime(run.computedAt)}` : 'Xem trước – chưa lưu phiên', acts: [
+    const stale = run && run.status !== 'closed' && X.payrollStale(run);
+    root.innerHTML = TH.pages.hrTabs('payroll') + U.pageHead({ title: 'Bảng lương ' + F.periodLabel(period), sub: run ? `${run.code} · ${run.status === 'closed' ? 'đã chốt ' + F.datetime(run.closedAt) : run.status === 'approved' ? 'đã duyệt ' + F.datetime(run.approval.at) : 'tạm tính ' + F.datetime(run.computedAt)}` : 'Xem trước – chưa lưu phiên', acts: [
       U.btn({ label: 'Xuất bảng', icon: 'download', act: 'exp' }), periodClosed ? U.btn({ label: 'Điều chỉnh sau khóa', icon: 'pencil', act: 'adj', perm: 'expenses.manage' }) : '', (!run || run.status !== 'closed') ? U.btn({ label: run ? 'Tính lại' : 'Tính thử & lưu', icon: 'refresh', act: 'compute', perm: 'payroll.manage' }) : '',
-      run && run.status !== 'closed' ? U.btn({ label: 'Chốt bảng lương', icon: 'lock', cls: 'btn-primary', act: 'close', perm: 'payroll.manage', disabled: pending.length > 0, title: pending.length ? 'Còn ca cần duyệt tay' : '' }) : ''] })
+      run && run.status === 'draft' ? U.btn({label:'Duyệt bảng lương',icon:'check-circle',act:'approve-run',perm:'payroll.manage',disabled:pending.length>0||stale}) : '',
+      run && run.status !== 'closed' ? U.btn({ label: 'Chốt bảng lương', icon: 'lock', cls: 'btn-primary', act: 'close', perm: 'payroll.manage', disabled: pending.length > 0 || stale || (!run.parallel && run.status !== 'approved'), title: pending.length ? 'Còn ca cần duyệt tay' : !run.parallel && run.status !== 'approved' ? 'Duyệt bảng lương trước khi chốt' : '' }) : ''] })
       + K.filters([{ name: 'period', label: 'Kỳ lương', options: S.all('periods').map(x => [x.id, F.periodLabel(x.id)]), value: '2026-08', all: false }], q)
       + `<div class="grid grid-4 mt16 mb16">${U.kpi({ label: 'Tổng thực nhận', value: F.vnd(lines.reduce((s, l) => s + l.X, 0)), cap: lines.length + ' nhân viên', icon: 'wallet' })}${U.kpi({ label: 'Lương theo tòa (W)', value: F.vnd(lines.reduce((s, l) => s + l.W, 0)), cap: flat.length + ' dòng tòa', icon: 'building', tone: 'teal' })}
         ${cmp.length ? U.kpi({ label: 'Khớp Excel SRC-03', value: `${match}/${cmp.length}`, cap: 'dòng tòa có W khớp', icon: 'check-circle', tone: match === cmp.length ? 'green' : 'amber' }) : U.kpi({ label: 'Nguồn', value: 'Web', cap: 'hóa đơn & phiếu thu theo ngày thực nhận', icon: 'database', tone: 'blue' })}
         ${U.kpi({ label: 'Cần duyệt tay', value: pending.length, cap: 'HS>100 · HS<70 · không có phòng', icon: 'alert-triangle', tone: pending.length ? 'red' : 'green' })}</div>`
       + (period === '2026-08' ? U.note('info', 'Kỳ chạy song song', 'Input lấy từ bảng lương Excel tháng 8 (cột J–S); web tính lại T, HS, V, W theo quy tắc. Ngoại lệ đã biết: V51 (S39) Excel dùng 130.000/100, quy tắc cho 120.000/95 → 122.858đ/phòng; S28, S36 Excel dùng bảng dưới 1 năm trong khi các tòa khác của cùng NV dùng bảng trên 1 năm.') : '')
-      + (stale ? U.note('warn', 'Dữ liệu nhập tay đã đổi', 'Bảng lương đang lưu được tính trước khi sửa dữ liệu nhập tay – bấm "Tính lại" trước khi chốt.') : '')
-      + U.tabs([{ key: 'van-hanh', label: 'NV vận hành theo tòa', count: flat.length }, { key: 'nhap-tay', label: 'Nhập tay', count: manualCount }, { key: 'tong-hop', label: 'Tổng hợp theo người', count: lines.length }, { key: 'chinh-sach', label: 'Chính sách', count: Q.salaryPolicies(TH.calc.dates.periodEnd(period)).length }, { key: 'chi-luong', label: 'Chi lương', count: run && run.obligations ? run.obligations.length : 0 }, { key: 'co', label: 'Cần duyệt', count: flags.length }], tab)
+      + (stale ? U.note('warn', 'Dữ liệu nguồn đã đổi', 'Hóa đơn, phiếu thu, phân công, chính sách hoặc dữ liệu nhập tay đã đổi sau lần tính. Tính lại và duyệt phiên mới trước khi chốt.') : '')
+      + (run?.approval ? U.note('ok', 'Đã duyệt bảng lương', esc(run.approval.by)+' · '+F.datetime(run.approval.at)+' · '+esc(run.approval.note)) : '')
+      + U.tabs([{ key: 'van-hanh', label: 'NV vận hành theo tòa', count: flat.length }, { key: 'nhap-tay', label: 'Nhập tay', count: manualCount }, { key: 'tong-hop', label: 'Tổng hợp theo người', count: lines.length }, { key: 'chinh-sach', label: 'Chính sách', count: Q.salaryPolicies(TH.calc.dates.periodEnd(period)).length }, { key: 'phien', label: 'Phiên & phê duyệt', count: versions.length }, { key: 'chi-luong', label: 'Chi lương', count: run && run.obligations ? run.obligations.length : 0 }, { key: 'co', label: 'Cần duyệt', count: flags.length }], tab)
       + '<div class="mt12">' + K.tableCard('t') + '</div>';
     K.bindFilters(root, []);
     const el = root.querySelector('#t');
     if (tab === 'nhap-tay') manualTab(el, period, lines, !periodClosed && !(run && run.status === 'closed') && TH.auth.can('payroll.manage'), !!(perRec.source === 'excel_parallel'));
     if (tab === 'chinh-sach') policyTab(el, period);
+    if (tab === 'phien') U.table(el,{rows:versions,noPager:true,empty:U.empty({title:'Chưa lưu bảng lương',text:'Tính và lưu bảng lương để bắt đầu quy trình duyệt, chốt và chi.'}),cols:[
+      {key:'code',label:'Phiên',render:r=>esc(r.code)},{key:'status',label:'Trạng thái',render:r=>U.chip(({draft:'Chờ duyệt',approved:'Đã duyệt',closed:'Đã chốt',superseded:'Đã thay thế'})[r.status]||r.status,r.status==='closed'||r.status==='approved'?'green':'gray')},
+      {key:'by',label:'Người tính / thời gian',render:r=>U.cell2(esc(r.computedBy||''),F.datetime(r.computedAt))},{key:'approval',label:'Người duyệt / căn cứ',render:r=>r.approval?U.cell2(esc(r.approval.by),esc(r.approval.note)):'Chưa duyệt'},
+      {key:'total',label:'Thực nhận',num:true,render:r=>F.vnd(r.totalX)},{key:'view',label:'',render:r=>U.actBtn({icon:'eye',label:'Xem phiên đã lưu',act:'view-run',attrs:{'data-id':r.id}})}
+    ]});
     // E3: mở thẳng giải thích lương từ UI-45 (?emp=&building=) – mỗi liên kết mở một lần, không mở lại khi trang vẽ lại
     if (tab === 'van-hanh' && q.emp) { const key = period + q.emp + (q.building || ''); const x = flat.find(z => z.l.employeeId === q.emp && (!q.building || z.b.buildingId === q.building)); if (x && key !== lastExp) { lastExp = key; setTimeout(() => explain(x.l, x.b)); } }
     if (tab === 'van-hanh') U.table(el, { rows: flat, pageSize: 30, onRowOpen: (x) => explain(x.l, x.b), cols: [
@@ -155,6 +162,8 @@
     U.bind(root, {
       tab: (b) => TH.router.setQuery({ tab: b.dataset.key }),
       compute: () => K.act(() => X.computePayroll(period), 'Đã tính và lưu phiên lương'),
+      'approve-run':()=>K.formDrawer({title:'Duyệt bảng lương '+run.code,modal:true,fields:[{name:'note',label:'Căn cứ / ghi chú duyệt',req:true,type:'textarea',span:true}],submit:'Duyệt phiên này',onSubmit:d=>{X.approvePayrollRun(run.id,d.note);U.toast('ok','Đã duyệt bảng lương');}}),
+      'view-run':b=>{const saved=versions.find(r=>r.id===b.dataset.id);if(!saved)return;U.drawer({title:'Bảng lương '+saved.code,wide:true,body:U.kv([['Người tính',esc(saved.computedBy||'')],['Thời điểm tính',F.datetime(saved.computedAt)],['Người duyệt',esc(saved.approval?.by||'Chưa duyệt')],['Căn cứ',esc(saved.approval?.note||'—')],['Thời điểm chốt',F.datetime(saved.closedAt)]])+'<div class="tbl-wrap mt16"><table class="tbl"><thead><tr><th>Nhân viên</th><th>Phòng ban</th><th>Chính sách đã dùng</th><th class="num">Thực nhận</th></tr></thead><tbody>'+saved.lines.map(l=>'<tr><td>'+esc(Q.emp(l.employeeId)?.name||l.employeeId)+'</td><td>'+esc(Q.PAYROLL_DEPARTMENTS[l.department]||l.department||'—')+'</td><td>'+esc(l.salaryPolicy?.formulaVersion||'Excel lịch sử')+'</td><td class="num">'+F.vnd(l.X)+'</td></tr>').join('')+'</tbody></table></div>'});},
       appr: (b) => K.formDrawer({ title: 'Duyệt ca lương đặc biệt', modal: true, size: 'sm', fields: [{ name: 'note', label: 'Ghi chú duyệt', type: 'textarea', req: true, span: true }], submit: 'Duyệt', onSubmit: (d) => { if (!d.note) { const e = new Error('Nhập ghi chú'); e.fields = { note: 'Bắt buộc' }; throw e; } X.approvePayFlag(run.id, b.dataset.key, d.note); U.toast('ok', 'Đã duyệt'); } }),
       payob: (b) => { const o=Q.payrollDisbursementSummary(run.id,b.dataset.id).obligation;if(o)payObligation(run,o); },
       histob: (b) => { const o=Q.payrollDisbursementSummary(run.id,b.dataset.id).obligation;if(o)disbursementDrawer(run,o); },

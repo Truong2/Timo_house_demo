@@ -32,6 +32,8 @@
     const resp = d.responsibility || 'operate';
     if (!TH.data.catalog.responsibilities[resp]) throw new Error('Chọn loại trách nhiệm');
     const emp = Q.emp(d.employeeId); if (!emp) throw new Error('Không tìm thấy nhân viên');
+    if (emp.status !== 'active') throw new Error('Nhân viên đã ngừng hoạt động');
+    if (!Q.building(d.buildingId) || !TH.auth.inScope(d.buildingId)) throw new Error('Tòa không tồn tại hoặc ngoài phạm vi');
     const roomId = d.roomId || null;
     if (roomId) { const r = Q.room(roomId); if (!r || r.buildingId !== d.buildingId) throw new Error('Phòng không thuộc tòa đã chọn'); }
     if (d.to && d.to < d.from) throw new Error('Ngày kết thúc phải sau ngày hiệu lực');
@@ -39,10 +41,20 @@
     const cur = S.where('assignments', a => a.buildingId === d.buildingId && a.responsibility === resp && (a.roomId || null) === roomId && (!a.to || a.to >= d.from));
     if (cur.some(a => a.from >= d.from)) throw new Error('Đã có phân công bắt đầu từ ' + F.date(cur.map(a => a.from).sort().pop()) + ' – không ghi đè kỳ trước');
     cur.forEach(a => S.update('assignments', a.id, { to: D.addDays(d.from, -1), closedReason: d.reason, changedBy: _.who(), changedAt: F.nowISO() }));
-    const a = S.add('assignments', { employeeId: d.employeeId, buildingId: d.buildingId, roomId, responsibility: resp, from: d.from, to: d.to || null, reason: d.reason, replacesId: cur[0] ? cur[0].id : null, changedBy: _.who(), changedAt: F.nowISO() });
+    const a = S.add('assignments', { employeeId: d.employeeId, buildingId: d.buildingId, roomId, responsibility: resp, from: d.from, to: d.to || null, reason: d.reason, sourceRef: String(d.sourceRef || '').trim(), replacesId: cur[0] ? cur[0].id : null, changedBy: _.who(), changedAt: F.nowISO() });
     _.audit('assign', 'assignment', a.id, `Phân công ${emp.name} – ${TH.data.catalog.responsibilities[resp]} ${roomId ? 'phòng ' + Q.roomCode(roomId) : 'tòa ' + Q.building(d.buildingId).code} từ ${F.date(d.from)}`); _.done(); return a;
   };
   X.assignBuilding = X.assign;
+  Q.buildingStaff = (buildingId, day = F.today()) => {
+    if (!TH.auth.inScope(buildingId)) return { operate: [], cleaning: [], tech: [], leaders: [] };
+    const current = S.where('assignments', a => a.buildingId === buildingId && a.from <= day && (!a.to || a.to >= day));
+    const result = { operate: [], cleaning: [], tech: [], leaders: [] };
+    Object.keys(result).filter(k => k !== 'leaders').forEach(k => {
+      result[k] = current.filter(a => a.responsibility === k).map(a => ({ assignment: a, employee: Q.emp(a.employeeId) })).filter(x => x.employee);
+    });
+    result.leaders = [...new Map(result.operate.map(x => Q.leaderOf(x.employee.id, day)).filter(Boolean).map(e => [e.id, e])).values()];
+    return result;
+  };
   /* Bỏ phân công từ ngày X (đóng phiên, không xóa lịch sử) */
   X.endAssignment = (id, to, reason) => {
     _.need('hr.manage');

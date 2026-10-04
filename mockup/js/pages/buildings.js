@@ -179,6 +179,7 @@
       body.innerHTML = oc ? `<div class="two-col"><div>${U.card({ title: 'Hợp đồng thuê đầu vào ' + esc(oc.code), icon: 'file-text', actions: `<a class="btn btn-ghost btn-sm" href="#/owners/${oc.id}">Mở chi tiết</a>`, body: U.kv([['Chủ nhà', esc(own.name)], ['Hiệu lực', F.date(oc.startDate) + ' → ' + F.date(oc.endDate)], ['Giá thuê hiện hành', F.vndd(X.ownerRentAt(oc.id, F.today()))], ['Cọc chủ nhà', F.vndd(oc.deposit)], ['Kỳ trả', oc.payCycleMonths + ' tháng/lần, hạn ngày ' + oc.payDay]]) })}</div>
         <div>${U.card({ title: 'Lịch sử giá', icon: 'history', body: vs.map(v => `<div class="mini-row"><span>${F.date(v.from)} → ${v.to ? F.date(v.to) : 'nay'}</span><b class="grow tr">${F.vndd(v.monthlyRent)}</b></div>`).join('') })}</div></div>` : U.empty({ title: 'Chưa có hợp đồng đầu vào', action: TH.auth.can('owners.manage') ? U.btn({ label: 'Tạo chủ nhà & HĐ đầu vào', icon: 'plus', cls: 'btn-primary', act: 'addoc' }) : '' });
     }
+    if (tab === 'tong-quan') body.insertAdjacentHTML('beforeend','<div class="mt16">'+U.card({title:'Thời gian vận hành',body:U.kv([['Ngày nhận vận hành',F.date(b.operatedFrom)],['Thời gian đã vận hành',b.operatedFrom?(b.operatedFrom>F.today()?'Chưa đến ngày vận hành':F.daysBetween(b.operatedFrom,F.today())+' ngày'):'Chưa có ngày nhận vận hành']])})+'</div>');
     if (tab === 'phap-ly') {
       const current = Q.legalRecords(b.id), history = Q.legalRecordVersions(b.id);
       body.innerHTML = U.note('info', 'Dữ liệu có cấu trúc', 'Các chuỗi ĐKKD/PCCC cũ vẫn hiển thị để đối chiếu nhưng không được tự chuyển thành số giấy phép hoặc ngày hiệu lực.')
@@ -201,7 +202,16 @@
     }
     if (tab === 'nhan-su') {
       const as = S.where('assignments', a => a.buildingId === b.id).sort((a, c) => String(c.from).localeCompare(String(a.from)));
-      body.innerHTML = K.tableCard('nt', 'Phân công theo thời gian', `<a class="btn btn-ghost btn-sm" href="#/hr/assignments?building=${b.id}">Chuyển phân công</a>`);
+      const staff = Q.buildingStaff(b.id), staffRoles = [['operate', 'Nhân viên vận hành'], ['cleaning', 'Nhân viên vệ sinh'], ['tech', 'Nhân viên kỹ thuật']];
+      body.innerHTML = '<div class="grid grid-2 mb16">' + U.card({ title: 'Trưởng nhóm', body: staff.leaders.length ? staff.leaders.map(e => `<a class="mini-row" href="#/hr/staff/${e.id}">${esc(e.name)}</a>`).join('') : U.empty({ title: 'Chưa có trưởng nhóm', action: U.btn({ label: 'Cập nhật tổ chức', href: '#/hr/assignments?building=' + b.id, perm: 'hr.manage' }) }) })
+        + staffRoles.map(([key, label]) => U.card({ title: label, actions: U.btn({ label: 'Phân công', act: 'staff-assign', size: 'btn-sm', attrs: { 'data-resp': key }, perm: 'hr.manage' }), body: staff[key].length ? staff[key].map(({ employee, assignment }) => `<div class="mini-row"><span class="grow"><a href="#/hr/staff/${employee.id}">${esc(employee.name)}</a><small class="d-block muted">${assignment.roomId ? 'Phòng ' + esc(Q.roomCode(assignment.roomId)) : 'Cả tòa'} · từ ${F.date(assignment.from)}</small></span></div>`).join('') : U.empty({ title: 'Chưa phân công' }) })).join('') + '</div>'
+        + K.tableCard('nt', 'Phân công theo thời gian', `<a class="btn btn-ghost btn-sm" href="#/hr/assignments?building=${b.id}">Quản lý phân công</a>`);
+      U.bind(body, { 'staff-assign': el => K.formDrawer({ title: 'Phân công ' + staffRoles.find(x => x[0] === el.dataset.resp)[1].toLowerCase() + ' – ' + b.code, fields: [
+        { name: 'employeeId', label: 'Nhân viên', type: 'select', req: true, options: S.all('employees').filter(e => e.status === 'active').map(e => [e.id, e.name + ' · ' + (cat().titles[e.title] || e.title)]) },
+        { name: 'roomId', label: 'Phạm vi', type: 'select', placeholder: 'Cả tòa', options: (Q.roomsByBuilding()[b.id] || []).map(r => [r.id, r.code]) },
+        { name: 'from', label: 'Từ ngày', type: 'date', value: F.today(), req: true }, { name: 'to', label: 'Đến ngày', type: 'date' },
+        { name: 'sourceRef', label: 'Nguồn / quyết định', span: true }, { name: 'reason', label: 'Lý do phân công', req: true, type: 'textarea', span: true }
+      ], onSubmit: d => { X.assign({ ...d, buildingId: b.id, responsibility: el.dataset.resp }); U.toast('ok', 'Đã lưu phân công'); } }) });
       U.table(body.querySelector('#nt'), { rows: as, noPager: true, cols: [
         { key: 'e', label: 'Nhân viên', render: a => `<a href="#/hr/staff/${a.employeeId}">${esc((Q.emp(a.employeeId) || {}).name || '')}</a>` },
         { key: 't', label: 'Chức danh', render: a => esc((TH.data.catalog.titles[(Q.emp(a.employeeId) || {}).title]) || '') },

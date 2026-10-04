@@ -109,6 +109,10 @@ test('F29.4–F29.7 – OCR: rà soát, ⛔ E05 thiếu / độ tin cậy thấp
     const res = X.ocrApply(o.id, { from: '2026-11-01', reason: 'Đã đối chiếu bản gốc' });
     const after = S.where('rateVersions', v => v.stayId === stay.id);
     assert.equal(after.length, before + 1); assert.equal(res.version.from, '2026-11-01'); assert.equal(res.version.rent, stay.rent);
+    assert.equal(res.version.source, 'contract'); assert.equal(res.version.contractFileId, f.id); assert.equal(res.version.ocrSessionId, o.id);
+    const contractVersion = S.get('stayVersions', res.version.contractVersionId);
+    assert.equal(contractVersion.rates.rateVersionId, res.version.id);
+    assert.ok(contractVersion.documentIds.includes(f.id), 'biểu phí phải truy về file HĐ đã xác nhận');
     const s2 = Q.ocrSession(o.id); assert.equal(s2.status, 'applied'); assert.equal(s2.edited.length, 2);
     assert.deepEqual(plain(S.where('invoices', i => i.stayId === stay.id).map(i => i.totalDue)), plain(invBefore), 'OCR không ghi vào hóa đơn');
     assert.ok(!attempt(() => X.ocrSetField(o.id, 'rent', '1')).ok, 'phiên đã áp dụng không sửa');

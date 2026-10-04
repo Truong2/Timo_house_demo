@@ -120,8 +120,9 @@
     const { lines, parallel, buildingCosts, salaryPolicySnapshot } = X.previewPayroll(period);
     const prev = S.where('payrollRuns', r => r.period === period);
     if (prev.some(r => r.status === 'closed')) throw new Error('Bảng lương kỳ đã chốt – mở lại bằng điều chỉnh');
-    prev.forEach(r => S.remove('payrollRuns', r.id));
-    const run = S.add('payrollRuns', { id: 'pr_' + period + '_' + (prev.length + 1), code: 'BL-' + period.replace('-', '') + '-v' + (prev.length + 1), period, status: 'draft', parallel, lines, buildingCosts, salaryPolicySnapshot, manualSig: X.manualSig(period), approvals: {}, computedAt: F.nowISO(), computedBy: _.who(),
+    const version = Math.max(0, ...prev.map(r => Number(r.version) || Number(String(r.code || '').match(/-v(\d+)$/)?.[1]) || 1)) + 1;
+    prev.filter(r => r.status !== 'superseded').forEach(r => S.update('payrollRuns', r.id, { status: 'superseded', supersededAt: F.nowISO(), supersededBy: _.who() }));
+    const run = S.add('payrollRuns', { id: 'pr_' + period + '_' + version, code: 'BL-' + period.replace('-', '') + '-v' + version, version, period, status: 'draft', parallel, lines, buildingCosts, salaryPolicySnapshot, inputSig: F.hash(JSON.stringify({ lines, buildingCosts, salaryPolicySnapshot })), manualSig: X.manualSig(period), approvals: {}, computedAt: F.nowISO(), computedBy: _.who(),
       totalX: lines.reduce((s, l) => s + l.X, 0), totalW: lines.reduce((s, l) => s + l.W, 0) });
     _.audit('compute', 'payroll', run.id, `Tính thử bảng lương ${F.periodShort(period)}: ${lines.length} nhân viên`); _.done(); return run;
   };
@@ -199,14 +200,37 @@
     _.need('payroll.manage');
     const run = S.get('payrollRuns', runId);
     _.guardPeriod(run.period, 'duyệt cờ bảng lương');
-    if (run.status === 'closed') throw new Error('Bảng lương đã chốt');
+    if (run.status !== 'draft') throw new Error('Chỉ duyệt ca của phiên nháp hiện hành');
     const [employeeId, buildingId] = key.split(':'); const line = run.lines.find(x => x.employeeId === employeeId); const building = line && line.buildings.find(x => x.buildingId === buildingId);
     if (building && building.HS != null && building.HS < 70 && !building.manualApplied) throw new Error('HS < 70: phải nhập lương/phòng và lý do, sau đó tính lại trước khi duyệt');
     S.update('payrollRuns', runId, { approvals: Object.assign({}, run.approvals, { [key]: { by: _.who(), at: F.nowISO(), note } }) }); _.done();
   };
+  Q.payrollVersions = period => TH.auth.can('payroll.view') ? S.where('payrollRuns', r => r.period === period).slice().sort((a, b) => (b.version || Number(String(b.code || '').match(/-v(\d+)$/)?.[1]) || 1) - (a.version || Number(String(a.code || '').match(/-v(\d+)$/)?.[1]) || 1)) : [];
+  Q.payrollRun = period => Q.payrollVersions(period).find(r => r.status !== 'superseded') || null;
+  X.payrollStale = run => {
+    if ((run.manualSig || '') !== X.manualSig(run.period)) return true;
+    if (!run.inputSig || run.status === 'closed') return false;
+    const { lines, buildingCosts, salaryPolicySnapshot } = X.previewPayroll(run.period);
+    return run.inputSig !== F.hash(JSON.stringify({ lines, buildingCosts, salaryPolicySnapshot }));
+  };
+  X.approvePayrollRun = (runId, note) => {
+    _.need('payroll.manage');
+    const run = S.get('payrollRuns', runId);
+    if (!run || run.status !== 'draft') throw new Error('Chỉ duyệt phiên nháp hiện hành');
+    _.guardPeriod(run.period, 'duyệt bảng lương');
+    if (!String(note || '').trim()) throw new Error('Nhập căn cứ duyệt bảng lương');
+    if (X.payrollStale(run)) throw new Error('Dữ liệu nguồn đã đổi – bấm "Tính lại" trước khi duyệt');
+    if (!run.parallel && run.lines.some(l => l.department && (!l.salaryPolicy || l.salaryPolicy.status !== 'confirmed'))) throw new Error('Còn chính sách lương chưa xác nhận');
+    if (run.lines.some(l => l.buildings.some(b => b.HS != null && b.HS < 70 && !b.manualApplied))) throw new Error('Còn ca HS < 70 chưa nhập mức và lý do');
+    if (run.lines.some(l => l.flags.some(f => !run.approvals[l.employeeId + ':' + f.buildingId]))) throw new Error('Còn ca lương cần duyệt tay');
+    const approval = { by: _.who(), at: F.nowISO(), note: String(note).trim(), inputSig: run.inputSig };
+    S.update('payrollRuns', run.id, { status: 'approved', approval });
+    _.audit('approve', 'payroll', run.id, 'Duyệt bảng lương ' + run.code, { sourceRef: approval.note }); _.done(); return S.get('payrollRuns', run.id);
+  };
   X.closePayroll = (runId) => {
     _.need('payroll.manage');
     const run = S.get('payrollRuns', runId);
+    if (!run || !['draft', 'approved'].includes(run.status)) throw new Error('Phiên lương đã chốt hoặc đã được thay thế');
     _.guardPeriod(run.period, 'chốt bảng lương');
     if ((run.manualSig || '') !== X.manualSig(run.period)) throw new Error('Dữ liệu nhập tay đã đổi sau lần tính – bấm "Tính lại" trước khi chốt');
     if (!run.parallel) {
@@ -217,6 +241,8 @@
     if (missingBelow70.length) throw new Error(`Còn ${missingBelow70.length} ca HS < 70 chưa nhập lương/phòng và lý do`);
     const pending = run.lines.flatMap(l => l.flags.map(f => l.employeeId + ':' + f.buildingId)).filter(k => !run.approvals[k]);
     if (pending.length) throw new Error(`Còn ${pending.length} ca cần duyệt tay (HS>100 / HS<70 / không có phòng) trước khi chốt`);
+    if (X.payrollStale(run)) throw new Error('Dữ liệu nguồn đã đổi – bấm "Tính lại" trước khi chốt');
+    if (!run.parallel && run.status !== 'approved') throw new Error('Duyệt bảng lương trước khi chốt');
     const byB = {};
     run.lines.forEach(l => l.buildings.forEach(b => { byB[b.buildingId] = (byB[b.buildingId] || 0) + b.W; }));
     const pDate = D.periodEnd(run.period);

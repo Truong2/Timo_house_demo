@@ -183,7 +183,9 @@
       if (!effectiveAccount) { errs.push(inv.code + ': Chưa có tài khoản nhận tiền hiệu lực cho mẫu in'); return; }
       const chk = Cc.billing.checkBeforeIssue(inv, { duplicate: S.where('invoices', i => i.stayId === inv.stayId && i.period === inv.period).length > 1 });
       if (!chk.ok) { errs.push(inv.code + ': ' + chk.errs.join('; ')); return; }
-      S.update('invoices', id, { lifecycle: 'issued', issuedAt: F.nowISO(), issuedBy: _.who(), accountId: effectiveAccount.id, snapshot: { lines: JSON.parse(JSON.stringify(inv.lines)), total: inv.totalDue }, printSnapshot: printSnapshot(inv, effectiveAccount) });
+      const rate = inv.rateVersionId ? S.get('rateVersions', inv.rateVersionId) : null;
+      S.update('invoices', id, { lifecycle: 'issued', issuedAt: F.nowISO(), issuedBy: _.who(), accountId: effectiveAccount.id, snapshot: { lines: JSON.parse(JSON.stringify(inv.lines)), total: inv.totalDue,
+        rateVersionId: inv.rateVersionId || null, rate: rate ? JSON.parse(JSON.stringify(rate)) : null, capturedAt: F.nowISO() }, printSnapshot: printSnapshot(inv, effectiveAccount) });
       // Nợ cũ đã chuyển sang dòng 11 → khóa phần còn nợ của hóa đơn cũ để không đếm hai lần
       (inv.oldDebtFrom || []).forEach(pid => { const p = Q.invoice(pid); const st = Q.invState(p); if (st.remaining > 0) S.update('invoices', pid, { carriedOut: (p.carriedOut || 0) + st.remaining, carriedTo: id }); });
       if (inv.readingId) S.update('meterReadings', inv.readingId, { locked: true });
