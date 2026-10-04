@@ -25581,6 +25581,316 @@
     "overflow": false
   },
   {
+    "requested": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nBiểu phí đang áp dụng\nHiệu lực từ 01/11/2026 · nguồn: Tách gửi và sạc theo xác nhận\nThêm phiên giá\n\nSố xe theo danh sách cuối kỳ Tháng 11/2026; số ghi đè của kỳ được nhập tại Chỉ số.\n\nLoại phí\tCách tính\tĐơn giá\tSL mặc định\tDòng in\nTiền phòng\ttheo tháng, chia ngày tháng lẻ\t3.000.000\t1\t1\nGửi xe\ttheo xe\t100.000\t2\t8\nSạc xe điện\ttheo xe\t50.000\t1\t8\nLịch sử phiên giá\nTải hợp đồng\nv2\n01/11/2026 → nay\nTách gửi và sạc theo xác nhận\n3.000.000\nv1\n01/10/2026 → 31/10/2026\nBiểu phí khi tạo lượt thuê\n3.000.000\nPhiên giá mới chỉ áp dụng hóa đơn chưa phát hành; hóa đơn đã phát hành giữ giá snapshot.",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Biểu phí đang áp dụng",
+      "Lịch sử phiên giá"
+    ],
+    "headers": [
+      "Loại phí",
+      "Cách tính",
+      "Đơn giá",
+      "SL mặc định",
+      "Dòng in"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      },
+      {
+        "text": "Tải hợp đồng",
+        "href": "#/stays/st_101G990A001?tab=tai-lieu"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+    "hash": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+    "text": "Hóa đơn 101G990A001\nNháp\nTháng 11/2026 · Phòng 101G990 · Khách kiểm tra xe · 101G990A001\nXem / in\nXóa nháp\nĐổi mẫu in\nSửa dòng\nTính lại nháp\nPhát hành\nXem trước bản in\nMẫu chuẩn 12 dòng – không có “Thu khác”\nHĐ G1 (TECH) · G1-TECH-v4 · Mẫu chuẩn · 12 dòng · Tòa G990\nHÓA ĐƠN THÁNG 11/2026\n\nXin thông báo để anh/chị biết tiền thuê phòng Tháng 11 và tiền dịch vụ Tháng 11 năm 2026 như sau:\n\nMã KH: 101G990A001\nPhòng số: 101G990\nNgày chốt số liệu: 22/10/2026\nSTT\tNội dung\tChỉ số mới\tChỉ số cũ\tSố lượng\tHệ số\tĐơn giá\tThành tiền\tGhi chú\n1\tTiền phòng\t\t\t1\t1\t3.000.000\t3.000.000\tĐỀ NGHỊ QUÝ KHÁCH HÀNG THANH TOÁN ĐÚNG HẠN NGÀY 31/10 VÀ GHI ĐÚNG NỘI DUNG CK. TRƯỜNG HỢP THANH TOÁN CHẬM PHÍ PHẠT 200K/NGÀY.\n2\tTiền cọc phòng (đối với KH mới ở)\t\t\t\t\t\t0\t\n3\tĐiện (số)\t\t\t\t\t\t0\t\n4\tNước (khối)\t\t\t\t\t\t0\t\n5\tDV Vệ sinh\t\t\t\t\t\t0\t\n6\tDV Internet (phòng)\t\t\t\t\t\t0\t\n7\tDV Thang máy (người)\t\t\t\t\t\t0\t\n8\tDV Gửi xe\t\t\t1\t1\t250.000\t250.000\tGửi xe: 2 × 100000 × 1.0000 = 200000đ; Sạc xe điện: 1 × 50000 × 1.0000 = 50000đ\n9\tMáy giặt/Máy sấy\t\t\t\t\t\t0\t\n10\tDV Combo/ DV khác\t\t\t\t\t\t0\t\n11\tNợ cũ\t\t\t\t\t\t0\t\n12\tĐiện chung\t\t\t\t\t\t0\t\nTỔNG CỘNG TIỀN THANH TOÁN\t3.250.000\t\n\nBằng chữ: Ba triệu hai trăm năm mươi nghìn đồng\n\nYêu cầu khách hàng thanh toán đầy đủ và đúng hạn từ ngày 25 đến ngày 31 tháng 10 năm 2026\n\nQuá thời hạn thanh toán trên, nếu khách hàng chưa thanh toán thì Ban Quản Lý Tòa Nhà sẽ cắt dịch vụ và trục xuất ra khỏi phòng\n\nNội dung chuyển khoản: 101G990A001\n\nLƯU Ý: QUÝ KHÁCH HÀNG CHUYỂN KHOẢN KHÔNG ĐÚNG NỘI DUNG KẾ TOÁN KHÔNG CHECK ĐƯỢC SẼ TÍNH LÀ CHƯA THANH TOÁN. TRÂN TRỌNG !\n\nTK 1903 26 0004 - Techcombank - Trịnh Bảo Trang\n\nTRÂN TRỌNG THÔNG BÁO\n\nThông tin nội bộ\nThu tiền\nKiểm tra trước phát hành",
+    "headings": [
+      "Hóa đơn 101G990A001 Nháp",
+      "Xem trước bản in",
+      "HÓA ĐƠN THÁNG 11/2026",
+      "Thông tin nội bộ",
+      "Thu tiền",
+      "Kiểm tra trước phát hành"
+    ],
+    "headers": [
+      "STT",
+      "Nội dung",
+      "Chỉ số mới",
+      "Chỉ số cũ",
+      "Số lượng",
+      "Hệ số",
+      "Đơn giá",
+      "Thành tiền",
+      "Ghi chú"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/billing/invoices?period=2026-11"
+      },
+      {
+        "text": "Khách kiểm tra xe · 101G990A001",
+        "href": "#/stays/st_101G990A001"
+      },
+      {
+        "text": "Xem / in",
+        "href": "#/print/invoice/inv_INV-2026-11-101G990A001"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "hash": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nHồ sơ người thuê\nCập nhật\nHọ tên\nKhách kiểm tra xe\nSĐT\n0909909900\nCCCD\nNgày sinh\n–\nNgày cấp / nơi cấp\n– · –\nĐịa chỉ thường trú\n–\nNghề nghiệp\nGhi chú\n–\nXe / biển số\nQuản lý xe\nTạm trú\nCập nhật",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Hồ sơ người thuê",
+      "Xe / biển số",
+      "Tạm trú"
+    ],
+    "headers": [],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nBiểu phí đang áp dụng\nHiệu lực từ 01/11/2026 · nguồn: Tách gửi và sạc theo xác nhận\nThêm phiên giá\n\nSố xe theo danh sách cuối kỳ Tháng 11/2026; số ghi đè của kỳ được nhập tại Chỉ số.\n\nLoại phí\tCách tính\tĐơn giá\tSL mặc định\tDòng in\nTiền phòng\ttheo tháng, chia ngày tháng lẻ\t3.000.000\t1\t1\nGửi xe\ttheo xe\t100.000\t2\t8\nSạc xe điện\ttheo xe\t50.000\t1\t8\nLịch sử phiên giá\nTải hợp đồng\nv2\n01/11/2026 → nay\nTách gửi và sạc theo xác nhận\n3.000.000\nv1\n01/10/2026 → 31/10/2026\nBiểu phí khi tạo lượt thuê\n3.000.000\nPhiên giá mới chỉ áp dụng hóa đơn chưa phát hành; hóa đơn đã phát hành giữ giá snapshot.",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Biểu phí đang áp dụng",
+      "Lịch sử phiên giá"
+    ],
+    "headers": [
+      "Loại phí",
+      "Cách tính",
+      "Đơn giá",
+      "SL mặc định",
+      "Dòng in"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      },
+      {
+        "text": "Tải hợp đồng",
+        "href": "#/stays/st_101G990A001?tab=tai-lieu"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+    "hash": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+    "text": "Nhân viên\nCơ cấu tổ chức\nPhân công\nBảng lương\nBảng lương Tháng 10/2026\nXem trước – chưa lưu phiên\nXuất bảng\nTính thử & lưu\nKỳ lương\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\n \nXóa bộ lọc\nTổng thực nhận\n115.389.231\n43 nhân viên\nLương theo tòa (W)\n4.800.000\n108 dòng tòa\nNguồn\nWeb\nhóa đơn & phiếu thu theo ngày thực nhận\nCần duyệt tay\n103\nHS>100 · HS<70 · không có phòng\nNV vận hành theo tòa\n(108)\nNhập tay\n(1)\nTổng hợp theo người\n(43)\nChính sách\n(5)\nPhiên & phê duyệt\n(0)\nChi lương\n(0)\nCần duyệt\n(103)\nNgày công theo chính sách\nLương = lương cứng × ngày công / 26 + phụ cấp (UI-25)\nNhân viên\tLương cứng\tNgày công\tTính ra\nLê Minh Châu\t10.000.000\t\t0\nHoàng Văn Nam\t5.000.000\t\t0\nLý Minh Đạt\t1.400.000\t\t0\nLê Anh Tú\t3.000.000\t\t0\nNguyễn Văn Linh\t1.923.077\t\t0\nHoàng Thu Nhung\t1.500.000\t\t0\nĐỗ Hoàng Châu\t2.500.000\t\t0\nNguyễn Thanh Bình\t2.153.846\t\t0\nNguyễn Thanh Long\t2.500.000\t\t0\nDương Thanh Phúc\t1.500.000\t\t0\nNgô Bảo Long\t1.500.000\t\t0\nNguyễn Ngọc Trung\t846.154\t\t0\nVõ Thu Sơn\t1.153.846\t\t0\nTrịnh Anh Oanh\t1.538.462\t\t0\nTrịnh Hữu Nam\t4.000.000\t\t0\nHuỳnh Văn Nam\t1.615.385\t\t0\nHồ Hữu Quân\t861.539\t\t0\nTrần Khánh Phúc\t2.000.000\t\t0\nĐỗ Hải Hà\t4.000.000\t\t0\nTrần Văn Hạnh\t1.096.154\t\t0\nNgô Hữu Quân\t1.769.230\t\t0\nNgô Hải Trung\t576.923\t\t0\nNguyễn Thanh Châu\t4.000.000\t\t0\nLưu ngày công\nLương vệ sinh / bảo vệ theo tòa\nDòng 35 và 38 báo cáo; chốt bảng lương → chi phí theo tòa\nThêm\n\nChưa có dòng nào\n\nTiền công thợ sửa chữa theo tòa\nOQ-22: tiền công ghi thẳng vào dòng 41 của tòa; phần cố định của thợ vào quỹ \"Lương sửa chữa\"\nThêm\n\nChưa có dòng nào\n\nHS dưới 70% – lương/phòng nhập tay\nBắt buộc có nhân viên, tòa, mức lương/phòng và lý do trước khi duyệt/chốt\nNhập mức\n\nChưa có dòng nào\n\nHỗ trợ / điều chỉnh lương theo người\nKhoản chưa có công thức nguồn (kỹ thuật, thị trường…) – cộng vào thực nhận\nThêm\n\nChưa có dòng nào\n\nNgày vào làm (thâm niên)\nSửa ở hồ sơ nhân viên; thâm niên \"trên 1 năm\" khi đủ 12 tháng tại cuối kỳ\n\nTất cả 43 nhân viên đang làm đã có ngày vào làm. Mở danh sách\n\nTổng lương nhập tay\nTổng đã gồm các thành phần lương; chỉ cộng điều chỉnh riêng. Nhập 0 vẫn cần căn cứ.\nNhập tổng lương\nMai Hữu Huy\t8.000.000\tTổng lương xác nhận bằng UI, gồm phụ cấp\t",
+    "headings": [
+      "Bảng lương Tháng 10/2026",
+      "Ngày công theo chính sách",
+      "Lương vệ sinh / bảo vệ theo tòa",
+      "Tiền công thợ sửa chữa theo tòa",
+      "HS dưới 70% – lương/phòng nhập tay",
+      "Hỗ trợ / điều chỉnh lương theo người",
+      "Ngày vào làm (thâm niên)",
+      "Tổng lương nhập tay"
+    ],
+    "headers": [
+      "Nhân viên",
+      "Lương cứng",
+      "Ngày công",
+      "Tính ra"
+    ],
+    "fields": [
+      {
+        "name": "period",
+        "value": "2026-10",
+        "label": "Kỳ lương",
+        "options": [
+          {
+            "value": "2026-08",
+            "text": "Tháng 8/2026"
+          },
+          {
+            "value": "2026-09",
+            "text": "Tháng 9/2026"
+          },
+          {
+            "value": "2026-10",
+            "text": "Tháng 10/2026"
+          }
+        ]
+      },
+      {
+        "name": "wd_emp_NV70522410",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV38708839",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV42064945",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV02764221",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV22109338",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV04099251",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV64427271",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV32579537",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV11472711",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV59336574",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV60520819",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV46526340",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV68396938",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV60879219",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV55575826",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV53402407",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV11788692",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV76270005",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV41953136",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV29485085",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV07421809",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV10237040",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV66107670",
+        "value": "",
+        "label": ""
+      }
+    ],
+    "links": [
+      {
+        "text": "Nhân viên",
+        "href": "#/hr"
+      },
+      {
+        "text": "Cơ cấu tổ chức",
+        "href": "#/hr?tab=co-cau"
+      },
+      {
+        "text": "Phân công",
+        "href": "#/hr/assignments"
+      },
+      {
+        "text": "Bảng lương",
+        "href": "#/hr/payroll"
+      },
+      {
+        "text": "Mở danh sách",
+        "href": "#/hr"
+      }
+    ],
+    "overflow": false
+  },
+  {
     "requested": "#/dashboard",
     "hash": "#/dashboard",
     "text": "Tổng quan\nTháng 9/2026 · 110 tòa trong phạm vi · số liệu tính đến 29/09/2026\nKỳ\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\nLoại nhà\nTất cả\nNhà T\nNhà S\nNhà G\nKhu vực\nTất cả\nKhu Cầu Giấy\nKhu Nam Từ Liêm\nKhu Thanh Xuân\nKhu Hà Đông\nQuản lý\nTất cả\nHoàng Ngọc Lan\nHoàng Ngọc Phong\nVũ Khánh Bình\nNguyễn Minh Loan\nHoàng Đức Hà\nPhan Đức Vy\nMai Tuấn Trung\nLê Đức Ngân\nHoàng Anh Oanh\nHoàng Đức Phong\nVũ Thị Trang\nĐỗ Phương Đạt\nLeader / trưởng nhóm\nTất cả\nTrịnh Bảo Trang\nBùi Quang Nam\nLê Minh Châu\nHoàng Văn Hiếu\n \nXóa bộ lọc\nTrống ở luôn\n6\nphòng sẵn sàng, chưa có khách cọc → xem chi tiết\nTrống cuối tháng\n1\nkhách hết HĐ / báo trả trong tháng → xem HĐ\nĐang chờ (đã cọc)\n26\nkhách đã cọc, chưa vào ở → xem HĐ\nDoanh thu tiền phòng\n5.497.990.699\ndrill-down báo cáo và giao dịch nguồn\nCọc mới\n835.200.000\nhóa đơn có cọc mới\nPhá hợp đồng\n16.048.000\ngiữ cọc, khoản còn thu tách riêng\nPhải thu kỳ 09/2026\n8.060.311.463\n1451 hóa đơn (không gồm phá HĐ)\nĐã thu\n8.003.513.798\n99,3% số phải thu\nCòn nợ\n56.797.665\n80 hóa đơn đã thành công nợ (mặc định 5 ngày từ phát hành)\nPhá HĐ / bỏ trốn\n20\ncòn thu 13.112.000 (tiền điện)\nHS thực tế\n91,9\nthu trong 3 mốc / giá niêm yết – cùng công thức lương (OQ-18) · chi tiết theo tòa (UI-45)\nHS tạm tính\n93,8\n(tiền nhà đã thu + bỏ cọc) / giá niêm yết – không phải lấp đầy\nDeal chốt – 09/2026\n39\n26 chờ nhận · 22 đã nhận · doanh số 151.550.000\nPhản hồi Zalo chờ xử lý\n4\ntoàn hệ thống · mở hộp thư\nBảo dưỡng\n2 quá hạn\n3 việc trong 7 ngày tới · mở lịch UI-35\nKiểm kê 09/2026\n24/24 tòa chưa xong\nMở kiểm kê UI-36\nTiến độ thu theo mốc (ngày tiền thực nhận)\nMốc 5/10/15 (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu\nĐến hết ngày 5/9\n7.107.593.927 · 88,2%\nĐến hết ngày 10/9\n7.822.439.798 · 97,0%\nĐến hết ngày 15/9\n7.856.650.798 · 97,5%\nTòa cần chú ý\nXếp theo số còn nợ\nTòa\tQuản lý\tLấp đầy\t\n% thu\n⇅\n\t\nCòn nợ\n⇅\n\nG15 G\tHoàng Anh Oanh\t11/11\t75,2%\t22.992.226\nG17 G\tHoàng Đức Phong\t14/14\t90,2%\t9.507.742\nS47 S\tHoàng Anh Oanh\t10/10\t91,1%\t5.271.667\nS48A S\tChưa phân công\t1/1\t39,4%\t3.070.000\nG18 G\tHoàng Đức Hà\t14/26\t97,1%\t2.613.333\nS18 S\tHoàng Anh Oanh\t20/21\t97,6%\t2.500.000\nG5 G\tLê Đức Ngân\t22/23\t99,1%\t1.834.667\nG8 G\tHoàng Anh Oanh\t20/20\t98,5%\t1.468.000\nHiển thị 1 - 8 của 110 bản ghi\n1\n2\n3\n4\n5\n…\n14\n10 / trang\n20 / trang\n50 / trang\n100 / trang\nViệc cần xử lý\nHợp đồng sắp hết hạn",
@@ -28843,6 +29153,316 @@
     "overflow": false
   },
   {
+    "requested": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nBiểu phí đang áp dụng\nHiệu lực từ 01/11/2026 · nguồn: Tách gửi và sạc theo xác nhận\nThêm phiên giá\n\nSố xe theo danh sách cuối kỳ Tháng 11/2026; số ghi đè của kỳ được nhập tại Chỉ số.\n\nLoại phí\tCách tính\tĐơn giá\tSL mặc định\tDòng in\nTiền phòng\ttheo tháng, chia ngày tháng lẻ\t3.000.000\t1\t1\nGửi xe\ttheo xe\t100.000\t2\t8\nSạc xe điện\ttheo xe\t50.000\t1\t8\nLịch sử phiên giá\nTải hợp đồng\nv2\n01/11/2026 → nay\nTách gửi và sạc theo xác nhận\n3.000.000\nv1\n01/10/2026 → 31/10/2026\nBiểu phí khi tạo lượt thuê\n3.000.000\nPhiên giá mới chỉ áp dụng hóa đơn chưa phát hành; hóa đơn đã phát hành giữ giá snapshot.",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Biểu phí đang áp dụng",
+      "Lịch sử phiên giá"
+    ],
+    "headers": [
+      "Loại phí",
+      "Cách tính",
+      "Đơn giá",
+      "SL mặc định",
+      "Dòng in"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      },
+      {
+        "text": "Tải hợp đồng",
+        "href": "#/stays/st_101G990A001?tab=tai-lieu"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+    "hash": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+    "text": "Hóa đơn 101G990A001\nNháp\nTháng 11/2026 · Phòng 101G990 · Khách kiểm tra xe · 101G990A001\nXem / in\nXóa nháp\nĐổi mẫu in\nSửa dòng\nTính lại nháp\nPhát hành\nXem trước bản in\nMẫu chuẩn 12 dòng – không có “Thu khác”\nHĐ G1 (TECH) · G1-TECH-v4 · Mẫu chuẩn · 12 dòng · Tòa G990\nHÓA ĐƠN THÁNG 11/2026\n\nXin thông báo để anh/chị biết tiền thuê phòng Tháng 11 và tiền dịch vụ Tháng 11 năm 2026 như sau:\n\nMã KH: 101G990A001\nPhòng số: 101G990\nNgày chốt số liệu: 22/10/2026\nSTT\tNội dung\tChỉ số mới\tChỉ số cũ\tSố lượng\tHệ số\tĐơn giá\tThành tiền\tGhi chú\n1\tTiền phòng\t\t\t1\t1\t3.000.000\t3.000.000\tĐỀ NGHỊ QUÝ KHÁCH HÀNG THANH TOÁN ĐÚNG HẠN NGÀY 31/10 VÀ GHI ĐÚNG NỘI DUNG CK. TRƯỜNG HỢP THANH TOÁN CHẬM PHÍ PHẠT 200K/NGÀY.\n2\tTiền cọc phòng (đối với KH mới ở)\t\t\t\t\t\t0\t\n3\tĐiện (số)\t\t\t\t\t\t0\t\n4\tNước (khối)\t\t\t\t\t\t0\t\n5\tDV Vệ sinh\t\t\t\t\t\t0\t\n6\tDV Internet (phòng)\t\t\t\t\t\t0\t\n7\tDV Thang máy (người)\t\t\t\t\t\t0\t\n8\tDV Gửi xe\t\t\t1\t1\t250.000\t250.000\tGửi xe: 2 × 100000 × 1.0000 = 200000đ; Sạc xe điện: 1 × 50000 × 1.0000 = 50000đ\n9\tMáy giặt/Máy sấy\t\t\t\t\t\t0\t\n10\tDV Combo/ DV khác\t\t\t\t\t\t0\t\n11\tNợ cũ\t\t\t\t\t\t0\t\n12\tĐiện chung\t\t\t\t\t\t0\t\nTỔNG CỘNG TIỀN THANH TOÁN\t3.250.000\t\n\nBằng chữ: Ba triệu hai trăm năm mươi nghìn đồng\n\nYêu cầu khách hàng thanh toán đầy đủ và đúng hạn từ ngày 25 đến ngày 31 tháng 10 năm 2026\n\nQuá thời hạn thanh toán trên, nếu khách hàng chưa thanh toán thì Ban Quản Lý Tòa Nhà sẽ cắt dịch vụ và trục xuất ra khỏi phòng\n\nNội dung chuyển khoản: 101G990A001\n\nLƯU Ý: QUÝ KHÁCH HÀNG CHUYỂN KHOẢN KHÔNG ĐÚNG NỘI DUNG KẾ TOÁN KHÔNG CHECK ĐƯỢC SẼ TÍNH LÀ CHƯA THANH TOÁN. TRÂN TRỌNG !\n\nTK 1903 26 0004 - Techcombank - Trịnh Bảo Trang\n\nTRÂN TRỌNG THÔNG BÁO\n\nThông tin nội bộ\nThu tiền\nKiểm tra trước phát hành",
+    "headings": [
+      "Hóa đơn 101G990A001 Nháp",
+      "Xem trước bản in",
+      "HÓA ĐƠN THÁNG 11/2026",
+      "Thông tin nội bộ",
+      "Thu tiền",
+      "Kiểm tra trước phát hành"
+    ],
+    "headers": [
+      "STT",
+      "Nội dung",
+      "Chỉ số mới",
+      "Chỉ số cũ",
+      "Số lượng",
+      "Hệ số",
+      "Đơn giá",
+      "Thành tiền",
+      "Ghi chú"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/billing/invoices?period=2026-11"
+      },
+      {
+        "text": "Khách kiểm tra xe · 101G990A001",
+        "href": "#/stays/st_101G990A001"
+      },
+      {
+        "text": "Xem / in",
+        "href": "#/print/invoice/inv_INV-2026-11-101G990A001"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "hash": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nHồ sơ người thuê\nCập nhật\nHọ tên\nKhách kiểm tra xe\nSĐT\n0909909900\nCCCD\nNgày sinh\n–\nNgày cấp / nơi cấp\n– · –\nĐịa chỉ thường trú\n–\nNghề nghiệp\nGhi chú\n–\nXe / biển số\nQuản lý xe\nTạm trú\nCập nhật",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Hồ sơ người thuê",
+      "Xe / biển số",
+      "Tạm trú"
+    ],
+    "headers": [],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nBiểu phí đang áp dụng\nHiệu lực từ 01/11/2026 · nguồn: Tách gửi và sạc theo xác nhận\nThêm phiên giá\n\nSố xe theo danh sách cuối kỳ Tháng 11/2026; số ghi đè của kỳ được nhập tại Chỉ số.\n\nLoại phí\tCách tính\tĐơn giá\tSL mặc định\tDòng in\nTiền phòng\ttheo tháng, chia ngày tháng lẻ\t3.000.000\t1\t1\nGửi xe\ttheo xe\t100.000\t2\t8\nSạc xe điện\ttheo xe\t50.000\t1\t8\nLịch sử phiên giá\nTải hợp đồng\nv2\n01/11/2026 → nay\nTách gửi và sạc theo xác nhận\n3.000.000\nv1\n01/10/2026 → 31/10/2026\nBiểu phí khi tạo lượt thuê\n3.000.000\nPhiên giá mới chỉ áp dụng hóa đơn chưa phát hành; hóa đơn đã phát hành giữ giá snapshot.",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Biểu phí đang áp dụng",
+      "Lịch sử phiên giá"
+    ],
+    "headers": [
+      "Loại phí",
+      "Cách tính",
+      "Đơn giá",
+      "SL mặc định",
+      "Dòng in"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      },
+      {
+        "text": "Tải hợp đồng",
+        "href": "#/stays/st_101G990A001?tab=tai-lieu"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+    "hash": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+    "text": "Nhân viên\nCơ cấu tổ chức\nPhân công\nBảng lương\nBảng lương Tháng 10/2026\nXem trước – chưa lưu phiên\nXuất bảng\nTính thử & lưu\nKỳ lương\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\n \nXóa bộ lọc\nTổng thực nhận\n115.389.231\n43 nhân viên\nLương theo tòa (W)\n4.800.000\n108 dòng tòa\nNguồn\nWeb\nhóa đơn & phiếu thu theo ngày thực nhận\nCần duyệt tay\n103\nHS>100 · HS<70 · không có phòng\nNV vận hành theo tòa\n(108)\nNhập tay\n(1)\nTổng hợp theo người\n(43)\nChính sách\n(5)\nPhiên & phê duyệt\n(0)\nChi lương\n(0)\nCần duyệt\n(103)\nNgày công theo chính sách\nLương = lương cứng × ngày công / 26 + phụ cấp (UI-25)\nNhân viên\tLương cứng\tNgày công\tTính ra\nLê Minh Châu\t10.000.000\t\t0\nHoàng Văn Nam\t5.000.000\t\t0\nLý Minh Đạt\t1.400.000\t\t0\nLê Anh Tú\t3.000.000\t\t0\nNguyễn Văn Linh\t1.923.077\t\t0\nHoàng Thu Nhung\t1.500.000\t\t0\nĐỗ Hoàng Châu\t2.500.000\t\t0\nNguyễn Thanh Bình\t2.153.846\t\t0\nNguyễn Thanh Long\t2.500.000\t\t0\nDương Thanh Phúc\t1.500.000\t\t0\nNgô Bảo Long\t1.500.000\t\t0\nNguyễn Ngọc Trung\t846.154\t\t0\nVõ Thu Sơn\t1.153.846\t\t0\nTrịnh Anh Oanh\t1.538.462\t\t0\nTrịnh Hữu Nam\t4.000.000\t\t0\nHuỳnh Văn Nam\t1.615.385\t\t0\nHồ Hữu Quân\t861.539\t\t0\nTrần Khánh Phúc\t2.000.000\t\t0\nĐỗ Hải Hà\t4.000.000\t\t0\nTrần Văn Hạnh\t1.096.154\t\t0\nNgô Hữu Quân\t1.769.230\t\t0\nNgô Hải Trung\t576.923\t\t0\nNguyễn Thanh Châu\t4.000.000\t\t0\nLưu ngày công\nLương vệ sinh / bảo vệ theo tòa\nDòng 35 và 38 báo cáo; chốt bảng lương → chi phí theo tòa\nThêm\n\nChưa có dòng nào\n\nTiền công thợ sửa chữa theo tòa\nOQ-22: tiền công ghi thẳng vào dòng 41 của tòa; phần cố định của thợ vào quỹ \"Lương sửa chữa\"\nThêm\n\nChưa có dòng nào\n\nHS dưới 70% – lương/phòng nhập tay\nBắt buộc có nhân viên, tòa, mức lương/phòng và lý do trước khi duyệt/chốt\nNhập mức\n\nChưa có dòng nào\n\nHỗ trợ / điều chỉnh lương theo người\nKhoản chưa có công thức nguồn (kỹ thuật, thị trường…) – cộng vào thực nhận\nThêm\n\nChưa có dòng nào\n\nNgày vào làm (thâm niên)\nSửa ở hồ sơ nhân viên; thâm niên \"trên 1 năm\" khi đủ 12 tháng tại cuối kỳ\n\nTất cả 43 nhân viên đang làm đã có ngày vào làm. Mở danh sách\n\nTổng lương nhập tay\nTổng đã gồm các thành phần lương; chỉ cộng điều chỉnh riêng. Nhập 0 vẫn cần căn cứ.\nNhập tổng lương\nMai Hữu Huy\t8.000.000\tTổng lương xác nhận bằng UI, gồm phụ cấp\t",
+    "headings": [
+      "Bảng lương Tháng 10/2026",
+      "Ngày công theo chính sách",
+      "Lương vệ sinh / bảo vệ theo tòa",
+      "Tiền công thợ sửa chữa theo tòa",
+      "HS dưới 70% – lương/phòng nhập tay",
+      "Hỗ trợ / điều chỉnh lương theo người",
+      "Ngày vào làm (thâm niên)",
+      "Tổng lương nhập tay"
+    ],
+    "headers": [
+      "Nhân viên",
+      "Lương cứng",
+      "Ngày công",
+      "Tính ra"
+    ],
+    "fields": [
+      {
+        "name": "period",
+        "value": "2026-10",
+        "label": "Kỳ lương",
+        "options": [
+          {
+            "value": "2026-08",
+            "text": "Tháng 8/2026"
+          },
+          {
+            "value": "2026-09",
+            "text": "Tháng 9/2026"
+          },
+          {
+            "value": "2026-10",
+            "text": "Tháng 10/2026"
+          }
+        ]
+      },
+      {
+        "name": "wd_emp_NV70522410",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV38708839",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV42064945",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV02764221",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV22109338",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV04099251",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV64427271",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV32579537",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV11472711",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV59336574",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV60520819",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV46526340",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV68396938",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV60879219",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV55575826",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV53402407",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV11788692",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV76270005",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV41953136",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV29485085",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV07421809",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV10237040",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV66107670",
+        "value": "",
+        "label": ""
+      }
+    ],
+    "links": [
+      {
+        "text": "Nhân viên",
+        "href": "#/hr"
+      },
+      {
+        "text": "Cơ cấu tổ chức",
+        "href": "#/hr?tab=co-cau"
+      },
+      {
+        "text": "Phân công",
+        "href": "#/hr/assignments"
+      },
+      {
+        "text": "Bảng lương",
+        "href": "#/hr/payroll"
+      },
+      {
+        "text": "Mở danh sách",
+        "href": "#/hr"
+      }
+    ],
+    "overflow": false
+  },
+  {
     "requested": "#/dashboard",
     "hash": "#/dashboard",
     "text": "Tổng quan\nTháng 9/2026 · 110 tòa trong phạm vi · số liệu tính đến 29/09/2026\nKỳ\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\nLoại nhà\nTất cả\nNhà T\nNhà S\nNhà G\nKhu vực\nTất cả\nKhu Cầu Giấy\nKhu Nam Từ Liêm\nKhu Thanh Xuân\nKhu Hà Đông\nQuản lý\nTất cả\nHoàng Ngọc Lan\nHoàng Ngọc Phong\nVũ Khánh Bình\nNguyễn Minh Loan\nHoàng Đức Hà\nPhan Đức Vy\nMai Tuấn Trung\nLê Đức Ngân\nHoàng Anh Oanh\nHoàng Đức Phong\nVũ Thị Trang\nĐỗ Phương Đạt\nLeader / trưởng nhóm\nTất cả\nTrịnh Bảo Trang\nBùi Quang Nam\nLê Minh Châu\nHoàng Văn Hiếu\n \nXóa bộ lọc\nTrống ở luôn\n6\nphòng sẵn sàng, chưa có khách cọc → xem chi tiết\nTrống cuối tháng\n1\nkhách hết HĐ / báo trả trong tháng → xem HĐ\nĐang chờ (đã cọc)\n26\nkhách đã cọc, chưa vào ở → xem HĐ\nDoanh thu tiền phòng\n5.497.990.699\ndrill-down báo cáo và giao dịch nguồn\nCọc mới\n835.200.000\nhóa đơn có cọc mới\nPhá hợp đồng\n16.048.000\ngiữ cọc, khoản còn thu tách riêng\nPhải thu kỳ 09/2026\n8.060.311.463\n1451 hóa đơn (không gồm phá HĐ)\nĐã thu\n8.003.513.798\n99,3% số phải thu\nCòn nợ\n56.797.665\n80 hóa đơn đã thành công nợ (mặc định 5 ngày từ phát hành)\nPhá HĐ / bỏ trốn\n20\ncòn thu 13.112.000 (tiền điện)\nHS thực tế\n91,9\nthu trong 3 mốc / giá niêm yết – cùng công thức lương (OQ-18) · chi tiết theo tòa (UI-45)\nHS tạm tính\n93,8\n(tiền nhà đã thu + bỏ cọc) / giá niêm yết – không phải lấp đầy\nDeal chốt – 09/2026\n39\n26 chờ nhận · 22 đã nhận · doanh số 151.550.000\nPhản hồi Zalo chờ xử lý\n4\ntoàn hệ thống · mở hộp thư\nBảo dưỡng\n2 quá hạn\n3 việc trong 7 ngày tới · mở lịch UI-35\nKiểm kê 09/2026\n24/24 tòa chưa xong\nMở kiểm kê UI-36\nTiến độ thu theo mốc (ngày tiền thực nhận)\nMốc 5/10/15 (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu\nĐến hết ngày 5/9\n7.107.593.927 · 88,2%\nĐến hết ngày 10/9\n7.822.439.798 · 97,0%\nĐến hết ngày 15/9\n7.856.650.798 · 97,5%\nTòa cần chú ý\nXếp theo số còn nợ\nTòa\tQuản lý\tLấp đầy\t\n% thu\n⇅\n\t\nCòn nợ\n⇅\n\nG15 G\tHoàng Anh Oanh\t11/11\t75,2%\t22.992.226\nG17 G\tHoàng Đức Phong\t14/14\t90,2%\t9.507.742\nS47 S\tHoàng Anh Oanh\t10/10\t91,1%\t5.271.667\nS48A S\tChưa phân công\t1/1\t39,4%\t3.070.000\nG18 G\tHoàng Đức Hà\t14/26\t97,1%\t2.613.333\nS18 S\tHoàng Anh Oanh\t20/21\t97,6%\t2.500.000\nG5 G\tLê Đức Ngân\t22/23\t99,1%\t1.834.667\nG8 G\tHoàng Anh Oanh\t20/20\t98,5%\t1.468.000\nHiển thị 1 - 8 của 110 bản ghi\n1\n2\n3\n4\n5\n…\n14\n10 / trang\n20 / trang\n50 / trang\n100 / trang\nViệc cần xử lý\nHĐ sắp hết hạn (≤ 35 ngày)\n116\nHóa đơn đã thành công nợ\n80\nTin Zalo gửi lỗi\n0\nHoàn cọc đang xử lý\n8\nPhòng trống cần kiểm tra/dọn\n0\nHợp đồng sắp hết hạn\n303T18\nĐặng Hải Hiếu\n03/10/2026 · còn 4 ngày\n503T18\nHuỳnh Thu Tâm\n03/11/2026 · còn 35 ngày\n302T12\nTrần Tuấn Nhung\n23/10/2026 · còn 24 ngày\n401T12\nTrần Khánh An\n15/10/2026 · còn 16 ngày\n602T13\nNgô Bảo Tâm\n12/10/2026 · còn 13 ngày\n203T14\nHuỳnh Gia Khánh\n30/09/2026 · còn 1 ngày",
@@ -32100,6 +32720,340 @@
       {
         "text": "Báo cáo theo tòa",
         "href": "#/reports/buildings?period=2026-10&type=business"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nBiểu phí đang áp dụng\nHiệu lực từ 01/11/2026 · nguồn: Tách gửi và sạc theo xác nhận\nThêm phiên giá\n\nSố xe theo danh sách cuối kỳ Tháng 11/2026; số ghi đè của kỳ được nhập tại Chỉ số.\n\nLoại phí\tCách tính\tĐơn giá\tSL mặc định\tDòng in\nTiền phòng\ttheo tháng, chia ngày tháng lẻ\t3.000.000\t1\t1\nGửi xe\ttheo xe\t100.000\t2\t8\nSạc xe điện\ttheo xe\t50.000\t1\t8\nLịch sử phiên giá\nTải hợp đồng\nv2\n01/11/2026 → nay\nTách gửi và sạc theo xác nhận\n3.000.000\nv1\n01/10/2026 → 31/10/2026\nBiểu phí khi tạo lượt thuê\n3.000.000\nPhiên giá mới chỉ áp dụng hóa đơn chưa phát hành; hóa đơn đã phát hành giữ giá snapshot.",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Biểu phí đang áp dụng",
+      "Lịch sử phiên giá"
+    ],
+    "headers": [
+      "Loại phí",
+      "Cách tính",
+      "Đơn giá",
+      "SL mặc định",
+      "Dòng in"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      },
+      {
+        "text": "Tải hợp đồng",
+        "href": "#/stays/st_101G990A001?tab=tai-lieu"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+    "hash": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+    "text": "Hóa đơn 101G990A001\nNháp\nTháng 11/2026 · Phòng 101G990 · Khách kiểm tra xe · 101G990A001\nXem / in\nXóa nháp\nĐổi mẫu in\nSửa dòng\nTính lại nháp\nPhát hành\nXem trước bản in\nMẫu chuẩn 12 dòng – không có “Thu khác”\nHĐ G1 (TECH) · G1-TECH-v4 · Mẫu chuẩn · 12 dòng · Tòa G990\nHÓA ĐƠN THÁNG 11/2026\n\nXin thông báo để anh/chị biết tiền thuê phòng Tháng 11 và tiền dịch vụ Tháng 11 năm 2026 như sau:\n\nMã KH: 101G990A001\nPhòng số: 101G990\nNgày chốt số liệu: 22/10/2026\nSTT\tNội dung\tChỉ số mới\tChỉ số cũ\tSố lượng\tHệ số\tĐơn giá\tThành tiền\tGhi chú\n1\tTiền phòng\t\t\t1\t1\t3.000.000\t3.000.000\tĐỀ NGHỊ QUÝ KHÁCH HÀNG THANH TOÁN ĐÚNG HẠN NGÀY 31/10 VÀ GHI ĐÚNG NỘI DUNG CK. TRƯỜNG HỢP THANH TOÁN CHẬM PHÍ PHẠT 200K/NGÀY.\n2\tTiền cọc phòng (đối với KH mới ở)\t\t\t\t\t\t0\t\n3\tĐiện (số)\t\t\t\t\t\t0\t\n4\tNước (khối)\t\t\t\t\t\t0\t\n5\tDV Vệ sinh\t\t\t\t\t\t0\t\n6\tDV Internet (phòng)\t\t\t\t\t\t0\t\n7\tDV Thang máy (người)\t\t\t\t\t\t0\t\n8\tDV Gửi xe\t\t\t1\t1\t250.000\t250.000\tGửi xe: 2 × 100000 × 1.0000 = 200000đ; Sạc xe điện: 1 × 50000 × 1.0000 = 50000đ\n9\tMáy giặt/Máy sấy\t\t\t\t\t\t0\t\n10\tDV Combo/ DV khác\t\t\t\t\t\t0\t\n11\tNợ cũ\t\t\t\t\t\t0\t\n12\tĐiện chung\t\t\t\t\t\t0\t\nTỔNG CỘNG TIỀN THANH TOÁN\t3.250.000\t\n\nBằng chữ: Ba triệu hai trăm năm mươi nghìn đồng\n\nYêu cầu khách hàng thanh toán đầy đủ và đúng hạn từ ngày 25 đến ngày 31 tháng 10 năm 2026\n\nQuá thời hạn thanh toán trên, nếu khách hàng chưa thanh toán thì Ban Quản Lý Tòa Nhà sẽ cắt dịch vụ và trục xuất ra khỏi phòng\n\nNội dung chuyển khoản: 101G990A001\n\nLƯU Ý: QUÝ KHÁCH HÀNG CHUYỂN KHOẢN KHÔNG ĐÚNG NỘI DUNG KẾ TOÁN KHÔNG CHECK ĐƯỢC SẼ TÍNH LÀ CHƯA THANH TOÁN. TRÂN TRỌNG !\n\nTK 1903 26 0004 - Techcombank - Trịnh Bảo Trang\n\nTRÂN TRỌNG THÔNG BÁO\n\nThông tin nội bộ\nMã hóa đơn\nINV-2026-11-101G990A001\nMẫu in\nHĐ G1 (TECH)\nTK nhận\nTechcombank 1903 26 0004\nChốt số liệu\n22/10/2026\nHạn thanh toán\n25/10/2026 → 31/10/2026\nThành công nợ từ\n27/10/2026 · 5 ngày từ phát hành\nPhát hành\nChưa\nNguồn\nTạo trên web\nThu tiền\nTổng cần đóng\n3.250.000 đ\nĐã thu\n0 đ\nCòn nợ\n3.250.000 đ\nDư\n0 đ\nHạn / công nợ\nNháp\nChưa có phiếu thu\nKiểm tra trước phát hành\nTổng in = tổng cần đóng\n3.250.000 đ",
+    "headings": [
+      "Hóa đơn 101G990A001 Nháp",
+      "Xem trước bản in",
+      "HÓA ĐƠN THÁNG 11/2026",
+      "Thông tin nội bộ",
+      "Thu tiền",
+      "Kiểm tra trước phát hành"
+    ],
+    "headers": [
+      "STT",
+      "Nội dung",
+      "Chỉ số mới",
+      "Chỉ số cũ",
+      "Số lượng",
+      "Hệ số",
+      "Đơn giá",
+      "Thành tiền",
+      "Ghi chú"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/billing/invoices?period=2026-11"
+      },
+      {
+        "text": "Khách kiểm tra xe · 101G990A001",
+        "href": "#/stays/st_101G990A001"
+      },
+      {
+        "text": "Xem / in",
+        "href": "#/print/invoice/inv_INV-2026-11-101G990A001"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "hash": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nHồ sơ người thuê\nCập nhật\nHọ tên\nKhách kiểm tra xe\nSĐT\n0909909900\nCCCD\nNgày sinh\n–\nNgày cấp / nơi cấp\n– · –\nĐịa chỉ thường trú\n–\nNghề nghiệp\nGhi chú\n–\nXe / biển số\nQuản lý xe\n\nPhiên danh sách hiệu lực từ 01/10/2026\n\n2 phương tiện đã khai báo\n\n29A-70000Xe điện · Gửi xe · Sử dụng sạc\n29A-70001Xe điện · Gửi xe\nTạm trú\nCập nhật\nTrạng thái\nChưa cập nhật\nĐịa chỉ đăng ký\n–\nNgày khai báo\n–\nMã hồ sơ / xác nhận\n–",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Hồ sơ người thuê",
+      "Xe / biển số",
+      "Tạm trú"
+    ],
+    "headers": [],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nBiểu phí đang áp dụng\nHiệu lực từ 01/11/2026 · nguồn: Tách gửi và sạc theo xác nhận\nThêm phiên giá\n\nSố xe theo danh sách cuối kỳ Tháng 11/2026; số ghi đè của kỳ được nhập tại Chỉ số.\n\nLoại phí\tCách tính\tĐơn giá\tSL mặc định\tDòng in\nTiền phòng\ttheo tháng, chia ngày tháng lẻ\t3.000.000\t1\t1\nGửi xe\ttheo xe\t100.000\t2\t8\nSạc xe điện\ttheo xe\t50.000\t1\t8\nLịch sử phiên giá\nTải hợp đồng\nv2\n01/11/2026 → nay\nTách gửi và sạc theo xác nhận\n3.000.000\nv1\n01/10/2026 → 31/10/2026\nBiểu phí khi tạo lượt thuê\n3.000.000\nPhiên giá mới chỉ áp dụng hóa đơn chưa phát hành; hóa đơn đã phát hành giữ giá snapshot.",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Biểu phí đang áp dụng",
+      "Lịch sử phiên giá"
+    ],
+    "headers": [
+      "Loại phí",
+      "Cách tính",
+      "Đơn giá",
+      "SL mặc định",
+      "Dòng in"
+    ],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
+      },
+      {
+        "text": "Tải hợp đồng",
+        "href": "#/stays/st_101G990A001?tab=tai-lieu"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+    "hash": "#/hr/payroll?period=2026-10&tab=nhap-tay",
+    "text": "Nhân viên\nCơ cấu tổ chức\nPhân công\nBảng lương\nBảng lương Tháng 10/2026\nXem trước – chưa lưu phiên\nXuất bảng\nTính thử & lưu\nKỳ lương\nTháng 8/2026\nTháng 9/2026\nTháng 10/2026\n \nXóa bộ lọc\nTổng thực nhận\n115.389.231\n43 nhân viên\nLương theo tòa (W)\n4.800.000\n108 dòng tòa\nNguồn\nWeb\nhóa đơn & phiếu thu theo ngày thực nhận\nCần duyệt tay\n103\nHS>100 · HS<70 · không có phòng\nNV vận hành theo tòa\n(108)\nNhập tay\n(1)\nTổng hợp theo người\n(43)\nChính sách\n(5)\nPhiên & phê duyệt\n(0)\nChi lương\n(0)\nCần duyệt\n(103)\nNgày công theo chính sách\nLương = lương cứng × ngày công / 26 + phụ cấp (UI-25)\nNhân viên\tLương cứng\tNgày công\tTính ra\nLê Minh Châu\t10.000.000\t\t0\nHoàng Văn Nam\t5.000.000\t\t0\nLý Minh Đạt\t1.400.000\t\t0\nLê Anh Tú\t3.000.000\t\t0\nNguyễn Văn Linh\t1.923.077\t\t0\nHoàng Thu Nhung\t1.500.000\t\t0\nĐỗ Hoàng Châu\t2.500.000\t\t0\nNguyễn Thanh Bình\t2.153.846\t\t0\nNguyễn Thanh Long\t2.500.000\t\t0\nDương Thanh Phúc\t1.500.000\t\t0\nNgô Bảo Long\t1.500.000\t\t0\nNguyễn Ngọc Trung\t846.154\t\t0\nVõ Thu Sơn\t1.153.846\t\t0\nTrịnh Anh Oanh\t1.538.462\t\t0\nTrịnh Hữu Nam\t4.000.000\t\t0\nHuỳnh Văn Nam\t1.615.385\t\t0\nHồ Hữu Quân\t861.539\t\t0\nTrần Khánh Phúc\t2.000.000\t\t0\nĐỗ Hải Hà\t4.000.000\t\t0\nTrần Văn Hạnh\t1.096.154\t\t0\nNgô Hữu Quân\t1.769.230\t\t0\nNgô Hải Trung\t576.923\t\t0\nNguyễn Thanh Châu\t4.000.000\t\t0\nLưu ngày công\nLương vệ sinh / bảo vệ theo tòa\nDòng 35 và 38 báo cáo; chốt bảng lương → chi phí theo tòa\nThêm\n\nChưa có dòng nào\n\nTiền công thợ sửa chữa theo tòa\nOQ-22: tiền công ghi thẳng vào dòng 41 của tòa; phần cố định của thợ vào quỹ \"Lương sửa chữa\"\nThêm\n\nChưa có dòng nào\n\nHS dưới 70% – lương/phòng nhập tay\nBắt buộc có nhân viên, tòa, mức lương/phòng và lý do trước khi duyệt/chốt\nNhập mức\n\nChưa có dòng nào\n\nHỗ trợ / điều chỉnh lương theo người\nKhoản chưa có công thức nguồn (kỹ thuật, thị trường…) – cộng vào thực nhận\nThêm\n\nChưa có dòng nào\n\nNgày vào làm (thâm niên)\nSửa ở hồ sơ nhân viên; thâm niên \"trên 1 năm\" khi đủ 12 tháng tại cuối kỳ\n\nTất cả 43 nhân viên đang làm đã có ngày vào làm. Mở danh sách\n\nTổng lương nhập tay\nTổng đã gồm các thành phần lương; chỉ cộng điều chỉnh riêng. Nhập 0 vẫn cần căn cứ.\nNhập tổng lương\nMai Hữu Huy\t8.000.000\tTổng lương xác nhận bằng UI, gồm phụ cấp\t",
+    "headings": [
+      "Bảng lương Tháng 10/2026",
+      "Ngày công theo chính sách",
+      "Lương vệ sinh / bảo vệ theo tòa",
+      "Tiền công thợ sửa chữa theo tòa",
+      "HS dưới 70% – lương/phòng nhập tay",
+      "Hỗ trợ / điều chỉnh lương theo người",
+      "Ngày vào làm (thâm niên)",
+      "Tổng lương nhập tay"
+    ],
+    "headers": [
+      "Nhân viên",
+      "Lương cứng",
+      "Ngày công",
+      "Tính ra"
+    ],
+    "fields": [
+      {
+        "name": "period",
+        "value": "2026-10",
+        "label": "Kỳ lương",
+        "options": [
+          {
+            "value": "2026-08",
+            "text": "Tháng 8/2026"
+          },
+          {
+            "value": "2026-09",
+            "text": "Tháng 9/2026"
+          },
+          {
+            "value": "2026-10",
+            "text": "Tháng 10/2026"
+          }
+        ]
+      },
+      {
+        "name": "wd_emp_NV70522410",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV38708839",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV42064945",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV02764221",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV22109338",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV04099251",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV64427271",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV32579537",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV11472711",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV59336574",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV60520819",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV46526340",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV68396938",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV60879219",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV55575826",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV53402407",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV11788692",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV76270005",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV41953136",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV29485085",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV07421809",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV10237040",
+        "value": "",
+        "label": ""
+      },
+      {
+        "name": "wd_emp_NV66107670",
+        "value": "",
+        "label": ""
+      }
+    ],
+    "links": [
+      {
+        "text": "Nhân viên",
+        "href": "#/hr"
+      },
+      {
+        "text": "Cơ cấu tổ chức",
+        "href": "#/hr?tab=co-cau"
+      },
+      {
+        "text": "Phân công",
+        "href": "#/hr/assignments"
+      },
+      {
+        "text": "Bảng lương",
+        "href": "#/hr/payroll"
+      },
+      {
+        "text": "Mở danh sách",
+        "href": "#/hr"
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "requested": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "hash": "#/stays/st_101G990A001?tab=nguoi-thue",
+    "text": "Phòng 101G990 · Tòa G990\nĐang ở\nKhách Khách kiểm tra xe · Mã HĐ 101G990A001 · Quản lý Hoàng Ngọc Lan · Chờ ký\nKết thúc thuê\nGhi báo trả\nGia hạn\nChuyển phòng\nGhi thu\nNgày tính tiền phòng\n01/10/2026\nBắt đầu tính dịch vụ\n01/10/2026\nHết hạn HĐ\n30/09/2027 (còn 366 ngày)\nCọc\n3.000.000 Chưa nhận\nCòn nợ\n9.450.000\nTổng quan\nNgười thuê\nDịch vụ & giá\nCọc\nThanh toán\n(0)\nCông nợ\n(2)\nĐiện nước\nBàn giao\nGia hạn\nTài liệu\nLịch sử\nHồ sơ người thuê\nCập nhật\nHọ tên\nKhách kiểm tra xe\nSĐT\n0909909900\nCCCD\nNgày sinh\n–\nNgày cấp / nơi cấp\n– · –\nĐịa chỉ thường trú\n–\nNghề nghiệp\nGhi chú\n–\nXe / biển số\nQuản lý xe\n\nPhiên danh sách hiệu lực từ 01/10/2026\n\n2 phương tiện đã khai báo\n\n29A-70000Xe điện · Gửi xe · Sử dụng sạc\n29A-70001Xe điện · Gửi xe\nTạm trú\nCập nhật\nTrạng thái\nChưa cập nhật\nĐịa chỉ đăng ký\n–\nNgày khai báo\n–\nMã hồ sơ / xác nhận\n–",
+    "headings": [
+      "Phòng 101G990 · Tòa G990 Đang ở",
+      "Hồ sơ người thuê",
+      "Xe / biển số",
+      "Tạm trú"
+    ],
+    "headers": [],
+    "fields": [],
+    "links": [
+      {
+        "text": "",
+        "href": "#/contracts"
+      },
+      {
+        "text": "Ghi thu",
+        "href": "#/billing/receipts/new?stay=st_101G990A001"
       }
     ],
     "overflow": false

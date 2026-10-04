@@ -118,6 +118,7 @@ try {
     const c = TH.q.customer(row.stay.customerId);
     return { stayId: row.stay.id, customerId: c.id, buildingId: row.stay.buildingId, originalBillableVehicles: row.stay.vehicles || 0, originalList: c.vehicles || [] };
   });
+  let split;
   if (candidate.unavailable) finding('VEHICLE-BILLING', 'Thông tin khách hàng!G7:G9', 'Khai báo xe được nối sang lượng tính phí', candidate, 'UNVERIFIED', 'No eligible invoice candidate');
   else {
     const count = candidate.originalBillableVehicles + 2;
@@ -145,7 +146,7 @@ try {
     await page.click('[data-act=submit-d]'); await page.waitForSelector('#overlay-root [role=dialog]',{state:'hidden'});
     const displayedCounts=await page.evaluate(()=>Object.fromEntries([...document.querySelectorAll('#tb table:first-of-type tbody tr')].filter(r=>['Gửi xe','Sạc xe điện'].includes(r.cells[0]?.textContent)).map(r=>[r.cells[0].textContent,r.cells[3].textContent])));
     assert.equal(displayedCounts['Gửi xe'],'2'); assert.equal(displayedCounts['Sạc xe điện'],'1'); await shot('split-fee-preview');
-    const split=await page.evaluate(stayId=>{
+    split=await page.evaluate(stayId=>{
       const s=TH.q.stay(stayId), inv=TH.actions.createInvoiceDrafts('2026-11',[s.buildingId],{allowMissingReading:true}).created.find(i=>i.stayId===stayId),line=inv.lines[7];
       return {invoiceId:inv.id,amount:line.amount,components:line.components};
     },candidate.stayId);
@@ -194,12 +195,25 @@ try {
   const responsive = [];
   for (const width of [375, 768,1440]) {
     await page.setViewportSize({ width, height: 900 });
-    for (const hash of ['#/dashboard', '#/expenses', '#/sales/commission?tab=nhan-su', '#/reports/sales', '#/assets/inventory?type=decor','#/hr/payroll?period=2026-10&tab=nhap-tay','#/reports/business?period=2026-10']) {
+    for (const hash of ['#/dashboard', '#/expenses', '#/sales/commission?tab=nhan-su', '#/reports/sales', '#/assets/inventory?type=decor','#/hr/payroll?period=2026-10&tab=nhap-tay','#/reports/business?period=2026-10',`#/stays/${candidate.stayId}?tab=dich-vu-gia`,'#/billing/invoices/'+split.invoiceId]) {
       const ui = await go(hash); responsive.push({ width, hash, overflow: ui.overflow });
       if (ui.overflow) finding('RESP-' + width + '-' + responsive.length, 'Responsive', 'Không tràn ngang trang', ui.hash, 'FAIL', 'routes.json');
     }
     await shot('responsive-' + width);
+    for (const [name,hash,act] of [['vehicles',`#/stays/${candidate.stayId}?tab=nguoi-thue`,'vehicles'],['fees',`#/stays/${candidate.stayId}?tab=dich-vu-gia`,'newrate'],['salary','#/hr/payroll?period=2026-10&tab=nhap-tay','addtotal']]) {
+      await go(hash); await page.click(`[data-act=${act}]`); await page.waitForTimeout(250);
+      const dialog=page.locator('#overlay-root [role=dialog]');
+      const bounds=await dialog.evaluate(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,viewport:innerWidth};});
+      assert.ok(bounds.left>=-1 && bounds.right<=bounds.viewport+1,`${name} form fits ${width}px`);
+      await dialog.locator('[data-act=submit-d]').scrollIntoViewIfNeeded(); await shot(`form-${name}-${width}`);
+      await dialog.locator('[data-act=close-d]').click();
+    }
   }
+  await go(`#/stays/${candidate.stayId}?tab=nguoi-thue`); await page.click('[data-act=vehicles]');
+  while(await page.locator('[data-act=remove-vehicle]').count()) await page.locator('[data-act=remove-vehicle]').first().click();
+  await page.click('[data-act=submit-d]'); await page.waitForSelector('#overlay-root [role=dialog]',{state:'hidden'});
+  assert.ok((await page.locator('#tb').innerText()).includes('Đã xác nhận 0 xe'),'Confirmed empty vehicle list is explicit on profile');
+  assert.equal(await page.evaluate(id=>TH.q.vehicleCounts(id,'2026-11').parking,candidate.stayId),0); await shot('vehicle-list-empty');
   await fs.writeFile(path.join(out, 'routes.json'), JSON.stringify(routes, null, 2));
   await fs.writeFile(path.join(out, 'audit.json'), JSON.stringify({ checkedAt: new Date().toISOString(), baseURL, sourceSha: sha, build, scripts: sources,
     initialRouteCount: gallery.length, visitedCount: routes.length, roles: ['admin'], roleServiceChecks:roleChecks, findings, responsive, errors, mutatingRequests: requests }, null, 2));

@@ -1,14 +1,14 @@
 {
-  "checkedAt": "2026-10-04T13:55:00.813Z",
-  "baseURL": "http://localhost:9827",
-  "sourceSha": "d196a72fad5d318b6afa399c06fd3a63eb487881",
+  "checkedAt": "2026-10-04T14:02:29.935Z",
+  "baseURL": "http://localhost:9824",
+  "sourceSha": "70729fad29912a9da0a7c475d8d7ea1f6c0a45fd",
   "build": {
-    "sha": "d196a72fad5d318b6afa399c06fd3a63eb487881",
+    "sha": "70729fad29912a9da0a7c475d8d7ea1f6c0a45fd",
     "target": "mockup source"
   },
   "scripts": [],
   "initialRouteCount": 54,
-  "visitedCount": 84,
+  "visitedCount": 100,
   "roles": [
     "admin"
   ],
@@ -254,6 +254,16 @@
       "overflow": false
     },
     {
+      "width": 375,
+      "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "hash": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+      "overflow": false
+    },
+    {
       "width": 768,
       "hash": "#/dashboard",
       "overflow": false
@@ -289,6 +299,16 @@
       "overflow": false
     },
     {
+      "width": 768,
+      "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "hash": "#/billing/invoices/inv_INV-2026-11-101G990A001",
+      "overflow": false
+    },
+    {
       "width": 1440,
       "hash": "#/dashboard",
       "overflow": false
@@ -321,6 +341,16 @@
     {
       "width": 1440,
       "hash": "#/reports/business?period=2026-10",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/stays/st_101G990A001?tab=dich-vu-gia",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "hash": "#/billing/invoices/inv_INV-2026-11-101G990A001",
       "overflow": false
     }
   ],
