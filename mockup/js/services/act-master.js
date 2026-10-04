@@ -1,6 +1,48 @@
 /* Actions – tòa nhà, phòng, chủ nhà, HĐ đầu vào, lịch trả chủ nhà (UI-02 → UI-05). */
 (function (TH) {
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, Cc = TH.calc;
+  const clone = v => JSON.parse(JSON.stringify(v == null ? null : v));
+  const LEGAL_KINDS = { business_registration: 'Đăng ký kinh doanh', pccc: 'PCCC', red_book: 'Sổ đỏ' };
+  const LEGAL_STATUSES = { missing: 'Chưa có', pending: 'Chờ hoàn thiện', valid: 'Còn hiệu lực', expired: 'Hết hiệu lực', not_required: 'Không yêu cầu' };
+  const ownerSnapshot = oc => ({ holdPriceTo: oc.holdPriceTo || null, terms: oc.terms || '', operator: clone(oc.operator), buildingFeatures: oc.buildingFeatures || '', businessRegistration: oc.businessRegistration || '', sourceRef: oc.sourceRef || oc.source || '', note: oc.note || '', deposit: Number(oc.deposit) || 0 });
+  const addOwnerVersion = (oc, d = {}) => {
+    const versions = S.where('ownerContractVersions', v => v.contractId === oc.id);
+    return S.add('ownerContractVersions', { id: `ocv_${oc.id}_${versions.length + 1}`, contractId: oc.id, version: versions.length + 1, effectiveFrom: d.effectiveFrom || F.today(), kind: d.kind || 'metadata', snapshot: ownerSnapshot(oc),
+      reason: d.reason || 'Cập nhật hợp đồng', sourceRef: d.sourceRef || oc.sourceRef || oc.source || 'web', documentIds: clone(d.documentIds || []), createdBy: _.who(), createdAt: F.nowISO() });
+  };
+  Q.ownerContractVersions = contractId => S.where('ownerContractVersions', v => v.contractId === contractId).slice().sort((a, b) => b.version - a.version);
+  Q.LEGAL_KINDS = LEGAL_KINDS; Q.LEGAL_STATUSES = LEGAL_STATUSES;
+  Q.legalRecordStatus = (record, at) => record.status === 'valid' && record.expiresAt && record.expiresAt < (at || F.today()) ? 'expired' : record.status;
+  Q.legalRecords = (buildingId, at) => {
+    const day = at || F.today();
+    return S.where('buildingLegalRecords', r => r.buildingId === buildingId && (!r.effectiveFrom || r.effectiveFrom <= day) && (!r.effectiveTo || day <= r.effectiveTo))
+      .map(r => Object.assign({}, r, { displayStatus: Q.legalRecordStatus(r, day) })).sort((a, b) => String(a.kind).localeCompare(String(b.kind)));
+  };
+  Q.legalRecordVersions = (buildingId, recordKey) => S.where('buildingLegalRecords', r => r.buildingId === buildingId && (!recordKey || r.recordKey === recordKey)).slice().sort((a, b) => String(b.effectiveFrom).localeCompare(String(a.effectiveFrom)) || b.version - a.version);
+
+  X.saveBuildingLegalRecord = d => {
+    _.need('buildings.manage');
+    const b = Q.building(d.buildingId); if (!b || !TH.auth.inScope(b.id)) throw new Error('Tòa không tồn tại hoặc ngoài phạm vi');
+    const errs = {}, from = d.effectiveFrom || F.today();
+    if (!LEGAL_KINDS[d.kind]) errs.kind = 'Chọn loại hồ sơ pháp lý';
+    if (!LEGAL_STATUSES[d.status]) errs.status = 'Chọn trạng thái hồ sơ';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) errs.effectiveFrom = 'Nhập ngày hiệu lực';
+    if (!String(d.sourceRef || '').trim()) errs.sourceRef = 'Nhập nguồn/căn cứ';
+    if (d.issuedAt && d.expiresAt && d.expiresAt < d.issuedAt) errs.expiresAt = 'Ngày hết hạn không trước ngày cấp';
+    const docs = [...new Set((d.documentIds || []).filter(Boolean))];
+    if (Q.documentsAll && docs.some(id => !Q.documentsAll().some(x => x.id === id && x.status !== 'deleted' && x.buildingId === b.id))) errs.documentId = 'Tài liệu không tồn tại hoặc không thuộc tòa';
+    if (Object.keys(errs).length) { const e = new Error('Dữ liệu pháp lý chưa hợp lệ'); e.fields = errs; throw e; }
+    _.guardEffective(from, 'hồ sơ pháp lý tòa');
+    const prev = d.id ? S.get('buildingLegalRecords', d.id) : d.recordKey ? Q.legalRecordVersions(b.id, d.recordKey)[0] : null;
+    if (prev && prev.buildingId !== b.id) throw new Error('Phiên hồ sơ không thuộc tòa');
+    if (prev && from <= prev.effectiveFrom) throw new Error('Ngày hiệu lực phiên mới phải sau phiên hiện tại');
+    if (prev) S.update('buildingLegalRecords', prev.id, { effectiveTo: Cc.dates.addDays(from, -1), supersededAt: F.nowISO(), supersededBy: _.who() });
+    const recordKey = prev ? prev.recordKey : `legal_${b.id}_${d.kind}_${S.where('buildingLegalRecords', r => r.buildingId === b.id && r.kind === d.kind).length + 1}`;
+    const rec = S.add('buildingLegalRecords', { recordKey, version: prev ? prev.version + 1 : 1, prevId: prev ? prev.id : null, buildingId: b.id, kind: d.kind, status: d.status, number: String(d.number || '').trim(), issuedAt: d.issuedAt || null, expiresAt: d.expiresAt || null, issuedBy: String(d.issuedBy || '').trim(), documentIds: docs,
+      note: String(d.note || '').trim(), sourceRef: String(d.sourceRef || 'Nhập trên web').trim(), effectiveFrom: from, effectiveTo: null, createdBy: _.who(), createdAt: F.nowISO() });
+    _.audit(prev ? 'version' : 'create', 'buildingLegalRecord', rec.id, `${LEGAL_KINDS[rec.kind]} tòa ${b.code} · ${LEGAL_STATUSES[Q.legalRecordStatus(rec)]}`, { before: prev ? clone(prev) : null, after: clone(rec), reason: d.reason || (prev ? 'Tạo phiên hồ sơ mới' : 'Khai báo hồ sơ'), sourceRef: rec.sourceRef });
+    _.done(); return rec;
+  };
 
   X.addBuilding = (d) => {
     _.need('buildings.manage');
@@ -106,6 +148,7 @@
     vs.filter(v => !v.to).forEach(v => S.update('ownerRateVersions', v.id, { to: TH.calc.dates.addDays(from, -1) }));
     const v = S.add('ownerRateVersions', { contractId, from, to: null, monthlyRent: rent, deposit: Number(d.deposit) || null, reason: d.reason, appendixNo: 'PL-' + (vs.length + 1) });
     if (d.deposit) S.update('ownerContracts', contractId, { deposit: Number(d.deposit) });
+    const oc = S.get('ownerContracts', contractId); if (oc) addOwnerVersion(oc, { effectiveFrom: from, kind: 'rate_appendix', reason: d.reason, sourceRef: d.sourceRef || v.appendixNo });
     const n = X.rescheduleOwner(contractId, from);
     _.audit('create', 'ownerRate', v.id, `Phụ lục giá HĐ chủ nhà: ${F.vnd(rent)} từ ${F.date(from)}; tính lại ${n} kỳ trả chưa chi đủ`); _.done(); return v;
   };
@@ -151,6 +194,7 @@
     const oc = S.add('ownerContracts', { id: 'oc_' + code, code, buildingId: b.id, ownerId: owner.id, signDate: d.signDate || d.startDate, startDate: d.startDate, endDate: d.endDate, deposit: Number(d.deposit) || 0, payCycleMonths: Number(d.payCycleMonths), payDay, dueMonthOffset:Number(d.dueMonthOffset)||0, status: 'active', source: 'web',
       holdPriceTo: d.holdPriceTo || null, terms: d.terms || '', operator: d.operator || (d.operatorName || d.operatorPhone || d.operatorIdNo ? { name: d.operatorName || '', phone: d.operatorPhone || '', idNo: d.operatorIdNo || '' } : null), buildingFeatures: d.buildingFeatures || '', businessRegistration: d.businessRegistration || '', sourceRef: d.sourceRef || 'Nhập trên web', note: d.note || '' });
     S.add('ownerRateVersions', { contractId: oc.id, from: d.startDate, to: null, monthlyRent: Number(d.monthlyRent), reason: 'Giá theo HĐ gốc' });
+    addOwnerVersion(oc, { effectiveFrom: d.startDate, kind: 'initial', reason: 'Tạo hợp đồng đầu vào', sourceRef: oc.sourceRef });
     const n = X.buildOwnerSchedule(oc.id);
     _.audit('create', 'ownerContract', oc.id, `HĐ chủ nhà ${code} tòa ${b.code}: ${F.vnd(Number(d.monthlyRent))}/tháng, ${n} kỳ trả`); _.done(); return oc;
   };
@@ -158,13 +202,15 @@
     _.need('owners.manage');
     const oc = S.get('ownerContracts', id); if (!oc) throw new Error('Không tìm thấy hợp đồng chủ nhà');
     if (!TH.auth.inScope(oc.buildingId)) throw new Error('Hợp đồng ngoài phạm vi được giao');
+    const effectiveFrom = d.effectiveFrom || F.today(); _.guardEffective(effectiveFrom, 'thay đổi điều khoản hợp đồng chủ nhà');
     const before = {}; const patch = {};
     ['holdPriceTo', 'terms', 'buildingFeatures', 'businessRegistration', 'sourceRef', 'note'].forEach(k => { if (d[k] != null) { before[k] = oc[k] || ''; patch[k] = typeof d[k] === 'string' ? d[k].trim() : d[k]; } });
     patch.operator = { name: String(d.operatorName || '').trim(), idNo: String(d.operatorIdNo || '').trim(), phone: String(d.operatorPhone || '').trim() };
     before.operator = oc.operator || null;
     S.update('ownerContracts', id, patch);
+    const updated = S.get('ownerContracts', id); addOwnerVersion(updated, { effectiveFrom, kind: 'metadata', reason: d.reason || 'Cập nhật hồ sơ', sourceRef: patch.sourceRef || oc.sourceRef || 'web', documentIds: d.documentIds || [] });
     _.audit('update', 'ownerContract', id, `Cập nhật thông tin bổ sung HĐ ${oc.code}`, { before, after: patch, reason: d.reason || 'Cập nhật hồ sơ', sourceRef: patch.sourceRef || oc.sourceRef || 'web' });
-    _.done(); return S.get('ownerContracts', id);
+    _.done(); return updated;
   };
   X.ownerRentAt = (contractId, date) => { const v = S.where('ownerRateVersions', x => x.contractId === contractId && x.from <= date && (!x.to || date <= x.to))[0]; return v ? v.monthlyRent : 0; };
   /* Khách của chủ nhà đã đóng thẳng cho chủ (UI-03/UI-05, §3.12e, OQ-14): ghi "Chủ nhà đã thu" trên hóa đơn

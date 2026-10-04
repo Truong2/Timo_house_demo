@@ -16,6 +16,17 @@
 
   /* Trạng thái HĐ chủ nhà tại hôm nay (UI-02 cột "trạng thái HĐ chủ nhà") */
   const ocStatus = (oc) => !oc ? U.chip('Chưa có HĐ', 'amber') : oc.startDate > F.today() ? U.chip('Chưa hiệu lực', 'blue') : oc.endDate && oc.endDate < F.today() ? U.chip('Hết hạn', 'gray') : F.daysBetween(F.today(), oc.endDate) <= 90 ? U.chip('Sắp hết hạn', 'amber') : U.chip('Hiệu lực', 'green');
+  const legalChip = r => { const s = r.displayStatus || Q.legalRecordStatus(r); return U.chip(Q.LEGAL_STATUSES[s] || s, { valid: 'green', expired: 'red', pending: 'amber', missing: 'gray', not_required: 'blue' }[s] || 'gray', true); };
+  const legalForm = (b, rec) => {
+    const docs = Q.documentsScoped ? Q.documentsScoped().filter(d => d.buildingId === b.id && d.status === 'current') : [];
+    return K.formDrawer({ title: (rec ? 'Tạo phiên mới – ' : 'Thêm hồ sơ pháp lý – ') + b.code, wide: true, note: rec ? U.note('info', '', 'Phiên cũ được giữ để truy vết; thay đổi không ghi đè lịch sử.') : U.note('info', '', 'Không suy diễn trạng thái từ tên file. Chọn trạng thái và nguồn căn cứ rõ ràng.'), fields: [
+      { name: 'kind', label: 'Loại hồ sơ', type: 'select', req: true, options: Object.entries(Q.LEGAL_KINDS), value: rec?.kind || 'pccc' }, { name: 'status', label: 'Trạng thái', type: 'select', req: true, options: Object.entries(Q.LEGAL_STATUSES), value: rec?.status || 'pending' },
+      { name: 'number', label: 'Số hồ sơ / giấy phép', value: rec?.number || '' }, { name: 'issuedBy', label: 'Cơ quan cấp', value: rec?.issuedBy || '' },
+      { name: 'issuedAt', label: 'Ngày cấp', type: 'date', value: rec?.issuedAt || '' }, { name: 'expiresAt', label: 'Ngày hết hạn', type: 'date', value: rec?.expiresAt || '' },
+      { name: 'effectiveFrom', label: 'Phiên hiệu lực từ', type: 'date', req: true, value: F.today() }, { name: 'documentId', label: 'Tài liệu liên kết', type: 'select', options: docs.map(d => [d.id, d.name + ' · v' + (d.version || 1)]), value: (rec?.documentIds || [])[0] || '' },
+      { name: 'sourceRef', label: 'Nguồn / căn cứ', req: true, span: true, value: rec?.sourceRef || '' }, { name: 'note', label: 'Ghi chú', type: 'textarea', span: true, value: rec?.note || '' }, { name: 'reason', label: 'Lý do tạo phiên', type: 'textarea', span: true, req: !!rec }],
+      submit: rec ? 'Tạo phiên mới' : 'Lưu hồ sơ', onSubmit: d => { X.saveBuildingLegalRecord(Object.assign({}, d, { id: rec?.id, buildingId: b.id, documentIds: d.documentId ? [d.documentId] : [] })); U.toast('ok', rec ? 'Đã tạo phiên hồ sơ mới' : 'Đã lưu hồ sơ pháp lý'); } });
+  };
   const LEVELS = ['Mới', 'Trung bình', 'Cũ'];
   /* UI-02 sửa hồ sơ tòa */
   const editBuilding = (b) => K.formDrawer({ title: 'Sửa hồ sơ tòa ' + b.code, sub: 'Mã tòa không đổi; ngừng khai thác thay cho xóa', fields: [
@@ -111,7 +122,7 @@
     const realRooms = rooms.filter(r => r.exploitation !== 'meter_common'); const occ = realRooms.filter(r => Q.currentStay(r.id)).length, real = realRooms.length;
     const period = S.meta.period; const invs = Q.invoicesOf(period).filter(i => i.buildingId === b.id && i.lifecycle !== 'draft');
     const due = invs.reduce((s, i) => s + i.totalDue, 0), rem = invs.reduce((s, i) => s + Q.invState(i).remaining, 0);
-    const tabs = [{ key: 'tong-quan', label: 'Tổng quan' }, { key: 'phong', label: 'Phòng', count: rooms.length }, { key: 'chu-nha-hd', label: 'Chủ nhà & HĐ', perm: 'owners.view' }, { key: 'lich-tra', label: 'Lịch trả chủ nhà', perm: 'ownerPayments.view' },
+    const tabs = [{ key: 'tong-quan', label: 'Tổng quan' }, { key: 'phong', label: 'Phòng', count: rooms.length }, { key: 'chu-nha-hd', label: 'Chủ nhà & HĐ', perm: 'owners.view' }, { key: 'phap-ly', label: 'Pháp lý', count: Q.legalRecords(b.id).length, perm: 'owners.view' }, { key: 'lich-tra', label: 'Lịch trả chủ nhà', perm: 'ownerPayments.view' },
       { key: 'nhan-su', label: 'Nhân sự' }, { key: 'dich-vu-dau-vao', label: 'Dịch vụ đầu vào', perm: 'expenses.view' }, { key: 'tai-chinh', label: 'Tài chính', perm: 'debts.viewAmounts' },
       ...(TH.ms.on('3') ? [{ key: 'tai-san', label: 'Tài sản', perm: 'assets.view' }] : [])]; // Phase 3: liên kết UI-34 / UI-35 / UI-36
     const tab = K.pickTab(tabs, q.tab || 'tong-quan', 'tong-quan');
@@ -167,6 +178,20 @@
       U.bind(body, { addoc: addOc });
       body.innerHTML = oc ? `<div class="two-col"><div>${U.card({ title: 'Hợp đồng thuê đầu vào ' + esc(oc.code), icon: 'file-text', actions: `<a class="btn btn-ghost btn-sm" href="#/owners/${oc.id}">Mở chi tiết</a>`, body: U.kv([['Chủ nhà', esc(own.name)], ['Hiệu lực', F.date(oc.startDate) + ' → ' + F.date(oc.endDate)], ['Giá thuê hiện hành', F.vndd(X.ownerRentAt(oc.id, F.today()))], ['Cọc chủ nhà', F.vndd(oc.deposit)], ['Kỳ trả', oc.payCycleMonths + ' tháng/lần, hạn ngày ' + oc.payDay]]) })}</div>
         <div>${U.card({ title: 'Lịch sử giá', icon: 'history', body: vs.map(v => `<div class="mini-row"><span>${F.date(v.from)} → ${v.to ? F.date(v.to) : 'nay'}</span><b class="grow tr">${F.vndd(v.monthlyRent)}</b></div>`).join('') })}</div></div>` : U.empty({ title: 'Chưa có hợp đồng đầu vào', action: TH.auth.can('owners.manage') ? U.btn({ label: 'Tạo chủ nhà & HĐ đầu vào', icon: 'plus', cls: 'btn-primary', act: 'addoc' }) : '' });
+    }
+    if (tab === 'phap-ly') {
+      const current = Q.legalRecords(b.id), history = Q.legalRecordVersions(b.id);
+      body.innerHTML = U.note('info', 'Dữ liệu có cấu trúc', 'Các chuỗi ĐKKD/PCCC cũ vẫn hiển thị để đối chiếu nhưng không được tự chuyển thành số giấy phép hoặc ngày hiệu lực.')
+        + `<div class="grid grid-3 mt16 mb16">${Object.entries(Q.LEGAL_KINDS).map(([kind, label]) => { const r = current.find(x => x.kind === kind); return U.kpi({ label, value: r ? (Q.LEGAL_STATUSES[r.displayStatus] || r.displayStatus) : 'Chưa khai báo', cap: r ? [r.number, r.expiresAt ? 'hết hạn ' + F.date(r.expiresAt) : ''].filter(Boolean).join(' · ') : 'Dữ liệu cấu trúc chưa có', icon: kind === 'pccc' ? 'shield-check' : kind === 'red_book' ? 'file-text' : 'briefcase', tone: !r ? 'gray' : r.displayStatus === 'valid' ? 'green' : r.displayStatus === 'expired' ? 'red' : 'amber', valueCls: 'sm' }); }).join('')}</div>`
+        + K.tableCard('legal-current', 'Hồ sơ hiện hành', TH.auth.can('buildings.manage') ? U.btn({ label: 'Thêm hồ sơ', icon: 'plus', size: 'btn-sm', act: 'addlegal' }) : '', 'Tài liệu gốc dùng kho tài liệu hiện có.')
+        + `<div class="mt16">${U.card({ title: 'Lịch sử phiên', icon: 'history', body: history.map(r => `<div class="mini-row"><span>${U.chip('v' + r.version, 'gray')}</span><span class="grow"><b>${esc(Q.LEGAL_KINDS[r.kind])}</b><small>${F.date(r.effectiveFrom)} → ${r.effectiveTo ? F.date(r.effectiveTo) : 'nay'} · ${esc(r.sourceRef || '')} · ${esc(r.createdBy || 'Dữ liệu nguồn')}</small></span>${legalChip(r)}</div>`).join('') || U.empty({ title: 'Chưa có lịch sử hồ sơ' }) })}</div>`;
+      U.table(body.querySelector('#legal-current'), { rows: current, noPager: true, empty: U.empty({ icon: 'folder', title: 'Chưa có hồ sơ pháp lý có cấu trúc', text: 'Chuỗi lịch sử vẫn được giữ ở Tổng quan; admin có thể khai báo phiên đầu tiên tại đây.' }), cols: [
+        { key: 'kind', label: 'Loại', render: r => `<b>${esc(Q.LEGAL_KINDS[r.kind])}</b><br><small>v${r.version}</small>` }, { key: 'no', label: 'Số / cơ quan cấp', render: r => U.cell2(esc(r.number || 'Chưa có số'), esc(r.issuedBy || '–')) },
+        { key: 'date', label: 'Ngày cấp / hết hạn', render: r => U.cell2(F.date(r.issuedAt), r.expiresAt ? F.date(r.expiresAt) : 'Không khai báo hạn') }, { key: 'src', label: 'Nguồn', render: r => U.cell2(esc(r.sourceRef || '–'), esc(r.note || '')) },
+        { key: 'doc', label: 'Tài liệu', render: r => (r.documentIds || []).map(id => { const d = Q.documentsAll().find(x => x.id === id); return d ? U.actBtn({ icon: 'download', label: d.name, act: 'docdl', attrs: { 'data-id': id } }) : ''; }).join('') || '–' }, { key: 'status', label: 'Trạng thái', render: legalChip },
+        { key: 'act', label: '', render: r => TH.auth.can('buildings.manage') ? U.actBtn({ icon: 'history', label: 'Tạo phiên mới', act: 'verlegal', attrs: { 'data-id': r.id } }) : '' },
+      ] });
+      U.bind(body, { addlegal: () => legalForm(b), verlegal: el => legalForm(b, S.get('buildingLegalRecords', el.dataset.id)), docdl: el => TH.pages.docDownload(el.dataset.id) });
     }
     if (tab === 'lich-tra') {
       const ops = S.where('ownerPayments', o => o.buildingId === b.id).sort((a, c) => a.dueDate.localeCompare(c.dueDate));

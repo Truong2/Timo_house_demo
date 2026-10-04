@@ -218,7 +218,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 .toast{background:#0F172A;color:#fff;padding:11px 14px;border-radius:10px;font-size:13px;display:flex;gap:10px;align-items:flex-start;box-shadow:var(--shadow-lg);animation:slideup .2s}
 .toast .i{font-size:18px;flex:none;margin-top:1px}
 .toast.ok .i{color:#4ADE80}.toast.err .i{color:#F87171}.toast.warn .i{color:#FBBF24}.toast.info .i{color:#60A5FA}
-.toast b{display:block}.toast small{color:rgba(255,255,255,.7);display:block}
+.toast b{display:block}.toast small{color:#CBD5E1;display:block}
 @keyframes slideup{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
 /* Dropzone */
 .dropzone{border:1.5px dashed var(--border-2);border-radius:10px;padding:18px;text-align:center;background:#F8FAFC;color:var(--muted);font-size:12.5px;cursor:pointer}

@@ -3,6 +3,39 @@
   const S = TH.store, F = TH.f, X = TH.actions, _ = X._, Q = TH.q, P = TH.calc.payroll, D = TH.calc.dates;
   const OPS = ['NVVH', 'TNVH', 'TPVH'];
   const FUND_OF = { 'QL TỔNG': 'F_GM', TPVH: 'F_HEAD', TNVH: 'F_LEAD', 'THỊ TRƯỜNG': 'F_SOURCE', NVKD: 'F_SALES', SALE: 'F_SALES', TNKD: 'F_SALES', 'KẾ TOÁN': 'F_ACCT', 'KỸ THUẬT': 'F_REPAIR' };
+  const POLICY_DEPARTMENTS = { operations: 'Vận hành', sales: 'Kinh doanh', technical: 'Kỹ thuật', market: 'Thị trường', finance: 'Tài chính – Kế toán' };
+  const POLICY_MODES = { operations_hs: 'HS vận hành theo tòa', workday: 'Lương theo ngày công', repair: 'Lương kỹ thuật + tiền công', fixed: 'Lương cơ bản + phụ cấp', manual: 'Nhập tay có căn cứ' };
+  const policyDepartment = title => OPS.includes(title) ? 'operations' : ['SALE', 'NVKD', 'TNKD', 'TPKD'].includes(title) ? 'sales' : title === 'KỸ THUẬT' ? 'technical' : title === 'THỊ TRƯỜNG' ? 'market' : title === 'KẾ TOÁN' ? 'finance' : null;
+  Q.PAYROLL_DEPARTMENTS = POLICY_DEPARTMENTS; Q.PAYROLL_POLICY_MODES = POLICY_MODES;
+  Q.payrollDepartmentKey = employee => policyDepartment(typeof employee === 'string' ? (Q.emp(employee) || {}).title : (employee || {}).title);
+  Q.salaryPolicies = (at, all = false) => {
+    const day = at || F.today(), rows = S.all('salaryPolicies').slice();
+    return (all ? rows : rows.filter(p => (!p.effectiveFrom || p.effectiveFrom <= day) && (!p.effectiveTo || day <= p.effectiveTo))).sort((a, b) => String(a.department).localeCompare(String(b.department)) || String(b.effectiveFrom).localeCompare(String(a.effectiveFrom)));
+  };
+  Q.salaryPolicyFor = (employee, at) => {
+    const e = typeof employee === 'string' ? Q.emp(employee) : employee, department = Q.payrollDepartmentKey(e); if (!e || !department) return null;
+    return Q.salaryPolicies(at).filter(p => p.department === department && (!p.title || p.title === e.title)).sort((a, b) => Number(!!b.title) - Number(!!a.title) || String(b.effectiveFrom).localeCompare(String(a.effectiveFrom)))[0] || null;
+  };
+  X.saveSalaryPolicy = d => {
+    _.need('settings.manage');
+    const errs = {}, from = d.effectiveFrom || F.today(), title = d.title || null;
+    if (!POLICY_DEPARTMENTS[d.department]) errs.department = 'Chọn phòng ban';
+    if (!POLICY_MODES[d.mode]) errs.mode = 'Chọn cách tính';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from)) errs.effectiveFrom = 'Nhập ngày hiệu lực';
+    if (!/^[-A-Za-z0-9_.]+$/.test(String(d.formulaVersion || ''))) errs.formulaVersion = 'Nhập phiên bản công thức, không dùng khoảng trắng';
+    if (!['proposed', 'confirmed'].includes(d.status)) errs.status = 'Chọn trạng thái nghiệp vụ';
+    if (!String(d.sourceRef || '').trim()) errs.sourceRef = 'Nhập nguồn/căn cứ';
+    if (Object.keys(errs).length) { const e = new Error('Chính sách lương chưa hợp lệ'); e.fields = errs; throw e; }
+    _.guardEffective(from, 'chính sách lương');
+    const current = S.where('salaryPolicies', p => p.department === d.department && (p.title || null) === title && !p.effectiveTo).sort((a, b) => String(b.effectiveFrom).localeCompare(String(a.effectiveFrom)))[0];
+    if (current && from <= current.effectiveFrom) throw new Error('Ngày hiệu lực phiên mới phải sau phiên hiện tại');
+    if (current) S.update('salaryPolicies', current.id, { effectiveTo: D.addDays(from, -1) });
+    const version = S.where('salaryPolicies', p => p.department === d.department && (p.title || null) === title).length + 1;
+    const rec = S.add('salaryPolicies', { department: d.department, title, label: POLICY_DEPARTMENTS[d.department], mode: d.mode, effectiveFrom: from, effectiveTo: null, formulaVersion: String(d.formulaVersion).trim(), requiredInputs: Array.isArray(d.requiredInputs) ? d.requiredInputs : String(d.requiredInputs || '').split(',').map(x => x.trim()).filter(Boolean),
+      status: d.status, sourceRef: String(d.sourceRef).trim(), approvedBy: d.status === 'confirmed' ? _.who() : null, approvedAt: d.status === 'confirmed' ? F.nowISO() : null, version, reason: String(d.reason || '').trim(), createdBy: _.who(), createdAt: F.nowISO() });
+    _.audit('version', 'salaryPolicy', rec.id, `${POLICY_DEPARTMENTS[rec.department]} · ${rec.formulaVersion} · ${rec.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận'}`, { before: current || null, after: rec, reason: rec.reason || 'Tạo phiên chính sách', sourceRef: rec.sourceRef });
+    _.done(); return rec;
+  };
   const payRooms = (bid, date) => (Q.roomsByBuilding()[bid] || []).filter(r => Q.rentable(r, date));
 
   /* Đầu vào tòa kỳ live từ dữ liệu web (hóa đơn, phiếu thu theo ngày thực nhận) */
@@ -84,11 +117,11 @@
   X.computePayroll = (period) => {
     _.need('payroll.manage');
     _.guardPeriod(period, 'tính lại bảng lương');
-    const { lines, parallel, buildingCosts } = X.previewPayroll(period);
+    const { lines, parallel, buildingCosts, salaryPolicySnapshot } = X.previewPayroll(period);
     const prev = S.where('payrollRuns', r => r.period === period);
     if (prev.some(r => r.status === 'closed')) throw new Error('Bảng lương kỳ đã chốt – mở lại bằng điều chỉnh');
     prev.forEach(r => S.remove('payrollRuns', r.id));
-    const run = S.add('payrollRuns', { id: 'pr_' + period + '_' + (prev.length + 1), code: 'BL-' + period.replace('-', '') + '-v' + (prev.length + 1), period, status: 'draft', parallel, lines, buildingCosts, manualSig: X.manualSig(period), approvals: {}, computedAt: F.nowISO(), computedBy: _.who(),
+    const run = S.add('payrollRuns', { id: 'pr_' + period + '_' + (prev.length + 1), code: 'BL-' + period.replace('-', '') + '-v' + (prev.length + 1), period, status: 'draft', parallel, lines, buildingCosts, salaryPolicySnapshot, manualSig: X.manualSig(period), approvals: {}, computedAt: F.nowISO(), computedBy: _.who(),
       totalX: lines.reduce((s, l) => s + l.X, 0), totalW: lines.reduce((s, l) => s + l.W, 0) });
     _.audit('compute', 'payroll', run.id, `Tính thử bảng lương ${F.periodShort(period)}: ${lines.length} nhân viên`); _.done(); return run;
   };
@@ -103,6 +136,7 @@
     const msCfg = TH.calc.params.milestones(Q.param('milestones', pEnd));
     const ledger = ledgerCosts(period);
     S.all('employees').filter(e => e.status === 'active' || (e.leftDate && e.leftDate >= D.periodStart(period))).forEach(e => {
+      const salaryPolicy = Q.salaryPolicyFor(e, pEnd);
       const over1y = P.over1y(e.hireDate, pEnd);
       let blds = [];
       if (OPS.includes(e.title)) {
@@ -155,9 +189,11 @@
       const lunch = rp && rp.lunch != null ? rp.lunch : (al.lunch || 0);
       const Xn = W + base + lunch + (al.fuel || 0) + lead + (al.support || 0) + labor + manualPay;
       const flags = blds.filter(b => b.flag && b.flag !== 'Lương cố định').map(b => ({ buildingId: b.buildingId, flag: b.flag, HS: b.HS }));
-      lines.push({ employeeId: e.id, title: e.title, over1y, buildings: blds, W, base, workdays, lunch, fuel: al.fuel || 0, lead, leadNote, support: al.support || 0, labor, laborByB: laborRows.map(x => ({ buildingId: x.buildingId, amount: x.amount })), manualPay, divisor, X: Xn, flags, excelNet: e.excel ? e.excel.net : null });
+      lines.push({ employeeId: e.id, title: e.title, department: Q.payrollDepartmentKey(e), salaryPolicy: salaryPolicy ? { id: salaryPolicy.id, department: salaryPolicy.department, title: salaryPolicy.title || null, mode: salaryPolicy.mode, formulaVersion: salaryPolicy.formulaVersion, status: salaryPolicy.status, sourceRef: salaryPolicy.sourceRef, effectiveFrom: salaryPolicy.effectiveFrom } : null,
+        over1y, buildings: blds, W, base, workdays, lunch, fuel: al.fuel || 0, lead, leadNote, support: al.support || 0, labor, laborByB: laborRows.map(x => ({ buildingId: x.buildingId, amount: x.amount })), manualPay, divisor, X: Xn, flags, excelNet: e.excel ? e.excel.net : null });
     });
-    return { lines, parallel, buildingCosts: X.manualBuildingCosts(period).concat(ledger.filter(c => c.bearer !== 'owner')) };
+    const salaryPolicySnapshot = [...new Map(lines.filter(l => l.salaryPolicy).map(l => [l.salaryPolicy.id, l.salaryPolicy])).values()].map(p => JSON.parse(JSON.stringify(p)));
+    return { lines, parallel, salaryPolicySnapshot, buildingCosts: X.manualBuildingCosts(period).concat(ledger.filter(c => c.bearer !== 'owner')) };
   };
   X.approvePayFlag = (runId, key, note) => {
     _.need('payroll.manage');
@@ -173,6 +209,10 @@
     const run = S.get('payrollRuns', runId);
     _.guardPeriod(run.period, 'chốt bảng lương');
     if ((run.manualSig || '') !== X.manualSig(run.period)) throw new Error('Dữ liệu nhập tay đã đổi sau lần tính – bấm "Tính lại" trước khi chốt');
+    if (!run.parallel) {
+      const waiting = run.lines.filter(l => l.department && (!l.salaryPolicy || l.salaryPolicy.status !== 'confirmed'));
+      if (waiting.length) throw new Error(`Còn ${waiting.length} nhân viên chưa có chính sách lương đã xác nhận`);
+    }
     const missingBelow70 = run.lines.flatMap(l => l.buildings.filter(b => b.HS != null && b.HS < 70 && !b.manualApplied).map(b => l.employeeId + ':' + b.buildingId));
     if (missingBelow70.length) throw new Error(`Còn ${missingBelow70.length} ca HS < 70 chưa nhập lương/phòng và lý do`);
     const pending = run.lines.flatMap(l => l.flags.map(f => l.employeeId + ':' + f.buildingId)).filter(k => !run.approvals[k]);

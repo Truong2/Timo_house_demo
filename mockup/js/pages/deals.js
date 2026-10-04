@@ -9,35 +9,28 @@
   const firstChip = (d) => { const c = Q.dealCollect(d); return c.first === 'none' ? '' : c.first === 'full' ? U.chip('Tháng đầu: đủ', 'green') : c.first === 'partial' ? U.chip('Tháng đầu: thiếu', 'amber') : U.chip('Tháng đầu: chưa thu', 'gray'); };
 
   TH.router.handle('/sales/deals', (root, p, q) => {
-    let rows = Q.salesScoped(S.all('deals')); const all = rows;
-    const period = q.period || '';
-    if (period) rows = rows.filter(d => F.period(d.closeDate) === period);
-    if (q.status) rows = rows.filter(d => d.status === q.status);
-    if (q.building) rows = rows.filter(d => d.buildingId === q.building);
-    if (q.sale) rows = rows.filter(d => d.saleIds.includes(q.sale));
-    if (q.q) rows = rows.filter(d => K.match(q.q, d.code, Q.roomCode(d.roomId), (Q.customer(d.customerId) || {}).name, d.partner));
-    rows.sort((a, b) => b.closeDate.localeCompare(a.closeDate));
-    const live = rows.filter(d => !['cancelled', 'forfeited'].includes(d.status));
-    const cmBy = F.by(S.all('commissions'), 'dealId');
+    const all = Q.dealRows(), rows = Q.dealRows(q);
+    const live = rows.filter(x => !['cancelled', 'forfeited'].includes(x.deal.status));
+    const paidLabel = x => x.paidState === 'full' ? U.chip('Đã đủ', 'green') : x.paidState === 'partial' ? U.chip('Còn thiếu', 'amber') : U.chip('Chưa thu', 'gray');
     root.innerHTML = U.pageHead({ title: 'Giao dịch chốt', sub: 'Ngày chốt, ngày vào ở, ngày tính tiền là ba trường riêng · hủy / đổi phòng / bỏ cọc ghi sự kiện riêng để doanh số, cọc, hoa hồng không bị đếm hai lần', acts: [U.btn({ label: 'Xuất', icon: 'download', act: 'exp' })] })
       + TH.salesNav('deals')
-      + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Chờ nhận', value: rows.filter(d => d.status === 'closed').length, cap: rows.filter(d => d.status === 'closed' && Q.dealDeposit(d).state !== 'full').length + ' chưa thu đủ cọc', icon: 'clock', tone: 'blue' })}
-        ${U.kpi({ label: 'Đã nhận', value: rows.filter(d => d.status === 'received').length, icon: 'log-in', tone: 'green' })}${U.kpi({ label: 'Hủy / bỏ cọc', value: rows.filter(d => ['cancelled', 'forfeited'].includes(d.status)).length, icon: 'x-circle', tone: 'red' })}
-        ${U.kpi({ label: 'Doanh số (Σ giá chốt)', value: F.vnd(live.reduce((t, d) => t + d.price, 0)), cap: 'không gồm deal hủy / bỏ cọc (OQ-25)', icon: 'trending-up', tone: 'purple' })}</div>`
-      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã, phòng, khách, đối tác' }, { name: 'period', label: 'Tháng chốt', options: [...new Set(all.map(d => F.period(d.closeDate)))].sort().reverse().map(x => [x, F.periodLabel(x)]) },
+      + `<div class="grid grid-4 mb16">${U.kpi({ label: 'Chờ nhận', value: rows.filter(x => x.deal.status === 'closed').length, cap: rows.filter(x => x.deal.status === 'closed' && x.depositRemaining > 0).length + ' chưa thu đủ cọc', icon: 'clock', tone: 'blue' })}
+        ${U.kpi({ label: 'Đã nhận', value: rows.filter(x => x.deal.status === 'received').length, icon: 'log-in', tone: 'green' })}${U.kpi({ label: 'Hủy / bỏ cọc', value: rows.filter(x => ['cancelled', 'forfeited'].includes(x.deal.status)).length, icon: 'x-circle', tone: 'red' })}
+        ${U.kpi({ label: 'Doanh số (Σ giá chốt)', value: F.vnd(live.reduce((t, x) => t + x.deal.price, 0)), cap: 'không gồm deal hủy / bỏ cọc (OQ-25)', icon: 'trending-up', tone: 'purple' })}</div>`
+      + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã, phòng, khách, SĐT, đối tác' }, { name: 'period', label: 'Tháng chốt', options: [...new Set(all.map(x => F.period(x.deal.closeDate)))].sort().reverse().map(x => [x, F.periodLabel(x)]) },
         { name: 'status', label: 'Trạng thái', options: Object.entries(Q.DEAL_ST).map(([k, v]) => [k, v[0]]) }, { name: 'building', label: 'Tòa', options: K.buildingOpts(false) }, { name: 'sale', label: 'Sale', options: Q.salesStaff().filter(e => A.inSales([e.id])).map(e => [e.id, e.name]) }], q)
       + '<div class="mt16">' + K.tableCard('t', rows.length + ' giao dịch') + '</div>';
     K.bindFilters(root);
-    U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: d => '#/sales/deals/' + d.id, cols: [
-      { key: 'd', label: 'Ngày chốt', sortable: true, sortVal: d => d.closeDate, render: d => U.cell2(F.date(d.closeDate), esc(d.code)) }, { key: 'r', label: 'Tòa / phòng', render: d => K.room(d.roomId) },
-      { key: 'm', label: 'Quản lý', render: d => esc((Q.managerOf(d.buildingId) || {}).name || '–') }, { key: 'k', label: 'Khách', render: d => { const c = Q.customer(d.customerId) || {}; return U.cell2(esc(c.name || ''), phone(c.phone)); } },
-      { key: 'dep', label: 'Cọc / thu', num: true, render: d => U.cell2(F.vnd(d.deposit), depChip(d) + ' ' + firstChip(d)) }, { key: 'p', label: 'Giá chốt', num: true, sortable: true, sortVal: d => d.price, render: d => F.vnd(d.price) },
-      { key: 'b', label: 'Tính tiền từ', render: d => U.cell2(F.date(d.billingStart), d.term + ' tháng') }, { key: 's', label: 'Nguồn', render: d => U.cell2(esc(d.source), esc(d.partner || '')) },
-      { key: 'sl', label: 'Sale', render: d => esc(Q.saleName(d.saleIds)) }, { key: 'kd', label: 'Loại', render: d => esc(Q.dealKind(d)) }, { key: 'nt', label: 'Ghi chú', render: d => `<span class="small muted">${esc(d.note || '')}</span>` },
-      ...(A.can('commission.view') ? [{ key: 'cm', label: 'Hoa hồng', render: d => { const cs = (cmBy[d.id] || []).filter(c => c.status !== 'void'); return cs.length ? U.link('#/sales/commission?deal=' + d.id, cs.length + ' dòng · ' + F.vnd(cs.reduce((t, c) => t + (c.approvedAmount || c.amount), 0))) : '–'; } }] : []),
-      { key: 'st', label: 'Trạng thái', render: stChip }] });
-    U.bind(root, { exp: () => K.csv('giao-dich-chot.csv', ['Mã', 'Ngày chốt', 'Phòng', 'Khách', 'Cọc', 'Giá chốt', 'Tính tiền từ', 'Thời hạn', 'Nguồn', 'Đối tác', 'Sale', 'Loại', 'Trạng thái'],
-      rows.map(d => [d.code, d.closeDate, Q.roomCode(d.roomId), (Q.customer(d.customerId) || {}).name, d.deposit, d.price, d.billingStart, d.term, d.source, d.partner || '', Q.saleName(d.saleIds), Q.dealKind(d), Q.DEAL_ST[d.status][0]])) });
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: x => '#/sales/deals/' + x.deal.id, cols: [
+      { key: 'd', label: 'Ngày giao dịch', sortable: true, sortVal: x => x.deal.closeDate, render: x => U.cell2(F.date(x.deal.closeDate), esc(x.deal.code)) }, { key: 'r', label: 'Tòa / phòng', render: x => K.room(x.deal.roomId) },
+      { key: 'm', label: 'Quản lý', render: x => U.cell2(esc(x.manager?.name || '–'), 'tại ngày chốt') }, { key: 'k', label: 'Khách / SĐT', render: x => U.cell2(esc(x.customer.name || ''), esc(x.phone || '')) },
+      { key: 'dep', label: 'Cọc / thanh toán', num: true, render: x => U.cell2(`${F.vnd(x.depositHeld)} / ${F.vnd(x.depositRequired)}`, `${paidLabel(x)}${x.depositRemaining ? ' · thiếu ' + F.vnd(x.depositRemaining) : ''}`) }, { key: 'p', label: 'Giá chốt', num: true, sortable: true, sortVal: x => x.deal.price, render: x => F.vnd(x.deal.price) },
+      { key: 'b', label: 'Tính tiền / thời hạn', render: x => U.cell2(F.date(x.deal.billingStart), x.deal.term + ' tháng') }, { key: 's', label: 'Nguồn / công cụ', render: x => U.cell2(esc(x.deal.source), esc(x.deal.partner || x.deal.group || '')) },
+      { key: 'sl', label: 'Sale / cách chia', render: x => U.cell2(esc(x.sales), x.saleIds.length > 1 ? `Chia ${x.saleIds.length} sale` : 'Một sale') }, { key: 'kd', label: 'Nhận phòng', render: x => esc(x.dealKind) }, { key: 'nt', label: 'Ghi chú', render: x => `<span class="small muted">${esc(x.deal.note || '')}</span>` },
+      ...(A.can('commission.view') ? [{ key: 'cm', label: 'Hoa hồng', render: x => x.commissions.length ? U.link('#/sales/commission?deal=' + x.deal.id, x.commissions.length + ' dòng · ' + F.vnd(x.commissionAmount)) + `<br><small>${esc(x.commissionStatus)}</small>` : '–' }] : []),
+      { key: 'st', label: 'Trạng thái', render: x => stChip(x.deal) }] });
+    U.bind(root, { exp: () => K.csv('giao-dich-chot.csv', ['Mã', 'Ngày giao dịch', 'Mã tòa', 'Mã phòng', 'Quản lý tại ngày chốt', 'Khách', 'SĐT', 'Cọc phải thu', 'Cọc đã thu', 'Cọc còn thiếu', 'Trạng thái thanh toán', 'Giá chốt', 'Ngày tính tiền', 'Thời hạn HĐ (tháng)', 'Nguồn', 'Đối tác/công cụ', 'Sale', 'Cách chia', 'Hoa hồng', 'Trạng thái hoa hồng', 'Loại nhận phòng', 'Trạng thái giao dịch', 'Ghi chú'],
+      rows.map(x => [x.deal.code, x.deal.closeDate, x.building.code, x.room.code, x.manager?.name || '', x.customer.name || '', x.phone, x.depositRequired, x.depositHeld, x.depositRemaining, x.paidState, x.deal.price, x.deal.billingStart, x.deal.term, x.deal.source, x.deal.partner || x.deal.group || '', x.sales, x.saleIds.length > 1 ? `Chia ${x.saleIds.length} sale` : 'Một sale', A.can('commission.view') ? x.commissionAmount : '', A.can('commission.view') ? x.commissionStatus : '', x.dealKind, Q.DEAL_ST[x.deal.status][0], x.deal.note || ''])) });
   });
 
   TH.router.handle('/sales/deals/:id', (root, p) => {
@@ -78,7 +71,10 @@
   });
   const commissionBox = (d) => {
     const cs = Q.commissionsOf(d.id); const el = Q.dealEligibility(d);
+    const mode = Q.param('commissionRecognitionMode', el.date || F.today()), eligibleCopy = mode === 'eligibleAt'
+      ? U.note('warn', 'Đủ điều kiện chi · phương án OQ-13', 'Từ ' + F.date(el.date) + ' – nếu chọn phương án đề xuất, kỳ đủ điều kiện là ' + F.periodShort(F.period(el.date)) + '.')
+      : U.note('ok', 'Đủ điều kiện chi', 'Từ ' + F.date(el.date) + ' – chi phí chỉ ghi theo tháng thực chi của từng lần chi.');
     return (cs.length ? `<table class="tbl compact"><thead><tr><th>Người nhận</th><th class="num">H</th><th class="num">Thành tiền</th><th>Trạng thái</th></tr></thead><tbody>${cs.map(c => `<tr><td>${esc(c.recipient.name)}</td><td class="num">${(c.H * 100).toFixed(2).replace('.', ',')}%</td><td class="num">${F.vnd(c.approvedAmount || c.amount)}</td><td>${U.chip(Q.CM_ST[c.status][0], Q.CM_ST[c.status][1])}</td></tr>`).join('')}</tbody></table>` : U.empty({ title: 'Chưa có dòng hoa hồng' }))
-      + (el.ok ? U.note('ok', 'Đủ điều kiện chi', 'Từ ' + F.date(el.date) + ' – ghi nhận kỳ ' + F.periodShort(F.period(el.date)) + ' (OQ-13)') : U.note('warn', 'Chưa đủ điều kiện chi (CH-19)', el.missing.join(' · ')));
+      + (el.ok ? eligibleCopy : U.note('warn', 'Chưa đủ điều kiện chi (CH-19)', el.missing.join(' · ')));
   };
 })(window.TH);

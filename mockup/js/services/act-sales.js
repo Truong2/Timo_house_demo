@@ -181,6 +181,23 @@
     const st = inv ? Q.invState(inv) : null;
     return { deposit: dep.state, first: !inv ? 'none' : st.remaining <= 0.5 ? 'full' : st.paid > 0 ? 'partial' : 'unpaid', invoiceId: inv ? inv.id : null };
   };
+  /* Một model field-level dùng chung cho KPI, bảng và export giao dịch chốt. */
+  Q.dealRows = (filters = {}) => {
+    const q = String(filters.q || '').trim().toLowerCase();
+    return Q.salesScoped(S.all('deals')).map(deal => {
+      const customer = Q.customer(deal.customerId) || {}, room = Q.room(deal.roomId) || {}, building = Q.building(deal.buildingId) || {}, lead = Q.lead(deal.leadId) || {};
+      const manager = Q.managerOf(deal.buildingId, deal.closeDate), deposit = Q.dealDeposit(deal), collect = Q.dealCollect(deal);
+      const commissions = S.where('commissions', c => c.dealId === deal.id && c.status !== 'void');
+      const paidState = collect.deposit === 'full' && collect.first === 'full' ? 'full' : deposit.held > 0 || ['partial', 'full'].includes(collect.first) ? 'partial' : 'unpaid';
+      return { deal, customer, room, building, lead, manager, phone: A.can('customers.phone') ? customer.phone || '' : F.mask(customer.phone || '', 3), depositRequired: Number(deal.deposit) || 0, depositHeld: deposit.held, depositRemaining: Math.max(0, (Number(deal.deposit) || 0) - deposit.held), collect, paidState,
+        sales: Q.saleName(deal.saleIds), saleIds: deal.saleIds || [], commissionAmount: commissions.reduce((t, c) => t + Number(c.approvedAmount || c.amount || 0), 0), commissionStatus: [...new Set(commissions.map(c => c.status))].join(', ') || 'none', commissions, dealKind: Q.dealKind(deal) };
+    }).filter(x => (!filters.period || F.period(x.deal.closeDate) === filters.period)
+      && (!filters.status || x.deal.status === filters.status)
+      && (!filters.building || x.deal.buildingId === filters.building)
+      && (!filters.sale || x.saleIds.includes(filters.sale))
+      && (!q || [x.deal.code, x.room.code, x.building.code, x.customer.name, x.phone, x.deal.partner, x.deal.source, x.deal.note].some(v => String(v || '').toLowerCase().includes(q))))
+      .sort((a, b) => String(b.deal.closeDate).localeCompare(String(a.deal.closeDate)));
+  };
   /* Chỉ tiêu doanh số theo từng sale, có ngày hiệu lực (UI-22 nhân sự sale); không đặt riêng → tham số chung salesTarget */
   Q.salesTarget = (employeeId, date) => {
     const v = S.where('salesTargets', t => t.employeeId === employeeId && t.from <= date).sort((a, b) => b.from.localeCompare(a.from))[0];

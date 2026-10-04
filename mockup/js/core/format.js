@@ -64,7 +64,8 @@ window.TH = window.TH || {};
   };
   F.download = (name, content, type = 'text/csv;charset=utf-8') => {
     const blob = new Blob(['﻿' + content], { type }); const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    a.href = URL.createObjectURL(blob); a.download = name; a.hidden = true; a.tabIndex = -1; a.setAttribute('aria-label', 'Tải ' + name);
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   };
   F.csv = (rows, headers) => {
     const q = v => { v = v == null ? '' : String(v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };

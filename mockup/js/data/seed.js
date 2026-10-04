@@ -55,6 +55,12 @@
       if (rent) ownerRateVersions.push({ id: 'orv_' + b.code + '_1', contractId: 'oc_' + b.code, from: start, to: null, monthlyRent: rent, reason: demoRent ? 'Giá HĐ demo (tòa mới nhận, chưa có trong báo cáo T8)' : 'Giá theo HĐ (tiền thuê 1 tháng – báo cáo T8/2026)' });
     });
     col('owners', owners); col('ownerContracts', ownerContracts); col('ownerRateVersions', ownerRateVersions);
+    /* Phiên hợp đồng đầu vào bất biến. Giá thuê vẫn có ownerRateVersions riêng; phiên này
+       đóng băng điều khoản/metadata để lần sửa sau không làm mất dấu hồ sơ nguồn. */
+    col('ownerContractVersions', ownerContracts.map(oc => ({ id: 'ocv_' + oc.code + '_1', contractId: oc.id, version: 1, effectiveFrom: oc.startDate, kind: 'initial',
+      snapshot: { holdPriceTo: oc.holdPriceTo, terms: oc.terms, operator: oc.operator, buildingFeatures: oc.buildingFeatures, businessRegistration: oc.businessRegistration, sourceRef: oc.sourceRef, note: oc.note, deposit: oc.deposit },
+      reason: 'Khởi tạo từ dữ liệu nguồn', sourceRef: oc.sourceRef, createdBy: 'Import Excel', createdAt: oc.startDate + 'T00:00:00' })));
+    col('buildingLegalRecords', []);
     const ownerPayments = [];
     ownerContracts.forEach(oc => {
       const rv = ownerRateVersions.find(v => v.contractId === oc.id); if (!rv) return;
@@ -234,6 +240,15 @@
     col('expenses', []);
     col('assets', []); // Phase 3: thay collection equipment – tài sản chủ nhà + công ty (UI-34)
     col('allocationRuns', []); col('payrollRuns', []); col('payrollDisbursements', []); col('adjustments', []); col('reportSnapshots', []); col('reportSnapshotVersions', []); col('payrollManual', []);
+    /* Chính sách lương hiện hành được mô hình hóa thành phiên có ngày hiệu lực. Đây là
+       mapping của engine đang chạy, không bổ sung công thức mới ngoài baseline đã nghiệm thu. */
+    col('salaryPolicies', [
+      { id: 'sp_ops_v1', department: 'operations', title: null, label: 'Vận hành', mode: 'operations_hs', effectiveFrom: '1900-01-01', effectiveTo: null, formulaVersion: 'OPS-HS-v1', requiredInputs: ['invoices', 'payments', 'assignments', 'hireDate'], status: 'confirmed', sourceRef: 'SRC-03/SRC-05 · HS và bảng bậc lương vận hành', approvedBy: 'Baseline đã nghiệm thu', approvedAt: '2026-09-01T00:00:00' },
+      { id: 'sp_sales_v1', department: 'sales', title: null, label: 'Kinh doanh', mode: 'workday', effectiveFrom: '1900-01-01', effectiveTo: null, formulaVersion: 'SALES-WORKDAY-v1', requiredInputs: ['baseSalary', 'workdays', 'allowances'], status: 'confirmed', sourceRef: 'Bảng lương hiện hành · lương cứng × ngày công / số ngày chuẩn', approvedBy: 'Baseline đã nghiệm thu', approvedAt: '2026-09-01T00:00:00' },
+      { id: 'sp_tech_v1', department: 'technical', title: null, label: 'Kỹ thuật', mode: 'repair', effectiveFrom: '1900-01-01', effectiveTo: null, formulaVersion: 'TECH-REPAIR-v1', requiredInputs: ['repairPay', 'repairLabor', 'allowances'], status: 'confirmed', sourceRef: 'SRC-16/OQ-22 · lương cố định và tiền công sửa chữa', approvedBy: 'Baseline đã nghiệm thu', approvedAt: '2026-09-01T00:00:00' },
+      { id: 'sp_market_v1', department: 'market', title: null, label: 'Thị trường', mode: 'fixed', effectiveFrom: '1900-01-01', effectiveTo: null, formulaVersion: 'MARKET-FIXED-v1', requiredInputs: ['baseSalary', 'allowances'], status: 'confirmed', sourceRef: 'Hồ sơ lương nhân viên hiện hành · lương cơ bản và phụ cấp', approvedBy: 'Baseline đã nghiệm thu', approvedAt: '2026-09-01T00:00:00' },
+      { id: 'sp_finance_v1', department: 'finance', title: null, label: 'Tài chính – Kế toán', mode: 'fixed', effectiveFrom: '1900-01-01', effectiveTo: null, formulaVersion: 'FINANCE-FIXED-v1', requiredInputs: ['baseSalary', 'allowances'], status: 'confirmed', sourceRef: 'Hồ sơ lương nhân viên hiện hành · lương cơ bản và phụ cấp', approvedBy: 'Baseline đã nghiệm thu', approvedAt: '2026-09-01T00:00:00' },
+    ]);
     col('zaloTemplates', CAT.zaloTemplates.map(t => Object.assign({}, t)));
     col('zaloRules', CAT.zaloRules.map(t => Object.assign({}, t)));
     col('zaloBatches', []); col('zaloMessages', []); col('zaloInbox', []); col('smsMessages', []);
