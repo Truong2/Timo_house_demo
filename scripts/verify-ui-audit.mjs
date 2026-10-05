@@ -1,5 +1,5 @@
 /* Browser acceptance v5: output readback, 8 invoice PDFs, refund fixture, axe, keyboard and responsive evidence. */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

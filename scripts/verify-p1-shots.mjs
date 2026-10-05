@@ -1,6 +1,6 @@
 /* Ảnh minh chứng các mục P1 (nhập tay lương, điện chung, bấm số ra giao dịch gốc, báo cáo theo tòa, gắn cờ tháng lẻ, lượt thuê chờ nhận, import NCC)
    → output/verify-p1/shots/. node scripts/verify-p1-shots.mjs – tự bật server tĩnh ở cổng ngẫu nhiên. */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

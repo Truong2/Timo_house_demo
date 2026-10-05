@@ -1,7 +1,7 @@
 /* Kiểm chứng 10 lỗi P0 của đợt audit Phase 1 trên trình duyệt thật (playwright-core + Chrome cài sẵn).
    node scripts/verify-p0.mjs [--label=after] → in bảng PASS/FAIL, ghi output/verify-p0/<label>.{txt,json}.
    Mỗi kịch bản chạy trên dữ liệu seed sạch (xóa localStorage, nạp lại trang). PASS = lỗi không còn tái hiện. */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

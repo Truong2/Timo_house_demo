@@ -59,5 +59,17 @@
     const lim = period + '-' + String(d).padStart(2, '0');
     return { day: d, date: lim, amount: payments.filter(p => p.status !== 'reversed' && p.receivedAt <= lim).reduce((s, p) => s + p.amount, 0) };
   });
+  /* Sheet "cập nhật thu tiền": còn lại D = B − C − (F − G); tỷ lệ thu E = C/B; phá HĐ thu được H = G/F; tỷ trọng phá HĐ I = F/B (theo %).
+     Tỷ lệ không xác định (mẫu số 0) trả null thay cho #DIV/0! của Excel. */
+  P.collectionRow = ({ due = 0, collected = 0, breachDue = 0, breachCollected = 0 }) => {
+    const pct = (a, b) => (b ? a / b * 100 : null);
+    return { remaining: due - collected - (breachDue - breachCollected), rate: pct(collected, due), breachRate: pct(breachCollected, breachDue), breachShare: pct(breachDue, due) };
+  };
+  /* Doanh thu theo 3 mốc từ số đã thu cộng dồn (giá trị null = chưa có số) – giảm giữa hai mốc giữ nguyên dấu như Excel */
+  P.milestoneSteps = (cum, w = [1, 0.9, 0.7], deduct = 0) => {
+    const v = cum.map(x => (x == null ? null : Number(x)));
+    const prev = (k) => (k === 0 ? deduct : v[k - 1]);
+    return v.map((x, k) => (x == null || prev(k) == null ? null : (x - prev(k)) * w[k]));
+  };
   C.payments = P;
 })(window.TH);

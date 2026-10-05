@@ -4,7 +4,7 @@
   const L = {};
   const okHref = (href) => { const r = TH.routes.ROUTES.find(x => ('#' + x.path) === href.split('?')[0]); return !r || (TH.auth.canRoute(r) && TH.ms.on(r.ms)); };
   /* Mục sidebar trỏ tới màn con đầu tiên vai trò được xem (vd leader: Hóa đơn & thu tiền → Công nợ) */
-  const visible = (it) => { const h = [it.href, ...(it.alts || [])].find(okHref); if (h) it._href = h; return !!h; };
+  const visible = (it) => { const pref = (it.prefer || []).find(x => TH.auth.can(x.perm) && okHref(x.href)); const h = pref ? pref.href : [it.href, ...(it.alts || [])].find(okHref); if (h) it._href = h; return !!h; };
   L.reset = () => { L._mounted = false; };
   L.ensure = (app) => {
     if (L._mounted && document.getElementById('content')) return;

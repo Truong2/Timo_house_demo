@@ -1,6 +1,6 @@
 /* Ảnh minh chứng cho các lỗi P0 đã sửa → output/verify-p0/shots/. node scripts/verify-p0-shots.mjs
    Tự bật server tĩnh ở cổng ngẫu nhiên; mỗi vai trò một browser context sạch. */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

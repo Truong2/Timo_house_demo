@@ -225,8 +225,9 @@ test('P0-9 vận hành không sửa/duyệt phiếu hoàn ngoài phạm vi; ?tab
 });
 
 /* ---------- P0-10 CSV che số tiền theo quyền ---------- */
-test('P0-10 xuất CSV: vận hành bị che cột số tiền như trên màn; kế toán thì không', () => {
-  const TH = boot({ user: 'vanhanh', kit: true }); const K = TH.kit;
+// 05/10/2026: quản lý / leader / trưởng phòng xem số tiền tòa trong phạm vi (dữ liệu đã lọc theo phạm vi) – vai trò ngoài vận hành vẫn bị che
+test('P0-10 xuất CSV: vai trò không có quyền xem số tiền bị che như trên màn; vận hành và kế toán thì không', () => {
+  const TH = boot({ user: 'sale', kit: true }); const K = TH.kit;
   const headers = ['Mã HĐ', 'Phòng', 'Tổng cần đóng', 'Đã đóng', 'Còn nợ', 'Trạng thái'];
   const rows = [['HD-1', '101T17', 3500000, 1000000, 2500000, 'THIEU'], ['HD-2', '102T17', 0, 0, 0, 'DU']];
   const cols = ['Tổng cần đóng', 'Đã đóng', 'Còn nợ'];
@@ -236,6 +237,8 @@ test('P0-10 xuất CSV: vận hành bị che cột số tiền như trên màn; 
     eq([r[0], r[1], r[5]], [rows[i][0], rows[i][1], rows[i][5]], 'cột khác giữ nguyên');
   });
   TH.auth.login('ketoan');
+  eq(K.maskCols(headers, rows, cols), rows);
+  TH.auth.login('vanhanh');
   eq(K.maskCols(headers, rows, cols), rows);
 });
 

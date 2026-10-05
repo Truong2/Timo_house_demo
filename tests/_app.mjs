@@ -6,11 +6,11 @@ import vm from 'node:vm';
 import { ROOT, DOMAIN } from './_load.mjs';
 
 const JS = (f) => path.join(ROOT, 'mockup', 'js', f);
-export const DATA_ALL = ['data/catalog.js', 'data/seed-master.js', 'data/seed-2026-09.js', 'data/seed-2026-08-bench.js', 'data/seed.js', 'data/seed-1b.js', 'data/seed-p2.js', 'data/seed-phase2.js', 'data/seed-phase3.js', 'data/seed-p3.js', 'data/seed-phase3-rest.js'];
+export const DATA_ALL = ['data/catalog.js', 'data/seed-master.js', 'data/seed-2026-09.js', 'data/seed-2026-08-bench.js', 'data/seed.js', 'data/seed-1b.js', 'data/seed-p2.js', 'data/seed-phase2.js', 'data/seed-phase3.js', 'data/seed-p3.js', 'data/seed-phase3-rest.js', 'data/seed-collection-2026-09.js', 'data/seed-collection.js'];
 export const CORE = ['core/store.js', 'core/milestone.js', 'core/auth.js', 'core/routes.js'];
 export const SERVICES = ['services/q.js', 'services/act-core.js', 'services/act-master.js', 'services/act-stays.js', 'services/act-billing.js', 'services/act-receipts.js',
   'services/act-refunds.js', 'services/act-expenses.js', 'services/act-zalo.js', 'services/act-hr.js', 'services/act-import.js', 'services/act-periods.js',
-  'services/act-payroll.js', 'services/act-allocation.js', 'services/q-report.js',
+  'services/act-payroll.js', 'services/act-collection.js', 'services/act-allocation.js', 'services/q-report.js',
   'services/act-sales.js', 'services/act-commission.js', 'services/act-repairs.js', 'services/q-report-ops.js', 'services/act-shares.js', 'services/act-documents.js', 'services/act-intake.js', 'services/act-assets.js', 'services/act-maintenance.js', 'services/act-inventory.js', 'services/act-capital.js', 'services/q-forecast.js', 'services/act-forecast.js', 'services/q-efficiency.js'];
 /* Trang chỉ nạp để lấy TH.pages.acceptance / acceptance1B (đăng ký route bằng router giả) */
 export const ACCEPTANCE_PAGES = ['pages/settings.js', 'pages/reports.js', 'pages/acceptance3.js'];
@@ -34,7 +34,9 @@ const uiStub = () => new Proxy({}, { get: (t, k) => (k in t ? t[k] : noop) });
  * Boot app sạch từ seed. opts.user: đăng nhập sẵn (admin|ketoan|vanhanh|leader); opts.kit: nạp ui/kit.js; opts.pages: nạp trang nghiệm thu.
  * Trả về TH của context mới.
  */
-export function boot({ user = 'admin', kit = false, pages = false } = {}) {
+export const SEPTEMBER = 'data/seed-september-flow.js';
+/* opts.dataset: 'classic' (mặc định – bộ đối chiếu lịch sử) hoặc 'september' (nạp thêm bộ luồng tháng 9 và chọn nó như trình duyệt). */
+export function boot({ user = 'admin', kit = false, pages = false, dataset = 'classic' } = {}) {
   const ctx = {
     console,
     // store.save() hẹn giờ ghi localStorage – không cần trong test, tránh giữ tiến trình
@@ -47,7 +49,7 @@ export function boot({ user = 'admin', kit = false, pages = false } = {}) {
   ctx.window = ctx; ctx.self = ctx;
   vm.createContext(ctx);
   const run = (f) => vm.runInContext(read(f), ctx, { filename: f });
-  [...DOMAIN, ...DATA_ALL, ...CORE].forEach(run);
+  [...DOMAIN, ...DATA_ALL, ...(dataset === 'september' ? [SEPTEMBER] : []), ...CORE].forEach(run);
   const TH = ctx.TH;
   // router thật cần DOM/location khi render → chỉ cần handle() để trang đăng ký route
   TH.router = { handle: () => {}, current: null, refresh: () => {}, render: () => {}, parse: () => ({ path: '/', query: {} }), setQuery: () => {}, replaceQuery: () => {}, href: () => '#', go: () => {} };

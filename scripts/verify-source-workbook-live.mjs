@@ -1,6 +1,6 @@
 /* Browser acceptance cho gap thực sự của Source Workbook vs Live:
    hồ sơ pháp lý/version HĐ chủ nhà, policy lương 5 phòng ban và Sales field-level/export. */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

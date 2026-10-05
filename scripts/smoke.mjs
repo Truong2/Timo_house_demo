@@ -1,7 +1,7 @@
 /* Smoke test luồng Phase 1 trên trình duyệt thật (playwright-core + Chrome cài sẵn).
    node scripts/smoke.mjs [--flow=1a|1b|all] [--shots]
    Tự bật server tĩnh (scripts/serve.mjs) ở cổng ngẫu nhiên; CHROME_PATH đổi đường dẫn Chrome. Ảnh chụp vào output/smoke/<ngày>/ khi có --shots. */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -76,7 +76,8 @@ try {
     ok('Zalo: gửi đợt hóa đơn, log từng tin, lỗi → SMS + giao gọi (UI-39)', z.n > 0 && z.delivered > 0, JSON.stringify(z));
     await visit('#/zalo?tab=nhat-ky', 'Nhật ký Zalo');
     const rb = await run(() => { TH.auth.login('vanhanh'); const r = { canPay: TH.auth.can('payments.record'), money: TH.auth.can('debts.viewAmounts'), scope: (TH.auth.buildingScope() || new Set()).size, pii: TH.auth.can('customers.pii') }; TH.auth.login('admin'); return r; });
-    ok('Vận hành: không ghi thu, không thấy tiền/CCCD, chỉ tòa được giao', !rb.canPay && !rb.money && !rb.pii && rb.scope > 0 && rb.scope < 20, JSON.stringify(rb));
+    // 05/10/2026: QL xem số tiền tòa mình và nhập mốc thu; vẫn không ghi phiếu thu / không xem CCCD
+    ok('Vận hành: không ghi thu, thấy tiền tòa mình, không CCCD, chỉ tòa được giao', !rb.canPay && rb.money && !rb.pii && rb.scope > 0 && rb.scope < 20, JSON.stringify(rb));
     const acc = await run(() => TH.pages.acceptance().filter(r => r.ms === '1A').map(r => r.ok));
     ok('Đối chiếu nghiệm thu 1A', acc.every(Boolean), acc.filter(Boolean).length + '/' + acc.length);
     await visit('#/settings?tab=doi-chieu', 'Cài đặt – đối chiếu');

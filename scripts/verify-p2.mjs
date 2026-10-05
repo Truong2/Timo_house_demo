@@ -1,6 +1,6 @@
 /* Ảnh minh chứng Phase 2 theo kịch bản docs/uat/Phase2_Kich_ban_kiem_thu.md → output/verify-p2/shots/ (tên ảnh = mã kịch bản).
    node scripts/verify-p2.mjs – tự bật server tĩnh ở cổng ngẫu nhiên; mỗi nhóm chạy trong browser context mới (dữ liệu seed sạch). */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

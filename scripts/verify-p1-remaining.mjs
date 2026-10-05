@@ -1,6 +1,6 @@
 /* Ảnh minh chứng các mục P1 còn lại (4 đợt) → output/verify-p1-remaining/shots/.
    node scripts/verify-p1-remaining.mjs – tự bật server tĩnh ở cổng ngẫu nhiên; mỗi nhóm chạy trong một browser context mới (dữ liệu seed sạch). */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

@@ -1,5 +1,5 @@
 /* UI regression: owners, drafts, sources, rooms, fees, commit guards and responsive evidence. */
-import {chromium} from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import {spawn} from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';

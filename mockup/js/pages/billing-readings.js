@@ -1,7 +1,7 @@
 /* UI-10 Chỉ số điện nước theo kỳ dịch vụ (chốt ngày 22 tháng trước) · tab phòng trống / không thu được · E10 bất thường. */
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc;
-  TH.pages.billingTabs = (cur) => `<div class="subnav">${[['readings', 'Chỉ số', '#/billing/readings', 'readings.view'], ['invoices', 'Hóa đơn', '#/billing/invoices', 'invoices.view'], ['receipts', 'Phiếu thu', '#/billing/receipts', 'payments.view'], ['debts', 'Công nợ', '#/billing/debts', 'debts.viewStatus']]
+  TH.pages.billingTabs = (cur) => `<div class="subnav">${[['readings', 'Chỉ số', '#/billing/readings', 'readings.view'], ['invoices', 'Hóa đơn', '#/billing/invoices', 'invoices.view'], ['receipts', 'Phiếu thu', '#/billing/receipts', 'payments.view'], ['debts', 'Công nợ', '#/billing/debts', 'debts.viewStatus'], ['collection', 'Thu tiền theo tòa', '#/billing/collection', 'collection.view']]
     .filter(x => TH.auth.can(x[3])).map(([k, l, h]) => `<a class="${k === cur ? 'on' : ''}" href="${h}">${l}</a>`).join('')}</div>`;
   const editReading = (row, period) => {
     const r = row.reading || {};

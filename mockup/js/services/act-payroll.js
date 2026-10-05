@@ -57,7 +57,10 @@
     const newRent = invs.filter(i => i.isNewStay && Q.invState(i).remaining <= 0.5).reduce((s, i) => s + lines(i)[0].amount, 0);
     const forfeit = S.all('depositLedger').filter(l => l.buildingId === bid && l.kind === 'forfeit_revenue' && l.period === period).reduce((s, l) => s + l.amount, 0);
     const md = TH.calc.params.milestones(Q.param('milestones', D.periodEnd(period))).days; // tham số mốc thu (SRC-05), mặc định 5/10/15
-    return { J: rooms.length, K: rooms.reduce((s, r) => s + (r.listPrice || r.price || 0), 0), L: L0 - deduct, R5: cum(md[0]), R10: cum(md[1]), R15: cum(md[2]), msDays: md, deduct, Q: Qv, C: newRent + forfeit, caseTH1: deduct > 0 };
+    // Số mốc QL cập nhật và admin đã duyệt (sheet "cập nhật thu tiền") thay số tính từ phiếu thu; mốc chưa duyệt giữ số phiếu thu
+    const sys = md.map(d => cum(d)), ok = md.map((d, k) => (Q.milestoneApproved ? Q.milestoneApproved(period, bid, k + 1) : null));
+    const R = sys.map((v, k) => (ok[k] ? ok[k].amount : v)), msSource = ok.map(x => (x ? 'approved' : 'receipts'));
+    return { J: rooms.length, K: rooms.reduce((s, r) => s + (r.listPrice || r.price || 0), 0), L: L0 - deduct, R5: R[0], R10: R[1], R15: R[2], R5sys: sys[0], R10sys: sys[1], R15sys: sys[2], msSource, msDays: md, deduct, Q: Qv, C: newRent + forfeit, caseTH1: deduct > 0 };
   };
 
   /* Dữ liệu nhập tay theo kỳ (SRS §2.3 mục 6, UI-25): ngày công sale, lương vệ sinh/bảo vệ theo tòa, tiền công thợ sửa chữa theo tòa (OQ-22),
@@ -172,7 +175,7 @@
               const v = man ? man.amount : 0;
               Object.assign(r, { V: v, W: v * inp.J, rate: null, bound: null, manualApplied: !!man, manualReason: man ? man.note : '', rule: man ? 'Nhập tay: ' + man.note : 'Chờ nhập tay lương/phòng và lý do' });
             }
-            return Object.assign({ buildingId: bid, J: inp.J, K: inp.K, L: inp.L, M1: ms.M1, M2: ms.M2, M3: ms.M3, Q: inp.Q, C: inp.C, R5: inp.R5, R10: inp.R10, R15: inp.R15, msDays: msCfg.days, msW: msCfg.w, deduct: inp.deduct, source: 'web' }, r);
+            return Object.assign({ buildingId: bid, J: inp.J, K: inp.K, L: inp.L, M1: ms.M1, M2: ms.M2, M3: ms.M3, Q: inp.Q, C: inp.C, R5: inp.R5, R10: inp.R10, R15: inp.R15, R5sys: inp.R5sys, R10sys: inp.R10sys, R15sys: inp.R15sys, msSource: inp.msSource, msPending: !isNew && inp.msSource.some(x => x !== 'approved'), msDays: msCfg.days, msW: msCfg.w, deduct: inp.deduct, source: 'web' }, r);
           });
         }
       }
@@ -199,7 +202,8 @@
       const manualPay = M.filter(x => x.kind === 'manual_pay' && x.employeeId === e.id).reduce((s, x) => s + x.amount, 0);
       const lunch = rp && rp.lunch != null ? rp.lunch : (al.lunch || 0);
       const Xn = W + base + lunch + (al.fuel || 0) + lead + (al.support || 0) + labor + manualPay;
-      const flags = blds.filter(b => b.flag && b.flag !== 'Lương cố định').map(b => ({ buildingId: b.buildingId, flag: b.flag, HS: b.HS }));
+      // Cờ cần duyệt: HS ngoài ngưỡng / không phòng, và mốc thu chưa được admin duyệt (đang dùng số phiếu thu)
+      const flags = blds.filter(b => (b.flag && b.flag !== 'Lương cố định') || b.msPending).map(b => ({ buildingId: b.buildingId, flag: [b.flag !== 'Lương cố định' && b.flag, b.msPending && 'Mốc thu chưa duyệt – dùng số phiếu thu'].filter(Boolean).join(' · '), HS: b.HS }));
       lines.push({ employeeId: e.id, title: e.title, department: Q.payrollDepartmentKey(e), salaryPolicy: salaryPolicy ? { id: salaryPolicy.id, department: salaryPolicy.department, title: salaryPolicy.title || null, mode: salaryPolicy.mode, formulaVersion: salaryPolicy.formulaVersion, status: salaryPolicy.status, sourceRef: salaryPolicy.sourceRef, effectiveFrom: salaryPolicy.effectiveFrom } : null,
         over1y, buildings: blds, W, base, workdays, lunch, fuel: al.fuel || 0, lead, leadNote, support: al.support || 0, labor, laborByB: laborRows.map(x => ({ buildingId: x.buildingId, amount: x.amount })), manualPay, divisor, X: Xn, flags, excelNet: e.excel ? e.excel.net : null });
       if (!parallel && salaryPolicy) {

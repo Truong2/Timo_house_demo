@@ -1,4 +1,4 @@
-import {chromium} from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';

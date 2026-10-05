@@ -52,14 +52,15 @@ def term_of(g):
 FORFEIT = re.compile(r'^=\s*(\d+)\s*-\s*\(\s*(\d+)\s*/\s*(\d+)\s*(?:\*\s*(\d+))?\s*\)\s*$')
 
 
-def commission():
+def commission(sheet_name='HOA HỒNG THÁNG 8.26', period='2026-08', status_col=1, ql_col=2, last_row=259):
+    """Đọc một sheet hoa hồng tháng. T8: A trạng thái, B quản lý; từ T9: A trống, B trạng thái, C quản lý. Cột D… giống nhau."""
     path = os.path.join(SRC, 'Hoa hồng năm 2025-2026 (1).xlsx')
     wv, wf = load(path)
-    sv, sf = sheet(wv, 'HOA HỒNG THÁNG 8.26'), sheet(wf, 'HOA HỒNG THÁNG 8.26')
+    sv, sf = sheet(wv, sheet_name), sheet(wf, sheet_name)
     rows, cur, group = [], None, 0
-    # tên quản lý (cột B) có thể xuất hiện trong ghi chú → che
-    qls = sorted({unicodedata.normalize('NFC', str(sv.cell(r, 2).value).strip()) for r in range(4, 260) if sv.cell(r, 2).value}, key=len, reverse=True)
-    for r in range(4, 260):
+    # tên quản lý có thể xuất hiện trong ghi chú → che
+    qls = sorted({unicodedata.normalize('NFC', str(sv.cell(r, ql_col).value).strip()) for r in range(4, last_row + 1) if sv.cell(r, ql_col).value}, key=len, reverse=True)
+    for r in range(4, last_row + 1):
         room, F = sv.cell(r, 4).value, sv.cell(r, 6).value
         if room is None and F is None:
             cur = None
@@ -79,14 +80,17 @@ def commission():
         share = 3 if re.search(r'trùng\s*3', note, re.I) else 2 if note.lower().startswith('trùng') else 1
         code = str(room or '').strip().upper()
         b = sv.cell(r, 5).value
-        rows.append(dict(row=r, status=str(sv.cell(r, 1).value or '').strip().lower() or None, room=code, b=str(b or '').strip().upper(),
+        rows.append(dict(row=r, status=str(sv.cell(r, status_col).value or '').strip().lower() or None, room=code, b=str(b or '').strip().upper(),
                          F=r2(num(F)), forfeit=forfeit, termRaw=str(sv.cell(r, 7).value or '').strip() or None, term=term_of(sv.cell(r, 7).value),
                          H=round(H, 6), I=r2(I) if isinstance(I, (int, float)) else None, Iformula=str(sf.cell(r, 9).value or '') if isinstance(I, (int, float)) else None,
                          note=re.sub(r'0\d{9}', '', note)[:80], share=share, recipient=cur and cur['name'], recipientKind=cur and cur['kind'],
                          lead=bool(cur and cur['lead']), group=group, paid='tt' in str(sv.cell(r, 13).value or '').lower()))
     total = r2(sum(x['I'] or 0 for x in rows))
-    log(f'  hoa hồng T8.26: {len(rows)} dòng · có thành tiền {sum(1 for x in rows if x["I"] is not None)} · Σ = {total:,.2f} (Excel I3 = {num(sv.cell(3, 9).value):,.2f})')
-    return dict(period='2026-08', sheet='HOA HỒNG THÁNG 8.26', src='SRC-09', excelTotal=r2(num(sv.cell(3, 9).value)), rows=rows)
+    log(f'  hoa hồng {sheet_name}: {len(rows)} dòng · có thành tiền {sum(1 for x in rows if x["I"] is not None)} · Σ = {total:,.2f} (Excel I3 = {num(sv.cell(3, 9).value):,.2f})')
+    out = dict(period=period, sheet=sheet_name, src='SRC-09', excelTotal=r2(num(sv.cell(3, 9).value)), rows=rows)
+    if period != '2026-08':
+        out['excelTotalFormula'] = str(sf.cell(3, 9).value or '')  # T8 giữ nguyên cấu trúc file sinh cũ
+    return out
 
 
 def safe_pseudo(name, scope):

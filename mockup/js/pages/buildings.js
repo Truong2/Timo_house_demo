@@ -123,7 +123,7 @@
     const period = S.meta.period; const invs = Q.invoicesOf(period).filter(i => i.buildingId === b.id && i.lifecycle !== 'draft');
     const due = invs.reduce((s, i) => s + i.totalDue, 0), rem = invs.reduce((s, i) => s + Q.invState(i).remaining, 0);
     const tabs = [{ key: 'tong-quan', label: 'Tổng quan' }, { key: 'phong', label: 'Phòng', count: rooms.length }, { key: 'chu-nha-hd', label: 'Chủ nhà & HĐ', perm: 'owners.view' }, { key: 'phap-ly', label: 'Pháp lý', count: Q.legalRecords(b.id).length, perm: 'owners.view' }, { key: 'lich-tra', label: 'Lịch trả chủ nhà', perm: 'ownerPayments.view' },
-      { key: 'nhan-su', label: 'Nhân sự' }, { key: 'dich-vu-dau-vao', label: 'Dịch vụ đầu vào', perm: 'expenses.view' }, { key: 'tai-chinh', label: 'Tài chính', perm: 'debts.viewAmounts' },
+      { key: 'nhan-su', label: 'Nhân sự' }, { key: 'dich-vu-dau-vao', label: 'Dịch vụ đầu vào', perm: 'expenses.view' }, { key: 'tai-chinh', label: 'Tài chính', perm: 'expenses.view' },
       ...(TH.ms.on('3') ? [{ key: 'tai-san', label: 'Tài sản', perm: 'assets.view' }] : [])]; // Phase 3: liên kết UI-34 / UI-35 / UI-36
     const tab = K.pickTab(tabs, q.tab || 'tong-quan', 'tong-quan');
     root.innerHTML = U.pageHead({ title: 'Tòa ' + esc(b.code) + ' ' + U.chip('Nhà ' + b.group, 'blue') + (b.level ? ' ' + U.chip(b.level, 'gray') : ''), back: '#/buildings', sub: `${esc(b.address)} · Quản lý: ${mgr ? esc(mgr.name) : 'chưa phân công'} · Nhận nhà ${F.date(b.operatedFrom)}`,

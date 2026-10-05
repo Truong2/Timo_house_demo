@@ -23,6 +23,7 @@
     { path: '/billing/receipts/new', ui: 'UI-13', title: 'Ghi nhận thu tiền', menu: 'billing', perm: 'payments.record', ms: '1A' },
     { path: '/billing/receipts/:id', ui: 'UI-13', title: 'Chi tiết phiếu thu', menu: 'billing', perm: 'payments.view', ms: '1A' },
     { path: '/billing/debts', ui: 'UI-14', title: 'Công nợ & tiến độ thu', menu: 'billing', perm: 'debts.viewStatus', ms: '1A' },
+    { path: '/billing/collection', ui: 'UI-14', title: 'Thu tiền theo tòa', menu: 'billing', perm: 'collection.view', ms: '1A' },
     { path: '/expenses', ui: 'UI-15', title: 'Chi phí', menu: 'expenses', perm: 'expenses.view', ms: '1A' },
     { path: '/expenses/allocation', ui: 'UI-16', title: 'Phân bổ chi phí chung', menu: 'expenses', perm: 'allocation.view', ms: '1B' },
     { path: '/refunds', ui: 'UI-17', title: 'Hoàn cọc', menu: 'refunds', perm: 'refunds.view', ms: '1A' },
@@ -84,7 +85,7 @@
       { key: 'commission', label: 'Hoa hồng', href: '#/sales/commission' },
     ] },
     { group: 'Tài chính', icon: 'wallet', items: [
-      { key: 'billing', label: 'Hóa đơn & thu tiền', href: '#/billing/invoices', alts: ['#/billing/readings', '#/billing/debts'] },
+      { key: 'billing', label: 'Hóa đơn & thu tiền', href: '#/billing/invoices', alts: ['#/billing/collection', '#/billing/readings', '#/billing/debts'], prefer: [{ perm: 'collection.report', href: '#/billing/collection' }] }, // QL tòa vào thẳng Thu tiền theo tòa
       { key: 'expenses', label: 'Chi phí', href: '#/expenses', alts: ['#/owner-payments'] },
       { key: 'refunds', label: 'Hoàn cọc', href: '#/refunds' },
       { key: 'shares', label: 'Cổ đông', href: '#/shares', alts: ['#/shares/capital'] },

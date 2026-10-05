@@ -173,7 +173,7 @@
       U.table(tb.querySelector('#stay-debts'), { rows: debts, noPager: true, rowHref: x => '#/billing/invoices/' + x.i.id, cols: [{ key:'code',label:'Hóa đơn',render:x=>esc(x.i.code) },{ key:'period',label:'Kỳ',render:x=>F.periodShort(x.i.period) },{ key:'from',label:'Bắt đầu tuổi nợ',render:x=>F.date(x.st.debt.debtFrom) },{ key:'days',label:'Tuổi nợ',num:true,render:x=>x.st.debt.days ? x.st.debt.days + ' ngày' : '–' },{ key:'remaining',label:'Còn nợ',num:true,render:x=>Q.money(x.st.remaining) }] });
     }
     if (tab === 'dien-nuoc') {
-      const readings = S.where('readings', x => x.stayId === s.id).sort((a,b) => String(b.period).localeCompare(String(a.period)));
+      const readings = S.where('meterReadings', x => x.stayId === s.id).sort((a,b) => String(b.period).localeCompare(String(a.period)));
       tb.innerHTML = K.tableCard('stay-readings', 'Chỉ số điện nước', `${readings.length} kỳ`);
       U.table(tb.querySelector('#stay-readings'), { rows: readings, noPager: true, cols: [{ key:'period',label:'Kỳ',render:x=>F.periodShort(x.period) },{ key:'electric',label:'Điện đầu → cuối',render:x=>`${x.elPrev ?? '–'} → ${x.elCurr ?? '–'}` },{ key:'water',label:'Nước đầu → cuối',render:x=>`${x.waPrev ?? '–'} → ${x.waCurr ?? '–'}` },{ key:'date',label:'Ngày chốt',render:x=>F.date(x.readAt) },{ key:'source',label:'Nguồn',render:x=>esc(x.source || x.enteredBy || 'web') }] });
     }

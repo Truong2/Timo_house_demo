@@ -20,7 +20,7 @@
   const OPS = ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong'];
   const POLICY = {
     'dashboard.view': ALL,
-    'dashboard.money': ['admin', 'ketoan', 'truongphong'],
+    'dashboard.money': OPS, // 05/10/2026: QL/leader/TP xem số tiền tòa trong phạm vi (dữ liệu đã lọc theo phạm vi)
     'buildings.view': STAFF, 'buildings.manage': ['admin'], 'rooms.status': ['admin', 'ketoan', 'vanhanh'],
     'owners.view': FIN, 'owners.manage': ['admin'], 'ownerPayments.view': FIN, 'ownerPayments.record': FIN,
     'tenants.view': OPS, 'tenants.manage': FIN, 'stays.end': ['admin', 'ketoan', 'vanhanh'], 'stays.transfer': FIN,
@@ -29,7 +29,9 @@
     'readings.view': ['admin', 'ketoan', 'vanhanh'], 'readings.manage': ['admin', 'ketoan', 'vanhanh'],
     'invoices.view': ['admin', 'ketoan', 'vanhanh'], 'invoices.prepare': FIN, 'invoices.issue': FIN, 'invoices.adjust': FIN,
     'payments.view': FIN, 'payments.record': FIN, 'payments.reverse': FIN,
-    'debts.viewStatus': OPS, 'debts.viewAmounts': FIN,
+    'debts.viewStatus': OPS, 'debts.viewAmounts': OPS,
+    // Thu tiền theo tòa (sheet "cập nhật thu tiền"): QL nhập số thu cộng dồn mốc 5/10/15, admin duyệt, kế toán xem để làm báo cáo
+    'collection.view': OPS, 'collection.report': ['vanhanh', 'leader', 'truongphong'], 'collection.approve': ['admin'], 'collection.export': FIN,
     'refunds.view': ['admin', 'ketoan', 'vanhanh'], 'refunds.prepare': ['admin', 'ketoan', 'vanhanh'],
     'refunds.approve.admin': ['admin'], 'refunds.approve.ketoan': ['ketoan'], 'refunds.pay': FIN,
     'expenses.view': FIN, 'expenses.manage': FIN,

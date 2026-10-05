@@ -31,13 +31,16 @@ test('Zalo: kiểm tra lại số nợ trước khi gửi', () => {
   assert.equal(C.zalo.dueMessages({ event: 'before_due', daysBefore: 2 }, items, '2026-08-29').length, 1);
 });
 
-test('RBAC: chỉ admin/kế toán ghi thu (OQ-09); duyệt hoàn cọc tách vai trò; leader chỉ xem trạng thái nợ', () => {
+test('RBAC: chỉ admin/kế toán ghi thu (OQ-09); duyệt hoàn cọc tách vai trò; leader xem số tiền nhánh (05/10/2026), không ghi thu', () => {
   const R = C.rbac;
   assert.equal(R.can('ketoan', 'payments.record'), true);
   assert.equal(R.can('vanhanh', 'payments.record'), false);
   assert.equal(R.can('leader', 'payments.record'), false);
   assert.equal(R.can('leader', 'debts.viewStatus'), true);
-  assert.equal(R.can('leader', 'debts.viewAmounts'), false);
+  assert.equal(R.can('leader', 'debts.viewAmounts'), true, 'quyết định 05/10/2026: leader xem số tiền tòa trong nhánh');
+  assert.equal(R.can('sale', 'debts.viewAmounts'), false);
+  assert.equal(R.can('leader', 'collection.approve'), false);
+  assert.equal(R.can('ketoan', 'collection.approve'), false, 'admin duyệt mốc thu, kế toán chỉ xem/xuất báo cáo');
   assert.equal(R.can('admin', 'refunds.approve.admin'), true);
   assert.equal(R.can('admin', 'refunds.approve.ketoan'), false);
   assert.equal(R.can('truongphong', 'reports.view'), true);

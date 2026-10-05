@@ -51,10 +51,15 @@ const expected = {
 Object.entries(expected).forEach(([role, byMs]) => Object.entries(byMs).forEach(([ms, keys]) => { const got = visibleNav(role, ms); expect(JSON.stringify(got) === JSON.stringify(keys), `sidebar ${role}@${ms}: ${got.join(',')} ≠ ${keys.join(',')}`); }));
 
 /* 4. Quyền nhạy cảm chỉ admin/kế toán (CH-01, GĐ OQ-09); Phase 2: hoa hồng, chia cổ đông, áp OCR vào biểu phí, xác nhận sổ sửa chữa */
-['payments.record', 'payments.reverse', 'debts.viewAmounts', 'customers.pii', 'hr.salary', 'payroll.manage', 'expenses.manage', 'allocation.manage', 'invoices.issue', 'owners.view',
+['payments.record', 'payments.reverse', 'collection.export', 'customers.pii', 'hr.salary', 'payroll.manage', 'expenses.manage', 'allocation.manage', 'invoices.issue', 'owners.view',
   'commission.view', 'commission.approve', 'commission.pay', 'shares.manage', 'shares.lock', 'rates.manage', 'repairs.confirm',
   'assets.manage', 'assets.dispose', 'inventory.enter', 'capital.manage', 'forecast.manage'].forEach(p => expect(R.POLICY[p].every(r => ['admin', 'ketoan'].includes(r)), `quyền nhạy cảm ${p} lộ cho: ${R.POLICY[p].join(',')}`));
 expect(R.POLICY['debts.viewStatus'].includes('leader') && R.POLICY['debts.viewStatus'].includes('vanhanh'), 'leader/vận hành phải xem được trạng thái nợ');
+/* 4b. Thu tiền theo tòa (05/10/2026): số tiền chỉ mở cho nhóm vận hành (dữ liệu lọc theo phạm vi); QL nhập mốc, chỉ admin duyệt */
+const OPSR = ['admin', 'ketoan', 'vanhanh', 'leader', 'truongphong'];
+['debts.viewAmounts', 'dashboard.money', 'collection.view'].forEach(p => expect(JSON.stringify(R.POLICY[p]) === JSON.stringify(OPSR), `${p} phải đúng nhóm vận hành: ${R.POLICY[p].join(',')}`));
+expect(JSON.stringify(R.POLICY['collection.approve']) === '["admin"]', 'duyệt mốc thu chỉ admin');
+expect(R.POLICY['collection.report'].every(r => ['vanhanh', 'leader', 'truongphong'].includes(r)), 'nhập mốc thu chỉ quản lý / leader / trưởng phòng');
 /* 5. Duyệt hoàn cọc kép: mỗi vai trò một quyền riêng */
 expect(JSON.stringify(R.POLICY['refunds.approve.admin']) === '["admin"]' && JSON.stringify(R.POLICY['refunds.approve.ketoan']) === '["ketoan"]', 'duyệt hoàn cọc phải tách admin / kế toán');
 /* 6. Vai trò cổ đông là Phase 3, chỉ xem (đặc tả dòng 69-71, CH-23); vai trò sale/kỹ thuật gắn mốc Phase 2 */
@@ -103,7 +108,7 @@ ROUTES.filter(r => PHASE3_UI.includes(r.ui)).forEach(r => expect(pageSources.inc
 const qSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/services/q.js'), 'utf8'), authSrc = fs.readFileSync(path.join(ROOT, 'mockup/js/core/auth.js'), 'utf8');
 expect(/Q\.scoped = [\s\S]{0,600}?roomScope\(/.test(qSrc), 'q.js: Q.scoped không áp phạm vi phòng (auth.roomScope)');
 expect(/A\.inScopeRoom = /.test(authSrc) && /A\.roomScope = /.test(authSrc), 'auth.js: thiếu roomScope / inScopeRoom');
-['billing-invoices.js', 'billing-debts.js', 'tenants.js', 'refunds.js', 'billing-receipts.js'].forEach(f => { const src = fs.readFileSync(path.join(pageDir, f), 'utf8'); expect(src.includes('Q.scoped(') || (f === 'billing-debts.js' && src.includes('Q.debtAging(')), `${f}: danh sách theo phòng không dùng selector đã áp phạm vi – phân công theo phòng bị lộ`); });
+['billing-invoices.js', 'billing-debts.js', 'tenants.js', 'refunds.js', 'billing-receipts.js', 'billing-collection.js'].forEach(f => { const src = fs.readFileSync(path.join(pageDir, f), 'utf8'); expect(src.includes('Q.scoped(') || (f === 'billing-debts.js' && src.includes('Q.debtAging(')) || (f === 'billing-collection.js' && src.includes('Q.collectionProgress(') && src.includes('Q.milestoneRecords(')), `${f}: danh sách theo phòng không dùng selector đã áp phạm vi – phân công theo phòng bị lộ`); });
 
 if (errs.length) { console.error(`✗ RBAC: ${errs.length}/${checks} kiểm tra lỗi\n - ` + errs.join('\n - ')); process.exit(1); }
 console.log(`✓ RBAC: ${checks} kiểm tra đạt · ${ROUTES.length} route · ${PHASE1_UI.length} màn Phase 1 + ${PHASE2_UI.length} màn Phase 2 + ${PHASE3_UI.length} màn Phase 3 · ${Object.keys(R.ROLES).length} vai trò`);

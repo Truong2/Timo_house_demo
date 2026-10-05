@@ -1,5 +1,5 @@
 /* Regression proof for P2-AUD-01..06: actual UI uploads, local originals and review/apply. */
-import {chromium} from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import {spawn} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

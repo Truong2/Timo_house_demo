@@ -9,7 +9,8 @@
   const seedHash = () => {
     const D = TH.data || {};
     const sig = [D.master && D.master.stays.length, D.p202609 && D.p202609.invoices.length, D.p202609 && D.p202609.payments.length, D.bench202608 ? 1 : 0, (D.catalog.params || []).length, SCHEMA].join('|');
-    return TH.f.hash(sig + (S.dataset && S.dataset !== 'classic' ? '|' + S.dataset : ''));
+    // Dataset version: a regenerated scenario invalidates overlays saved on the previous version.
+    return TH.f.hash(sig + (S.dataset && S.dataset !== 'classic' ? '|' + S.dataset + ':' + (D.septemberFlow?.version || 1) : ''));
   };
   const defaultMeta = () => ({ today: S.dataset === TH.data.septemberFlow?.id ? TH.data.septemberFlow.today : TH.f.DEMO_TODAY, period: '2026-09', dataset: S.dataset || 'classic', milestone: '3', prefs: {}, seedHash: seedHash() });
   /* Migration nhẹ, idempotent: chỉ chuyển các trường có cấu trúc của intake đã duyệt; không đọc/đoán từ ghi chú tự do. */

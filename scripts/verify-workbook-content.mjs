@@ -1,5 +1,5 @@
 /* Browser acceptance cho 10 sheet trong workbook nội dung làm web Timehouse. */
-import { chromium } from 'playwright-core';
+import { chromium } from './_dataset.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';

@@ -60,6 +60,12 @@
     const perInv = Object.entries(byInv).map(([id, arr]) => { const due = Q.invoice(id).totalDue; return TH.calc.payments.milestoneCum(arr, period, msDays).map(m => Math.min(due, m.amount)); });
     const ms = msDays.map((d, k) => ({ day: d, amount: perInv.reduce((s, x) => s + x[k], 0) }));
     const debtors = main.filter(i => Q.invState(i).debt.state === 'debt');
+    // Số mốc QL cập nhật (sheet "cập nhật thu tiền"): bao nhiêu mốc đã tới đã được admin duyệt – lương vận hành dùng số đã duyệt
+    const msStatus = () => {
+      if (!TH.auth.can('collection.view')) return '';
+      const cs = Q.collectionProgress(period, q).rows.flatMap(r => r.ms.filter(m => m.reached)), ok = cs.filter(m => m.approved).length, pend = cs.filter(m => m.pending).length;
+      return `<div class="small mt8"><a href="#/billing/collection?period=${period}">Thu tiền theo tòa</a>: ${ok}/${cs.length} mốc đã duyệt${pend ? ' · ' + pend + ' chờ duyệt' : ''} – lương vận hành dùng số đã duyệt</div>`;
+    };
     const exp = Q.expiring().filter(s => bset.has(s.buildingId));
     const zErr = S.where('zaloMessages', m => m.status === 'failed' && bset.has(m.buildingId));
     const refunds = S.where('refunds', r => !['paid'].includes(r.status) && bset.has(r.buildingId));
@@ -95,7 +101,7 @@
       </div>`)
       + (TH.ms.on('2') ? p2Row(period, bset, q) : '')
       + (!opsView ? '' : `<div class="two-col mt16"><div class="side-stack">
-        ${U.card({ title: 'Tiến độ thu theo mốc (ngày tiền thực nhận)', icon: 'activity', sub: `Mốc ${msDays.join('/')} (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu`, body: `<div class="ms-bars">${ms.map(m => { const v = due ? Math.min(1, m.amount / due) : 0; return `<div class="ms-bar"><div class="row between"><b>Đến hết ngày ${m.day}/${Number(period.slice(5))}</b><span>${money ? F.vnd(m.amount) + ' · ' : ''}${F.pctv(v)}</span></div><div class="progress"><i style="width:${Math.min(100, v * 100)}%"></i></div></div>`; }).join('')}</div>` })}
+        ${U.card({ title: 'Tiến độ thu theo mốc (ngày tiền thực nhận)', icon: 'activity', sub: `Mốc ${msDays.join('/')} (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu`, body: `<div class="ms-bars">${ms.map(m => { const v = due ? Math.min(1, m.amount / due) : 0; return `<div class="ms-bar"><div class="row between"><b>Đến hết ngày ${m.day}/${Number(period.slice(5))}</b><span>${money ? F.vnd(m.amount) + ' · ' : ''}${F.pctv(v)}</span></div><div class="progress"><i style="width:${Math.min(100, v * 100)}%"></i></div></div>`; }).join('')}</div>${msStatus()}` })}
         ${U.card({ title: 'Tòa cần chú ý', icon: 'building', sub: 'Xếp theo số còn nợ', body: '<div id="db-bld"></div>', bodyCls: 'flush' })}
       </div><div class="side-stack">
         ${U.card({ title: 'Việc cần xử lý', icon: 'clipboard-check', body: `<div class="todo">
@@ -104,6 +110,8 @@
           <a class="todo-it" href="#/zalo?tab=nhat-ky&status=failed">${I('message')}<span>Tin Zalo gửi lỗi</span><b>${zErr.length}</b></a>
           <a class="todo-it" href="#/refunds?status=open">${I('hand-coins')}<span>Hoàn cọc đang xử lý</span><b>${refunds.length}</b></a>
           <a class="todo-it" href="#/buildings?roomStatus=vacant_cleaning">${I('brush')}<span>Phòng trống cần kiểm tra/dọn</span><b>${cleaning.length}</b></a>
+          ${TH.auth.can('collection.approve') ? `<a class="todo-it" href="#/billing/collection?tab=cho-duyet&period=${period}">${I('clock')}<span>Mốc thu chờ duyệt</span><b>${Q.milestoneRecords({ period, status: 'pending' }).length}</b></a>` : ''}
+          ${TH.auth.can('collection.report') ? `<a class="todo-it" href="#/billing/collection?period=${period}">${I('activity')}<span>Đến mốc – cập nhật số thu tòa</span><b>${Q.milestonesDue(period).length}</b></a>` : ''}
         </div>` })}
         ${U.card({ title: 'Hợp đồng sắp hết hạn', icon: 'calendar', body: exp.slice(0, 6).map(s => `<a class="mini-row" href="#/stays/${s.id}"><span class="code">${esc(Q.roomCode(s.roomId))}</span><span class="grow truncate">${esc((Q.customer(s.customerId) || {}).name || '')}</span><span class="muted">${F.date(s.endDate)} · còn ${F.daysBetween(F.today(), s.endDate)} ngày</span></a>`).join('') || U.empty({ title: 'Không có hợp đồng sắp hết hạn' }) })}
       </div></div>`);
