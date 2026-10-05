@@ -2,6 +2,9 @@
 (function (TH) {
   const S = TH.store, F = TH.f, U = TH.ui, K = TH.kit, Q = TH.q, X = TH.actions, esc = F.esc, P = TH.calc.payroll;
   const titleLabel = (t) => (TH.data.catalog.titlesAll || TH.data.catalog.titles)[t] || t;
+  /* Nguồn số mốc 5/10/15 của một dòng tòa: 3 chấm (xanh = quản lý nhập đã duyệt, vàng = tạm theo phiếu thu) + một dòng chữ */
+  const msSrc = (b) => { const src = b.msSource || []; if (!src.length) return U.chip('Giao dịch web', 'blue'); const ok = src.filter(s => s === 'approved').length;
+    return `<span class="st-dots ${ok === src.length ? 'green' : 'amber'}" data-tip="Nguồn số đã thu tại mốc 5 / 10 / 15">${src.map(s => `<i class="${s === 'approved' ? 'green' : 'amber'}"></i>`).join('')}<span>${ok === src.length ? 'Mốc đã duyệt' : ok ? `${ok}/${src.length} mốc đã duyệt` : 'Mốc theo phiếu thu'}</span></span>`; };
   const explain = (line, b) => {
     const e = Q.emp(line.employeeId); const bd = Q.building(b.buildingId) || {};
     const srcInv = Q.invoicesOf((TH.router.current || {}).query?.period || '2026-08').filter(i => i.buildingId === b.buildingId && i.lifecycle !== 'draft');
@@ -71,8 +74,8 @@
       { key: 'd', label: 'Phòng ban', render: p => `<b>${esc(Q.PAYROLL_DEPARTMENTS[p.department] || p.department)}</b>${p.title ? `<br><small>${esc(titleLabel(p.title))}</small>` : ''}` },
       { key: 'm', label: 'Cách tính', render: p => esc(Q.PAYROLL_POLICY_MODES[p.mode] || p.mode) },
       { key: 'v', label: 'Phiên công thức', render: p => U.cell2(esc(p.formulaVersion), F.date(p.effectiveFrom) + (p.effectiveTo ? ' → ' + F.date(p.effectiveTo) : ' → nay')) },
-      { key: 'i', label: 'Đầu vào bắt buộc', render: p => esc((p.requiredInputs || []).join(', ') || '–') },
-      { key: 'src', label: 'Nguồn / phê duyệt', render: p => U.cell2(esc(p.sourceRef || '–'), esc([p.approvedBy, p.approvedAt ? F.date(p.approvedAt) : ''].filter(Boolean).join(' · '))) },
+      { key: 'i', label: 'Đầu vào bắt buộc', cls: 'wrap', render: p => esc((p.requiredInputs || []).join(', ') || '–') },
+      { key: 'src', label: 'Nguồn / phê duyệt', cls: 'wrap', render: p => U.cell2(esc(p.sourceRef || '–'), esc([p.approvedBy, p.approvedAt ? F.date(p.approvedAt) : ''].filter(Boolean).join(' · '))) },
       { key: 's', label: 'Trạng thái', render: status },
     ] });
     U.bind(el, { addpolicy: () => K.formDrawer({ title: 'Tạo phiên chính sách lương', wide: true, note: U.note('warn', '', 'Không tự đặt công thức thay khách. Nếu căn cứ chưa được xác nhận, chọn “Chờ xác nhận”; phiên đó không được dùng để chốt kỳ web.'), fields: [
@@ -130,16 +133,16 @@
     ]});
     // E3: mở thẳng giải thích lương từ UI-45 (?emp=&building=) – mỗi liên kết mở một lần, không mở lại khi trang vẽ lại
     if (tab === 'van-hanh' && q.emp) { const key = period + q.emp + (q.building || ''); const x = flat.find(z => z.l.employeeId === q.emp && (!q.building || z.b.buildingId === q.building)); if (x && key !== lastExp) { lastExp = key; setTimeout(() => explain(x.l, x.b)); } }
-    if (tab === 'van-hanh') U.table(el, { rows: flat, pageSize: 30, onRowOpen: (x) => explain(x.l, x.b), cols: [
+    if (tab === 'van-hanh') U.table(el, { rows: flat, pageSize: 30, stickyFirst: true, onRowOpen: (x) => explain(x.l, x.b), cols: [
       { key: 'e', label: 'Nhân viên', render: x => U.cell2(esc(Q.emp(x.l.employeeId).name), (x.l.over1y ? 'trên 1 năm' : 'dưới 1 năm')) }, { key: 'b', label: 'Tòa', render: x => `<b>${esc((Q.building(x.b.buildingId) || {}).code)}</b>` },
       { key: 'j', label: 'Số phòng (J)', num: true, render: x => x.b.J }, { key: 'k', label: 'DT niêm yết (K)', num: true, render: x => F.vnd(x.b.K) }, { key: 'l', label: 'Phải thu (L)', num: true, render: x => F.vnd(x.b.L) },
-      { key: 'mốc', label: 'M5 / M10 / M15', num: true, render: x => x.b.R5 == null ? U.chip('Excel SRC-03','gray') : [x.b.R5, x.b.R10, x.b.R15].map((v, k) => F.vnd(v) + ((x.b.msSource || [])[k] ? ' ' + U.chip(x.b.msSource[k] === 'approved' ? 'QL · duyệt' : 'phiếu thu', x.b.msSource[k] === 'approved' ? 'green' : 'amber') : '')).join('<br>') },
+      { key: 'mốc', label: 'M5 / M10 / M15', num: true, render: x => x.b.R5 == null ? U.chip('Excel SRC-03','gray') : [x.b.R5, x.b.R10, x.b.R15].map((v, k) => `<span class="${(x.b.msSource || [])[k] === 'receipts' ? 'muted' : ''}">${F.vnd(v)}</span>`).join('<br>') },
       { key: 'm123', label: 'M1 / M2 / M3', num: true, render: x => `${F.vnd(x.b.M1)}<br>${F.vnd(x.b.M2)}<br>${F.vnd(x.b.M3)}` },
       { key: 'a', label: 'A (3 mốc)', num: true, render: x => F.vnd(x.b.A) }, { key: 'bq', label: 'B = Q/L', num: true, render: x => x.b.B == null ? '–' : F.dec(x.b.B, 3) }, { key: 'c', label: 'C', num: true, render: x => F.vnd(x.b.C) },
       { key: 't', label: 'T', num: true, render: x => F.vnd(x.b.T) },
       { key: 'hs', label: 'HS', num: true, sortable: true, sortVal: x => x.b.HS || 0, render: x => x.b.HS == null ? '–' : `<b>${F.dec(x.b.HS, 2)}</b>` }, { key: 'v', label: 'Lương/phòng (V)', num: true, render: x => F.vnd(x.b.V) },
       { key: 'w', label: 'Thành tiền (W)', num: true, sortable: true, sortVal: x => x.b.W, render: x => `<b>${F.vnd(x.b.W)}</b>` + (x.b.excel && Math.abs(x.b.W - x.b.excel.W) > 0.5 ? `<span class="diff bad d-block small red">Excel ${F.vnd(x.b.excel.W)}</span>` : '') },
-      { key: 'f', label: 'Nguồn / trạng thái', render: x => `${x.b.source === 'SRC-03' ? U.chip('Excel SRC-03','gray') : U.chip('Giao dịch web','blue')} ${x.b.HS != null && x.b.HS < 70 && !x.b.manualApplied ? U.chip('Thiếu lương/lý do','red') : x.b.flag ? `<span class="flag">${esc(x.b.flag)}</span>` : ''}` }] });
+      { key: 'f', label: 'Nguồn / trạng thái', render: x => `${x.b.source === 'SRC-03' ? U.chip('Excel SRC-03','gray') : msSrc(x.b)} ${x.b.HS != null && x.b.HS < 70 && !x.b.manualApplied ? U.chip('Thiếu lương/lý do','red') : x.b.flag ? `<span class="flag">${esc(x.b.flag)}</span>` : ''}` }] });
     if (tab === 'tong-hop') U.table(el, { rows: lines, pageSize: 50, cols: [
       { key: 'e', label: 'Nhân viên', render: l => `<a href="#/hr/staff/${l.employeeId}">${esc(Q.emp(l.employeeId).name)}</a>` }, { key: 't', label: 'Phòng ban / chức danh', render: l => U.cell2(esc(l.department ? Q.PAYROLL_DEPARTMENTS[l.department] : Q.departmentOf(l.employeeId, TH.calc.dates.periodEnd(period))), esc(titleLabel(l.title))) },
       { key: 'inputs', label: 'Đầu vào', render: l => l.missingInputs?.length ? U.chip(l.missingInputs.join(' · '),'red') : U.chip('Đủ dữ liệu','green') }, {key:'mt',label:'Tổng nhập tay',num:true,render:l=>l.manualTotal == null ? '–' : F.vnd(l.manualTotal)}, { key: 'pol', label: 'Chính sách', render: l => l.salaryPolicy ? U.cell2(esc(l.salaryPolicy.formulaVersion), (l.salaryPolicy.status === 'confirmed' ? U.chip('Đã xác nhận', 'green') : U.chip('Chờ xác nhận', 'amber')) + ' ' + esc(l.salaryPolicy.sourceRef || '')) : U.chip('Chưa có policy', 'red') },

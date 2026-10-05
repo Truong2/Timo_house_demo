@@ -30,7 +30,7 @@
     if (d.type === 'search') return U.field({ name: d.name, label: d.label, input: U.input({ name: d.name, value: q[d.name] || '', placeholder: d.placeholder || 'Tìm…', attrs: { 'data-f': d.name }, icon: 'search' }) });
     if (d.type === 'date') return U.field({ name: d.name, label: d.label, input: U.date({ name: d.name, value: q[d.name] || d.value || '', attrs: { 'data-f': d.name } }) });
     return U.field({ name: d.name, label: d.label, input: U.select({ name: d.name, value: q[d.name] == null ? (d.value || '') : q[d.name], options: d.options, all: d.all === false ? '' : (d.all || 'Tất cả'), attrs: { 'data-f': d.name } }) });
-  }), `<div class="field"><label>&nbsp;</label><button type="button" class="btn btn-ghost btn-sm" data-act="clear-f">Xóa bộ lọc</button></div>${extra}`);
+  }), `${defs.length > 1 ? `<div class="field f-clear"><label aria-hidden="true">&nbsp;</label><button type="button" class="btn btn-ghost btn-sm" data-act="clear-f">${I('x')}<span>Xóa lọc</span></button></div>` : ''}${extra}`, defs.filter(d => d.all !== false && q[d.name] != null && q[d.name] !== '').length);
   K.bindFilters = (root, keep = []) => {
     let t = null;
     root.addEventListener('change', (e) => { const el = e.target.closest('[data-f]'); if (!el || el.type === 'search' || el.name === 'q') return; TH.router.setQuery({ [el.dataset.f]: el.value, page: '' }); });

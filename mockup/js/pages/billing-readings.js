@@ -88,7 +88,7 @@
       U.table(tb.querySelector('#t'), { rows, pageSize: 30, cols: [
         { key: 'r', label: 'Phòng', render: r => `<b class="code">${esc(r.roomCode || Q.roomCode(r.roomId))}</b>` }, { key: 'e', label: 'Điện cũ → mới', num: true, render: r => F.num0(r.elPrev) + ' → ' + F.num0(r.elCurr) },
         { key: 'ea', label: 'Tiền điện', num: true, render: r => F.vnd(r.elAmount) }, { key: 'w', label: 'Nước', num: true, render: r => r.waCurr ? F.num0(r.waPrev) + ' → ' + F.num0(r.waCurr) : '–' }, { key: 'wa', label: 'Tiền nước', num: true, render: r => F.vnd(r.waAmount) },
-        { key: 'n', label: 'Lý do', render: r => esc({ PT: 'Phòng trống', 'kh phá hd': 'Khách phá HĐ không thu được' }[r.reason] || r.reason || '') }] });
+        { key: 'n', label: 'Lý do', cls: 'wrap sm', render: r => esc({ PT: 'Phòng trống', 'kh phá hd': 'Khách phá HĐ không thu được' }[r.reason] || r.reason || '') }] });
     }
   });
 })(window.TH);

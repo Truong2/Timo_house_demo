@@ -54,7 +54,7 @@
   L.setTitle = (meta) => { document.title = meta.title + ' · TimoHouse'; L.crumb([{ label: meta.title }]); };
   L.crumb = (items) => {
     const el = document.getElementById('crumbs'); if (!el) return;
-    el.innerHTML = items.map((it, i) => (i ? `<span class="sep">/</span>` : '') + (it.href && i < items.length - 1 ? `<a href="${it.href}">${esc(it.label)}</a>` : `<span class="${i === items.length - 1 ? 'cur' : ''}">${esc(it.label)}</span>`)).join('');
+    el.innerHTML = items.map((it, i) => (i ? `<span class="sep" aria-hidden="true">/</span>` : '') + (it.href && i < items.length - 1 ? `<a href="${it.href}">${esc(it.label)}</a>` : `<span class="${i === items.length - 1 ? 'cur' : ''}">${esc(it.label)}</span>`)).join('');
   };
   TH.layout = L;
 })(window.TH);

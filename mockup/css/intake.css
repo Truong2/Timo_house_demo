@@ -39,7 +39,7 @@
 .intake-form-group .section-h .btn{flex:none}
 .intake-workspace .field{min-width:0}
 .intake-workspace .field .help{min-width:0}
-.intake-source.btn{height:auto;min-height:20px;padding:2px 0;white-space:normal;justify-content:flex-start;align-items:flex-start;text-align:left;font-size:11px;font-weight:400;color:var(--muted);line-height:1.5;max-width:100%;overflow-wrap:anywhere}
+.intake-source.btn{height:auto;min-height:20px;padding:2px 0;white-space:normal;justify-content:flex-start;align-items:flex-start;text-align:left;font-size:12px;font-weight:400;color:var(--muted);line-height:1.5;max-width:100%;overflow-wrap:anywhere}
 .intake-source.btn .i{flex:none;width:13px;height:13px;margin-top:2px}
 .intake-source.btn:hover{background:transparent;color:var(--primary)}
 .intake-fee-table{min-width:590px}
@@ -70,7 +70,7 @@
 .intake-confirm input{flex:none;margin-top:4px}
 .intake-footer{position:sticky;top:calc(100dvh - 92px - var(--bottom-clearance));bottom:auto;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;margin-top:16px;box-shadow:var(--shadow-md)}
 .intake-footer>div:first-child{min-width:0}
-.intake-footer b{font-size:13px}.intake-footer small{display:block;font-size:11px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.intake-footer b{font-size:13px}.intake-footer small{display:block;font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
 .intake-source-row{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere;font-size:13px}
 .intake-source-row:last-child{border-bottom:0}
 .intake-source-row>span,.intake-source-row>small{font-size:12px;color:var(--muted);line-height:1.5}

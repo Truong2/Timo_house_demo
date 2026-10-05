@@ -16,10 +16,10 @@
       (!run || run.status !== 'closed') ? U.btn({ label: run ? 'Lưu lại phiên' : 'Lưu phiên phân bổ', icon: 'save', act: 'save', perm: 'allocation.manage' }) : '',
       run && run.status !== 'closed' ? U.btn({ label: 'Chốt phiên', icon: 'lock', cls: 'btn-primary', act: 'close', perm: 'allocation.manage' }) : ''] })
       + K.filters([{ name: 'period', label: 'Kỳ', options: S.all('periods').map(x => [x.id, F.periodLabel(x.id)]), value: '2026-08', all: false }], q)
-      + `<div class="grid grid-4 mt16 mb16">${U.kpi({ label: 'Mẫu số (tổng phòng hệ thống)', value: F.num0(res.denominator), cap: (run && run.overrideReason) || q.why ? 'Đã đổi: ' + esc((run && run.overrideReason) || q.why) : 'GĐ OQ-04', icon: 'hash' })}
-        ${U.kpi({ label: 'Số phòng các tòa trong phạm vi', value: F.num0(sumRooms), cap: Object.keys(basis.rooms).length + ' tòa', icon: 'building', tone: 'teal' })}
+      + `<div class="grid grid-4 mt16 mb16">${U.kpi({ label: 'Mẫu số (tổng phòng)', value: F.num0(res.denominator), cap: (run && run.overrideReason) || q.why ? 'Đã đổi: ' + esc((run && run.overrideReason) || q.why) : 'GĐ OQ-04', icon: 'hash' })}
+        ${U.kpi({ label: 'Số phòng trong phạm vi', value: F.num0(sumRooms), cap: Object.keys(basis.rooms).length + ' tòa', icon: 'building', tone: 'teal' })}
         ${U.kpi({ label: 'Tổng quỹ phân bổ', value: F.vnd(res.lines.reduce((s, l) => s + (l.fund || 0), 0)), icon: 'coins', tone: 'blue' })}
-        ${U.kpi({ label: 'Đã phân bổ (gồm phụ phí/phòng)', value: F.vnd(res.lines.reduce((s, l) => s + l.total, 0)), icon: 'split', tone: 'green' })}</div>`
+        ${U.kpi({ label: 'Đã phân bổ', value: F.vnd(res.lines.reduce((s, l) => s + l.total, 0)), cap: 'gồm phụ phí theo phòng', icon: 'split', tone: 'green' })}</div>`
       + (gap ? U.note('danger', 'Thiếu cơ sở phân bổ (E17)', `Mẫu số ${F.num0(res.denominator)} nhưng tổng phòng các tòa = ${F.num0(sumRooms)} (lệch ${F.num0(gap)}). Phần quỹ tương ứng chưa phân bổ – kiểm tra tòa thiếu số phòng hoặc ghi lý do đổi mẫu số.`) : U.note('ok', 'Tổng phân bổ khớp quỹ', 'Tổng số phòng các tòa = mẫu số → toàn bộ quỹ được phân bổ.'))
       + ((res.missingFunds || []).length ? U.note('warn', 'Chưa có số tiền quỹ', esc(res.missingFunds.join(', ')) + ' – ghi chi phí "Quỹ chung" tương ứng ở Chi phí hoặc chốt bảng lương.') : '')
       + U.card({ title: 'Quỹ chung và kết quả', icon: 'split', body: `<table class="tbl compact"><thead><tr><th>Dòng báo cáo</th><th>Công thức G1 (SRC-07)</th><th class="num">Quỹ</th><th class="num">Phụ phí/phòng</th><th class="num">Cố định/tòa</th><th class="num">Tổng phân bổ</th><th class="num">G1 (web)</th></tr></thead><tbody>
@@ -28,7 +28,7 @@
     K.bindFilters(root, []);
     U.table(root.querySelector('#t'), { rows: bids, pageSize: 25, cols: [
       { key: 'b', label: 'Tòa', render: b => `<b>${esc(bcode(b))}</b>` }, { key: 'r', label: 'Số phòng', num: true, render: b => basis.rooms[b] || 0 },
-      ...res.lines.map(l => ({ key: l.lineCode, label: esc(l.label.replace('Lương ', 'L. ')), num: true, render: b => F.vnd(l.results[b] || 0) })),
+      ...res.lines.map(l => ({ key: l.lineCode, label: esc(l.label.replace('Lương ', 'L. ')), num: true, cls: 'hwrap', render: b => F.vnd(l.results[b] || 0) })),
       { key: 'sum', label: 'Tổng', num: true, render: b => `<b>${F.vnd(res.lines.reduce((s, l) => s + (l.results[b] || 0), 0))}</b>` }] });
     U.bind(root, { adj: () => TH.pages.adjustDrawer(period, { reportLine: 'sal_gm' }),
       save: () => K.act(() => X.saveAllocation(period, q.den ? { denominator: q.den, reason: q.why } : null), 'Đã lưu phiên phân bổ'),

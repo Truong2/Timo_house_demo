@@ -44,9 +44,9 @@
     K.bindFilters(root);
     const tb = root.querySelector('#tb');
     tb.innerHTML = K.tableCard('t', rows.length + ' tài sản');
-    U.table(tb.querySelector('#t'), { rows: rows.slice().sort((a, b) => a.code.localeCompare(b.code)), pageSize: 25, cols: [
+    U.table(tb.querySelector('#t'), { rows: rows.slice().sort((a, b) => a.code.localeCompare(b.code)), pageSize: 25, stickyFirst: true, cols: [
       { key: 'c', label: 'Mã TS', sortable: true, sortVal: a => a.code, render: a => `<a href="#" data-act="view" data-id="${a.id}"><b>${esc(a.code)}</b></a>` },
-      { key: 'n', label: 'Tên tài sản', render: a => esc(a.name) + (a.status !== 'active' ? ' ' + U.chip(AS.STATUS[a.status], ST_TONE[a.status]) : '') },
+      { key: 'n', label: 'Tên tài sản', cls: 'wrap', render: a => esc(a.name) + (a.status !== 'active' ? ' ' + U.chip(AS.STATUS[a.status], ST_TONE[a.status]) : '') },
       { key: 't', label: 'Loại', render: a => esc(AS.typeLabel(a.type)) }, { key: 'o', label: 'Nguồn sở hữu', render: a => U.chip(AS.ownLabel(a.ownership), OWN_TONE[a.ownership]) },
       { key: 'w', label: 'Tòa / phòng / vị trí', render: where }, { key: 'q', label: 'SL', num: true, render: a => F.num0(a.qty) },
       { key: 'cd', label: 'Tình trạng', render: a => U.chip(AS.condLabel(a.condition), COND_TONE[a.condition] || 'gray', true) }, { key: 'rd', label: 'Ngày nhận / bàn giao', sortable: true, sortVal: a => a.receivedDate, render: a => F.date(a.receivedDate) },

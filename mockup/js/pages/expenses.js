@@ -58,8 +58,8 @@
         ['Nguồn nghiệp vụ', sourceLink], ['Người ghi', esc(e.enteredBy || 'Import Excel')], ['Chứng từ / bằng chứng', esc(e.evidence || 'Chưa gắn file')]
       ]) + U.note('info', 'Liên kết hai chiều', `${U.link('#/reports/buildings?period=' + e.period + (e.buildingId ? '&building=' + e.buildingId : '') + '&line=' + encodeURIComponent(e.reportLine || ''), 'Mở ô báo cáo liên quan')} · Khi mở drill-down báo cáo, chứng từ ${esc(e.code)} được liệt kê theo cùng dòng và kỳ.`) });
     };
-    U.table(root.querySelector('#t'), { rows, pageSize: 25, onRowOpen: traceExpense, cols: [
-      { key: 'code', label: 'Mã chi phí', render: e => `<b>${esc(e.code)}</b>` }, { key: 'note', label: 'Nội dung', render: e => U.cell2(esc(e.note || catLabel(e.category)), esc(e.vendor || '')) },
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, stickyFirst: true, onRowOpen: traceExpense, cols: [
+      { key: 'code', label: 'Mã chi phí', render: e => `<b>${esc(e.code)}</b>` }, { key: 'note', label: 'Nội dung', cls: 'wrap', render: e => U.cell2(esc(e.note || catLabel(e.category)), esc(e.vendor || '')) },
       { key: 'cat', label: 'Loại', render: e => esc(catLabel(e.category)) }, { key: 'sc', label: 'Tòa / quỹ', render: e => e.scope === 'fund' ? U.chip((CAT().funds.find(f => f.code === e.fundCode) || {}).label || 'Quỹ chung', 'purple') : `<b>${esc((Q.building(e.buildingId) || {}).code || '')}</b>${e.roomId ? ' · ' + esc(Q.roomCode(e.roomId)) : ''}` },
       { key: 'line', label: 'Dòng báo cáo', render: e => `<span class="small">${esc(lineLabel(e.reportLine))}</span>` }, { key: 'd', label: 'Ngày chi', sortable: true, sortVal: e => e.date, render: e => F.date(e.date) },
       { key: 'p', label: 'Kỳ hưởng', render: e => F.periodShort(e.period) + (F.period(e.date) !== e.period ? ' ' + U.chip('khác tháng chi', 'amber') : '') },

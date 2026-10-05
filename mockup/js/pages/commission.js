@@ -97,7 +97,7 @@
         { key: 'F', label: 'F', num: true, render: r => F.vnd(r.Fweb) }, { key: 'G', label: 'G', render: r => esc(r.termRaw || '') }, { key: 'H', label: 'H Excel', num: true, render: r => pct(r.H) },
         { key: 'sg', label: 'H gợi ý', num: true, render: r => r.match ? `<span class="green">${pct(r.suggested)}</span>` : `<span class="amber" data-tip="${esc(r.why)}">${pct(r.suggested)}</span>` },
         { key: 'I', label: 'I Excel', num: true, render: r => r.I != null ? (r.I % 1 ? v1(r.I) : F.vnd(r.I)) : '–' }, { key: 'w', label: 'I web', num: true, render: r => r.web != null ? (r.web % 1 ? v1(r.web) : F.vnd(r.web)) : '–' },
-        { key: 'df', label: 'Lệch', num: true, render: r => r.diff == null ? '–' : Math.abs(r.diff) > 0.01 ? `<b class="red">${F.vnd(r.diff)}</b>` : '<span class="green">0</span>' }, { key: 'n', label: 'Ghi chú', render: r => `<span class="small">${esc([r.note, r.why].filter(Boolean).join(' · '))}</span>` }],
+        { key: 'df', label: 'Lệch', num: true, render: r => r.diff == null ? '–' : Math.abs(r.diff) > 0.01 ? `<b class="red">${F.vnd(r.diff)}</b>` : '<span class="green">0</span>' }, { key: 'n', label: 'Ghi chú', cls: 'wrap', render: r => `<span class="small">${esc([r.note, r.why].filter(Boolean).join(' · '))}</span>` }],
         footer: () => `<tr><td colspan="8"><b>Tổng</b></td><td class="num"><b>${v1(B.excelTotal)}</b></td><td class="num"><b>${v1(B.webTotal)}</b></td><td></td><td></td></tr>` });
     }
     if (tab === 'nhan-su') {

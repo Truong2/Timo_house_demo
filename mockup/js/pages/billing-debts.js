@@ -28,7 +28,7 @@
       + (!full ? U.note('info', 'Chế độ xem theo quyền', 'Vai trò của bạn thấy trạng thái và số còn nợ của phòng được giao; tổng tiền và phiếu thu chỉ kế toán/admin xem (CH-01).') : '')
       + '<div class="mt16">' + K.tableCard('t', `${rows.length} khoản`, '', 'Định danh bằng mã phòng + mã tòa (SRC-02!E4); tên khách xem ở chi tiết') + '</div>';
     K.bindFilters(root, ['group']);
-    U.table(root.querySelector('#t'), { rows, pageSize: 25, onRowOpen: (x) => drawer(x.i, asOf), cols: [
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, stickyFirst: true, onRowOpen: (x) => drawer(x.i, asOf), cols: [
       { key: 'r', label: 'Phòng', sortable: true, sortVal: x => Q.roomCode(x.i.roomId), render: x => `<b class="code">${esc(Q.roomCode(x.i.roomId))}</b>` + (TH.actions.isOwnerTenantInv(x.i) ? ' ' + U.chip('Khách chủ nhà', 'teal') : '') + (x.i.kind === 'deposit_excess' ? ' ' + U.chip('Vượt cọc', 'purple') : '') },
       { key: 'kh', label: 'Mã KH', render: x => esc(x.i.customerCode) }, { key: 'p', label: 'Kỳ', render: x => F.periodShort(x.i.period) }, { key: 'due', label: 'Hạn', render: x => F.date(x.i.dueTo) },
       { key: 'd', label: 'Phải thu', num: true, render: x => full ? F.vnd(x.i.totalDue) : '•••' }, { key: 'pd', label: 'Đã phân bổ', num: true, render: x => full ? F.vnd(x.st.paid) : '•••' },

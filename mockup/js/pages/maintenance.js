@@ -33,17 +33,17 @@
       + '<div id="tb" class="mt16"></div>';
     K.bindFilters(root, q.asset ? ['asset'] : []);
     const tb = root.querySelector('#tb'); tb.innerHTML = K.tableCard('t', rows.length + ' lần bảo dưỡng');
-    U.table(tb.querySelector('#t'), { rows, pageSize: 25, rowClass: t => t.state.status === 'overdue' ? 'tint-red' : t.state.soon ? 'tint-amber' : '', cols: [
+    U.table(tb.querySelector('#t'), { rows, pageSize: 25, stickyFirst: true, rowClass: t => t.state.status === 'overdue' ? 'tint-red' : t.state.soon ? 'tint-amber' : '', cols: [
       { key: 'c', label: 'Mã', render: t => `<b>${esc(t.code)}</b>` },
-      { key: 'a', label: 'Tài sản / tòa', render: t => { const a = Q.asset(t.assetId) || {}; return `<a href="#/assets?building=${t.buildingId}&asset=${a.id}">${esc(a.code || '')}</a> ${esc(a.name || '')}<br><small class="muted">${esc((Q.building(t.buildingId) || {}).code || '')}${a.roomId ? ' · ' + esc(Q.roomCode(a.roomId)) : a.position ? ' · ' + esc(a.position) : ''}</small>`; } },
-      { key: 'k', label: 'Loại bảo dưỡng', render: t => esc(t.kind) }, { key: 'cy', label: 'Chu kỳ', render: t => t.cycleMonths ? esc((MT.CYCLES.find(c => c[0] === t.cycleMonths) || [0, t.cycleMonths + ' tháng'])[1]) : '<span class="muted">nhập tay</span>' },
+      { key: 'a', label: 'Tài sản / tòa', cls: 'wrap sm', render: t => { const a = Q.asset(t.assetId) || {}; return `<a href="#/assets?building=${t.buildingId}&asset=${a.id}">${esc(a.code || '')}</a> ${esc(a.name || '')}<br><small class="muted">${esc((Q.building(t.buildingId) || {}).code || '')}${a.roomId ? ' · ' + esc(Q.roomCode(a.roomId)) : a.position ? ' · ' + esc(a.position) : ''}</small>`; } },
+      { key: 'k', label: 'Loại bảo dưỡng', cls: 'wrap sm', render: t => esc(t.kind) }, { key: 'cy', label: 'Chu kỳ', render: t => t.cycleMonths ? esc((MT.CYCLES.find(c => c[0] === t.cycleMonths) || [0, t.cycleMonths + ' tháng'])[1]) : '<span class="muted">nhập tay</span>' },
       { key: 'd', label: 'Ngày dự kiến', sortable: true, sortVal: t => t.dueDate, render: t => F.date(t.dueDate) + dueText(t) },
       { key: 'l', label: 'Leader / team', render: t => empName(t.leaderId) || '–' }, { key: 'g', label: 'Người được giao', render: t => empName(t.assigneeId) || '<span class="muted">–</span>' },
-      { key: 'pf', label: 'Người thực hiện / đơn vị', render: t => [empName(t.performerId), esc(t.vendor || '')].filter(Boolean).join('<br><small class="muted">') + (t.performerId && t.vendor ? '</small>' : '') || '–' },
+      { key: 'pf', label: 'Người thực hiện / đơn vị', cls: 'wrap sm', render: t => [empName(t.performerId), esc(t.vendor || '')].filter(Boolean).join('<br><small class="muted">') + (t.performerId && t.vendor ? '</small>' : '') || '–' },
       { key: 's', label: 'Trạng thái', render: t => TH.pages.maintChip(t) }, { key: 'dd', label: 'Ngày thực hiện', render: t => t.doneDate ? F.date(t.doneDate) : '–' },
-      { key: 'r', label: 'Kết quả', render: t => `<span class="small">${esc(t.result || t.cancelReason || '')}</span>` },
+      { key: 'r', label: 'Kết quả', cls: 'wrap', render: t => `<span class="small">${esc(t.result || t.cancelReason || '')}</span>` },
       ...(A.can('expenses.view') ? [{ key: 'cp', label: 'Chi phí', render: t => { const e = t.expenseId ? S.get('expenses', t.expenseId) : null; return e ? `<a href="#/expenses?period=${e.period}&q=${encodeURIComponent(e.code)}">${esc(e.code)}</a><br><small>${F.vnd(e.amount)}</small>` : '–'; } }] : []),
-      { key: 'ph', label: 'Ảnh / ghi chú', render: t => ((t.photos || []).length ? U.chip(t.photos.length + ' ảnh', 'blue') + ' ' : '') + `<span class="small muted">${esc(t.note || '')}</span>` },
+      { key: 'ph', label: 'Ảnh / ghi chú', cls: 'wrap', render: t => ((t.photos || []).length ? U.chip(t.photos.length + ' ảnh', 'blue') + ' ' : '') + `<span class="small muted">${esc(t.note || '')}</span>` },
       { key: 'sc', label: 'Sửa chữa UI-47', render: t => (t.repairLogIds || []).length ? `<a href="#/repairs?building=${t.buildingId}">${t.repairLogIds.length} việc</a>` : '–' },
       { key: 'x', label: '', render: t => t.status !== 'planned' ? (t.nextId ? `<small class="muted">kế tiếp ${esc((Q.maintTask(t.nextId) || {}).code || '')}</small>` : '') :
         U.actBtn({ icon: 'check-circle', label: 'Hoàn thành', act: 'done', attrs: { 'data-id': t.id }, perm: 'maintenance.done' }) + U.actBtn({ icon: 'pencil', label: 'Sửa lịch', act: 'edit', attrs: { 'data-id': t.id }, perm: 'maintenance.plan' }) + U.actBtn({ icon: 'x-circle', label: 'Hủy', act: 'cancel', attrs: { 'data-id': t.id }, perm: 'maintenance.plan' }) }] });

@@ -103,7 +103,7 @@
       </div></div>`;
     U.table(root.querySelector('#vt'), { rows: vs, noPager: true, cols: [
       { key: 'no', label: 'Phụ lục', render: v => esc(v.appendixNo || 'HĐ gốc') }, { key: 'f', label: 'Từ ngày', render: v => F.date(v.from) }, { key: 't', label: 'Đến ngày', render: v => v.to ? F.date(v.to) : '–' },
-      { key: 'r', label: 'Giá thuê', num: true, render: v => F.vnd(v.monthlyRent) }, { key: 'l', label: 'Lý do', render: v => esc(v.reason || '') },
+      { key: 'r', label: 'Giá thuê', num: true, render: v => F.vnd(v.monthlyRent) }, { key: 'l', label: 'Lý do', cls: 'wrap sm', render: v => esc(v.reason || '') },
       { key: 's', label: 'Trạng thái', render: v => (!v.to || v.to >= F.today()) && v.from <= F.today() ? U.chip('Đang áp dụng', 'green') : v.from > F.today() ? U.chip('Sắp hiệu lực', 'blue') : U.chip('Hết hiệu lực', 'gray') }] });
     U.table(root.querySelector('#cvt'), { rows: contractVersions, noPager: true, empty: U.empty({ title: 'Chưa có snapshot phiên hợp đồng' }), cols: [
       { key: 'v', label: 'Phiên', render: v => `<b>v${v.version}</b><br><small>${esc(v.kind || 'metadata')}</small>` }, { key: 'f', label: 'Hiệu lực', render: v => F.date(v.effectiveFrom) },

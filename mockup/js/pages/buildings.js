@@ -72,10 +72,10 @@
         { name: 'roomStatus', label: 'Phòng', options: [['vacant_cleaning', 'Có phòng cần kiểm tra/dọn']] }], q)
       + `<div class="mt16">${K.tableCard('tbl', `Tổng ${rows.length} tòa`)}</div>`;
     K.bindFilters(root);
-    const t = U.table(root.querySelector('#tbl'), { rows, pageSize: 20, rowHref: r => '#/buildings/' + r.b.id, cols: [
+    const t = U.table(root.querySelector('#tbl'), { rows, pageSize: 20, stickyFirst: true, rowHref: r => '#/buildings/' + r.b.id, cols: [
       { key: 'code', label: 'Mã tòa', sortable: true, sortVal: r => r.b.code, render: r => `<b>${esc(r.b.code)}</b>` },
       { key: 'group', label: 'T/S/G', render: r => U.chip('Nhà ' + r.b.group, { T: 'blue', S: 'teal', G: 'purple' }[r.b.group]) },
-      { key: 'addr', label: 'Địa chỉ', render: r => `<span class="small">${esc(r.b.address)}</span>` },
+      { key: 'addr', label: 'Địa chỉ', cls: 'wrap', render: r => `<span class="small">${esc(r.b.address)}</span>` },
       { key: 'area', label: 'Khu vực', render: r => esc(r.area || '') },
       { key: 'own', label: 'Chủ nhà', render: r => TH.auth.can('owners.view') ? esc(r.owner || '–') : '•••' },
       { key: 'fl', label: 'Tầng', num: true, render: r => r.b.floors || '–' }, { key: 'lv', label: 'Tình trạng', render: r => r.b.level ? U.chip(r.b.level, 'gray') : '–' },
@@ -149,7 +149,7 @@
       body.innerHTML = K.filters([{ name: 'rs', label: 'Trạng thái', options: Object.entries(TH.data.catalog.roomStatuses).map(([k, v]) => [k, v.label]) }], q, '') + '<div class="mt12">' + K.tableCard('rt', 'Danh sách phòng') + '</div>';
       K.bindFilters(body, ['tab']);
       let rr = rooms; if (q.rs) rr = rr.filter(r => r.status === q.rs);
-      U.table(body.querySelector('#rt'), { rows: rr, pageSize: 50, onRowOpen: roomDrawer, cols: [
+      U.table(body.querySelector('#rt'), { rows: rr, pageSize: 50, stickyFirst: true, onRowOpen: roomDrawer, cols: [
         { key: 'code', label: 'Mã phòng', sortable: true, render: r => `<b class="code">${esc(r.code)}</b>` }, { key: 'fl', label: 'Tầng', num: true, sortable: true, sortVal: r => r.floor || 0, render: r => r.floor ?? '–' },
         { key: 'type', label: 'Loại', render: r => esc(TH.data.catalog.exploitation[r.exploitation] === undefined ? r.type : r.exploitation === 'timehouse' ? r.type : TH.data.catalog.exploitation[r.exploitation]) },
         { key: 'area', label: 'm²', num: true, render: r => r.area || '–' },

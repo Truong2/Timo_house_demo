@@ -19,8 +19,8 @@
     if (TH.auth.can('buildings.view') && role !== 'sale' && role !== 'kythuat') {
       const O = TH.qo.rooms(period, (b) => bset.has(b)); const T = O.totals;
       const f1 = (v) => v == null ? '–' : String(Math.round(v * 10) / 10).replace('.', ',');
-      cards.push(U.kpi({ label: T.hsFinal ? 'HS thực tế' : 'HS (tạm tính)', value: f1(T.hs), cap: 'thu trong 3 mốc / giá niêm yết – cùng công thức lương (OQ-18)' + (O.parallel ? ' · số Excel kỳ song song' : '') + (TH.auth.can('reports.ops') ? ` · <a href="#/reports/rooms?view=hs&period=${period}${['group', 'area', 'manager', 'leader', 'direct'].filter(k => q[k]).map(k => '&' + k + '=' + encodeURIComponent(q[k])).join('')}">chi tiết theo tòa (UI-45)</a>` : ''), icon: 'gauge', tone: 'blue' }));
-      cards.push(U.kpi({ label: 'HS tạm tính', value: f1(T.hsTemp), cap: '(tiền nhà đã thu + bỏ cọc) / giá niêm yết – không phải lấp đầy', icon: 'activity', tone: 'purple' }));
+      cards.push(U.kpi({ label: T.hsFinal ? 'HS thực tế' : 'HS (tạm tính)', value: f1(T.hs), cap: 'thu trong 3 mốc / giá niêm yết' + (O.parallel ? ' · số Excel kỳ song song' : '') + (TH.auth.can('reports.ops') ? ` · <a href="#/reports/rooms?view=hs&period=${period}${['group', 'area', 'manager', 'leader', 'direct'].filter(k => q[k]).map(k => '&' + k + '=' + encodeURIComponent(q[k])).join('')}">chi tiết theo tòa</a>` : ''), icon: 'gauge', tone: 'blue' }));
+      cards.push(U.kpi({ label: 'HS tạm tính', value: f1(T.hsTemp), cap: '(tiền nhà đã thu + bỏ cọc) / giá niêm yết', icon: 'activity', tone: 'purple' }));
     }
     const mine = TH.auth.can('sales.view') ? Q.salesScoped(S.all('deals')) : [];
     if (TH.auth.can('sales.view') && (mine.length || role === 'sale')) { const inP = mine.filter(d => F.period(d.closeDate) === period && !['cancelled', 'forfeited'].includes(d.status));
@@ -30,9 +30,9 @@
     if (TH.auth.can('zalo.inbox') && Q.inboxScoped) { const ib = Q.inboxScoped().filter(x => x.status !== 'done'); cards.push(U.kpi({ label: 'Phản hồi Zalo chờ xử lý', value: ib.length, cap: (role === 'truongphong' ? 'gán cho nhánh của tôi' : 'toàn hệ thống') + ' · <a href="#/zalo/inbox">mở hộp thư</a>', icon: 'inbox', tone: ib.length ? 'amber' : 'gray' })); }
     // Phase 3: nhắc bảo dưỡng trên web (CH-32) – theo phạm vi tòa của vai trò / nhánh leader (F11)
     if (TH.ms.on('3') && TH.auth.can('maintenance.view') && Q.maintStats) { const ms = Q.maintStats(); cards.push(U.kpi({ label: 'Bảo dưỡng', value: ms.overdue + ' quá hạn', cap: ms.soon + ' việc trong ' + ms.remindDays + ' ngày tới · <a href="#/assets/maintenance?soon=1">mở lịch UI-35</a>', icon: 'wrench', tone: ms.overdue ? 'red' : ms.soon ? 'amber' : 'gray' })); }
-    if (TH.ms.on('3') && TH.auth.can('inventory.enter')) { const iv = Q.inventoryStats(period); cards.push(U.kpi({ label: 'Kiểm kê ' + F.periodShort(period), value: iv.pending + '/' + iv.total + ' tòa chưa xong', cap: '<a href="#/assets/inventory?period=' + period + '">Mở kiểm kê UI-36</a>', icon: 'clipboard-check', tone: iv.pending ? 'amber' : 'green' })); }
+    if (TH.ms.on('3') && TH.auth.can('inventory.enter')) { const iv = Q.inventoryStats(period); cards.push(U.kpi({ label: 'Kiểm kê ' + F.periodShort(period), value: iv.pending + '/' + iv.total, cap: 'tòa chưa kiểm kê xong · <a href="#/assets/inventory?period=' + period + '">mở kiểm kê</a>', icon: 'clipboard-check', tone: iv.pending ? 'amber' : 'green' })); }
     if (role === 'kythuat' && Q.repairsScoped) { const rs = Q.repairsScoped(S.all('repairLogs')).filter(r => r.status === 'draft'); cards.push(U.kpi({ label: 'Việc sửa chữa chờ xác nhận', value: rs.length, cap: '<a href="#/repairs">mở sổ sửa chữa</a>', icon: 'wrench', tone: 'blue' })); }
-    return cards.length ? `<div class="grid grid-${Math.min(4, cards.length)} mt16">${cards.join('')}</div>` : '';
+    return cards.length ? `<div class="grid grid-${cards.length <= 4 ? cards.length : cards.length <= 6 ? 3 : 4} mt16">${cards.join('')}</div>` : '';
   };
   TH.router.handle('/dashboard', (root, p, q) => {
     const period = q.period || S.meta.period;
@@ -64,7 +64,7 @@
     const msStatus = () => {
       if (!TH.auth.can('collection.view')) return '';
       const cs = Q.collectionProgress(period, q).rows.flatMap(r => r.ms.filter(m => m.reached)), ok = cs.filter(m => m.approved).length, pend = cs.filter(m => m.pending).length;
-      return `<div class="small mt8"><a href="#/billing/collection?period=${period}">Thu tiền theo tòa</a>: ${ok}/${cs.length} mốc đã duyệt${pend ? ' · ' + pend + ' chờ duyệt' : ''} – lương vận hành dùng số đã duyệt</div>`;
+      return `<span>Số quản lý cập nhật: <b>${ok}/${cs.length}</b> mốc đã duyệt${pend ? ' · ' + pend + ' chờ duyệt' : ''}</span><a class="link" href="#/billing/collection?period=${period}">Thu tiền theo tòa</a>`;
     };
     const exp = Q.expiring().filter(s => bset.has(s.buildingId));
     const zErr = S.where('zaloMessages', m => m.status === 'failed' && bset.has(m.buildingId));
@@ -101,7 +101,7 @@
       </div>`)
       + (TH.ms.on('2') ? p2Row(period, bset, q) : '')
       + (!opsView ? '' : `<div class="two-col mt16"><div class="side-stack">
-        ${U.card({ title: 'Tiến độ thu theo mốc (ngày tiền thực nhận)', icon: 'activity', sub: `Mốc ${msDays.join('/')} (tham số) dùng đo tiến độ và tính lương – không phải hạn thanh toán; thu thừa không tính quá số phải thu`, body: `<div class="ms-bars">${ms.map(m => { const v = due ? Math.min(1, m.amount / due) : 0; return `<div class="ms-bar"><div class="row between"><b>Đến hết ngày ${m.day}/${Number(period.slice(5))}</b><span>${money ? F.vnd(m.amount) + ' · ' : ''}${F.pctv(v)}</span></div><div class="progress"><i style="width:${Math.min(100, v * 100)}%"></i></div></div>`; }).join('')}</div>${msStatus()}` })}
+        ${U.card({ title: 'Tiến độ thu theo mốc (ngày tiền thực nhận)', icon: 'activity', sub: `Mốc ngày ${msDays.join(', ')} đo tiến độ và tính lương – không phải hạn thanh toán`, body: `<div class="ms-bars">${ms.map(m => { const v = due ? Math.min(1, m.amount / due) : 0; return `<div class="ms-bar"><div class="row between"><b>Đến hết ngày ${m.day}/${Number(period.slice(5))}</b><span>${money ? F.vnd(m.amount) + ' · ' : ''}${F.pctv(v)}</span></div><div class="progress"><i style="width:${Math.min(100, v * 100)}%"></i></div></div>`; }).join('')}</div>`, footer: msStatus() })}
         ${U.card({ title: 'Tòa cần chú ý', icon: 'building', sub: 'Xếp theo số còn nợ', body: '<div id="db-bld"></div>', bodyCls: 'flush' })}
       </div><div class="side-stack">
         ${U.card({ title: 'Việc cần xử lý', icon: 'clipboard-check', body: `<div class="todo">

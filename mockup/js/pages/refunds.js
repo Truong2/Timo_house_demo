@@ -14,7 +14,7 @@
       + K.filters([{ name: 'q', type: 'search', label: 'Tìm', placeholder: 'Mã phiếu, phòng, mã KH' }, { name: 'status', label: 'Trạng thái', options: [['open', 'Chưa hoàn'], ...Object.entries(ST).map(([k, v]) => [k, v[0]])] }, { name: 'dateBasis', label: 'Ngày lọc', options: [['handoverDate', 'Ngày bàn giao'], ['paidAt', 'Ngày chi hoàn']], value: 'handoverDate', all: false }, { name: 'from', type: 'date', label: 'Từ ngày' }, { name: 'to', type: 'date', label: 'Đến ngày' }, { name: 'area', label: 'Khu vực', options: K.areaOpts() }, { name: 'building', label: 'Tòa', options: K.buildingOpts() }, { name: 'manager', label: 'Quản lý', options: K.managerOpts() }, { name: 'leader', label: 'Leader', options: Q.teamLeaders().map(e => [e.id, e.name]) }, ...(q.leader ? [{ name: 'direct', label: 'Phạm vi team', options: [['1', 'Chỉ team trực tiếp']], all: 'Cả nhánh' }] : [])], q)
       + '<div class="mt16">' + K.tableCard('t', rows.length + ' phiếu') + '</div>';
     K.bindFilters(root);
-    U.table(root.querySelector('#t'), { rows, pageSize: 25, rowHref: r => '#/refunds/' + r.id, cols: [
+    U.table(root.querySelector('#t'), { rows, pageSize: 25, stickyFirst: true, rowHref: r => '#/refunds/' + r.id, cols: [
       { key: 'code', label: 'Mã phiếu', render: r => `<b>${esc(r.code)}</b>` }, { key: 'room', label: 'Phòng', render: r => `<span class="code">${esc(Q.roomCode(r.roomId))}</span>` },
       { key: 'kh', label: 'Lượt thuê', render: r => { const s = Q.stay(r.stayId); return U.cell2(esc(s.code), esc((Q.customer(s.customerId) || {}).name || '')); } },
       { key: 'mgr', label: 'Quản lý / leader', render: r => { const x = detailOf[r.id]; return U.cell2(esc((x.manager || {}).name || 'Chưa phân công'), esc((x.leader || {}).name || 'Chưa có leader')); } },
