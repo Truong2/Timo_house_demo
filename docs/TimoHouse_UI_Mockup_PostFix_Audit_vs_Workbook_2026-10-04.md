@@ -1,6 +1,6 @@
 # Audit UI mockup sau sửa — đối chiếu workbook ngày 04/10/2026
 
-> Đây là kết quả trước đợt sửa 8 gap, trên commit `3d5b645`. Xem kết quả đợt sửa tiếp theo tại [Audit Gap Completion](uat/Audit_Gap_Completion_2026-10-04.md).
+> Đây là kết quả trước đợt sửa 8 gap, trên commit `3d5b645`; giữ lại làm baseline lịch sử. Trạng thái sau sửa trên source và Netlify tại commit `6200ea2` xem [Gap Closure Review 2026-10-06](uat/Gap_Closure_Review_2026-10-06.md). Các mục cần nghiệp vụ xác nhận vẫn mở trong [Business Decision Log](uat/Business_Decisions_Open_2026-10-06.md).
 
 **Kết luận: chưa khớp hoàn toàn.** Có chức năng tương ứng với đủ 10 nhóm menu nguồn; đã tái hiện **6 gap chức năng/trường UI** và **2 mục còn PARTIAL về cách tính**. Các lỗi nằm trên cả source và Netlify hiện tại, không phải deploy cũ.
 

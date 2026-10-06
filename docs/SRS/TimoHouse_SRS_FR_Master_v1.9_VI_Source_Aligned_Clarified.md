@@ -109,6 +109,11 @@
   - Giai đoạn mở tòa `SETUP`: chi phí khởi tạo (gồm phí môi giới nhà), Bảng thu chi ban đầu và công thức chia lãi/lỗ đầu kỳ theo cổ đông từ G1 `THU CHI BAN ĐẦU`; khử trùng với `ĐẦU TƯ BAN ĐẦU` (FR08, FR27, FR44, FR45).
   - `NEW_DEPOSIT_COLLECTED` để Báo cáo Kinh doanh cùng cơ sở thực thu với Tổng doanh thu (FR38, FR39, FR41).
 
+**Kiểm tra triển khai (06/10/2026 — bằng chứng kỹ thuật, không thay thế phê duyệt nghiệp vụ):**
+- Tại commit `6200ea2`, 8 gap giao diện/luồng trong audit 04/10 đều PASS trên mockup local và Netlify: xe → hóa đơn, tách phí xe, lọc chi phí, thống kê cổ đông theo ngày xem, lọc trưởng khu vực trong báo cáo sale, STT nhân sự sale, điều khiển mode lương và mode Báo cáo Kinh doanh. Chi tiết/bằng chứng: [`Gap Closure Review`](../uat/Gap_Closure_Review_2026-10-06.md).
+- **Không đóng các điểm C-01…C-29 chỉ vì test kỹ thuật PASS.** Riêng C-02 còn lệch: web mode hiện loại hoàn cọc khỏi Báo cáo Kinh doanh, trong khi mặc định `BUSINESS_V1_WORKBOOK` mô tả ở SRS giữ hoàn cọc đã trừ trong `TOTAL_REVENUE`. Cần người có thẩm quyền xác nhận mode chính thức trước khi cập nhật công thức/đóng C-02.
+- Phân phase C-15/C-25 và các policy được liệt kê tại [Business Decision Log](../uat/Business_Decisions_Open_2026-10-06.md) vẫn chờ xác nhận.
+
 ## Cơ sở tài liệu nguồn
 
 | Mã nguồn | Tài liệu |
